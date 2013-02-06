@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohappointment.model">
+
+	<!-- ChangedAppointment -->
+	<class name="ChangedAppointment" table="moh_appointment_changed_appointment">
+
+		<id name="changedAppointId" type="int" column="changed_appoint_id">
+			<generator class="native" />
+		</id>
+
+		<property name="newDateOfAppointment" column="new_date_of_appointment"
+			type="date" />
+		<property name="reason" column="reason" type="text" />
+
+		<many-to-one name="appointment"
+			class="org.openmrs.module.mohappointment.model.Appointment" column="appointment_id" />
+
+
+	</class>
+
+</hibernate-mapping>

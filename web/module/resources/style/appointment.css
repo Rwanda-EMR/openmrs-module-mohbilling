@@ -1,0 +1,7 @@
+@CHARSET "ISO-8859-1";
+
+.searchParameterBox{
+	-moz-border-radius: 2px;
+	border: 1px solid #8FABC7;
+	margin: 5px 5px;
+}

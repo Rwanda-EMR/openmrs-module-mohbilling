@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohappointment.model">
+
+	<!-- service -->
+	<class name="Services" table="moh_appointment_service">
+
+		<id name="serviceId" type="int" column="service_id">
+			<generator class="native" />
+		</id>
+
+		<property name="name" column="name" type="text" />
+		<property name="description" column="description" type="text" />
+		<property name="retired" column="retired" type="boolean" />
+		<property name="retireDate" column="retire_date" type="java.util.Date" />
+		<property name="retireReason" column="retire_reason" type="java.lang.String" />
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+		
+		<many-to-one name="concept" class="org.openmrs.Concept" column="concept_id" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
+
+	</class>
+
+</hibernate-mapping>

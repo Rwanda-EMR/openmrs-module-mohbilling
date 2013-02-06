@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+  
+  	<!-- appointment table -->
+	  <appointment appointment_id="1" patient_id="6" note="Appointment for the patient" attended="0" reason_obs_id="10" visit_date_obs_id="11"  location_id="1" appointment_date="2011-12-15 00:00:00.0" provider_id="1" encounter_id="3" appointment_state_id="3" voided="0" />
+	  <appointment appointment_id="2" patient_id="7" note="Appointment for the patient" attended="0" reason_obs_id="12" visit_date_obs_id="13"  location_id="2" appointment_date="2011-12-15 00:00:00.0" provider_id="2" encounter_id="4" appointment_state_id="4" voided="0" />
+	  
+	<!-- appointment_state table -->
+	  <appointment_state appointment_state_id="1" description="null" />
+	  <appointment_state appointment_state_id="2" description="confirmed" />
+	  <appointment_state appointment_state_id="3" description="upcoming" />
+	  <appointment_state appointment_state_id="4" description="waiting" />
+	  <appointment_state appointment_state_id="5" description="inadvance" />
+	  <appointment_state appointment_state_id="6" description="expired" />
+	  <appointment_state appointment_state_id="7" description="retired" />
+	  <appointment_state appointment_state_id="8" description="postponed" />
+	  <appointment_state appointment_state_id="9" description="attended" />
+	 
+	<!-- changed_appointment table -->
+	  <changed_appointment service_category_id="1" name="CONSULTATION"  creator="1" created_date="2005-01-01 00:00:00" retired="0" insurance_id="1"/>
+	  <changed_appointment service_category_id="2" name="PHARMACY"  creator="1" created_date="2005-01-01 00:00:00" retired="0" insurance_id="1"/>
+	  <changed_appointment service_category_id="3" name="HOSPITALIZATION"  creator="1" created_date="2005-01-01 00:00:00" retired="0" insurance_id="2"/>
+	  
+	<!-- service table -->  
+	  <service facility_service_price_id="1" name="consultation" full_price="5000" start_date="2005-12-01 00:00:00.0" end_date="2011-05-01 00:00:00.0"  retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" location_id="1"/>
+	  <service facility_service_price_id="2" name="Hospitalization" full_price="10000" start_date="2005-12-01 00:00:00.0" end_date="2011-05-01 00:00:00.0"  retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" location_id="1"/>
+	  
+	<!-- service_providers table -->  
+	  <service_providers billable_service_id="1" insurance_id="1" maxima_to_pay="200" start_date="2005-05-01 00:00:00.0" end_date="2011-01-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" facility_service_price_id="1"/>
+	  <service_providers billable_service_id="2" insurance_id="2" maxima_to_pay="300" start_date="2005-12-01 00:00:00.0" end_date="2011-05-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" facility_service_price_id="1"/>
+	  <service_providers billable_service_id="3" insurance_id="1" maxima_to_pay="200" start_date="2011-01-01 00:00:00.0" end_date="2005-05-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" facility_service_price_id="2"/>
+	  <service_providers billable_service_id="4" insurance_id="2" maxima_to_pay="300" start_date="2011-05-01 00:00:00.0" end_date="2005-12-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" facility_service_price_id="2"/>
+	
+</dataset>

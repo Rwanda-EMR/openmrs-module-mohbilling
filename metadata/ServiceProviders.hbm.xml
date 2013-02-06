@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohappointment.model">
+
+	<!-- service_providers -->
+	<class name="ServiceProviders" table="moh_appointment_service_providers">
+
+		<id name="serviceProviderId" type="int" column="service_provider_id">
+			<generator class="native" />
+		</id>
+
+		<property name="voided" column="voided" type="boolean" />
+		<property name="voidedReason" column="voided_reason" type="text" />
+		<property name="startDate" column="start_date" type="java.util.Date" />
+		<property name="voidedDate" column="voided_date" type="java.util.Date" />
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+
+		<many-to-one name="provider" class="org.openmrs.Person" column="provider" />
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+		<many-to-one name="service" class="org.openmrs.module.mohappointment.model.Services" column="service" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+
+	</class>
+	
+</hibernate-mapping>

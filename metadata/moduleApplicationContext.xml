@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<!-- Beans to add to the current Application context definition -->
+  
+<beans>
+
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list>
+				<value>org.openmrs.module.mohappointment.service.IAppointmentService</value>
+				<bean
+					class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+					<property name="transactionManager">
+						<ref bean="transactionManager" />
+					</property>
+					<property name="target">
+						<bean
+							class="org.openmrs.module.mohappointment.impl.AppointmentService">
+							<property name="appointmentDAO">
+								<bean
+									class="org.openmrs.module.mohappointment.db.hibernate.HibernateAppointmentDAO">
+									<property name="sessionFactory">
+										<ref bean="sessionFactory" />
+									</property>
+								</bean>
+							</property>
+						</bean>
+					</property>
+					<property name="preInterceptors">
+						<list>
+							<ref bean="authorizationInterceptor" />
+						</list>
+					</property>
+					<property name="transactionAttributeSource">
+						<bean
+							class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+	
+    <bean id="mohappointmentUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+    	<property name="interceptors">
+			<list>
+				<ref bean="localeChangeInterceptor" />
+			</list>
+		</property>
+		<property name="order"><value>2</value></property>
+    	<property name="mappings">
+            <props>
+            	<prop key="**/appointment.portlet">appointmentPortletController</prop>
+	           	<prop key="module/@MODULE_ID@/patientSummary.form">appointmentPatientSummaryFormController</prop>
+	           	<prop key="module/@MODULE_ID@/advancedSearch.form">searchAppointmentFormController</prop>
+	           	<prop key="module/@MODULE_ID@/providerDashboard.form">providerAppointmentDashboardFormController</prop>
+	           	<prop key="module/@MODULE_ID@/serviceProvider.list">serviceProviderListController</prop>
+	           	<prop key="module/@MODULE_ID@/editServiceProvider.form">appointmentEditServiceProviderController</prop>
+	           	<prop key="module/@MODULE_ID@/editService.form">appointmentEditServiceController</prop>
+	           	<prop key="module/@MODULE_ID@/serviceProvider.form">serviceProviderFormController</prop>
+	           	<prop key="module/@MODULE_ID@/service.list">serviceListController</prop>
+	           	<prop key="module/@MODULE_ID@/service.form">serviceFormController</prop>
+	           	<prop key="module/@MODULE_ID@/findAppointment.form">findAppointmentFormController</prop>
+	    	</props>
+		</property>
+    </bean>
+	
+    <!-- Controllers -->
+    
+    <bean id="appointmentPortletController" class="@MODULE_PACKAGE@.web.controller.AppointmentDashboardPortletController" />
+	
+    <bean id="findAppointmentFormController" class="@MODULE_PACKAGE@.web.controller.FindAppointmentController">
+		<property name="viewName"><value>/module/@MODULE_ID@/findAppointment</value></property>
+    </bean>
+	
+    <bean id="serviceFormController" class="@MODULE_PACKAGE@.web.controller.AppointmentServiceFormController">
+		<property name="viewName"><value>/module/@MODULE_ID@/serviceForm</value></property>
+    </bean>
+	 
+    <bean id="serviceListController" class="@MODULE_PACKAGE@.web.controller.AppointmentServiceListController">
+		<property name="viewName"><value>/module/@MODULE_ID@/serviceList</value></property>
+    </bean>
+	
+    <bean id="serviceProviderFormController" class="@MODULE_PACKAGE@.web.controller.AppointmentServiceProviderFormController">
+		<property name="viewName"><value>/module/@MODULE_ID@/serviceProviderForm</value></property>
+    </bean>
+	 
+    <bean id="serviceProviderListController" class="@MODULE_PACKAGE@.web.controller.AppointmentServiceProviderListController">
+		<property name="viewName"><value>/module/@MODULE_ID@/serviceProviderList</value></property>
+    </bean>
+	 
+    <bean id="appointmentEditServiceProviderController" class="@MODULE_PACKAGE@.web.controller.AppointmentEditServiceProviderController">
+		<property name="viewName"><value>/module/@MODULE_ID@/editProviderService</value></property>
+    </bean>
+	 
+    <bean id="appointmentEditServiceController" class="@MODULE_PACKAGE@.web.controller.AppointmentEditServiceController">
+		<property name="viewName"><value>/module/@MODULE_ID@/editService</value></property>
+    </bean>
+	
+    <bean id="appointmentPatientSummaryFormController" class="@MODULE_PACKAGE@.web.controller.AppointmentPatientSummaryFormController">
+		<property name="viewName"><value>/module/@MODULE_ID@/patientSummary</value></property>
+    </bean>
+	
+    <bean id="searchAppointmentFormController" class="@MODULE_PACKAGE@.web.controller.SearchAppointmentFormController">
+		<property name="viewName"><value>/module/@MODULE_ID@/searchAppointment</value></property>
+    </bean>
+	
+    <bean id="providerAppointmentDashboardFormController" class="@MODULE_PACKAGE@.web.controller.AppointmentDashboardByProviderFormController">
+		<property name="viewName"><value>/module/@MODULE_ID@/providerAppointmentDashboardForm</value></property>
+    </bean>
+	
+    <!-- /Controllers -->
+    
+    <bean class="@MODULE_PACKAGE@.utils.ContextProvider" />
+</beans>

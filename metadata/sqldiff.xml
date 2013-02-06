@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqldiff PUBLIC "-//OpenMRS//DTD OpenMRS SQL Diff Config 1.0//EN" "http://resources.openmrs.org/doctype/sqldiff-1.0.dtd">
+
+<sqldiff version="1.0">
+	<help>
+		USE:
+			The diffs are ordered by datamodel version number.
+			The script can be run in a top down fashion and is
+			expected to not failor overwrite old data
+		
+		EXPECT:
+			- "use business-database-name;" was called prior to
+			   calling this script
+	</help>
+	
+	<diff>
+		<version>1.0.2</version>
+		<author>MoH-Rwanda</author>
+		<date>July 14th 2011</date>
+		<description>
+			
+		</description>
+		<sql>		
+			CREATE TABLE IF NOT EXISTS `moh_appointment_service` (
+			`service_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` VARCHAR(25) default NULL,
+			`description` VARCHAR(250) default NULL,
+			`concept_id` int(11) default NULL,
+			`retired` SMALLINT(1) NOT NULL default '0',
+			`retire_date` DATE default NULL,
+			`retire_reason` VARCHAR(250) default NULL,
+			`retired_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+			`created_date` DATE NOT NULL,
+			
+			PRIMARY KEY (`service_id`),
+			
+			CONSTRAINT `service_concept` FOREIGN KEY (`concept_id`) REFERENCES `concept` (`concept_id`),
+			CONSTRAINT `service_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `service_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+			
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;	
+			
+			CREATE TABLE IF NOT EXISTS `moh_appointment_service_providers` (
+			`service_provider_id` int(11) NOT NULL AUTO_INCREMENT,
+			`voided` smallint(1) NOT NULL default '0',
+			`start_date` date default NULL,
+			`voided_date` date default NULL,
+			`voided_reason` VARCHAR(250) default NULL,
+			`provider` int(11) default NULL,
+			`voided_by` int(11) default NULL,			
+			`service` int(11) default NULL,
+			`creator` INT(11) NOT NULL,
+			`created_date` DATE NOT NULL,
+			
+			PRIMARY KEY (`service_provider_id`),
+			
+			CONSTRAINT `service_providers_person` FOREIGN KEY (`provider`) REFERENCES `person` (`person_id`),
+			CONSTRAINT `service_providers_user` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `service_providers_service` FOREIGN KEY (`service`) REFERENCES `moh_appointment_service` (`service_id`),
+			CONSTRAINT `service_providers_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+			
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			
+			CREATE TABLE IF NOT EXISTS `moh_appointment_state` (
+			`appointment_state_id` int(11) NOT NULL AUTO_INCREMENT,
+			`description` VARCHAR(15) default NULL,
+			PRIMARY KEY (`appointment_state_id`)
+			
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		
+			CREATE TABLE IF NOT EXISTS `moh_appointment` (
+			`appointment_id` int(11) NOT NULL AUTO_INCREMENT,
+			`appointment_date` date default NULL,
+			`note` VARCHAR(255) default NULL,
+			`attended` smallint(1) default NULL,
+			`reason_obs_id` int(11) default NULL,
+			`visit_date_obs_id` int(11) default NULL,
+			`location_id` int(11) default NULL,
+			`provider_id` int(11) default NULL,
+			`service_id` int(11) default NULL,
+			`encounter_id` int(11) default NULL,
+			`patient_id` int(11) default NULL,
+			`appointment_state_id` int(11) default NULL,
+			`voided` smallint(1) NOT NULL default '0',
+			`voided_date` DATE default NULL,
+			`void_reason` VARCHAR(250) default NULL,
+			`voided_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+			`created_date` DATE NOT NULL,
+			
+			PRIMARY KEY (`appointment_id`),
+			
+			CONSTRAINT `appointment_visit_date_obs` FOREIGN KEY (`visit_date_obs_id`) REFERENCES `obs` (`obs_id`),
+			CONSTRAINT `appointment_reason_obs` FOREIGN KEY (`reason_obs_id`) REFERENCES `obs` (`obs_id`),
+			CONSTRAINT `appointment_location` FOREIGN KEY (`location_id`) REFERENCES `location` (`location_id`),
+			CONSTRAINT `appointment_provider` FOREIGN KEY (`provider_id`) REFERENCES `person` (`person_id`),
+			CONSTRAINT `appointment_service` FOREIGN KEY (`service_id`) REFERENCES `moh_appointment_service` (`service_id`),
+			CONSTRAINT `appointment_encounter` FOREIGN KEY (`encounter_id`) REFERENCES `encounter` (`encounter_id`),
+			CONSTRAINT `appointment_patient` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`patient_id`),
+			CONSTRAINT `appointment_appointment_state` FOREIGN KEY (`appointment_state_id`) REFERENCES `moh_appointment_state` (`appointment_state_id`),
+			CONSTRAINT `appointment_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `appointment_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+			
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			
+			
+			CREATE TABLE IF NOT EXISTS `moh_appointment_changed_appointment` (
+			`changed_appoint_id` int(11) NOT NULL AUTO_INCREMENT,
+			`new_date_of_appointment` date default NULL,
+			`reason` VARCHAR(250) default NULL,
+			`appointment_id` int(11) default NULL,
+			
+			PRIMARY KEY (`changed_appoint_id`),
+			
+			CONSTRAINT `changed_appointment_appointment` FOREIGN KEY (`appointment_id`) REFERENCES `moh_appointment` (`appointment_id`)
+			
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			
+		</sql>
+	</diff>
+	
+	<diff>
+		<version>1.0.3</version>
+		<author>MoH-Rwanda</author>
+		<date>October 30th 2012</date>
+		<description>
+			Inserting needed Appointment different States
+		</description>
+		<sql>
+			INSERT INTO `moh_appointment_state` (description) VALUES ('NULL'),('CONFIRMED'),('UPCOMING'),
+			('WAITING'),('INADVANCE'),('EXPIRED'),('RETIRED'),('POSTPONED'),('ATTENDED');
+		</sql>
+	</diff>
+	
+</sqldiff>

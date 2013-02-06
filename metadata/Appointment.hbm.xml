@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohappointment.model">
+	<!-- Appointment -->
+
+	<class name="Appointment" table="moh_appointment">
+
+		<id name="appointmentId" type="int" column="appointment_id">
+			<generator class="native" />
+		</id>
+
+		<property name="appointmentDate" column="appointment_date" type="java.util.Date" />
+		<property name="note" column="note" type="text" />
+		<property name="attended" column="attended" type="boolean" />
+		<property name="voided" column="voided" type="boolean" length="1" />
+		<property name="voidedDate" column="voided_date" type="java.util.Date" />
+		<property name="voidReason" column="void_reason" type="java.lang.String" />
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+
+		<many-to-one name="reason" class="org.openmrs.Obs" column="reason_obs_id" />
+		<many-to-one name="nextVisitDate" class="org.openmrs.Obs"
+			column="visit_date_obs_id" />
+		<many-to-one name="location" class="org.openmrs.Location"
+			column="location_id" />
+		<many-to-one name="provider" class="org.openmrs.Person"
+			column="provider_id" />
+		<many-to-one name="service" class="org.openmrs.module.mohappointment.model.Services"
+			column="service_id" />
+		<many-to-one name="encounter" class="org.openmrs.Encounter"
+			column="encounter_id" />
+		<many-to-one name="patient" class="org.openmrs.Patient"
+			column="patient_id" not-found="ignore"/>
+		<many-to-one name="appointmentState"
+			class="org.openmrs.module.mohappointment.model.AppointmentState"
+			column="appointment_state_id" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+			
+	</class>
+
+</hibernate-mapping>
