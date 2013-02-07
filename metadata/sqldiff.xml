@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqldiff PUBLIC "-//OpenMRS//DTD OpenMRS SQL Diff Config 1.0//EN" "http://resources.openmrs.org/doctype/sqldiff-1.0.dtd">
+
+<sqldiff version="1.0">
+	<help>
+		USE:
+		The diffs are ordered by datamodel version number.
+		The script can be run in a top down fashion and is
+		expected to not failor overwrite old data
+
+		EXPECT:
+		- "use business-database-name;" was called prior to
+		calling this script
+	</help>
+
+	<diff>
+		<version>1.0.0.0</version>
+		<author>MoH Rwanda</author>
+		<date>Sept 14th 2011</date>
+		<description>
+
+		</description>
+		<sql>
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_insurance` (
+			`insurance_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` VARCHAR(50) NOT NULL,
+			`address` VARCHAR(150) default NULL,
+			`phone` VARCHAR(100) default NULL,
+			`created_date` DATE NOT NULL,
+			`voided` SMALLINT(1) NOT NULL default '0',
+			`voided_date` DATE default NULL,
+			`void_reason` VARCHAR(250) default NULL,
+			`concept_id` int(11) default NULL,
+			`voided_by` int(11) default NULL,
+			`creator` int(11) NOT NULL,
+			`category` VARCHAR(150) NOT NULL,
+			
+			PRIMARY KEY (`insurance_id`),
+			
+			CONSTRAINT `insurance_concept` FOREIGN KEY (`concept_id`) REFERENCES `concept` (`concept_id`),
+			CONSTRAINT `insurance_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `insurance_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_insurance_rate` (
+			`insurance_rate_id` int(11) NOT NULL AUTO_INCREMENT,
+			`rate` FLOAT NOT NULL,
+			`flatFee` DECIMAL(20,2) default NULL,
+			`start_date` DATE NOT NULL,
+			`end_date` DATE default NULL,
+			`created_date` DATE NOT NULL,
+			`retired` SMALLINT(1) NOT NULL default '0',
+			`retire_date` DATE default NULL,
+			`retire_reason` VARCHAR(250) default NULL,
+			`insurance_id` INT(11) NOT NULL,
+			`retired_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+
+			PRIMARY KEY (`insurance_rate_id`),
+
+			CONSTRAINT `insurance_rate_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`),
+			CONSTRAINT `insurance_rate_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `insurance_rate_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_service_category` (
+			`service_category_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` VARCHAR(150) NOT NULL,
+			`description` VARCHAR(250) default NULL,
+			`price` DECIMAL default NULL,
+			`created_date` DATE NOT NULL,
+			`retired` SMALLINT(1) NOT NULL default '0',
+			`retire_date` DATE default NULL,
+			`retire_reason` VARCHAR(250) default NULL,
+			`insurance_id` INT(11) NOT NULL,
+			`retired_by` INT(11) default NULL,
+			
+			`creator` INT(11) NOT NULL,
+
+			PRIMARY KEY (`service_category_id`),
+
+			CONSTRAINT `service_category_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`),
+			CONSTRAINT `service_category_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `service_category_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_insurance_policy` (
+			`insurance_policy_id` int(11) NOT NULL AUTO_INCREMENT,
+			`insurance_card_no` VARCHAR(150) NOT NULL,
+			`owner` INT(11) NOT NULL,
+			`coverage_start_date` date NOT NULL,
+			`expiration_date` DATE default NULL,
+			`created_date` DATE NOT NULL,
+			`retired` SMALLINT(1) NOT NULL default '0',
+			`retire_date` DATE default NULL,
+			`retire_reason` VARCHAR(250) default NULL,
+			`insurance_id` INT(11) NOT NULL,
+			`retired_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+
+			PRIMARY KEY (`insurance_policy_id`),
+
+			CONSTRAINT `insurance_policy_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`),
+			CONSTRAINT `insurance_policy_owner` FOREIGN KEY (`owner`) REFERENCES `patient` (`patient_id`),
+			CONSTRAINT `insurance_policy_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `insurance_policy_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_beneficiary` (
+			`beneficiary_id` int(11) NOT NULL AUTO_INCREMENT,
+			`policy_id_number` VARCHAR(150) NOT NULL,
+			`created_date` DATE NOT NULL,
+			`retired` SMALLINT(1) NOT NULL default '0',
+			`retire_date` DATE default NULL,
+			`retire_reason` VARCHAR(250) default NULL,
+			`patient_id` INT(11) NOT NULL,
+			`insurance_policy_id` INT(11) NOT NULL,
+			`retired_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+
+			PRIMARY KEY (`beneficiary_id`),
+
+			CONSTRAINT `benefeciary_insurance_policy` FOREIGN KEY (`insurance_policy_id`) REFERENCES `moh_bill_insurance_policy` (`insurance_policy_id`),
+			CONSTRAINT `beneficiary_patient` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`patient_id`),
+			CONSTRAINT `beneficiary_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `beneficiary_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_patient_bill` (
+			`patient_bill_id` int(11) NOT NULL AUTO_INCREMENT,
+			`description` VARCHAR(250) default NULL,
+			`amount` DECIMAL(20,2) NOT NULL,
+			`printed` SMALLINT(1) default 0,
+			`is_paid` SMALLINT(1) default 0,
+			`created_date` DATE NOT NULL,
+			`voided` SMALLINT(1) NOT NULL default '0',
+			`voided_date` DATE default NULL,
+			`void_reason` VARCHAR(250) default NULL,
+			`beneficiary_id` INT(11) NOT NULL,
+			`voided_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+
+			PRIMARY KEY (`patient_bill_id`),
+
+			CONSTRAINT `patient_bill_beneficiary` FOREIGN KEY (`beneficiary_id`) REFERENCES `moh_bill_beneficiary` (`beneficiary_id`),
+			CONSTRAINT `patient_bill_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `patient_bill_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_facility_service_price` (
+			`facility_service_price_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` VARCHAR(150) NOT NULL,
+			`short_name` VARCHAR(100) default NULL,
+			`description` VARCHAR(250) default NULL,
+			`full_price` DECIMAL(20,2) NOT NULL,
+			`start_date` date NOT NULL,
+			`end_date` DATE default NULL,
+			`location_id` INT(11) NOT NULL,
+			`concept_id` INT(11) default NULL,
+			`created_date` DATE NOT NULL,
+			`retired` SMALLINT(1) NOT NULL default '0',
+			`retire_date` DATE default NULL,
+			`retire_reason` VARCHAR(250) default NULL,
+			`retired_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+
+			PRIMARY KEY (`facility_service_price_id`),
+
+			CONSTRAINT `facility_service_price_location` FOREIGN KEY (`location_id`) REFERENCES `location` (`location_id`),
+			CONSTRAINT `facility_service_price_concept` FOREIGN KEY (`concept_id`) REFERENCES `concept` (`concept_id`),
+			CONSTRAINT `facility_service_price_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `facility_service_price_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_billable_service` (
+			`billable_service_id` int(11) NOT NULL AUTO_INCREMENT,
+			`insurance_id` INT(11) default NULL,
+			`maxima_to_pay` DECIMAL(20,2) default NULL,
+			`start_date` date NOT NULL,
+			`end_date` DATE default NULL,
+			`facility_service_price_id` INT(11) NOT NULL,
+			`service_category_id` INT(11) default NULL,
+			`created_date` DATE NOT NULL,
+			`retired` SMALLINT(1) NOT NULL default '0',
+			`retire_date` DATE default NULL,
+			`retire_reason` VARCHAR(250) default NULL,
+			`retired_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+
+			PRIMARY KEY (`billable_service_id`),
+			
+			CONSTRAINT `billable_service_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`),
+			CONSTRAINT `billable_service_facility_service_price` FOREIGN KEY (`facility_service_price_id`) REFERENCES `moh_bill_facility_service_price` (`facility_service_price_id`),
+			CONSTRAINT `billable_service_service_category` FOREIGN KEY (`service_category_id`) REFERENCES `moh_bill_service_category` (`service_category_id`),
+			CONSTRAINT `billable_service_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `billable_service_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_patient_service_bill` (
+			`patient_service_bill_id` int(11) NOT NULL AUTO_INCREMENT,
+			`service_date` date NOT NULL,
+			`unit_price` DECIMAL(20,2) NOT NULL,
+			`quantity` INT(11) NOT NULL,
+			`service_other` VARCHAR(100) default NULL,
+			`service_other_description` VARCHAR(250) default NULL,
+			`created_date` DATE default NULL,
+			`voided` SMALLINT(1) NOT NULL default '0',
+			`voided_date` DATE default NULL,
+			`void_reason` VARCHAR(250) default NULL,
+			`billable_service_id` INT(11) default NULL,
+			`patient_bill_id` INT(11) NOT NULL,
+			`voided_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+
+			PRIMARY KEY (`patient_service_bill_id`),
+
+			CONSTRAINT `patient_service_bill_billable_service` FOREIGN KEY (`billable_service_id`) REFERENCES `moh_bill_billable_service` (`billable_service_id`),
+			CONSTRAINT `patient_service_bill_patient_bill` FOREIGN KEY (`patient_bill_id`) REFERENCES `moh_bill_patient_bill` (`patient_bill_id`),
+			CONSTRAINT `patient_service_bill_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `patient_service_bill_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE IF NOT EXISTS `moh_bill_payment` (
+			`bill_payment_id` int(11) NOT NULL AUTO_INCREMENT,
+			`amount_paid` DECIMAL(20,2) NOT NULL,
+			`date_received` DATE NOT NULL,
+			`created_date` DATE NOT NULL,
+			`voided` SMALLINT(1) NOT NULL default '0',
+			`voided_date` DATE default NULL,
+			`void_reason` VARCHAR(250) default NULL,
+			`collector` INT(11) NOT NULL,
+			`patient_bill_id` INT(11) NOT NULL,
+			`voided_by` INT(11) default NULL,
+			`creator` INT(11) NOT NULL,
+
+			PRIMARY KEY (`bill_payment_id`),
+
+			CONSTRAINT `bill_payment_collector` FOREIGN KEY (`collector`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `bill_payment_patient_bill` FOREIGN KEY (`patient_bill_id`) REFERENCES `moh_bill_patient_bill` (`patient_bill_id`),
+			CONSTRAINT `bill_payment_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+			CONSTRAINT `bill_payment_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;			
+		</sql>
+	</diff>
+	<diff>
+		<version>1.1.5</version>
+		<author>MoH Rwanda</author>
+		<date>2012-06-25</date>
+		<description>
+			Added moh_bill_recovery table
+		</description>
+		<sql>
+		CREATE TABLE IF NOT EXISTS `moh_bill_recovery` (
+			`recovery_id` INT(11) NOT NULL AUTO_INCREMENT,
+			`insurance_id` INT(11) NOT NULL,
+			`start_period` DATE NOT NULL,
+			`end_period` DATE NOT NULL,
+			`paid_amount` DECIMAL(20,2) NOT NULL,
+			`payement_date` DATE NOT NULL ,
+			`creator` INT(11) NOT NULL,
+            `created_date` DATE NOT NULL,
+            `retired` SMALLINT(1) NOT NULL default '0',
+            `retired_by` INT(11) default NULL,
+            `retire_date` DATE default NULL,
+            `retire_reason` VARCHAR(250) default NULL,
+
+			PRIMARY KEY (`recovery_id`),
+			
+			CONSTRAINT `insurance_recovery` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`)
+			
+
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</diff>
+		
+
+	
+
+</sqldiff>

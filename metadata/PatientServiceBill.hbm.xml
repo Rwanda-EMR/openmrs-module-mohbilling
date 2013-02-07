@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- PatientServiceBill -->
+	
+	<class name="PatientServiceBill" table="moh_bill_patient_service_bill">
+
+		<id name="patientServiceBillId" type="int" column="patient_service_bill_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="serviceDate" column="service_date" type="java.util.Date" />
+		<property name="unitPrice" column="unit_price" type="big_decimal" />
+		<property name="quantity" column="quantity" type="int" />		
+		<property name="serviceOther" column="service_other" type="java.lang.String" />
+		<property name="serviceOtherDescription" column="service_other_description" type="java.lang.String" />		
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+		<property name="voided" column="voided" type="boolean" />
+		<property name="voidedDate" column="voided_date" type="java.util.Date" />
+		<property name="voidReason" column="void_reason" type="java.lang.String" />
+
+		<many-to-one name="service" class="org.openmrs.module.mohbilling.model.BillableService" column="billable_service_id" />
+		<many-to-one name="patientBill" class="org.openmrs.module.mohbilling.model.PatientBill" column="patient_bill_id" />			
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+
+	</class>
+
+</hibernate-mapping>

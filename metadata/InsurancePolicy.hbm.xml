@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- InsurancePolicy -->
+	
+	<class name="InsurancePolicy" table="moh_bill_insurance_policy">
+
+		<id name="insurancePolicyId" type="int" column="insurance_policy_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="insuranceCardNo" column="insurance_card_no" type="text" />
+		<property name="coverageStartDate" column="coverage_start_date" type="date" />
+		<property name="expirationDate" column="expiration_date" type="date" />
+		<property name="createdDate" column="created_date" type="date" />
+		<property name="retired" column="retired" type="boolean" />
+		<property name="retiredDate" column="retire_date" type="date" />
+		<property name="retireReason" column="retire_reason" type="text" />
+		
+		<many-to-one name="owner" class="org.openmrs.Patient" column="owner" />
+		<many-to-one name="insurance" class="org.openmrs.module.mohbilling.model.Insurance" column="insurance_id" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
+		
+		<set name="beneficiaries" lazy="false" inverse="true"
+			cascade="all-delete-orphan" sort="natural"
+			order-by="created_date asc">
+			<key column="insurance_policy_id" />
+			<one-to-many class="Beneficiary" />
+		</set>
+
+	</class>
+
+</hibernate-mapping>

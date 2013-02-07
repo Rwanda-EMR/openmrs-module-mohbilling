@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- FacilityServicePrice -->
+
+	<class name="FacilityServicePrice" table="moh_bill_facility_service_price">
+
+		<id name="facilityServicePriceId" type="int" column="facility_service_price_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="name" column="name" type="java.lang.String" />
+		<property name="shortName" column="short_name" type="java.lang.String" />
+		<property name="description" column="description" type="java.lang.String" />
+		<property name="fullPrice" column="full_price" type="big_decimal" />	
+		<property name="startDate" column="start_date" type="java.util.Date" />
+		<property name="endDate" column="end_date" type="java.util.Date" />
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+		<property name="retired" column="retired" type="boolean" />
+		<property name="retiredDate" column="retire_date" type="java.util.Date" />
+		<property name="retireReason" column="retire_reason" type="java.lang.String" />
+
+		<many-to-one name="location" class="org.openmrs.Location" column="location_id" />
+		<many-to-one name="concept" class="org.openmrs.Concept" column="concept_id" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
+		
+		<set name="billableServices" lazy="false" inverse="true"
+			cascade="all-delete-orphan" sort="natural"
+			order-by="insurance_id asc, service_category_id asc, facility_service_price_id asc">
+			<key column="facility_service_price_id" />
+			<one-to-many class="BillableService" />
+		</set>
+		
+		
+	</class>
+
+</hibernate-mapping>

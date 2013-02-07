@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+ 
+ 
+ <hibernate-mapping package="org.openmrs.module.mohbilling.model">
+ 
+ <!-- Recovery -->
+ 
+ <class name="Recovery" table="moh_bill_recovery">
+ 
+        <id name="recoveryId" type="int" column="recovery_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+		
+		<property name="startPeriod" column="start_period" type="java.util.Date" />
+		<property name="endPeriod" column="end_period" type="java.util.Date" />
+		<property name="paidAmount" column="paid_amount" type="float" />
+		<property name="payementDate" column="payement_date" type="java.util.Date" />
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+		<property name="retired" column="retired" type="boolean" />
+		<property name="retiredDate" column="retire_date" type="java.util.Date" />
+		<property name="retireReason" column="retire_reason" type="java.lang.String" />	
+	  <many-to-one name="insuranceId" class="org.openmrs.module.mohbilling.model.Insurance" column="insurance_id" />
+	  <many-to-one name="creator" class="org.openmrs.User" column="creator" />
+	  <many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
+	  
+	  </class>
+
+</hibernate-mapping>
+	  
