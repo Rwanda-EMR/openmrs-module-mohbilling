@@ -75,12 +75,12 @@ var $k= jQuery.noConflict();
 
 <table >
 			<tr>
-				<td>Amount paid </td> <td><input type="text" size="11" value="${amountPaid}"
+				<td>Amount paid </td> <td><input type="text" size="11" value=""
 					name="amountPaid" /></td>
 			</tr>
 			
 	    <tr>
-				<td>Payment date </td> <td><input type="text" size="11" value="${datePayment}"
+				<td>Payment date </td> <td><input type="text" size="11" value=""
 					name="datePayment" onclick="showCalendar(this)" /></td>
 			</tr>
 		<tr>
