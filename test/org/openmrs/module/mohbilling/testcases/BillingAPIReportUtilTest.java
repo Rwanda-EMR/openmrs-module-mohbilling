@@ -154,16 +154,16 @@ public class BillingAPIReportUtilTest extends BaseModuleContextSensitiveTest {
 			// Mutuelle)
 			Assert.assertEquals(2, ReportsUtil.getMonthlyReportByInsurance(
 					bs.getInsurance(1), sdf.parse("2011-05-02"),
-					sdf.parse("2011-06-02")).size());
+					sdf.parse("2011-06-02"), null).size());
 			// Verify that the monthly paid billable services are 2 (for RAMA)
 			Assert.assertEquals(2, ReportsUtil.getMonthlyReportByInsurance(
 					bs.getInsurance(1), sdf.parse("2011-05-02"),
-					sdf.parse("2011-06-02")).size());
+					sdf.parse("2011-06-02"), null).size());
 
 			// Verify that the dates range is tested
 			Assert.assertNotSame(2, ReportsUtil.getMonthlyReportByInsurance(
 					bs.getInsurance(1), sdf.parse("2011-05-03"),
-					sdf.parse("2011-06-03")).size());
+					sdf.parse("2011-06-03"), null).size());
 
 		} catch (Exception ex) {
 			throw new RuntimeException(

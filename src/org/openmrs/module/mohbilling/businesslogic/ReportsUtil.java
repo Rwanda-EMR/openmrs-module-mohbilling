@@ -291,7 +291,7 @@ public class ReportsUtil {
 	 * @return bills the list of matched PatientBill
 	 */
 	public static List<PatientBill> getMonthlyReportByInsurance(
-			Insurance insurance, Date startDate, Date endDate) {
+			Insurance insurance, Date startDate, Date endDate,Integer patientId) {
 
 		BillingService service = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
@@ -314,26 +314,44 @@ public class ReportsUtil {
 				 * 0) bills.add(pb); if(startDate==null && endDate==null)
 				 */
 				for (PatientServiceBill psb : pb.getBillItems()) {
-					if (startDate != null && endDate != null)
+					if (startDate != null && endDate != null && patientId != null){
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0
-								&& psb.getServiceDate().compareTo(endDate) <= 0)
+								&& psb.getServiceDate().compareTo(endDate) <= 0){
 							if (!bills.contains(service.getPatientBill(pb
-									.getPatientBillId())))
-								bills.add(pb);
-					if (startDate != null && endDate == null)
+									.getPatientBillId()))){
+							   if(psb.getPatientBill().getBeneficiary().getPatient().getPatientId().compareTo(patientId)  == 0){	
+								//pb.getBeneficiary().getPatient().getPatientId();
+								  // System.out.println("sjdbfhjdfsjdbfhkjavjads 1");
+								    bills.add(pb);
+								  // System.out.println("sjdbfhjdfsjdbfhkjavjads 2");
+							   }
+							}	
+						}		
+					}
+					if (startDate != null && endDate != null && patientId == null){
+						if (!psb.isVoided()
+								&& psb.getServiceDate().compareTo(startDate) >= 0
+								&& psb.getServiceDate().compareTo(endDate) <= 0){
+							if (!bills.contains(service.getPatientBill(pb
+									.getPatientBillId()))){
+								    bills.add(pb);
+							}	
+						}		
+					}
+					if (startDate != null && endDate == null && patientId == null)
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0)
 							if (!bills.contains(service.getPatientBill(pb
 									.getPatientBillId())))
 								bills.add(pb);
-					if (startDate == null && endDate != null)
+					if (startDate == null && endDate != null && patientId == null)
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(endDate) <= 0)
 							if (!bills.contains(service.getPatientBill(pb
 									.getPatientBillId())))
 								bills.add(pb);
-					if (startDate == null && endDate == null)
+					if (startDate == null && endDate == null && patientId == null)
 						if (!bills.contains(service.getPatientBill(pb
 								.getPatientBillId())))
 

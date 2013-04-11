@@ -173,32 +173,56 @@ public class MohBillingCohortBuilderFormController extends
 					new ReportsUtil();
 					reportedPatientBills = ReportsUtil
 							.getMonthlyReportByInsurance(insurance, startDate,
-									null);
+									null,null);
 				}
 				if (startDate == null && endDate != null && insurance != null
 						&& patientId == null) {
 					new ReportsUtil();
 					reportedPatientBills = ReportsUtil
 							.getMonthlyReportByInsurance(insurance, null,
-									endDate);
+									endDate,null);
 				}
 				if (startDate != null && endDate != null && insurance != null
 						&& patientId == null) {
 					new ReportsUtil();
 					reportedPatientBills = ReportsUtil
 							.getMonthlyReportByInsurance(insurance, startDate,
-									endDate);
+									endDate,null);
 				}
 				if (startDate == null && endDate == null && insurance != null
 						&& patientId == null) {
 					new ReportsUtil();
 					reportedPatientBills = ReportsUtil
-							.getMonthlyReportByInsurance(insurance, null, null);
+							.getMonthlyReportByInsurance(insurance, null, null,null);
 				}
-
+				if (startDate != null && endDate != null && insurance != null
+						&& patientId != null) {
+					new ReportsUtil();
+					reportedPatientBills = ReportsUtil
+							.getMonthlyReportByInsurance(insurance, startDate, endDate,patientId);
+				}
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
 				
 				// ========================================startdate,enddate,insurance and patient as parameters===================
-				if (startDate != null && endDate == null && insurance == null
+				/*if (startDate != null && endDate == null && insurance == null
 						&& patientId != null) {
 					new PatientBillUtil();
 					reportedPatientBills = PatientBillUtil.getBillsByPatient(
@@ -220,6 +244,7 @@ public class MohBillingCohortBuilderFormController extends
 							endDate, true);
 				}
 				if (startDate == null && endDate != null && insurance != null&& patientId != null) {
+					System.out.println(" i m here in this condition ");
 					new PatientBillUtil();
 					reportedPatientBills = PatientBillUtil.getBillsByPatient(PatientService.getPatient(Integer.valueOf(patientIdStr)), null,
 							endDate, true);
@@ -304,7 +329,7 @@ public class MohBillingCohortBuilderFormController extends
 					facilityService = billingService
 							.getFacilityServicePrice(Integer
 									.parseInt(serviceId));
-
+*/
 				/*
 				 * //=======================================startdate,enddate as
 				 * parameters========================================= if

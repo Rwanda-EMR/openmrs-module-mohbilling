@@ -399,8 +399,11 @@ public class PatientBillUtil {
 								bills.add(pb);
 					} else if (pb.getBeneficiary().getPatient().getPatientId().intValue() == patient.getPatientId().intValue()&& pb != null) {
 						for (PatientServiceBill psb : pb.getBillItems())
-							if (!psb.isVoided()&& psb.getServiceDate().compareTo(startDate) >= 0 && psb.getServiceDate().compareTo(endDate) <= 0)
+							if (!psb.isVoided()&& psb.getServiceDate().compareTo(startDate) >= 0 && psb.getServiceDate().compareTo(endDate) <= 0){	
+								System.out.println(" i m getting here rwertwertewrt wertwert ewrtwert wertwert");
 								bills.add(pb);
+							}
+								
 					}else
 						bills = null;
 
