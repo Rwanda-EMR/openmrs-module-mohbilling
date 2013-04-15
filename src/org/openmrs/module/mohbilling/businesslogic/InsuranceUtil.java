@@ -478,16 +478,22 @@ public class InsuranceUtil {
 		return services;
 	}
 
+	/**
+	 * Auto generated method comment
+	 * 
+	 * @param sc
+	 * @param date
+	 * @param isRetired
+	 * @return
+	 */
 	public static List<BillableService> getBillableServicesByServiceCategory(
 			ServiceCategory sc, Date date, Boolean isRetired) {
 
 		List<BillableService> bsByServiceCategory = new ArrayList<BillableService>();
 		BillingService bs = Context.getService(BillingService.class);
 
-		for (FacilityServicePrice fsp : bs.getAllFacilityServicePrices())
-			if (!fsp.isRetired())
-				for (BillableService service : fsp.getBillableServices()) {
-					if (service.getServiceCategory() != null)
+				for (BillableService service : bs.getAllBillableServices()) {
+					if (service.getServiceCategory() != null && service.getFacilityServicePrice().isRetired()==isRetired)
 						if (service.getServiceCategory().getServiceCategoryId()
 								.intValue() == sc.getServiceCategoryId()
 								.intValue() && service.isRetired() == isRetired)

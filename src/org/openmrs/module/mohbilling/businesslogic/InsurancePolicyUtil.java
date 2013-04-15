@@ -1,11 +1,17 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.http.HttpSession;
+
+import org.openmrs.Location;
 import org.openmrs.Patient;
+import org.openmrs.PatientIdentifier;
+import org.openmrs.PatientIdentifierType;
 import org.openmrs.Person;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
@@ -115,9 +121,17 @@ public class InsurancePolicyUtil {
 			card.setCreatedDate(new Date());
 			card.setCreator(Context.getAuthenticatedUser());
 			card.setRetired(false);
-			if (card.getInsurance().getCategory()
-					.equals(InsuranceCategory.NONE.toString())) {
-				card.setInsuranceCardNo(card.getOwner().getId() + "");
+			
+			if (card.getInsurance().getCategory().toString()
+					.equalsIgnoreCase(InsuranceCategory.NONE.toString())) {
+			
+				/** Getting the Patient Identifier from the system **/
+				PatientIdentifier pi = InsurancePolicyUtil
+						.getPrimaryPatientIdentifierForLocation(
+								card.getOwner(),
+								InsurancePolicyUtil.getLocationLoggedIn());
+				
+				card.setInsuranceCardNo(pi.getIdentifier().toString());
 				card.setCoverageStartDate(new Date());
 			}
 
@@ -546,6 +560,151 @@ public class InsurancePolicyUtil {
 			}
 		}
 		return null;
+	}
+
+	private static PatientIdentifierType getPrimaryPatientIdentiferType() {
+		PatientIdentifierType pit = null;
+		try {
+			pit = Context
+					.getPatientService()
+					.getPatientIdentifierType(
+							Integer.valueOf(Context
+									.getAdministrationService()
+									.getGlobalProperty(
+											BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE)));
+		} catch (Exception ex) {
+			pit = Context
+					.getPatientService()
+					.getPatientIdentifierTypeByName(
+							Context.getAdministrationService()
+									.getGlobalProperty(
+											BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE));
+		}
+		if (pit == null) {
+			throw new RuntimeException(
+					"Cannot find patient identifier type specified by global property "
+							+ BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE);
+		}
+		return pit;
+	}
+
+	/**
+	 * Gets all patient identifier types that should be used in this module.
+	 * This includes the primary type and the other types specified in the two
+	 * global properties.
+	 * 
+	 * The first element of the returned list is the primary type. This method
+	 * ensures that the returned list contains no duplicates.
+	 * 
+	 * @return
+	 */
+	private static List<PatientIdentifierType> getPatientIdentifierTypesToUse() {
+		List<PatientIdentifierType> ret = new ArrayList<PatientIdentifierType>();
+		ret.add(getPrimaryPatientIdentiferType());
+
+		String s = Context.getAdministrationService().getGlobalProperty(
+				BillingConstants.GLOBAL_PROPERTY_OTHER_IDENTIFIER_TYPES);
+		if (s != null) {
+			String[] ids = s.split(",");
+			for (String idAsString : ids) {
+				try {
+					idAsString = idAsString.trim();
+					if (idAsString.length() == 0)
+						continue;
+					PatientIdentifierType idType = null;
+					try {
+						Integer id = Integer.valueOf(idAsString);
+						idType = Context.getPatientService()
+								.getPatientIdentifierType(id);
+					} catch (Exception ex) {
+						idType = Context.getPatientService()
+								.getPatientIdentifierTypeByName(idAsString);
+					}
+					if (idType == null) {
+						throw new IllegalArgumentException(
+								"Cannot find patient identifier type "
+										+ idAsString
+										+ " specified in global property "
+										+ BillingConstants.GLOBAL_PROPERTY_OTHER_IDENTIFIER_TYPES);
+					}
+					if (!ret.contains(idType)) {
+						ret.add(idType);
+					}
+				} catch (Exception ex) {
+					throw new IllegalArgumentException(
+							"Error in global property "
+									+ BillingConstants.GLOBAL_PROPERTY_OTHER_IDENTIFIER_TYPES
+									+ " near '" + idAsString + "'");
+				}
+			}
+		}
+		return ret;
+	}
+
+	private static PatientIdentifier getPrimaryPatientIdentifierForLocation(
+			Patient patient, Location location) {
+		List<PatientIdentifier> piList = patient.getActiveIdentifiers();
+		for (PatientIdentifier piTmp : piList) {
+			
+			if (piTmp
+					.getIdentifierType()
+					.getPatientIdentifierTypeId()
+					.equals(getPrimaryPatientIdentiferType()
+							.getPatientIdentifierTypeId())
+					&& piTmp.getLocation().getLocationId()
+							.equals(location.getLocationId())) {
+				return piTmp;
+			}
+		}
+
+		return null;
+
+	}
+
+	private static Location getLocationLoggedIn() {
+		return Context.getLocationService().getLocation(1006);
+	}
+
+	/**
+	 * Checks whether the matching patient has an insurance already that matches
+	 * its PatientIdentifier
+	 * 
+	 * @param patient
+	 *            the patient to be matched
+	 * @return true if the patient does not have any, false otherwise
+	 */
+	public static boolean insuranceDoesNotExist(Patient patient) {
+
+		/** Getting the Patient Identifier from the system **/
+		String insuranceCardNo = "";
+
+		if (InsurancePolicyUtil.getPrimaryPatientIdentifierForLocation(patient,
+				InsurancePolicyUtil.getLocationLoggedIn()) != null) {
+			InsurancePolicyUtil.getPrimaryPatientIdentifierForLocation(patient,
+					InsurancePolicyUtil.getLocationLoggedIn()).getIdentifier();
+		}
+		BillingService service = Context.getService(BillingService.class);
+
+		if (service.getInsurancePolicyByCardNo(insuranceCardNo) == null)
+			return true;
+		else
+			return false;
+	}
+
+	/**
+	 * Adds years to the given date
+	 * 
+	 * @param date
+	 *            the given date
+	 * @param years
+	 *            to be added
+	 * @return the date with Years added
+	 */
+	public static Date addYears(Date date, int years) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		cal.add(Calendar.YEAR, years); // minus number would decrement the days
+		return cal.getTime();
 	}
 
 }

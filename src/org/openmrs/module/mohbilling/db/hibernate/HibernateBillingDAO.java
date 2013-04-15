@@ -25,6 +25,7 @@ import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.db.BillingDAO;
@@ -91,6 +92,18 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	/**
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurancePolicyByCardNo(java.lang.String)
+	 */
+	@Override
+	public InsurancePolicy getInsurancePolicyByCardNo(String insuranceCardNo) {
+
+		return (InsurancePolicy) sessionFactory.getCurrentSession()
+				.createCriteria(InsurancePolicy.class)
+				.add(Restrictions.eq("insuranceCardNo", insuranceCardNo))
+				.uniqueResult();
+	}
+
+	/**
 	 * (non-Javadoc)
 	 * 
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getFacilityServicePrice(java.lang.Integer)
@@ -145,7 +158,8 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public void saveInsurancePolicy(InsurancePolicy card) {
 
-		sessionFactory.getCurrentSession().saveOrUpdate(card);
+		if (getInsurancePolicyByCardNo(card.getInsuranceCardNo()) == null)
+			sessionFactory.getCurrentSession().saveOrUpdate(card);
 	}
 
 	/**
@@ -173,8 +187,8 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public List<InsurancePolicy> getAllInsurancePolicies() {
 
-		return sessionFactory.getCurrentSession().createCriteria(
-				InsurancePolicy.class).list();
+		return sessionFactory.getCurrentSession()
+				.createCriteria(InsurancePolicy.class).list();
 	}
 
 	/**
@@ -185,8 +199,9 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public List<Insurance> getAllInsurances() throws DAOException {
 
-		return sessionFactory.getCurrentSession().createCriteria(
-				Insurance.class).addOrder(Order.asc("category")).list();
+		return sessionFactory.getCurrentSession()
+				.createCriteria(Insurance.class)
+				.addOrder(Order.asc("category")).list();
 	}
 
 	/**
@@ -197,25 +212,22 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public List<PatientBill> getAllPatientBills() throws DAOException {
 
-		return sessionFactory.getCurrentSession().createCriteria(
-				PatientBill.class).list();
+		return sessionFactory.getCurrentSession()
+				.createCriteria(PatientBill.class).list();
 	}
-	
-	
+
 	/**
 	 * (non-Javadoc)
 	 * 
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllFacilityServicePrices()
 	 */
 	@Override
-	public List<ServiceCategory> getAllServiceCategories()
-			throws DAOException {
+	public List<ServiceCategory> getAllServiceCategories() throws DAOException {
 
-		return sessionFactory.getCurrentSession().createCriteria(
-				ServiceCategory.class).list();
+		return sessionFactory.getCurrentSession()
+				.createCriteria(ServiceCategory.class).list();
 	}
 
-	
 	/**
 	 * (non-Javadoc)
 	 * 
@@ -225,24 +237,26 @@ public class HibernateBillingDAO implements BillingDAO {
 	public List<FacilityServicePrice> getAllFacilityServicePrices()
 			throws DAOException {
 
-		return sessionFactory.getCurrentSession().createCriteria(
-				FacilityServicePrice.class).list();
+		return sessionFactory.getCurrentSession()
+				.createCriteria(FacilityServicePrice.class).list();
 	}
 
 	@Override
 	public List<BillableService> getAllBillableServices() {
-		return sessionFactory.getCurrentSession().createCriteria(
-				BillableService.class).list();
+		return sessionFactory.getCurrentSession()
+				.createCriteria(BillableService.class).list();
 	}
 
 	@Override
 	public Float getPaidAmountPerInsuranceAndPeriod(Insurance insurance,
 			Date startDate, Date endDate) {
 
-		/*log.info(" wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww insurance "
-				+ insurance + " aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa startDate"
-				+ startDate + " tttttttttttttttttttttttttttt tttttttttendDate"
-				+ endDate);*/
+		/*
+		 * log.info(" wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww insurance " +
+		 * insurance + " aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa startDate" +
+		 * startDate + " tttttttttttttttttttttttttttt tttttttttendDate" +
+		 * endDate);
+		 */
 
 		Session session = sessionFactory.getCurrentSession();
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -289,8 +303,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			String paidAmountStr = ob[4].toString();
 			recovery.setPaidAmount(Float.parseFloat(paidAmountStr));
 			recovery.setPayementDate((Date) ob[5]);
-			
-			
+
 			recoveries.add(recovery);
 		}
 

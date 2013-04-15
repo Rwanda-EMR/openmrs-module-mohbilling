@@ -140,20 +140,14 @@ public interface BillingDAO {
 	public FacilityServicePrice getFacilityServicePrice(Integer id)
 			throws DAOException;
 
-	
-	
 	/**
 	 * Gets all existing Service Categorie from the DB
 	 * 
 	 * @return list of Service Categorie Prices
 	 * @throws DAOException
 	 */
-	public List<ServiceCategory> getAllServiceCategories()
-			throws DAOException;
-	
-	
-	
-	
+	public List<ServiceCategory> getAllServiceCategories() throws DAOException;
+
 	/**
 	 * Gets all existing Facility Service Prices from the DB
 	 * 
@@ -194,4 +188,13 @@ public interface BillingDAO {
 
 	public List<Recovery> getAllPaidAmountPerInsuranceAndPeriod(
 			Insurance insurance, Date startDate, Date endDate);
+
+	/**
+	 * Gets the InsurancePolicyCard by unique InsuranceCardNo
+	 * 
+	 * @param insuranceCardNo
+	 *            the unique insurance card number
+	 * @return insurancePolicyCard that matches the unique card number
+	 */
+	public InsurancePolicy getInsurancePolicyByCardNo(String insuranceCardNo);
 }

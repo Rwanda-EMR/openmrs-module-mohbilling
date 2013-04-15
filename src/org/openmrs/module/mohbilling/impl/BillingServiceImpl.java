@@ -218,4 +218,12 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getAllPaidAmountPerInsuranceAndPeriod(insurance,
 				startDate, endDate);
 	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getInsurancePolicyByCardNo(java.lang.String)
+	 */
+	@Override
+	public InsurancePolicy getInsurancePolicyByCardNo(String insuranceCardNo) {
+		return billingDAO.getInsurancePolicyByCardNo(insuranceCardNo);
+	}
 }
