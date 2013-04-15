@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -35,11 +35,14 @@
 	</extension>
 	
 
-	<!--
-		AOP <advice> <point>org.openmrs.api.FormService</point>
-		<class>@MODULE_PACKAGE@.advice.DuplicateFormAdvisor</class> </advice>
-		/AOP
-	-->
+	<!-- AOP -->
+		
+	<advice>
+		<point>org.openmrs.api.PatientService</point>
+		<class>@MODULE_PACKAGE@.advice.PatientServiceAdvice</class>
+	</advice>
+		
+		<!-- /AOP -->
 
 
 	<!--
@@ -49,15 +52,26 @@
 	-->
 
 
-	<!--
-		Required Global Properties <globalProperty>
-		<property>@MODULE_ID@.someProperty</property>
-		<defaultValue></defaultValue> <description> A description of the
-		global property goes here. The description should explain enough for
-		administrators to understand the purpose and possible values for the
-		global property. </description> </globalProperty> /Required Global
-		Properties
-	-->
+	<!-- Required Global Properties -->
+	
+	<globalProperty>
+		<property>billing.primaryIdentifierType</property>
+		<defaultValue>3</defaultValue>
+		<description>
+			Must be the ID of a Patient Identifier Type. Newly created patients will
+			have an identifier of this type added to them. 
+		</description>
+	</globalProperty>
+	<globalProperty>
+		<property>billing.otherIdentifierTypes</property>
+		<defaultValue></defaultValue>
+		<description>
+			Optionally other patient identifier types that should can be searched on and displayed
+			on the patient page. This should be a comma-separated list of patient identifier ids.
+		</description>
+	</globalProperty>
+	
+	<!-- /Required Global Properties -->
 
 	<dwr>
 		<allow>
