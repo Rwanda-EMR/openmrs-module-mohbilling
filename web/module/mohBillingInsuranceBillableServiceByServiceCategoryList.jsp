@@ -63,15 +63,13 @@
 
 					if (billableServices == null
 							|| billableServices.size() == 0)
-						out.println("<center>No Facility Service corresponding to this category found !</center>");
+						out.println("<center>No  services corresponding to this category found !</center>");
 					else {
-						//for(int i=0;i<20;i++){
 							for (BillableService bs : billableServices) {
 								out.println("<div class='inTable unselectedService' id='billableService_"+bs.getServiceId()+"' onclick=addServiceToCart('"+bs.getServiceId()+"','"+bs.getFacilityServicePrice().getName().replace("'","&nbsp;").replace(" ","&nbsp;")+"','"+bs.getMaximaToPay()+"')>"
 										+ bs.getFacilityServicePrice().getName()
 										+ "</div>");
 							}
-						//}
 					}
 
 				}
