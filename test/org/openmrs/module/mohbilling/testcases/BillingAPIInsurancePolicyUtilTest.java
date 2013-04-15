@@ -218,4 +218,5 @@ public class BillingAPIInsurancePolicyUtilTest extends
 						.getBeneficiaryByPolicyIdNo("Fbbbbbbbb")), bs
 				.getInsurancePolicy(2));
 	}
+	
 }
