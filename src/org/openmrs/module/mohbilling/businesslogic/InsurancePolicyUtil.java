@@ -121,16 +121,23 @@ public class InsurancePolicyUtil {
 			card.setCreatedDate(new Date());
 			card.setCreator(Context.getAuthenticatedUser());
 			card.setRetired(false);
-			
+
 			if (card.getInsurance().getCategory().toString()
-					.equalsIgnoreCase(InsuranceCategory.NONE.toString())) {
-			
+					.equalsIgnoreCase(InsuranceCategory.NONE.toString())
+					&& getPrimaryPatientIdentiferType().equals(Context
+							.getPatientService()
+							.getPatientIdentifierType(
+									Integer.valueOf(Context
+											.getAdministrationService()
+											.getGlobalProperty(
+													BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
+
 				/** Getting the Patient Identifier from the system **/
 				PatientIdentifier pi = InsurancePolicyUtil
 						.getPrimaryPatientIdentifierForLocation(
 								card.getOwner(),
 								InsurancePolicyUtil.getLocationLoggedIn());
-				
+
 				card.setInsuranceCardNo(pi.getIdentifier().toString());
 				card.setCoverageStartDate(new Date());
 			}
@@ -562,7 +569,7 @@ public class InsurancePolicyUtil {
 		return null;
 	}
 
-	private static PatientIdentifierType getPrimaryPatientIdentiferType() {
+	public static PatientIdentifierType getPrimaryPatientIdentiferType() {
 		PatientIdentifierType pit = null;
 		try {
 			pit = Context
@@ -641,11 +648,11 @@ public class InsurancePolicyUtil {
 		return ret;
 	}
 
-	private static PatientIdentifier getPrimaryPatientIdentifierForLocation(
+	public static PatientIdentifier getPrimaryPatientIdentifierForLocation(
 			Patient patient, Location location) {
 		List<PatientIdentifier> piList = patient.getActiveIdentifiers();
 		for (PatientIdentifier piTmp : piList) {
-			
+
 			if (piTmp
 					.getIdentifierType()
 					.getPatientIdentifierTypeId()
@@ -661,7 +668,12 @@ public class InsurancePolicyUtil {
 
 	}
 
-	private static Location getLocationLoggedIn() {
+	public static Location getLocationLoggedIn() {
+
+		/**
+		 * This location is hard coded because this is the quick way of getting
+		 * this location by ID
+		 */
 		return Context.getLocationService().getLocation(1006);
 	}
 

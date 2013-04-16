@@ -22,6 +22,7 @@ import org.directwebremoting.guice.RequestScoped;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -52,12 +53,24 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 		if (method.getName().equals("savePatient")) {
 
 			String[] splits = returnVal.toString().split("#");
-			
+
 			Integer patientId = Integer.parseInt(splits[1]);
 			Patient patient = Context.getPatientService().getPatient(patientId);
 
-			if (InsurancePolicyUtil.insuranceDoesNotExist(patient)) {
-				
+			/** Getting the Patient Identifier from the system **/
+			PatientIdentifier pi = InsurancePolicyUtil
+					.getPrimaryPatientIdentifierForLocation(patient,
+							InsurancePolicyUtil.getLocationLoggedIn());
+
+			/**
+			 * This is only executed when the Patient Identifier type is PRIMARY
+			 * CARE TYPE and the insurance card does not exist
+			 */
+			if (InsurancePolicyUtil.insuranceDoesNotExist(patient)
+					&& InsurancePolicyUtil
+							.getPrimaryPatientIdentifierForLocation(patient,
+									InsurancePolicyUtil.getLocationLoggedIn()) != null) {
+
 				InsurancePolicy policy = new InsurancePolicy();
 
 				policy.setCoverageStartDate(new Date());
