@@ -492,13 +492,17 @@ public class InsuranceUtil {
 		List<BillableService> bsByServiceCategory = new ArrayList<BillableService>();
 		BillingService bs = Context.getService(BillingService.class);
 
-				for (BillableService service : bs.getAllBillableServices()) {
-					if (service.getServiceCategory() != null && service.getFacilityServicePrice().isRetired()==isRetired)
-						if (service.getServiceCategory().getServiceCategoryId()
-								.intValue() == sc.getServiceCategoryId()
-								.intValue() && service.isRetired() == isRetired)
-							bsByServiceCategory.add(service);
-				}
+		for (BillableService service : bs.getAllBillableServices()) {
+			if (service.getServiceCategory() != null
+					&& service.getFacilityServicePrice().isRetired() == isRetired)
+				if (service.getServiceCategory().getServiceCategoryId()
+						.intValue() == sc.getServiceCategoryId().intValue()
+						&& service.isRetired() == isRetired)
+					bsByServiceCategory.add(service);
+		}
+
+		// Sorting by Service Category
+		Collections.sort(bsByServiceCategory, BILLABLE_SERVICE_COMPARATOR);
 		return bsByServiceCategory;
 	}
 
@@ -533,12 +537,15 @@ public class InsuranceUtil {
 						.getInsurance()
 						.getCategory()
 						.equalsIgnoreCase(InsuranceCategory.MUTUELLE.toString()))
-					
-					if(!service.getServiceCategory().getName().equalsIgnoreCase("MEDICAMENTS") && !service.getServiceCategory().getName().equalsIgnoreCase("CONSOMABLE")){
-					service.setMaximaToPay(amount.divide(new BigDecimal(2)));
-					
-					}else{
-					service.setMaximaToPay(amount);
+
+					if (!service.getServiceCategory().getName()
+							.equalsIgnoreCase("MEDICAMENTS")
+							&& !service.getServiceCategory().getName()
+									.equalsIgnoreCase("CONSOMABLE")) {
+						service.setMaximaToPay(amount.divide(new BigDecimal(2)));
+
+					} else {
+						service.setMaximaToPay(amount);
 					}
 
 				if (service.getInsurance().getCategory()
