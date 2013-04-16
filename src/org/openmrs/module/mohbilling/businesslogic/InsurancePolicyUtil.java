@@ -124,13 +124,14 @@ public class InsurancePolicyUtil {
 
 			if (card.getInsurance().getCategory().toString()
 					.equalsIgnoreCase(InsuranceCategory.NONE.toString())
-					&& getPrimaryPatientIdentiferType().equals(Context
-							.getPatientService()
-							.getPatientIdentifierType(
-									Integer.valueOf(Context
-											.getAdministrationService()
-											.getGlobalProperty(
-													BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
+					&& getPrimaryPatientIdentiferType()
+							.equals(Context
+									.getPatientService()
+									.getPatientIdentifierType(
+											Integer.valueOf(Context
+													.getAdministrationService()
+													.getGlobalProperty(
+															BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
 
 				/** Getting the Patient Identifier from the system **/
 				PatientIdentifier pi = InsurancePolicyUtil
@@ -605,7 +606,7 @@ public class InsurancePolicyUtil {
 	 * 
 	 * @return
 	 */
-	private static List<PatientIdentifierType> getPatientIdentifierTypesToUse() {
+	public static List<PatientIdentifierType> getPatientIdentifierTypesToUse() {
 		List<PatientIdentifierType> ret = new ArrayList<PatientIdentifierType>();
 		ret.add(getPrimaryPatientIdentiferType());
 
@@ -674,7 +675,11 @@ public class InsurancePolicyUtil {
 		 * This location is hard coded because this is the quick way of getting
 		 * this location by ID
 		 */
-		return Context.getLocationService().getLocation(1006);
+		String locationId = Context.getAdministrationService()
+				.getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_DEFAULT_LOCATION);
+		return Context.getLocationService().getLocation(
+				Integer.valueOf(locationId));
 	}
 
 	/**

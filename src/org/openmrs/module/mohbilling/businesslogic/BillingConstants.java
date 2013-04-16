@@ -9,7 +9,7 @@ public class BillingConstants {
 //    public static int ageRange = 10;
     public static final String GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE = "billing.primaryIdentifierType";
     public static final String GLOBAL_PROPERTY_OTHER_IDENTIFIER_TYPES = "billing.otherIdentifierTypes";
-//    public static final String GLOBAL_PROPERTY_BAR_CODE_COUNT = "registration.barCodeCount";
+    public static final String GLOBAL_PROPERTY_DEFAULT_LOCATION = "billing.defaultLocation";
 //    //TODO:  the location code architecture is wrong -- all location codes come from module
 //    //TODO:  this needs to correspond to a single default location
 //    //TODO:  registration clerk can override this in module.
