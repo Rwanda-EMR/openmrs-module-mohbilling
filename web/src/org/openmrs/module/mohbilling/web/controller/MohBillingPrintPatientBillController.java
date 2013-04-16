@@ -140,7 +140,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 		
-		cell = new PdfPCell(fontTitleSelector.process("T�l : "+pb.getBeneficiary().getInsurancePolicy().getInsurance().getPhone()));
+		cell = new PdfPCell(fontTitleSelector.process("Phone : "+pb.getBeneficiary().getInsurancePolicy().getInsurance().getPhone()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 		
