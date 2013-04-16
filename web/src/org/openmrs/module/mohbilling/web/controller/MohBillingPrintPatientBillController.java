@@ -109,13 +109,14 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		document.add(fontTitle.process("POLICE NATIONALE\n"));
 		document.add(fontTitle.process("KACYIRU POLICE HOSPITAL\n"));
 		document.add(fontTitle.process("B.P. 6183 KIGALI\n"));
-		document.add(fontTitle.process("Tél : 584897\n"));
-		document.add(fontTitle.process("E-mail : medical@police.gov.rw"));
+		document.add(fontTitle.process("Phone : 584897\n"));
+		document.add(fontTitle.process("E-mail : medical@police.gov.rw\n"));
+		document.add(fontTitle.process("         kphmedipolice2@gmail.com"));
 		// End Report title
 
 		document.add(new Paragraph("\n"));
-		chk = new Chunk("FEUILLE DE SOINS VALANT PRISE EN CHARGE");
-		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.BOLD));
+		chk = new Chunk("FACTURE");
+		chk.setFont(new Font(FontFamily.COURIER, 12.0f, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
 		pa.add(chk);
@@ -139,7 +140,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 		
-		cell = new PdfPCell(fontTitleSelector.process("Tél : "+pb.getBeneficiary().getInsurancePolicy().getInsurance().getPhone()));
+		cell = new PdfPCell(fontTitleSelector.process("Tï¿½l : "+pb.getBeneficiary().getInsurancePolicy().getInsurance().getPhone()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 		
@@ -320,13 +321,13 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		table = new PdfPTable(2);
 		table.setWidthPercentage(100f);
 
-		cell = new PdfPCell(fontTitleSelector.process("Signature de l'Assure\n"
+		cell = new PdfPCell(fontTitleSelector.process("Signature du Patient :\n"
 				+ pb.getBeneficiary().getPatient().getPersonName()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 
 		cell = new PdfPCell(fontTitleSelector
-				.process("Noms, Signature et Cachet du Prestataire des soins\n"
+				.process("Noms et Signature du Caissier\n"
 						+ Context.getAuthenticatedUser().getPersonName()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
