@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -33,13 +34,20 @@ public class MohBillingCheckPatientBillPaymentFormController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 
-		if (request.getParameter("patientId") != null) {
-			List<PatientBill> pbList = PatientBillUtil
-					.getBillsByPatient(Context.getPatientService().getPatient(
-							Integer.valueOf(request.getParameter("patientId"))));
+		if (request.getParameter("patientId") != null)
+			if (!request.getParameter("patientId").equals("")) {
+				List<PatientBill> pbList = PatientBillUtil
+						.getBillsByPatient(Context.getPatientService()
+								.getPatient(
+										Integer.valueOf(request
+												.getParameter("patientId"))));
 
-			mav.addObject("patientBills", pbList);
-		}
+				mav.addObject("patientBills", pbList);
+			} else {
+				request.getSession()
+						.setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+								"The Patient is not selected. Please select and retry!");
+			}
 
 		return mav;
 
