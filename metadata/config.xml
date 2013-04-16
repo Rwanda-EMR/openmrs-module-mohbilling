@@ -55,6 +55,13 @@
 	<!-- Required Global Properties -->
 	
 	<globalProperty>
+		<property>billing.defaultLocation</property>
+		<defaultValue>1006</defaultValue>
+		<description>
+			Must be the ID of the location (Health Facility) where Billing is being used.
+		</description>
+	</globalProperty>
+	<globalProperty>
 		<property>billing.primaryIdentifierType</property>
 		<defaultValue>3</defaultValue>
 		<description>
