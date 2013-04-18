@@ -2,14 +2,30 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude
 	file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
+<openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery.PrintArea.js" />	
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-<script language="javascript" type="text/javascript">
+<script type="text/javascript" language="JavaScript">
+	var $ = jQuery.noConflict();
 
-var $k= jQuery.noConflict();
+	$(document).ready(function() {
+		$("input#print_button").click(function() {
+			$("div.printarea").printArea();
+		});	
 
+		$("input#print_button").click(function() {
+			$('#header').show();
+			$("div.printarea").printArea();
+			$('#header').hide();
+		});	
+	});
+
+   
+	
 </script>
+
+
 
 
 <ul id="menu">
@@ -69,18 +85,17 @@ var $k= jQuery.noConflict();
 
 	<tr>
 		<td>Patient</td><td>
-		<openmrs:fieldGen type="org.openmrs.Patient"
-			formFieldName="patientId" val="${patientName}" />
-		<input type="hidden" name="patientIdnew" value="${patientIdStr}"/>	
+		<openmrs:fieldGen type="org.openmrs.Patient" formFieldName="patientId" val="" />
+		 <input type="hidden" name="patientIdnew" value="${patientIdStr}"/>	
 		</td>
-		<td>Facility Services 
+	<!-- 	<td>Facility Services 
 		<select name="serviceId">
 		
 		       <option value="">---Select---</option>
 			<c:forEach items="${serviceCategory}" var="service">
 				<option value="${service.serviceCategoryId}">${service.name}</option>
 			</c:forEach>
-		</select></td>
+		</select></td>  -->
 	</tr>
 
 
@@ -89,12 +104,18 @@ var $k= jQuery.noConflict();
 <input type="submit" value="Search" />
 </div>
 <br>
+
 <br>
-<c:if test="${fn:length(billObj)!=0}">
-<div><b class="boxHeader">Found Bills <input name="print"
-	type="submit" value="PDF Print" style="display: ri;" /></b>
 </form>
-<div class="box">
+<c:if test="${fn:length(billObj)!=0}">
+<div><b class="boxHeader">Search results  <input id="print_button" type="submit" value="PRINT" onclick=""/> </b>
+
+<div class="header" style="display: none;">  
+
+  KPH
+
+ </div>
+<div class="printarea" ">
 
 <table width="99%">
 	<tr>
@@ -160,6 +181,8 @@ var $k= jQuery.noConflict();
 </table>
 </div>
 </form>
-</div>
+</div> 
 </c:if>
+
+
 <%@ include file="/WEB-INF/template/footer.jsp"%>

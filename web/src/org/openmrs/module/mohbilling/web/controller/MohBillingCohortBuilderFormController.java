@@ -77,6 +77,8 @@ public class MohBillingCohortBuilderFormController extends
 					.getParameter("serviceId");
 
 			List<PatientBill> reportedPatientBills = new ArrayList<PatientBill>();
+			//log.info("reportedPatientBillsreportttttttttttttedPatientBillsreportedPatientBillsreportedPatientBillsreportedPatientBillsreportedPatientBills"+ reportedPatientBills.size());
+			
 			PatientService PatientService = Context.getPatientService();
 
 			Integer insuranceIdInt = null;
@@ -98,16 +100,17 @@ public class MohBillingCohortBuilderFormController extends
 			 * patientIdStr = null;
 			 */
 
-				if (!request.getParameter("patientId").equals(null) && !request.getParameter("patientId").equals("")) {
+				if (!request.getParameter("patientId").equals(null) && !request.getParameter("patientId").equals("") && request.getParameter("patientId") != null) {
 
 					patientIdStr = request.getParameter("patientId");
 					patientId=Integer.parseInt(patientIdStr);
 					mav.addObject("patientIdStr", patientIdStr);
 				}
 				 
-//				if (!request.getParameter("patientIdnew").equals(null)) {
-//					patientIdStr = request.getParameter("patientIdnew");
-//				}
+        		if (!request.getParameter("patientIdnew").equals(null) && !request.getParameter("patientIdnew").equals("")) {
+					patientIdStr = request.getParameter("patientIdnew");
+					patientId=Integer.parseInt(patientIdStr);
+				}
 
 				/*
 				 * String insuranceStr = request.getParameter("insurance"),
@@ -124,8 +127,8 @@ public class MohBillingCohortBuilderFormController extends
 				mav.addObject("startDateStr", startDateStr);
 				mav.addObject("endDateStr", endDateStr);
 				mav.addObject("serviceId", serviceId);
-				mav.addObject("insuranceStr", insuranceStr);
-//				mav.addObject("patientName",PatientService.getPatient(patientId).getNames());
+				mav.addObject("insurance", insurance);
+			//	mav.addObject("patientName",PatientService.getPatient(patientId).getNames());
 
 				if (serviceId != null && !serviceId.equals(""))
 					facilityService = billingService
@@ -464,7 +467,9 @@ public class MohBillingCohortBuilderFormController extends
 				mav.addObject("reportedPatientBills", reportedPatientBills);
 				mav.addObject("startDate", request.getParameter("startDate"));
 				mav.addObject("endDate", request.getParameter("endDate"));
-				mav.addObject("insurance", insurance);
+				
+				//mav.addObject("patientId", request.getParameter("patientId"));
+               
 
 				List<String> serviceNames = new ArrayList<String>();
 				new ReportsUtil();
@@ -473,11 +478,11 @@ public class MohBillingCohortBuilderFormController extends
 						.getAllBillItems(reportedPatientBills);
 				
 				
-				for (String key : billServiceNames.keySet()) {
+				/*for (String key : billServiceNames.keySet()) {
 					serviceNames.add(billServiceNames.get(key));
 				}
                  
-				mav.addObject("serviceNames", serviceNames);
+				mav.addObject("serviceNames", serviceNames);*/
 
 				/*
 				 * List<String> serviceNames = new ArrayList<String>();
@@ -495,9 +500,15 @@ public class MohBillingCohortBuilderFormController extends
 
 				if (request.getParameter("print") != null
 						&& !request.getParameter("print").equals("")) {
-
+			  //log.info("startDate != null && endDate == null && insurance == null && patientId == null startDate : "+startDate);
+			  //log.info("startDate != null && endDate == null && insurance == null && patientId == null  endDate: "+endDate);
+			  //log.info("startDate != null && endDate == null && insurance == null && patientId == null insurance : "+insurance);
+			  //log.info("startDate != null && endDate == null && insurance == null && patientId == null  patientId :"+patientId);
+              //log.info(" just before the print call reportedPatientBillsreportedPatientBillsreportedPatientBillsreportedPatientBills"+reportedPatientBills.size());
 					printPatientBillToPDF(request, response,
 							reportedPatientBills);
+					
+					
 				}
 
 				// }
@@ -783,8 +794,11 @@ public class MohBillingCohortBuilderFormController extends
 		table.addCell(cell);
 
 		document.add(table);
-
+	
+        //log.info("reportedPatientBills   new reportedPatientBills reportedPatientBills reportedPatientBills reportedPatientBills  : "+reportedPatientBills.size());
 		document.close();
+		
+		
 
 	}
 

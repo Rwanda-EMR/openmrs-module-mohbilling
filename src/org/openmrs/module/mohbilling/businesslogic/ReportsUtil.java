@@ -231,9 +231,6 @@ public class ReportsUtil {
 	public static Map<String, String> getAllBillItems(
 			List<PatientBill> patientsBills) {
 		
-		
-		
-		
 		Set<PatientServiceBill> patientServiceBill = new HashSet<PatientServiceBill>();
 		for (PatientBill bill : patientsBills) {
 			
