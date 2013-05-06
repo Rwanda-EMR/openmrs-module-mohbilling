@@ -31,9 +31,9 @@
 				<prop key="module/@MODULE_ID@/insurancePolicy.form">mohBillingInsurancePolicyFormController</prop>
 				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortController</prop>
 				<prop key="module/@MODULE_ID@/printPDFPatientBill.form">mohBillingPrintPDFPatientBillController</prop>
-			    <prop key="module/@MODULE_ID@/manageRecovery.form">manageRecovery</prop>
-			   
+			    <prop key="module/@MODULE_ID@/manageRecovery.form">manageRecovery</prop>			   
 			    <prop key="module/@MODULE_ID@/ReportRecovery.form">ReportRecovery</prop>
+			    <prop key="module/@MODULE_ID@/hmisReport.form">mohBillingHMISReportController</prop>
 			
 			</props>
 		</property>
@@ -111,8 +111,13 @@
 	<bean id="mohBillingInsurancePolicyFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsurancePolicyFormController">
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsurancePolicyForm</value></property>
 	</bean>
+	
 	<bean id="mohBillingCohortController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCohortBuilderFormController">
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingCohortBuilderForm</value></property>
+	</bean>
+
+	<bean id="mohBillingHMISReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingHMISReportController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingHMISReport</value></property>
 	</bean>
 	
 	<bean id="mohBillingPrintPDFPatientBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingPrintPatientBillController"/>

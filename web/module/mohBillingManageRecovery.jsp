@@ -1,13 +1,11 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
-<openmrs:htmlInclude
-	file="/jquery-1.3.2.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-<script language="javascript" type="text/javascript">
 
 <openmrs:require privilege="Manage Recovery" otherwise="/login.htm" redirect="/module/@MODULE_ID@/manageRecovery.form" />
+<script language="javascript" type="text/javascript">
 
 var $k= jQuery.noConflict();
 
@@ -53,6 +51,8 @@ var $k= jQuery.noConflict();
 </table>
 
 <input type="submit" value="Search" />
+
+</form>
 </div>
 </br> </br>
 
