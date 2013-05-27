@@ -179,7 +179,7 @@
 		<td class="rowTotalValue" colspan="6"><b style="color: blue;font-size: 14px;">TOTAL</b></td><!-- <td></td><td></td><td></td><td></td><td></td>-->
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${insuranceDueAmount}</b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${patientDueAmount}</b></td>
-		<td class="rowTotalValue"><b style="color: red;font-size: 14px;">${totalAmount}</b></td>
+		<td class="rowTotalValue"><b style="color: red;font-size: 14px;"><u>${totalAmount}</u></b></td>
 	</tr>
 </table>
 </div>

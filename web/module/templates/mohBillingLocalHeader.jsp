@@ -38,6 +38,7 @@
 		</openmrs:hasPrivilege>
 </ul>
 
+	   <!-- Here I would like to set the totals at the bottom --> 
 <style>
 	.columnHeader {
 	    background: none repeat scroll 0 0 #E6E6E6;
@@ -64,7 +65,8 @@
 	    font-weight: normal;
 	    margin: 0;
 	    padding: 5px;
-	    vertical-align: top;
+	    /* Here I would like to set the totals at the bottom*/
+	    vertical-align: bottom;
 	    border-top: 1px solid cadetblue;
 	    border-right: 1px solid cadetblue;
 	    border-left: 1px solid cadetblue;
