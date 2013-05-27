@@ -88,14 +88,15 @@
 		<openmrs:fieldGen type="org.openmrs.Patient" formFieldName="patientId" val="" />
 		 <input type="hidden" name="patientIdnew" value="${patientIdStr}"/>	
 		</td>
-	<!-- 	<td>Facility Services 
-		<select name="serviceId">
-		
-		       <option value="">---Select---</option>
-			<c:forEach items="${serviceCategory}" var="service">
-				<option value="${service.serviceCategoryId}">${service.name}</option>
-			</c:forEach>
-		</select></td>  -->
+		<td>Facility Services 
+			<select name="serviceId">
+			
+			    <option value="">---Select---</option>
+				<c:forEach items="${categories}" var="service">
+					<option value="${service}">${service}</option>
+				</c:forEach>
+			</select>
+		</td>
 	</tr>
 
 
@@ -128,7 +129,7 @@
 
 		<td>Insurance Name</td>
 		<td>Insurance due</td>
-		<td>Patient Due : ${patientIdStr}</td>
+		<td>Patient Due</td>
 		<td>Amount</td>
 	</tr>
 
@@ -136,7 +137,7 @@
 		<tr>
 			<td class="rowValue">${status.count}</td>
 			<td class="rowValue">${obj[0]}</td>
-			<td class="rowValue">${obj[1]}</td>
+			<td class="rowValue"><b>${obj[1]}</b></td>
 			<td class="rowValue">${obj[2]}</td>
 			<td class="rowValue">
 
@@ -154,7 +155,7 @@
 					<tr>
 					    <td>${status.count}-</td>
 						<td>
-						${srvc.service.facilityServicePrice.name} 
+						${srvc.service.facilityServicePrice.name}
 						</td>
 
 						<td colspan="4">${srvc.unitPrice }</td>
@@ -167,16 +168,18 @@
 			</td>
 
 			<td class="rowValue">${obj[4]}</td>
-			<td class="rowValue">${obj[5]}</td>
-			<td class="rowValue">${obj[6]}</td>
-			<td class="rowValue">${obj[7]}</td>
+			<td class="rowAmountValue">${obj[5]}</td>
+			<td class="rowAmountValue">${obj[6]}</td>
+			<td class="rowAmountValue"><b style="color: blue;">${obj[7]}</b></td>
 			
 		</tr>
 
 	</c:forEach>
 	<tr>
-	<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-	<td class="rowValue"><b style="color: red">${totalAmount }</b></td>
+		<td class="rowTotalValue" colspan="6"><b style="color: blue;font-size: 14px;">TOTAL</b></td><!-- <td></td><td></td><td></td><td></td><td></td>-->
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${insuranceDueAmount}</b></td>
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${patientDueAmount}</b></td>
+		<td class="rowTotalValue"><b style="color: red;font-size: 14px;">${totalAmount}</b></td>
 	</tr>
 </table>
 </div>

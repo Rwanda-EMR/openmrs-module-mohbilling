@@ -189,10 +189,9 @@ public class BillingServiceImpl implements BillingService {
 
 		return billingDAO.getAllFacilityServicePrices();
 	}
-	
+
 	@Override
-	public List<ServiceCategory> getAllServiceCategories()
-			throws DAOException {
+	public List<ServiceCategory> getAllServiceCategories() throws DAOException {
 
 		return billingDAO.getAllServiceCategories();
 	}
@@ -225,5 +224,12 @@ public class BillingServiceImpl implements BillingService {
 	@Override
 	public InsurancePolicy getInsurancePolicyByCardNo(String insuranceCardNo) {
 		return billingDAO.getInsurancePolicyByCardNo(insuranceCardNo);
+	}
+
+	@Override
+	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
+			Date endDate, Integer patientId, String serviceName) {
+		return billingDAO.buildCohort(insurance, startDate, endDate, patientId,
+				serviceName);
 	}
 }

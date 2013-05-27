@@ -33,8 +33,6 @@ public class ReportsUtil {
 
 	protected final Log log = LogFactory.getLog(getClass());
 
-	// <<<<<<<<<< A. Internal:
-
 	/**
 	 * The patient Bill (Listing all the received services and their detailed
 	 * information: Insurance rate, Patient rate, total amount, paid amount,
@@ -230,24 +228,25 @@ public class ReportsUtil {
 	 */
 	public static Map<String, String> getAllBillItems(
 			List<PatientBill> patientsBills) {
-		
+
 		Set<PatientServiceBill> patientServiceBill = new HashSet<PatientServiceBill>();
 		for (PatientBill bill : patientsBills) {
-			
+
 			patientServiceBill.addAll(bill.getBillItems());
-			
+
 		}
-		
+
 		Map<String, String> names = new HashMap<String, String>();
-		
+
 		for (PatientServiceBill psb : patientServiceBill) {
-			if(psb.getBillableServiceCategory().getName() != null && !psb.getBillableServiceCategory().getName().equals("")){
-				
-			names.put(psb.getBillableServiceCategory().getName(), psb
-					.getBillableServiceCategory().getName());
+			if (psb.getBillableServiceCategory().getName() != null
+					&& !psb.getBillableServiceCategory().getName().equals("")) {
+
+				names.put(psb.getBillableServiceCategory().getName(), psb
+						.getBillableServiceCategory().getName());
 			}
 		}
-		
+
 		return names;
 	}
 
@@ -288,7 +287,7 @@ public class ReportsUtil {
 	 * @return bills the list of matched PatientBill
 	 */
 	public static List<PatientBill> getMonthlyReportByInsurance(
-			Insurance insurance, Date startDate, Date endDate,Integer patientId) {
+			Insurance insurance, Date startDate, Date endDate, Integer patientId) {
 
 		BillingService service = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
@@ -311,49 +310,66 @@ public class ReportsUtil {
 				 * 0) bills.add(pb); if(startDate==null && endDate==null)
 				 */
 				for (PatientServiceBill psb : pb.getBillItems()) {
-					if (startDate != null && endDate != null && patientId != null){
+					if (startDate != null && endDate != null
+							&& patientId != null) {
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0
-								&& psb.getServiceDate().compareTo(endDate) <= 0){
+								&& psb.getServiceDate().compareTo(endDate) <= 0) {
 							if (!bills.contains(service.getPatientBill(pb
-									.getPatientBillId()))){
-							   if(psb.getPatientBill().getBeneficiary().getPatient().getPatientId().compareTo(patientId)  == 0){	
-								//pb.getBeneficiary().getPatient().getPatientId();
-								  // System.out.println("sjdbfhjdfsjdbfhkjavjads 1");
-								    bills.add(pb);
-								  // System.out.println("sjdbfhjdfsjdbfhkjavjads 2");
-							   }
-							}	
-						}		
+									.getPatientBillId()))) {
+								if (psb.getPatientBill().getBeneficiary()
+										.getPatient().getPatientId()
+										.compareTo(patientId) == 0) {
+									// pb.getBeneficiary().getPatient().getPatientId();
+									// System.out.println("sjdbfhjdfsjdbfhkjavjads 1");
+									bills.add(pb);
+									// System.out.println("sjdbfhjdfsjdbfhkjavjads 2");
+								}
+							}
+						}
 					}
-					if (startDate != null && endDate != null && patientId == null){
+					if (startDate != null && endDate != null
+							&& patientId == null) {
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0
-								&& psb.getServiceDate().compareTo(endDate) <= 0){
+								&& psb.getServiceDate().compareTo(endDate) <= 0) {
 							if (!bills.contains(service.getPatientBill(pb
-									.getPatientBillId()))){
-								    bills.add(pb);
-							}	
-						}		
+									.getPatientBillId()))) {
+								bills.add(pb);
+							}
+						}
 					}
-					if (startDate != null && endDate == null && patientId == null)
+					if (startDate != null && endDate == null
+							&& patientId == null)
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0)
 							if (!bills.contains(service.getPatientBill(pb
 									.getPatientBillId())))
 								bills.add(pb);
-					if (startDate == null && endDate != null && patientId == null)
+					if (startDate == null && endDate != null
+							&& patientId == null)
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(endDate) <= 0)
 							if (!bills.contains(service.getPatientBill(pb
 									.getPatientBillId())))
 								bills.add(pb);
-					if (startDate == null && endDate == null && patientId == null)
+					if (startDate == null && endDate == null
+							&& patientId == null)
 						if (!bills.contains(service.getPatientBill(pb
 								.getPatientBillId())))
 
 							bills.add(pb);
 				}
+		return bills;
+	}
+
+	public static List<PatientBill> buildCohort(Insurance insurance,
+			Date startDate, Date endDate, Integer patientId, String serviceName) {
+
+		BillingService service = Context.getService(BillingService.class);
+
+		List<PatientBill> bills = service.buildCohort(insurance, startDate,
+				endDate, patientId, serviceName);
 		return bills;
 	}
 
@@ -430,8 +446,8 @@ public class ReportsUtil {
 					if (psb.getService().getFacilityServicePrice()
 							.getFacilityServicePriceId().intValue() == sc
 							.getFacilityServicePriceId().intValue()
-							&& psb.getService().getStartDate().compareTo(
-									startDate) >= 0) {
+							&& psb.getService().getStartDate()
+									.compareTo(startDate) >= 0) {
 						bills.add(pb);
 					}
 				if (sc != null && startDate == null && endDate != null
@@ -439,8 +455,8 @@ public class ReportsUtil {
 					if (psb.getService().getFacilityServicePrice()
 							.getFacilityServicePriceId().intValue() == sc
 							.getFacilityServicePriceId().intValue()
-							&& psb.getService().getStartDate().compareTo(
-									endDate) <= 0) {
+							&& psb.getService().getStartDate()
+									.compareTo(endDate) <= 0) {
 						bills.add(pb);
 					}
 				if (sc != null && startDate != null && endDate != null
@@ -448,10 +464,10 @@ public class ReportsUtil {
 					if (psb.getService().getFacilityServicePrice()
 							.getFacilityServicePriceId().intValue() == sc
 							.getFacilityServicePriceId().intValue()
-							&& psb.getService().getStartDate().compareTo(
-									startDate) >= 0
-							&& psb.getService().getStartDate().compareTo(
-									endDate) <= 0) {
+							&& psb.getService().getStartDate()
+									.compareTo(startDate) >= 0
+							&& psb.getService().getStartDate()
+									.compareTo(endDate) <= 0) {
 						bills.add(pb);
 					}
 				if (sc != null && startDate != null && endDate != null
@@ -459,10 +475,10 @@ public class ReportsUtil {
 					if (psb.getService().getFacilityServicePrice()
 							.getFacilityServicePriceId().intValue() == sc
 							.getFacilityServicePriceId().intValue()
-							&& psb.getService().getStartDate().compareTo(
-									startDate) >= 0
-							&& psb.getService().getStartDate().compareTo(
-									endDate) <= 0
+							&& psb.getService().getStartDate()
+									.compareTo(startDate) >= 0
+							&& psb.getService().getStartDate()
+									.compareTo(endDate) <= 0
 							&& pb.getBeneficiary().getPatient().getPatientId()
 									.intValue() == patient.getPatientId()) {
 						bills.add(pb);
@@ -472,10 +488,10 @@ public class ReportsUtil {
 					if (psb.getService().getFacilityServicePrice()
 							.getFacilityServicePriceId().intValue() == sc
 							.getFacilityServicePriceId().intValue()
-							&& psb.getService().getStartDate().compareTo(
-									startDate) >= 0
-							&& psb.getService().getStartDate().compareTo(
-									endDate) <= 0
+							&& psb.getService().getStartDate()
+									.compareTo(startDate) >= 0
+							&& psb.getService().getStartDate()
+									.compareTo(endDate) <= 0
 							&& psb.getService().getInsurance().getInsuranceId() == insurance
 									.getInsuranceId()) {
 						bills.add(pb);

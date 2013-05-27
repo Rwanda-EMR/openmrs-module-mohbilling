@@ -59,6 +59,27 @@
 	    vertical-align: top;
 	    border-top: 1px solid cadetblue;
 	}
+	.rowAmountValue {
+	    font-size: 0.8em;
+	    font-weight: normal;
+	    margin: 0;
+	    padding: 5px;
+	    vertical-align: top;
+	    border-top: 1px solid cadetblue;
+	    border-right: 1px solid cadetblue;
+	    border-left: 1px solid cadetblue;
+	}
+	.rowTotalValue {
+	    font-size: 0.8em;
+	    font-weight: normal;
+	    margin: 0;
+	    padding: 5px;
+	    vertical-align: top;
+	    border-top: 1px solid cadetblue;
+	    border-right: 1px solid cadetblue;
+	    border-bottom: 1px solid cadetblue;
+	    border-left: 1px solid cadetblue;
+	}
 	
 	.even {
 	    background-color: whitesmoke;

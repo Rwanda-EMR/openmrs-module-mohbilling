@@ -5,6 +5,7 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
@@ -60,11 +62,11 @@ public class MohBillingCohortBuilderFormController extends
 
 		BillingService billingService = Context
 				.getService(BillingService.class);
-		List<ServiceCategory> serviceCategory = billingService.getAllServiceCategories();
+		List<String> categories = InsuranceUtil.getAllServiceCategories();
 
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("allInsurances", billingService.getAllInsurances());
-		mav.addObject("serviceCategory", serviceCategory);
+		mav.addObject("categories", categories);
 
 		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 		Date startDate = null;
@@ -77,16 +79,11 @@ public class MohBillingCohortBuilderFormController extends
 					.getParameter("serviceId");
 
 			List<PatientBill> reportedPatientBills = new ArrayList<PatientBill>();
-			//log.info("reportedPatientBillsreportttttttttttttedPatientBillsreportedPatientBillsreportedPatientBillsreportedPatientBillsreportedPatientBills"+ reportedPatientBills.size());
-			
-			PatientService PatientService = Context.getPatientService();
 
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
 			Date endDate = null;
 			Insurance insurance = null;
-			
-			FacilityServicePrice facilityService = null;
 
 			if (startDateStr != null && !startDateStr.equals("")) {
 				startDate = (Date) formatter.parse(startDateStr);
@@ -95,423 +92,109 @@ public class MohBillingCohortBuilderFormController extends
 			if (endDateStr != null && !endDateStr.equals("")) {
 				endDate = (Date) formatter.parse(endDateStr);
 			}
-			/*
-			 * Date endDate = null; Insurance insurance = null; String
-			 * patientIdStr = null;
-			 */
 
-				if (!request.getParameter("patientId").equals(null) && !request.getParameter("patientId").equals("") && request.getParameter("patientId") != null) {
+			if (!request.getParameter("patientId").equals(null)
+					&& !request.getParameter("patientId").equals("")
+					&& request.getParameter("patientId") != null) {
 
-					patientIdStr = request.getParameter("patientId");
-					patientId=Integer.parseInt(patientIdStr);
-					mav.addObject("patientIdStr", patientIdStr);
-				}
-				 
-        		if (!request.getParameter("patientIdnew").equals(null) && !request.getParameter("patientIdnew").equals("")) {
-					patientIdStr = request.getParameter("patientIdnew");
-					patientId=Integer.parseInt(patientIdStr);
-				}
+				patientIdStr = request.getParameter("patientId");
+				patientId = Integer.parseInt(patientIdStr);
+				mav.addObject("patientIdStr", patientIdStr);
+			}
 
-				/*
-				 * String insuranceStr = request.getParameter("insurance"),
-				 * startDateStr=request.getParameter("startDate"),
-				 * endDateStr=request.getParameter("endDate"),
-				 * serviceId=request.getParameter("serviceId");
-				 */
+			if (!request.getParameter("patientIdnew").equals(null)
+					&& !request.getParameter("patientIdnew").equals("")) {
+				patientIdStr = request.getParameter("patientIdnew");
+				patientId = Integer.parseInt(patientIdStr);
+			}
 
-				if (request.getParameter("insurance") != null && !request.getParameter("insurance").equals("")) {
-					insuranceIdInt = Integer.parseInt(insuranceStr);
-					insurance = billingService.getInsurance(insuranceIdInt);
-				}
+			if (request.getParameter("insurance") != null
+					&& !request.getParameter("insurance").equals("")) {
+				insuranceIdInt = Integer.parseInt(insuranceStr);
+				insurance = billingService.getInsurance(insuranceIdInt);
+			}
 
-				mav.addObject("startDateStr", startDateStr);
-				mav.addObject("endDateStr", endDateStr);
-				mav.addObject("serviceId", serviceId);
-				mav.addObject("insurance", insurance);
-			//	mav.addObject("patientName",PatientService.getPatient(patientId).getNames());
+			reportedPatientBills = ReportsUtil.buildCohort(insurance,
+					startDate, endDate, patientId, serviceId);
 
-				if (serviceId != null && !serviceId.equals(""))
-					facilityService = billingService
-							.getFacilityServicePrice(Integer
-									.parseInt(serviceId));
+			mav.addObject("startDateStr", startDateStr);
+			mav.addObject("endDateStr", endDateStr);
+			mav.addObject("serviceId", serviceId);
+			mav.addObject("insurance", insurance);
 
-				// ========================startdate,enddate as parameters=========================
-				if (startDate != null && endDate == null && insurance == null && patientId == null) {
-					new PatientBillUtil();
-					reportedPatientBills = PatientBillUtil
-							.getPatientBillsInDates(startDate, null);
-				}
-				if (startDate == null && endDate != null && insurance == null
-						&& patientId == null) {
-					new PatientBillUtil();
-					reportedPatientBills = PatientBillUtil
-							.getPatientBillsInDates(null, endDate);
-				}
-				if (startDate != null && endDate != null && insurance == null
-						&& patientId == null) {
-					new PatientBillUtil();
-					reportedPatientBills = PatientBillUtil
-							.getPatientBillsInDates(startDate, endDate); 
+			double totalAmount = 0, totalPatientDueAmount = 0, totalInsuranceDueAmount = 0;
+			List<Object[]> billObj = new ArrayList<Object[]>();
+
+			for (PatientBill bill : reportedPatientBills) {
+
+				Date serviceDate = null;
+				double patDueAmt = 0, insDueAmt = 0, totalDueAmt = 0;
+				for (PatientServiceBill item : bill.getBillItems()) {
+					serviceDate = item.getServiceDate();
+
+					patDueAmt += roundTwoDecimals((item.getService()
+							.getMaximaToPay().doubleValue() * item
+							.getQuantity())
+							- (bill.getBeneficiary().getInsurancePolicy()
+									.getInsurance().getCurrentRate().getRate()
+									* (item.getUnitPrice().doubleValue() * item
+											.getQuantity()) / 100));
+
+					insDueAmt += roundTwoDecimals(bill.getBeneficiary()
+							.getInsurancePolicy().getInsurance()
+							.getCurrentRate().getRate()
+							* (item.getUnitPrice().doubleValue() * item
+									.getQuantity()) / 100);
+					totalDueAmt = patDueAmt + insDueAmt;
 				}
 
-				/*
-				 * List<PatientBill> reportedPatientBills = new
-				 * ArrayList<PatientBill>();
-				 * 
-				 * PatientService PatientService= Context.getPatientService();
-				 * 
-				 * 
-				 * Integer insuranceIdInt=null; Integer patientId =null;
-				 * FacilityServicePrice facilityService=null;
-				 */
+				billObj.add(new Object[] {
+						Context.getDateFormat().format(serviceDate),
+						bill.getBeneficiary().getPolicyIdNumber(),
+						bill.getBeneficiary().getPatient().getGivenName()
+								+ " "
+								+ bill.getBeneficiary().getPatient()
+										.getFamilyName(),
+						bill.getBillItems(),
+						bill.getBeneficiary().getInsurancePolicy()
+								.getInsurance().getName(),
+						roundTwoDecimals(insDueAmt),
+						roundTwoDecimals(patDueAmt),
+						roundTwoDecimals(totalDueAmt) });
 
-				if (startDateStr != null && !startDateStr.equals("")) {
-					startDate = (Date) formatter.parse(startDateStr);
-				}
+				totalAmount += totalDueAmt;
+				totalPatientDueAmount += patDueAmt;
+				totalInsuranceDueAmount += insDueAmt;
 
-				// ========================================startdate,enddate and
-				// insurance as parameters============================
-				if (startDate != null && endDate == null && insurance != null
-						&& patientId == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getMonthlyReportByInsurance(insurance, startDate,
-									null,null);
-				}
-				if (startDate == null && endDate != null && insurance != null
-						&& patientId == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getMonthlyReportByInsurance(insurance, null,
-									endDate,null);
-				}
-				if (startDate != null && endDate != null && insurance != null
-						&& patientId == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getMonthlyReportByInsurance(insurance, startDate,
-									endDate,null);
-				}
-				if (startDate == null && endDate == null && insurance != null
-						&& patientId == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getMonthlyReportByInsurance(insurance, null, null,null);
-				}
-				if (startDate != null && endDate != null && insurance != null
-						&& patientId != null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getMonthlyReportByInsurance(insurance, startDate, endDate,patientId);
-				}
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				// ========================================startdate,enddate,insurance and patient as parameters===================
-				/*if (startDate != null && endDate == null && insurance == null
-						&& patientId != null) {
-					new PatientBillUtil();
-					reportedPatientBills = PatientBillUtil.getBillsByPatient(
-							PatientService.getPatient(Integer
-									.valueOf(patientIdStr)), startDate, null,
-							true);
-				}
-				if (startDate != null && endDate != null && insurance == null
-						&& patientId != null) {
-					new PatientBillUtil();
-					reportedPatientBills = PatientBillUtil.getBillsByPatient(
-							PatientService.getPatient(Integer
-									.valueOf(patientIdStr)), startDate,
-							endDate, true);
-				}
-				if (startDate != null && endDate != null && insurance == null&& patientId != null) {
-					new PatientBillUtil();
-					reportedPatientBills = PatientBillUtil.getBillsByPatient(PatientService.getPatient(Integer.valueOf(patientIdStr)), startDate,
-							endDate, true);
-				}
-				if (startDate == null && endDate != null && insurance != null&& patientId != null) {
-					System.out.println(" i m here in this condition ");
-					new PatientBillUtil();
-					reportedPatientBills = PatientBillUtil.getBillsByPatient(PatientService.getPatient(Integer.valueOf(patientIdStr)), null,
-							endDate, true);
-				}
+			}
 
-				// ==========================================startdate,enddate,patient,insurance,facilityService===========================
-				if (startDate == null && endDate == null && patientId == null
-						&& facilityService != null && insurance == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getBillsByServiceCategory(facilityService, null,
-									null, null, null);
-				}
+			mav.addObject("insuranceDueAmount",
+					roundTwoDecimals(totalInsuranceDueAmount));
+			mav.addObject("patientDueAmount",
+					roundTwoDecimals(totalPatientDueAmount));
+			mav.addObject("totalAmount", roundTwoDecimals(totalAmount));
+			mav.addObject("billObj", billObj);
+			mav.addObject("reportedPatientBills", reportedPatientBills);
+			mav.addObject("startDate", request.getParameter("startDate"));
+			mav.addObject("endDate", request.getParameter("endDate"));
 
-				if (startDate != null && endDate == null && patientId == null
-						&& facilityService != null && insurance == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getBillsByServiceCategory(facilityService,
-									startDate, null, null, null);
-				}
-				if (startDate == null && endDate != null && patientId == null
-						&& facilityService != null && insurance == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getBillsByServiceCategory(facilityService, null,
-									endDate, null, null);
-				}
+			List<String> serviceNames = new ArrayList<String>();
+			new ReportsUtil();
+			Map<String, String> billServiceNames = ReportsUtil
+					.getAllBillItems(reportedPatientBills);
 
-				if (startDate != null && endDate != null && patientId == null
-						&& facilityService != null && insurance == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getBillsByServiceCategory(facilityService,
-									startDate, endDate, null, null);
-				}
+			for (String key : billServiceNames.keySet()) {
+				serviceNames.add(billServiceNames.get(key));
+			}
 
-				if (startDate == null && endDate == null && patientId != null
-						&& facilityService != null && insurance == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getBillsByServiceCategory(facilityService, null,
-									null, PatientService.getPatient(patientId),
-									null);
-				}
+			mav.addObject("serviceNames", serviceNames);
 
-				if (startDate != null && endDate != null && patientId != null
-						&& facilityService != null && insurance != null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil
-							.getBillsByServiceCategory(facilityService,
-									startDate, endDate, PatientService
-											.getPatient(patientId), insurance);
-				}
-				if (facilityService == null && startDate == null && endDate == null && patientId != null
-						&&  insurance == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil.getBillsByServiceCategory(null,null, null, PatientService.getPatient(patientId), null);
-					
-				}
-				if (facilityService == null && startDate == null && endDate == null && patientId != null
-						&& insurance != null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil.getBillsByServiceCategory(null,null, null, null, insurance);
-				}
-				if (facilityService == null && startDate == null && endDate != null && patientId != null
-						&& insurance == null) {
-					new ReportsUtil();
-					reportedPatientBills = ReportsUtil.getBillsByServiceCategory(null,null, endDate, PatientService.getPatient(patientId), null);
-				}
+			if (request.getParameter("print") != null
+					&& !request.getParameter("print").equals("")) {
 
-				
-				if (endDateStr != null && !endDateStr.equals("")) {
-					endDate = (Date) formatter.parse(endDateStr);
-				}
+				printPatientBillToPDF(request, response, reportedPatientBills);
 
-				if (insuranceStr != null && !insuranceStr.equals("")) {
-					insuranceIdInt = Integer.parseInt(insuranceStr);
-					insurance = billingService.getInsurance(insuranceIdInt);
-				}
-				if (serviceId != null && !serviceId.equals(""))
-					facilityService = billingService
-							.getFacilityServicePrice(Integer
-									.parseInt(serviceId));
-*/
-				/*
-				 * //=======================================startdate,enddate as
-				 * parameters========================================= if
-				 * (startDate!=null && endDate==null && insurance==null &&
-				 * patientId==null) reportedPatientBills=new
-				 * PatientBillUtil().getPatientBillsInDates(startDate,null); if
-				 * (startDate==null && endDate!=null && insurance==null &&
-				 * patientId==null) reportedPatientBills=new
-				 * PatientBillUtil().getPatientBillsInDates(null,endDate); if
-				 * (startDate!=null && endDate!=null && insurance==null &&
-				 * patientId==null) reportedPatientBills=new
-				 * PatientBillUtil().getPatientBillsInDates(startDate,endDate);
-				 */
-
-				/*
-				 * //========================================startdate,enddate
-				 * and insurance as parameters============================ if
-				 * (startDate!=null && endDate==null && insurance!=null &&
-				 * patientId==null) reportedPatientBills= new
-				 * ReportsUtil().getMonthlyReportByInsurance(insurance,
-				 * startDate, null); if (startDate==null && endDate!=null &&
-				 * insurance!=null && patientId==null) reportedPatientBills= new
-				 * ReportsUtil().getMonthlyReportByInsurance(insurance, null,
-				 * endDate); if (startDate!=null && endDate!=null &&
-				 * insurance!=null && patientId==null) reportedPatientBills= new
-				 * ReportsUtil().getMonthlyReportByInsurance(insurance,
-				 * startDate, endDate); if (startDate==null && endDate==null &&
-				 * insurance!=null && patientId==null) reportedPatientBills= new
-				 * ReportsUtil().getMonthlyReportByInsurance(insurance, null,
-				 * null);
-				 */
-
-				/*
-				 * //========================================startdate,enddate,insurance
-				 * and patient as parameters=================== if
-				 * (startDate!=null && endDate==null && insurance==null &&
-				 * patientId!=null ) reportedPatientBills=new
-				 * PatientBillUtil().getBillsByPatient
-				 * (PatientService.getPatient(
-				 * Integer.valueOf(patientIdStr)),startDate,null,true) ; if
-				 * (startDate==null && endDate!=null && insurance==null &&
-				 * patientId!=null) reportedPatientBills=new
-				 * PatientBillUtil().getBillsByPatient
-				 * (PatientService.getPatient(
-				 * Integer.valueOf(patientIdStr)),null,endDate,true) ; if
-				 * (startDate!=null && endDate!=null && insurance==null &&
-				 * patientId!=null) reportedPatientBills=new
-				 * PatientBillUtil().getBillsByPatient
-				 * (PatientService.getPatient(
-				 * Integer.valueOf(patientIdStr)),startDate,endDate,true) ;
-				 */
-
-				/*
-				 * //==========================================startdate,enddate,
-				 * patient,insurance,facilityService===========================
-				 * if(startDate==null && endDate==null && patientId==null &&
-				 * facilityService!=null && insurance==null)
-				 * reportedPatientBills=new
-				 * ReportsUtil().getBillsByServiceCategory(facilityService,
-				 * null, null, null, null);
-				 * 
-				 * if(startDate!=null && endDate==null && patientId==null &&
-				 * facilityService!=null && insurance==null)
-				 * reportedPatientBills=new
-				 * ReportsUtil().getBillsByServiceCategory(facilityService,
-				 * startDate, null, null, null); if(startDate==null &&
-				 * endDate!=null && patientId==null && facilityService!=null &&
-				 * insurance==null) reportedPatientBills=new
-				 * ReportsUtil().getBillsByServiceCategory(facilityService,
-				 * null, endDate, null, null);
-				 * 
-				 * if(startDate!=null && endDate!=null && patientId==null &&
-				 * facilityService!=null && insurance==null)
-				 * reportedPatientBills=new
-				 * ReportsUtil().getBillsByServiceCategory(facilityService,
-				 * startDate, endDate, null, null);
-				 * 
-				 * if(startDate==null && endDate==null && patientId!=null &&
-				 * facilityService!=null && insurance==null)
-				 * reportedPatientBills=new
-				 * ReportsUtil().getBillsByServiceCategory(facilityService,
-				 * null, null, PatientService.getPatient(patientId), null);
-				 * 
-				 * if(startDate!=null && endDate!=null && patientId!=null &&
-				 * facilityService!=null && insurance!=null)
-				 * reportedPatientBills=new
-				 * ReportsUtil().getBillsByServiceCategory(facilityService,
-				 * startDate, endDate, PatientService.getPatient(patientId),
-				 * insurance);
-				 */
-
-				double totalAmount = 0;
-				List<Object[]> billObj = new ArrayList<Object[]>();
-
-				for (PatientBill bill : reportedPatientBills) {
-
-					Date serviceDate = null;
-					for (PatientServiceBill item : bill.getBillItems()) {
-						serviceDate = item.getServiceDate();
-					}
-					billObj
-							.add(new Object[] {
-									serviceDate,
-									bill.getBeneficiary().getPolicyIdNumber(),
-									bill.getBeneficiary().getPatient()
-											.getGivenName()
-											+ " "
-											+ bill.getBeneficiary()
-													.getPatient()
-													.getFamilyName(),
-									bill.getBillItems(),
-									bill.getBeneficiary().getInsurancePolicy()
-											.getInsurance().getName(),
-									bill.getBeneficiary().getInsurancePolicy()
-											.getInsurance().getCurrentRate()
-											.getRate().doubleValue()
-											* bill.getAmount().doubleValue()
-											/ 100,
-									bill.getAmount().doubleValue()
-											- (bill.getBeneficiary()
-													.getInsurancePolicy()
-													.getInsurance()
-													.getCurrentRate().getRate()
-													* bill.getAmount()
-															.doubleValue() / 100),
-									bill.getAmount() });
-					totalAmount += bill.getAmount().doubleValue();
-				}
-
-				mav.addObject("totalAmount", totalAmount);
-				mav.addObject("billObj", billObj);
-				mav.addObject("reportedPatientBills", reportedPatientBills);
-				mav.addObject("startDate", request.getParameter("startDate"));
-				mav.addObject("endDate", request.getParameter("endDate"));
-				
-				//mav.addObject("patientId", request.getParameter("patientId"));
-               
-
-				List<String> serviceNames = new ArrayList<String>();
-				new ReportsUtil();
-			//	log.info("zdfzfd hhhhhhbbbbbbbbbbbbbbbbbbbhhhhhhhhhhhhhhhhhhhhhhhh"+reportedPatientBills);
-				Map<String, String> billServiceNames = ReportsUtil
-						.getAllBillItems(reportedPatientBills);
-				
-				
-				/*for (String key : billServiceNames.keySet()) {
-					serviceNames.add(billServiceNames.get(key));
-				}
-                 
-				mav.addObject("serviceNames", serviceNames);*/
-
-				/*
-				 * List<String> serviceNames = new ArrayList<String>();
-				 * Map<String, String> billServiceNames=new
-				 * ReportsUtil().getAllBillItems(reportedPatientBills);
-				 */
-				for (String key : billServiceNames.keySet()) {
-					serviceNames.add(billServiceNames.get(key));
-				}
-
-				mav.addObject("serviceNames", serviceNames);
-
-				// if(request.getParameter("print") != null &&
-				// !request.getParameter("print").equals("")){
-
-				if (request.getParameter("print") != null
-						&& !request.getParameter("print").equals("")) {
-			  //log.info("startDate != null && endDate == null && insurance == null && patientId == null startDate : "+startDate);
-			  //log.info("startDate != null && endDate == null && insurance == null && patientId == null  endDate: "+endDate);
-			  //log.info("startDate != null && endDate == null && insurance == null && patientId == null insurance : "+insurance);
-			  //log.info("startDate != null && endDate == null && insurance == null && patientId == null  patientId :"+patientId);
-              //log.info(" just before the print call reportedPatientBillsreportedPatientBillsreportedPatientBillsreportedPatientBills"+reportedPatientBills.size());
-					printPatientBillToPDF(request, response,
-							reportedPatientBills);
-					
-					
-				}
-
-				// }
+			}
 
 		}
 
@@ -543,8 +226,8 @@ public class MohBillingCohortBuilderFormController extends
 		response.setContentType("application/pdf");
 		response.setHeader("Content-Disposition", "report"); // file name
 
-		PdfWriter writer = PdfWriter.getInstance(document, response
-				.getOutputStream());
+		PdfWriter writer = PdfWriter.getInstance(document,
+				response.getOutputStream());
 		writer.setBoxSize("art", new Rectangle(0, 0, 2382, 3369));
 		writer.setBoxSize("art", PageSize.A4);
 
@@ -606,8 +289,8 @@ public class MohBillingCohortBuilderFormController extends
 		table = new PdfPTable(2);
 		table.setWidthPercentage(100f);
 
-		PdfPCell cell = new PdfPCell(fontTitleSelector
-				.process("Compagnie d'Assurance : " + 543));
+		PdfPCell cell = new PdfPCell(
+				fontTitleSelector.process("Compagnie d'Assurance : " + 543));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 
@@ -794,11 +477,9 @@ public class MohBillingCohortBuilderFormController extends
 		table.addCell(cell);
 
 		document.add(table);
-	
-        //log.info("reportedPatientBills   new reportedPatientBills reportedPatientBills reportedPatientBills reportedPatientBills  : "+reportedPatientBills.size());
+
+		// log.info("reportedPatientBills   new reportedPatientBills reportedPatientBills reportedPatientBills reportedPatientBills  : "+reportedPatientBills.size());
 		document.close();
-		
-		
 
 	}
 
@@ -806,25 +487,31 @@ public class MohBillingCohortBuilderFormController extends
 		public void onEndPage(PdfWriter writer, Document document) {
 			Rectangle rect = writer.getBoxSize("art");
 
-			Phrase header = new Phrase(String.format("- %d -", writer
-					.getPageNumber()));
+			Phrase header = new Phrase(String.format("- %d -",
+					writer.getPageNumber()));
 			header.setFont(new Font(FontFamily.COURIER, 4, Font.NORMAL));
 
 			if (document.getPageNumber() > 1) {
 				ColumnText.showTextAligned(writer.getDirectContent(),
-						Element.ALIGN_CENTER, header, (rect.getLeft() + rect
-								.getRight()) / 2, rect.getTop() + 40, 0);
+						Element.ALIGN_CENTER, header,
+						(rect.getLeft() + rect.getRight()) / 2,
+						rect.getTop() + 40, 0);
 			}
 
-			Phrase footer = new Phrase(String.format("- %d -", writer
-					.getPageNumber()));
+			Phrase footer = new Phrase(String.format("- %d -",
+					writer.getPageNumber()));
 			footer.setFont(new Font(FontFamily.COURIER, 4, Font.NORMAL));
 
 			ColumnText.showTextAligned(writer.getDirectContent(),
-					Element.ALIGN_CENTER, footer, (rect.getLeft() + rect
-							.getRight()) / 2, rect.getBottom() - 40, 0);
+					Element.ALIGN_CENTER, footer,
+					(rect.getLeft() + rect.getRight()) / 2,
+					rect.getBottom() - 40, 0);
 
 		}
 	}
 
+	static double roundTwoDecimals(double d) {
+		DecimalFormat twoDForm = new DecimalFormat("#.##");
+		return Double.valueOf(twoDForm.format(d));
+	}
 }

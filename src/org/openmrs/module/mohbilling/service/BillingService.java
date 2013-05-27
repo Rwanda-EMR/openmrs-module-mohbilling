@@ -174,4 +174,17 @@ public interface BillingService {
 	 * @return insurancePolicyCard that matches the unique card number
 	 */
 	public InsurancePolicy getInsurancePolicyByCardNo(String insuranceCardNo);
+
+	/**
+	 * Gets all patient bills by entered parameters
+	 * 
+	 * @param insurance
+	 * @param startDate
+	 * @param endDate
+	 * @param patientId
+	 * @param serviceName
+	 * @return
+	 */
+	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
+			Date endDate, Integer patientId, String serviceName);
 }

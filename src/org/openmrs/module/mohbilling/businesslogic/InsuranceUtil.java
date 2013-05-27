@@ -10,6 +10,7 @@ import org.openmrs.Concept;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Category;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceCategory;
@@ -682,6 +683,34 @@ public class InsuranceUtil {
 				|| retireReason != "" ? retireReason : "No reason provided");
 
 		service.saveFacilityServicePrice(fsp);
+	}
+	
+	public static List<String> getAllServiceCategories(){
+		
+		List<String> categories = new ArrayList<String>();
+		
+		categories.add(Category.CHIRURGIE.getDescription());
+		categories.add(Category.CONSOMMABLES.getDescription());
+		categories.add(Category.CONSULTATION.getDescription());
+		categories.add(Category.DERMATOLOGIE.getDescription());
+		categories.add(Category.ECHOGRAPHIE.getDescription());
+		categories.add(Category.FORMALITES_ADMINISTRATIVES.getDescription());
+		categories.add(Category.HOSPITALISATION.getDescription());
+		categories.add(Category.KINESITHERAPIE.getDescription());
+		categories.add(Category.LABORATOIRE.getDescription());
+		categories.add(Category.MATERNITE.getDescription());
+		categories.add(Category.MEDECINE_INTERNE.getDescription());
+		categories.add(Category.MEDICAMENTS.getDescription());
+		categories.add(Category.OPHTALMOLOGIE.getDescription());
+		categories.add(Category.ORL.getDescription());
+		categories.add(Category.OXYGENOTHERAPIE.getDescription());
+		categories.add(Category.PEDIATRIE.getDescription());
+		categories.add(Category.RADIOLOGIE.getDescription());
+		categories.add(Category.SOINS_INFIRMIERS.getDescription());
+		categories.add(Category.SOINS_INTENSIFS.getDescription());
+		categories.add(Category.STOMATOLOGIE.getDescription());
+		
+		return categories;
 	}
 
 }

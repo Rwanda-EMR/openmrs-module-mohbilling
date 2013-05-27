@@ -11,7 +11,7 @@ public enum InsuranceCategory {
 
 	MUTUELLE, BASE, PRIVATE, NONE;
 
-	/*
+	/**
 	 * (non-Javadoc)
 	 * 
 	 * @see java.lang.Enum#toString()
