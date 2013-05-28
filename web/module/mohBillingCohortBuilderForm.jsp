@@ -20,8 +20,6 @@
 			$bill('#header').hide();
 		});	
 	});
-
-   
 	
 </script>
 
@@ -74,8 +72,9 @@
 	</tr>
 
 	<tr>
-		<td>Patient</td><td>
-		<openmrs:fieldGen type="org.openmrs.Patient" formFieldName="patientId" val="${patientId}" />
+		<td>Patient</td>
+		<td>
+			<openmrs_tag:patientField formFieldName="patientId" initialValue="${patientId}" />
 		</td>
 		<td>Facility Services 
 			<select name="serviceId">
@@ -103,7 +102,7 @@
 <c:if test="${fn:length(billObj)!=0}">
 <div class="box">
 <b class="boxHeader">Search results  <input id="print_button" type="submit" value="PRINT" onclick=""/>
-	<div style="float:right"><a style="" href="cohort.form?print=true&patientId=${patientId}&startDate=${startDate}&endDate=${endDate}&insurance=${insurance}&serviceId=${serviceId}"><b style="color: red;font-size: 14px;">Print PDF</b></a></div>
+	<div style="float:right"><a style="" href="cohort.form?print=true&patientId=${patientId}&startDate=${startDate}&endDate=${endDate}&insurance=${insurance.insuranceId}&serviceId=${serviceId}"><b style="color: red;font-size: 14px;">Print PDF</b></a></div>
 </b>
 
 <div class="header" style="display: none;">  
