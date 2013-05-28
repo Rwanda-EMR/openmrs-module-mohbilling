@@ -45,9 +45,11 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.FontSelector;
+import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
+import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 
 public class MohBillingCohortBuilderFormController extends
@@ -63,6 +65,7 @@ public class MohBillingCohortBuilderFormController extends
 		BillingService billingService = Context
 				.getService(BillingService.class);
 		List<String> categories = InsuranceUtil.getAllServiceCategories();
+		List<PatientBill> reportedPatientBills = new ArrayList<PatientBill>();
 
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("allInsurances", billingService.getAllInsurances());
@@ -71,14 +74,17 @@ public class MohBillingCohortBuilderFormController extends
 		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 		Date startDate = null;
 
-		if (request.getMethod().equalsIgnoreCase("post")) {
+		if (request.getParameter("patientId") != null
+				&& request.getParameter("insurance") != null
+				&& request.getParameter("startDate") != null
+				&& request.getParameter("endDate") != null
+				&& request.getParameter("serviceId") != null) {
+			
 			String patientIdStr = request.getParameter("patientId"), insuranceStr = request
 					.getParameter("insurance"), startDateStr = request
 					.getParameter("startDate"), endDateStr = request
 					.getParameter("endDate"), serviceId = request
 					.getParameter("serviceId");
-
-			List<PatientBill> reportedPatientBills = new ArrayList<PatientBill>();
 
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
@@ -98,14 +104,14 @@ public class MohBillingCohortBuilderFormController extends
 
 					patientIdStr = request.getParameter("patientId");
 					patientId = Integer.parseInt(patientIdStr);
-					//mav.addObject("patientId", patientIdStr);
+					// mav.addObject("patientId", patientIdStr);
 				}
 
 			if (request.getParameter("patientIdnew") != null)
 				if (!request.getParameter("patientIdnew").equals("")) {
 					patientIdStr = request.getParameter("patientIdnew");
 					patientId = Integer.parseInt(patientIdStr);
-					//mav.addObject("patientId", patientId);
+					// mav.addObject("patientId", patientId);
 				}
 
 			if (request.getParameter("insurance") != null)
@@ -180,7 +186,7 @@ public class MohBillingCohortBuilderFormController extends
 			mav.addObject("endDate", request.getParameter("endDate"));
 
 			List<String> serviceNames = new ArrayList<String>();
-			new ReportsUtil();
+			// new ReportsUtil();
 			Map<String, String> billServiceNames = ReportsUtil
 					.getAllBillItems(reportedPatientBills);
 
@@ -190,12 +196,18 @@ public class MohBillingCohortBuilderFormController extends
 
 			mav.addObject("serviceNames", serviceNames);
 
-			if (request.getParameter("print") != null
-					&& !request.getParameter("print").equals("")) {
+			if (request.getParameter("print") != null)
+				if (request.getParameter("print").equals("true")) {
 
-				printPatientBillToPDF(request, response, reportedPatientBills);
+					log.info("00000000000000000000 Reaching there!!");
+					if (request.getParameter("reportedPatientBills") != null) {
+						// reportedPatientBills =
+						// request.getParameter("reportedPatientBills");
+						printPatientBillToPDF(request, response,
+								reportedPatientBills);
+					}
 
-			}
+				}
 
 		}
 
@@ -209,23 +221,9 @@ public class MohBillingCohortBuilderFormController extends
 			HttpServletResponse response, List<PatientBill> reportedPatientBills)
 			throws Exception {
 		Document document = new Document();
-		// List<PatientBill> patientBills =
-		// (List<PatientBill>)request.getAttribute("reportedPatientBillsPrint");
 
-		/*
-		 * PatientBill pb = null;
-		 * 
-		 * pb = Context.getService(BillingService.class).getPatientBill(
-		 * Integer.parseInt(request.getParameter("patientBills")));
-		 */
-		/*
-		 * String filename = pb.getBeneficiary().getPatient().getPersonName()
-		 * .toString().replace(" ", "_"); filename =
-		 * pb.getBeneficiary().getPolicyIdNumber().replace(" ", "_") + "_" +
-		 * filename + ".pdf";
-		 */
 		response.setContentType("application/pdf");
-		response.setHeader("Content-Disposition", "report"); // file name
+		response.setHeader("Content-Disposition", "Report"); // file name
 
 		PdfWriter writer = PdfWriter.getInstance(document,
 				response.getOutputStream());
@@ -236,6 +234,16 @@ public class MohBillingCohortBuilderFormController extends
 		writer.setPageEvent(event);
 
 		document.open();
+		Image image1 = Image.getInstance("C:/image1.jpg");
+		Image image2 = Image.getInstance("C:/image2.jpg");
+
+		image1.setAbsolutePosition(0, 0);
+		image2.setAbsolutePosition(0, 0);
+
+		/** Adding an image (logo) to the file */
+		PdfContentByte byte1 = writer.getDirectContent();
+		PdfTemplate tp1 = byte1.createTemplate(600, 150);
+		tp1.addImage(image2);
 		document.setPageSize(PageSize.A4);
 		// document.setPageSize(new Rectangle(0, 0, 2382, 3369));
 
@@ -256,14 +264,14 @@ public class MohBillingCohortBuilderFormController extends
 
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 		try {
-			Image image = Image
-					.getInstance("C://WORKS.BILLING/moh-billing/police.jpg");
+			Image image = Image.getInstance("../../images/police.jpg");
 			image.setAlignment(Image.ALIGN_LEFT);
 			image.setBorder(4900);
 			document.add(image);
 		} catch (Exception e) {
 			log.info("error loading image...... " + e.getMessage());
 		}
+
 		document.add(fontTitle.process("POLICE NATIONALE\n"));
 		document.add(fontTitle.process("KACYIRU POLICE HOSPITAL\n"));
 		document.add(fontTitle.process("B.P. 6183 KIGALI\n"));

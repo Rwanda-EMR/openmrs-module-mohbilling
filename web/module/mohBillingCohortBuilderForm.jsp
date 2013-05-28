@@ -93,15 +93,18 @@
 	</tr>
 
 </table>
-
 <input type="submit" value="Search" />
-</div>
-<br>
-
-<br>
 </form>
+
+</div>
+<br/>
+
+<br/>
 <c:if test="${fn:length(billObj)!=0}">
-<div><b class="boxHeader">Search results  <input id="print_button" type="submit" value="PRINT" onclick=""/> </b>
+<div class="box">
+<b class="boxHeader">Search results  <input id="print_button" type="submit" value="PRINT" onclick=""/>
+	<div style="float:right"><a style="" href="cohort.form?print=true&patientId=${patientId}&startDate=${startDate}&endDate=${endDate}&insurance=${insurance}&serviceId=${serviceId}"><b style="color: red;font-size: 14px;">Print PDF</b></a></div>
+</b>
 
 <div class="header" style="display: none;">  
 
@@ -168,14 +171,14 @@
 
 	</c:forEach>
 	<tr>
-		<td class="rowTotalValue" colspan="6"><b style="color: blue;font-size: 14px;">TOTAL</b></td><!-- <td></td><td></td><td></td><td></td><td></td>-->
+		<td class="rowTotalValue" colspan="6"><b style="color: blue;font-size: 14px;">TOTAL</b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${insuranceDueAmount}</b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${patientDueAmount}</b></td>
 		<td class="rowTotalValue"><b style="color: red;font-size: 14px;"><u>${totalAmount}</u></b></td>
 	</tr>
 </table>
 </div>
-</form>
+
 </div> 
 </c:if>
 
