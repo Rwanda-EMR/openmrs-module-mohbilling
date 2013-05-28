@@ -35,7 +35,7 @@ var $k= jQuery.noConflict();
 		<td>Insurance:</td>
 		<td><select name="insurance">
 			<option selected="selected" value="${insuranceId}"><c:choose>
-             <c:when test="${insuranceId != nul}"> ${insurance.name} 
+             <c:when test="${insuranceId != null}"> ${insurance.name} 
 
              </c:when>
 

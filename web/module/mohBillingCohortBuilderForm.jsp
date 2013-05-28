@@ -7,26 +7,23 @@
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <script type="text/javascript" language="JavaScript">
-	var $ = jQuery.noConflict();
+	var $bill = jQuery.noConflict();
 
-	$(document).ready(function() {
-		$("input#print_button").click(function() {
-			$("div.printarea").printArea();
+	$bill(document).ready(function() {
+		$bill("input#print_button").click(function() {
+			$bill("div.printarea").printArea();
 		});	
 
-		$("input#print_button").click(function() {
-			$('#header').show();
-			$("div.printarea").printArea();
-			$('#header').hide();
+		$bill("input#print_button").click(function() {
+			$bill('#header').show();
+			$bill("div.printarea").printArea();
+			$bill('#header').hide();
 		});	
 	});
 
    
 	
 </script>
-
-
-
 
 <ul id="menu">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
@@ -42,7 +39,7 @@
 
 
 <form action="cohort.form" method="post" name="">
-
+<input type="hidden" name="patientIdnew" value="${patientId}"/>	
 <table>
 	<tr>
 		<td width="10%">When?</td>
@@ -63,19 +60,12 @@
 	<tr>
 		<td>Insurance:</td>
 		<td><select name="insurance">
-			<option selected="selected" value="${insurance.insuranceId}"> 
-			<c:choose>
-             <c:when test="${insurance.insuranceId != nul}">
-
-			 ${insurance.name}
-			 
-			 </c:when>
-
-               <c:otherwise>--select-- 
-             </c:otherwise>
-            </c:choose>
-			 
-			 </option>
+			<option selected="selected" value="${insurance.insuranceId}">
+				<c:choose>
+					<c:when test="${insurance!=null}">${insurance.name}</c:when>
+					<c:otherwise>--Select insurance--</c:otherwise>
+				</c:choose>
+			</option>
 			<c:forEach items="${allInsurances}" var="ins">
 				<option value="${ins.insuranceId}">${ins.name}</option>
 			</c:forEach>
@@ -85,20 +75,22 @@
 
 	<tr>
 		<td>Patient</td><td>
-		<openmrs:fieldGen type="org.openmrs.Patient" formFieldName="patientId" val="" />
-		 <input type="hidden" name="patientIdnew" value="${patientIdStr}"/>	
+		<openmrs:fieldGen type="org.openmrs.Patient" formFieldName="patientId" val="${patientId}" />
 		</td>
 		<td>Facility Services 
 			<select name="serviceId">
-			
-			    <option value="">---Select---</option>
+				<option selected="selected" value="${serviceId}">
+					<c:choose>
+						<c:when test="${serviceId!=null}">${serviceId}</c:when>             
+				    	<c:otherwise>--Select service--</c:otherwise>
+				    </c:choose>
+				</option>
 				<c:forEach items="${categories}" var="service">
 					<option value="${service}">${service}</option>
 				</c:forEach>
 			</select>
 		</td>
 	</tr>
-
 
 </table>
 

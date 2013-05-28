@@ -7,8 +7,8 @@
  *      Print Button: <div id="print_button">Print</div>
  *      Print Area  : <div class="PrintArea"> ... html ... </div>
  *      Javascript  : <script>
- *                       $("div#print_button").click(function(){
- *                           $("div.PrintArea").printArea( [OPTIONS] );
+ *                       $bill("div#print_button").click(function(){
+ *                           $bill("div.PrintArea").printArea( [OPTIONS] );
  *                       });
  *                     </script>
  *  options are passed as json (json example: {mode: "popup", popClose: false})
@@ -43,8 +43,8 @@
 
             counter++;
             var idPrefix = "printArea_";
-            $( "[id^=" + idPrefix + "]" ).remove();
-            var ele = getFormData( $(this) );
+            $bill( "[id^=" + idPrefix + "]" ).remove();
+            var ele = getFormData( $bill(this) );
 
             settings.id = idPrefix + counter;
 
@@ -87,16 +87,16 @@
     function getHead()
     {
         var head = "<head><title>" + settings.popTitle + "</title>";
-        $(document).find("link")
+        $bill(document).find("link")
             .filter(function(){
-                    return $(this).attr("rel").toLowerCase() == "stylesheet";
+                    return $bill(this).attr("rel").toLowerCase() == "stylesheet";
                 })
             .filter(function(){ // this filter contributed by "mindinquiring"
-                    var media = $(this).attr("media");
+                    var media = $bill(this).attr("media");
                     return (media.toLowerCase() == "" || media.toLowerCase() == "print")
                 })
             .each(function(){
-                    head += '<link type="text/css" rel="stylesheet" href="' + $(this).attr("href") + '" >';
+                    head += '<link type="text/css" rel="stylesheet" href="' + $bill(this).attr("href") + '" >';
                 });
         head += "</head>";
         return head;
@@ -104,31 +104,31 @@
 
     function getBody( printElement )
     {
-        return '<body><div class="' + $(printElement).attr("class") + '">' + $(printElement).html() + '</div></body>';
+        return '<body><div class="' + $bill(printElement).attr("class") + '">' + $bill(printElement).html() + '</div></body>';
     }
 
     function getFormData( ele )
     {
-        $("input,select,textarea", ele).each(function(){
+        $bill("input,select,textarea", ele).each(function(){
             // In cases where radio, checkboxes and select elements are selected and deselected, and the print
             // button is pressed between select/deselect, the print screen shows incorrectly selected elements.
             // To ensure that the correct inputs are selected, when eventually printed, we must inspect each dom element
-            var type = $(this).attr("type");
+            var type = $bill(this).attr("type");
             if ( type == "radio" || type == "checkbox" )
             {
-                if ( $(this).is(":not(:checked)") ) this.removeAttribute("checked");
+                if ( $bill(this).is(":not(:checked)") ) this.removeAttribute("checked");
                 else this.setAttribute( "checked", true );
             }
             else if ( type == "text" )
-                this.setAttribute( "value", $(this).val() );
+                this.setAttribute( "value", $bill(this).val() );
             else if ( type == "select-multiple" || type == "select-one" )
-                $(this).find( "option" ).each( function() {
-                    if ( $(this).is(":not(:selected)") ) this.removeAttribute("selected");
+                $bill(this).find( "option" ).each( function() {
+                    if ( $bill(this).is(":not(:selected)") ) this.removeAttribute("selected");
                     else this.setAttribute( "selected", true );
                 });
             else if ( type == "textarea" )
             {
-                var v = $(this).attr( "value" );
+                var v = $bill(this).attr( "value" );
                 if ($.browser.mozilla)
                 {
                     if (this.firstChild) this.firstChild.textContent = v;
@@ -150,7 +150,7 @@
         {
             iframe = document.createElement('iframe');
             document.body.appendChild(iframe);
-            $(iframe).attr({ style: iframeStyle, id: frameId, src: "" });
+            $bill(iframe).attr({ style: iframeStyle, id: frameId, src: "" });
             iframe.doc = null;
             iframe.doc = iframe.contentDocument ? iframe.contentDocument : ( iframe.contentWindow ? iframe.contentWindow.document : iframe.document);
         }

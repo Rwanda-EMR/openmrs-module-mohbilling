@@ -93,26 +93,26 @@ public class MohBillingCohortBuilderFormController extends
 				endDate = (Date) formatter.parse(endDateStr);
 			}
 
-			if (!request.getParameter("patientId").equals(null)
-					&& !request.getParameter("patientId").equals("")
-					&& request.getParameter("patientId") != null) {
+			if (request.getParameter("patientId") != null)
+				if (!request.getParameter("patientId").equals("")) {
 
-				patientIdStr = request.getParameter("patientId");
-				patientId = Integer.parseInt(patientIdStr);
-				mav.addObject("patientIdStr", patientIdStr);
-			}
+					patientIdStr = request.getParameter("patientId");
+					patientId = Integer.parseInt(patientIdStr);
+					//mav.addObject("patientId", patientIdStr);
+				}
 
-			if (!request.getParameter("patientIdnew").equals(null)
-					&& !request.getParameter("patientIdnew").equals("")) {
-				patientIdStr = request.getParameter("patientIdnew");
-				patientId = Integer.parseInt(patientIdStr);
-			}
+			if (request.getParameter("patientIdnew") != null)
+				if (!request.getParameter("patientIdnew").equals("")) {
+					patientIdStr = request.getParameter("patientIdnew");
+					patientId = Integer.parseInt(patientIdStr);
+					//mav.addObject("patientId", patientId);
+				}
 
-			if (request.getParameter("insurance") != null
-					&& !request.getParameter("insurance").equals("")) {
-				insuranceIdInt = Integer.parseInt(insuranceStr);
-				insurance = billingService.getInsurance(insuranceIdInt);
-			}
+			if (request.getParameter("insurance") != null)
+				if (!request.getParameter("insurance").equals("")) {
+					insuranceIdInt = Integer.parseInt(insuranceStr);
+					insurance = billingService.getInsurance(insuranceIdInt);
+				}
 
 			reportedPatientBills = ReportsUtil.buildCohort(insurance,
 					startDate, endDate, patientId, serviceId);
@@ -121,6 +121,7 @@ public class MohBillingCohortBuilderFormController extends
 			mav.addObject("endDateStr", endDateStr);
 			mav.addObject("serviceId", serviceId);
 			mav.addObject("insurance", insurance);
+			mav.addObject("patientId", patientId);
 
 			double totalAmount = 0, totalPatientDueAmount = 0, totalInsuranceDueAmount = 0;
 			List<Object[]> billObj = new ArrayList<Object[]>();
