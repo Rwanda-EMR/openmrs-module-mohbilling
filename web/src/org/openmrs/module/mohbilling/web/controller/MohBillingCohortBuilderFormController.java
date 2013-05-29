@@ -79,7 +79,7 @@ public class MohBillingCohortBuilderFormController extends
 				&& request.getParameter("startDate") != null
 				&& request.getParameter("endDate") != null
 				&& request.getParameter("serviceId") != null) {
-			
+
 			String patientIdStr = request.getParameter("patientId"), insuranceStr = request
 					.getParameter("insurance"), startDateStr = request
 					.getParameter("startDate"), endDateStr = request
@@ -91,34 +91,32 @@ public class MohBillingCohortBuilderFormController extends
 			Date endDate = null;
 			Insurance insurance = null;
 
-			if (startDateStr != null && !startDateStr.equals("")) {
+			if (!startDateStr.equals("")) {
 				startDate = (Date) formatter.parse(startDateStr);
 			}
 
-			if (endDateStr != null && !endDateStr.equals("")) {
+			if (!endDateStr.equals("")) {
 				endDate = (Date) formatter.parse(endDateStr);
 			}
 
-			if (request.getParameter("patientId") != null)
-				if (!request.getParameter("patientId").equals("")) {
+			if (!request.getParameter("patientId").equals("")) {
 
-					patientIdStr = request.getParameter("patientId");
-					patientId = Integer.parseInt(patientIdStr);
-					// mav.addObject("patientId", patientIdStr);
-				}
+				patientIdStr = request.getParameter("patientId");
+				patientId = Integer.parseInt(patientIdStr);
+				// mav.addObject("patientId", patientIdStr);
+			}
 
-			if (request.getParameter("patientIdnew") != null)
-				if (!request.getParameter("patientIdnew").equals("")) {
-					patientIdStr = request.getParameter("patientIdnew");
-					patientId = Integer.parseInt(patientIdStr);
-					// mav.addObject("patientId", patientId);
-				}
+			// if (request.getParameter("patientIdnew") != null)
+			// if (!request.getParameter("patientIdnew").equals("")) {
+			// patientIdStr = request.getParameter("patientIdnew");
+			// patientId = Integer.parseInt(patientIdStr);
+			// mav.addObject("patientId", patientId);
+			// }
 
-			if (request.getParameter("insurance") != null)
-				if (!request.getParameter("insurance").equals("")) {
-					insuranceIdInt = Integer.parseInt(insuranceStr);
-					insurance = billingService.getInsurance(insuranceIdInt);
-				}
+			if (!request.getParameter("insurance").equals("")) {
+				insuranceIdInt = Integer.parseInt(insuranceStr);
+				insurance = billingService.getInsurance(insuranceIdInt);
+			}
 
 			reportedPatientBills = ReportsUtil.buildCohort(insurance,
 					startDate, endDate, patientId, serviceId);

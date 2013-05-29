@@ -23,6 +23,7 @@ import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
@@ -30,9 +31,11 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.FontSelector;
+import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
+import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 
 /**
@@ -106,6 +109,9 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		document.add(todayDate);
 
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
+		
+		/** I would like a LOGO here!!! */
+		
 		document.add(fontTitle.process("POLICE NATIONALE\n"));
 		document.add(fontTitle.process("KACYIRU POLICE HOSPITAL\n"));
 		document.add(fontTitle.process("B.P. 6183 KIGALI\n"));
