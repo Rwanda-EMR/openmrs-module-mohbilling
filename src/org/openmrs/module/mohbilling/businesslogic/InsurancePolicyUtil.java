@@ -6,8 +6,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpSession;
-
 import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
@@ -125,11 +123,8 @@ public class InsurancePolicyUtil {
 			if (card.getInsurance().getCategory().toString()
 					.equalsIgnoreCase(InsuranceCategory.NONE.toString())
 					&& getPrimaryPatientIdentiferType()
-							.equals(Context
-									.getPatientService()
-									.getPatientIdentifierType(
-											Integer.valueOf(Context
-													.getAdministrationService()
+							.equals(Context.getPatientService().getPatientIdentifierType(
+											Integer.valueOf(Context.getAdministrationService()
 													.getGlobalProperty(
 															BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
 

@@ -7,6 +7,9 @@ public class BillingConstants {
 //    public static EncounterType ENCOUNTER_TYPE_DIAGNOSIS;
 //    public static Privilege PRINT_BARCODE_OFFLINE_PRIVILEGE;
 //    public static int ageRange = 10;
+	public static final int PRIMARY_CARE_INSURANCE_EXPIRATION_DATE = 10832;
+	public static final int PRIMARY_CARE_INSURANCE_COVERAGE_START_DATE = 10831;//"billing.insuranceCoverageStartDate";
+	public static final int PRIMARY_CARE_SERVICE_REQUESTED = 6702;
     public static final String GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE = "billing.primaryIdentifierType";
     public static final String GLOBAL_PROPERTY_OTHER_IDENTIFIER_TYPES = "billing.otherIdentifierTypes";
     public static final String GLOBAL_PROPERTY_DEFAULT_LOCATION = "billing.defaultLocation";
