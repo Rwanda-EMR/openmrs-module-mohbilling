@@ -21,7 +21,11 @@ import org.directwebremoting.guice.RequestScoped;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
+import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.springframework.aop.AfterReturningAdvice;
 
 /**
@@ -71,27 +75,67 @@ public class EncounterServiceAdvice implements AfterReturningAdvice {
 			// 1. Getting the Obs associated to the encounter:
 
 			if (encounter.getObs() != null
-					&& encounter.getEncounterId().intValue() != encounterId)
-				for (Obs obs : encounter.getObs()) {
+					&& encounter.getEncounterId().intValue() != encounterId){
+				
+				InsurancePolicy card = null;
+				if(encounter.getEncounterType().equals(Context.getEncounterService().getEncounterType(11))){
 
-					if (obs.getConcept().getConceptId() == BillingConstants.PRIMARY_CARE_INSURANCE_COVERAGE_START_DATE) {
-						// TODO:
-						// Avoiding to save the Appointment many times
-						if (obs.getObsDatetime() != null) {
-
-							;
+					// Putting some conditions:
+					boolean insuranceIsThere = false, insuranceNumberIsThere = false, 
+							coverageDateIsThere = false, expirationDateIsThere = false;
+					card = new InsurancePolicy();
+					for (Obs obs : encounter.getObs()) {
+						
+						if (obs.getConcept().getConceptId() == Integer.parseInt(Context.getAdministrationService()
+										.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_INSURANCE_TYPE))) {
+							// getting the insurance type:
+							if(obs.getValueCoded() != null){
+								
+								card.setInsurance(InsuranceUtil.getInsuranceByConcept(obs.getValueCoded()));
+								insuranceIsThere = true;
+							}
+						}
+	
+						if (card != null && obs.getConcept().getConceptId() == Integer.parseInt(Context.getAdministrationService()
+										.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_INSURANCE_NUMBER))) {
+							// getting the insurance number:
+							if(obs.getValueText() != null){
+								
+								card.setInsuranceCardNo(obs.getValueText());
+								insuranceNumberIsThere = true;
+							}
+						}
+						
+						if (card != null && obs.getConcept().getConceptId() == BillingConstants.PRIMARY_CARE_INSURANCE_COVERAGE_START_DATE) {
+							// checking the value of this Coverage Date:
+							if (obs.getObsDatetime() != null) {
+	
+								card.setCoverageStartDate(obs.getValueDatetime());
+								coverageDateIsThere = true;
+							}
+						}
+						
+						if (card != null && obs.getConcept().getConceptId() == BillingConstants.PRIMARY_CARE_INSURANCE_EXPIRATION_DATE) {
+							// checking the value of this Expiration Date:
+							if (obs.getObsDatetime() != null) {
+	
+								card.setExpirationDate(obs.getValueDatetime());
+								expirationDateIsThere = true;
+							}
 						}
 					}
-					if (obs.getConcept().getConceptId() == BillingConstants.PRIMARY_CARE_INSURANCE_EXPIRATION_DATE) {
-						// TODO:
-						// Avoiding to save the Appointment many times
-						if (obs.getObsDatetime() != null) {
-
-							;
-						}
+					
+					// Creating the insurance card after checking everything is OK:
+					if (insuranceIsThere && insuranceNumberIsThere && coverageDateIsThere && expirationDateIsThere){
+						
+						card.setOwner(encounter.getPatient());
+						
+						// checking whether the card does not exist already, and save the New Card
+						if(InsurancePolicyUtil.insuranceDoesNotExist(encounter.getPatient(), card.getInsuranceCardNo()))
+							InsurancePolicyUtil.createInsurancePolicy(card);
 					}
 				}
+			}
 		}
 	}
-
 }

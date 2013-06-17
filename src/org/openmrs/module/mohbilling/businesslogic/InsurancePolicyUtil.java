@@ -129,10 +129,8 @@ public class InsurancePolicyUtil {
 															BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
 
 				/** Getting the Patient Identifier from the system **/
-				PatientIdentifier pi = InsurancePolicyUtil
-						.getPrimaryPatientIdentifierForLocation(
-								card.getOwner(),
-								InsurancePolicyUtil.getLocationLoggedIn());
+				PatientIdentifier pi = InsurancePolicyUtil.getPrimaryPatientIdentifierForLocation(
+								card.getOwner(), InsurancePolicyUtil.getLocationLoggedIn());
 
 				card.setInsuranceCardNo(pi.getIdentifier().toString());
 				card.setCoverageStartDate(new Date());
@@ -698,6 +696,28 @@ public class InsurancePolicyUtil {
 		BillingService service = Context.getService(BillingService.class);
 
 		if (service.getInsurancePolicyByCardNo(insuranceCardNo) == null)
+			return true;
+		else
+			return false;
+	}
+
+	/**
+	 * Checks whether the matching patient has an insurance already that matches
+	 * its PatientIdentifier
+	 * 
+	 * @param patient
+	 *            the patient to be matched
+	 * @return true if the patient does not have any, false otherwise
+	 */
+	public static boolean insuranceDoesNotExist(Patient patient, String insuranceCardNo) {
+
+		BillingService service = Context.getService(BillingService.class);
+		/** Getting the Patient Identifier from the system **/
+		InsurancePolicy  card = service.getInsurancePolicyByCardNo(insuranceCardNo);
+
+		if(card != null && !card.getOwner().equals(patient))
+			return true;
+		else if (card == null)
 			return true;
 		else
 			return false;

@@ -712,5 +712,15 @@ public class InsuranceUtil {
 		
 		return categories;
 	}
+	
+	public static Insurance getInsuranceByConcept(Concept concept){
+		
+		for(Insurance insurance: getInsurances(true)){
+			if(insurance.getConcept().equals(concept))
+				return insurance;
+		}
+		
+		return null;
+	}
 
 }

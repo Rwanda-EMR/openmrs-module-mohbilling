@@ -46,7 +46,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 
 	private Log log = LogFactory.getLog(this.getClass());
 
-	/*
+	/**
 	 * (non-Javadoc)
 	 * 
 	 * @see
@@ -341,8 +341,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		document.add(table);
 
 		document.close();
-
-		//log.info("pdf file created");
+		
 	}
 
 	static class HeaderFooter extends PdfPageEventHelper {
