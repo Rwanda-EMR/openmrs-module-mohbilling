@@ -292,7 +292,7 @@
 			Change the fields size (moh_bill_beneficiary.policy_id_number, moh_bill_insurance_policy.insurance_card_no) from 150 to 250
 		</description>
 		<sql>
-			ALTER TABLE moh_bill_beneficiary MODIFY policy_id_number VARCHAR(250) NULL
+			ALTER TABLE moh_bill_beneficiary MODIFY policy_id_number VARCHAR(250) NULL;
 			ALTER TABLE moh_bill_insurance_policy MODIFY insurance_card_no VARCHAR(250) NULL;
 		</sql>
 	</diff>
