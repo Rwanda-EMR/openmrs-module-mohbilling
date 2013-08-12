@@ -80,7 +80,7 @@ public class BillingAPIPatientBillUtilTest extends
 		bill.setPrinted(false);
 
 		// This returns not null because the bill has been saved successfully
-		Assert.assertNotNull(PatientBillUtil.createPatientBill(bill));
+		Assert.assertNotNull(PatientBillUtil.savePatientBill(bill));
 
 		// Testing whether the number of bills are of 6 (before it was 5)
 		Assert.assertEquals(6, bs.getAllPatientBills().size());

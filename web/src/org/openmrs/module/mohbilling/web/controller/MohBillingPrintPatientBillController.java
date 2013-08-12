@@ -13,6 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -341,6 +342,9 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		document.add(table);
 
 		document.close();
+		
+		// Mark the Bill as Printed
+		PatientBillUtil.printBill(pb);
 		
 	}
 

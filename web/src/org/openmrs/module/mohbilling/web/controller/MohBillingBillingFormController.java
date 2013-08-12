@@ -104,8 +104,8 @@ public class MohBillingBillingFormController extends
 
 			PatientBill pb = new PatientBill();
 
-			pb.setAmount(BigDecimal.valueOf(Double.valueOf(request
-					.getParameter("totalAmount"))));
+//			pb.setAmount(BigDecimal.valueOf(Double.valueOf(request
+//					.getParameter("totalAmount"))));
 
 			// Patient owner = Context.getPatientService().getPatient(
 			// Integer.valueOf(request.getParameter("patientId")));
@@ -159,7 +159,7 @@ public class MohBillingBillingFormController extends
 			}
 
 			// save the patientBill
-			savePatientBill = PatientBillUtil.createPatientBill(pb);
+			savePatientBill = PatientBillUtil.savePatientBill(pb);
 
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"The Patient Bill has been saved successfully !");

@@ -185,6 +185,10 @@
         <name>View Billing</name>
         <description>Allows user to View Billing module</description>
     </privilege>
+    <privilege>
+        <name>Manage Refund Bill</name>
+        <description>Allows user to Refund a existing Bill</description>
+    </privilege>
   
 	<!-- Internationalization -->
 	<!-- All message codes should start with @MODULE_ID@.* -->

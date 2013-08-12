@@ -234,8 +234,11 @@ public class PatientBill {
 			serviceBill.setPatientBill(this);
 			if (billItems == null)
 				billItems = new TreeSet<PatientServiceBill>();
-			if (!OpenmrsUtil.collectionContains(billItems, serviceBill))
+			if (!OpenmrsUtil.collectionContains(billItems, serviceBill)){
+				this.amount = this.amount.add(serviceBill.getAmount());		
+				System.out.println("***************** New Amoount after ADDING ******** : "+this.amount);		
 				return billItems.add(serviceBill);
+			}
 		}
 		return false;
 	}
@@ -245,8 +248,11 @@ public class PatientBill {
 	 * @return
 	 */
 	public boolean removeBillItem(PatientServiceBill psb) {
-		if (billItems != null)
+		if (billItems != null){
+			this.amount = this.amount.subtract(psb.getAmount());
+			System.out.println("***************** New Amoount after SUBTRACTING ******** : "+this.amount);
 			return billItems.remove(psb);
+		}
 		return false;
 	}
 

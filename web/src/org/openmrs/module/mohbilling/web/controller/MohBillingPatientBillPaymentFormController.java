@@ -96,9 +96,9 @@ public class MohBillingPatientBillPaymentFormController extends
 							Integer.parseInt(request
 									.getParameter("patientBillId")));
 
-			if (null != request.getParameter("receivedCash")
-					&& Integer.parseInt(request.getParameter("receivedCash")
-							.trim()) > 0) {
+			if (null != request.getParameter("receivedCash")){
+					//&& Integer.parseInt(request.getParameter("receivedCash")
+							//.trim()) > 0) {
 				BillPayment bp = new BillPayment();
 				bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
 						.getParameter("receivedCash").trim())));

@@ -2,7 +2,7 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/@MODULE_ID@/patientBillPayment.form" />
-<script><!--
+<script>
 
 	function loadBillableServiceByCategory(serviceCategoryId){
 		$("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
@@ -161,6 +161,7 @@
 
 	function  savePatientBill(){
 		if(confirm("Are you sure you want to save?")){
+			
 			//set the number of services which has been clicked
 			$("#numberOfServicesClicked").val(index);
 
@@ -174,7 +175,7 @@
 			document.getElementById("form_cancel").submit();
 	}
 
---></script>
+</script>
 
 <style>
 	.deleteBt{

@@ -34,12 +34,18 @@
 			    <prop key="module/@MODULE_ID@/manageRecovery.form">manageRecovery</prop>			   
 			    <prop key="module/@MODULE_ID@/ReportRecovery.form">ReportRecovery</prop>
 			    <prop key="module/@MODULE_ID@/hmisReport.form">mohBillingHMISReportController</prop>
+			    <prop key="module/@MODULE_ID@/refundBill.form">mohBillingRefundBillFormController</prop>
 			
 			</props>
 		</property>
 	</bean>
 
 	<!-- Controllers -->
+	
+	<bean id="mohBillingRefundBillFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundBillFormController">
+		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingRefundBillingForm</value></property>
+	</bean>
+	
 	<bean id="manageRecovery" class="org.openmrs.module.mohbilling.web.controller.MohBillingManageRecoveryController">
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingManageRecovery</value></property>
 	</bean>

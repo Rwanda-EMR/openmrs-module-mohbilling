@@ -26,24 +26,26 @@ import org.openmrs.module.mohbilling.service.BillingService;
  * 
  */
 public class PatientBillUtil {
-	
+
 	/**
 	 * @param insurance
 	 * @param date
 	 * @param amount
-	 * @return 
+	 * @return
 	 */
-	/*public static BigDecimal applyInsuranceRate(Insurance insurance, Date date,
-			BigDecimal amount) {
-		
-		MathContext mc = new MathContext(BigDecimal.ROUND_DOWN);
-		BigDecimal rate = BigDecimal.valueOf(insurance.getRateOnDate(date)
-				.getRate());
-		
-		//System.out.println("fdddddddddddddddddddddddddddfffffffffffffffffffddddddddddddddddddddddddddddd"+rate+"  fggg "+amount.multiply(rate, mc));
-      
-		return (insurance == null) ? amount : amount.multiply(rate, mc);
-	}*/
+	/*
+	 * public static BigDecimal applyInsuranceRate(Insurance insurance, Date
+	 * date, BigDecimal amount) {
+	 * 
+	 * MathContext mc = new MathContext(BigDecimal.ROUND_DOWN); BigDecimal rate
+	 * = BigDecimal.valueOf(insurance.getRateOnDate(date) .getRate());
+	 * 
+	 * //System.out.println(
+	 * "fdddddddddddddddddddddddddddfffffffffffffffffffddddddddddddddddddddddddddddd"
+	 * +rate+"  fggg "+amount.multiply(rate, mc));
+	 * 
+	 * return (insurance == null) ? amount : amount.multiply(rate, mc); }
+	 */
 
 	/**
 	 * @param insurance
@@ -249,8 +251,8 @@ public class PatientBillUtil {
 
 	/**
 	 * this calculates the total amount of a Patient Bill (taking into
-	 * consideration the List of PatientServiceBill and "unitPrice",
-	 * "quantity" and "rate" corresponding to each)
+	 * consideration the List of PatientServiceBill and "unitPrice", "quantity"
+	 * and "rate" corresponding to each)
 	 * 
 	 * @param bill
 	 * @param insurance
@@ -281,11 +283,10 @@ public class PatientBillUtil {
 		InsuranceRate validRate = insurance.getRateOnDate(new Date());
 
 		for (PatientServiceBill psb : bill.getBillItems()) {
-			
-	
-			
-			amount.add(psb.getUnitPrice().multiply(
-					BigDecimal.valueOf(psb.getQuantity()), mc), mc);
+
+			amount.add(
+					psb.getUnitPrice().multiply(
+							BigDecimal.valueOf(psb.getQuantity()), mc), mc);
 		}
 
 		// This returned amount is the one the patient pays (It may change to
@@ -300,7 +301,7 @@ public class PatientBillUtil {
 	 *            the PatientBill to be saved
 	 * @return bill the PatientBill that has been saved
 	 */
-	public static PatientBill createPatientBill(PatientBill bill) {
+	public static PatientBill savePatientBill(PatientBill bill) {
 
 		BillingService service = Context.getService(BillingService.class);
 
@@ -397,16 +398,59 @@ public class PatientBillUtil {
 											.compareTo(startDate) >= 0
 									&& psb.getServiceDate().compareTo(endDate) <= 0)
 								bills.add(pb);
-					} else if (pb.getBeneficiary().getPatient().getPatientId().intValue() == patient.getPatientId().intValue()&& pb != null) {
+					} else if (pb.getBeneficiary().getPatient().getPatientId()
+							.intValue() == patient.getPatientId().intValue()
+							&& pb != null) {
 						for (PatientServiceBill psb : pb.getBillItems())
-							if (!psb.isVoided()&& psb.getServiceDate().compareTo(startDate) >= 0 && psb.getServiceDate().compareTo(endDate) <= 0){	
-								System.out.println(" i m getting here rwertwertewrt wertwert ewrtwert wertwert");
+							if (!psb.isVoided()
+									&& psb.getServiceDate()
+											.compareTo(startDate) >= 0
+									&& psb.getServiceDate().compareTo(endDate) <= 0) {
+								System.out
+										.println(" i m getting here rwertwertewrt wertwert ewrtwert wertwert");
 								bills.add(pb);
 							}
-								
-					}else
+
+					} else
 						bills = null;
 
 		return bills;
+	}
+
+	/**
+	 * Refunds Patient Bill: When the patient pays for some service, it may
+	 * happen that the service is not available at the moment, so this requires
+	 * that s/he comes back to the billing desk and ask for refund. This will be
+	 * processed by removing those Billable Service from the list of the
+	 * services s/he got, and the corresponding amount will be deducted from the
+	 * general Total Bill.
+	 * 
+	 * @param bill
+	 *            the one to be refunded
+	 * @param services
+	 *            the ones to be removed
+	 * @return the refunded/updated bill
+	 */
+	public static PatientBill refundPatientBill(PatientBill bill,
+			List<PatientServiceBill> services) {
+
+		for (PatientServiceBill psb : services) {
+			bill.removeBillItem(psb);
+		}
+
+		return bill;
+	}
+	
+	/**
+	 * Gets the PatientBill by billId
+	 * 
+	 * @param billId the one to be matched
+	 * @return the PatientBill that matches the provided billId
+	 */
+	public static PatientBill getPatientBillById(Integer billId){
+
+		BillingService service = Context.getService(BillingService.class);
+		
+		return service.getPatientBill(billId);
 	}
 }

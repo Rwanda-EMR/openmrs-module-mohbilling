@@ -41,10 +41,21 @@
 			<th class="columnHeader right">Unit Price (Rwf)</td>
 			<th class="columnHeader right">Price (Rwf)</td>
 			<th class="columnHeader right">Status</td>
+			<th class="columnHeader right"></th>
 		</tr>
 		<c:forEach items="${patientBills}" var="patientBill">
 			<c:if test="${empty patientBill.billItems}"><tr><td colspan="6"><center>No Patient Bill Item found !</center></td></tr></c:if>
-			<c:if test="${!empty patientBill.billItems}"><tr><td class="columnHeader"><a href="patientBillPayment.form?patientBillId=${patientBill.patientBillId}&ipCardNumber=${patientBill.beneficiary.policyIdNumber}">View</a></td><th class="columnHeader" style="font-size: 1em; font-weight: bold;" colspan="5"><center>Date: ${patientBill.createdDate}, Total Amount : ${patientBill.amount} Rwf, Insurance : ${patientBill.beneficiary.insurancePolicy.insurance.name}, Policy Card No. : ${patientBill.beneficiary.policyIdNumber}</center></th></tr></c:if>
+			<c:if test="${!empty patientBill.billItems}">
+				<tr>
+					<td class="columnHeader"><a href="patientBillPayment.form?patientBillId=${patientBill.patientBillId}&ipCardNumber=${patientBill.beneficiary.policyIdNumber}">View</a></td>
+					<th class="columnHeader" style="font-size: 1em; font-weight: bold;" colspan="5"><center>Date: ${patientBill.createdDate}, Total Amount : ${patientBill.amount} Rwf, Insurance : ${patientBill.beneficiary.insurancePolicy.insurance.name}, Policy Card No. : ${patientBill.beneficiary.policyIdNumber}</center></th>
+					<td class="columnHeader">
+						<openmrs:hasPrivilege privilege="Manage Refund Bill">
+							<a href="refundBill.form?patientBillId=${patientBill.patientBillId}&ipCardNumber=${patientBill.beneficiary.policyIdNumber}">Refund</a>
+						</openmrs:hasPrivilege>
+					</td>
+				</tr>
+			</c:if>
 			<c:forEach items="${patientBill.billItems}" var="billItem" varStatus="status">
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
@@ -52,7 +63,7 @@
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice*billItem.quantity}</td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${((billingtag:amountNotPaidForPatientBill(patientBill.patientBillId))<=0.0)?'PAID':'NOT PAID'}</td>
+					<td colspan="2" class="rowValue right ${(status.count%2!=0)?'even':''}">${((billingtag:amountNotPaidForPatientBill(patientBill.patientBillId))<=0.0)?'PAID':'NOT PAID'}</td>
 				</tr>
 			</c:forEach>
 		</c:forEach>
