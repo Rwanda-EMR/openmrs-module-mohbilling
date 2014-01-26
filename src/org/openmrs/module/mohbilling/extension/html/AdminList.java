@@ -29,7 +29,7 @@ public class AdminList extends AdministrationSectionExt {
 
 	@Override
 	public String getRequiredPrivilege() {
-		// TODO Auto-generated method stub
+		
 		return "View Billing";
 	}
 
