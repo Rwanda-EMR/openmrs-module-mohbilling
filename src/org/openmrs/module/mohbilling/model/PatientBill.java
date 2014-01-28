@@ -19,7 +19,7 @@ public class PatientBill {
 	private Integer patientBillId;
 	private String description;
 	private Beneficiary beneficiary;
-	private BigDecimal amount;
+	private BigDecimal amount = new BigDecimal(0);
 	private Boolean printed;
 	private Boolean isPaid;
 	private User creator;
@@ -235,7 +235,7 @@ public class PatientBill {
 			if (billItems == null)
 				billItems = new TreeSet<PatientServiceBill>();
 			if (!OpenmrsUtil.collectionContains(billItems, serviceBill)){
-				this.amount = this.amount.add(serviceBill.getAmount());		
+				this.amount = this.amount.add(serviceBill.getAmount());
 				System.out.println("***************** New Amoount after ADDING ******** : "+this.amount);		
 				return billItems.add(serviceBill);
 			}
