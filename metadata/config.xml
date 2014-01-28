@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.2</version>
+	<version>0.0.2.1</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -118,8 +118,8 @@
         <description>Allows user to View Facility service</description>
     </privilege>
     <privilege>
-        <name>View Facility service by insurance campanies</name>
-        <description>Allows user to View Facility service by insurance campanies</description>
+        <name>View Facility service by insurance companies</name>
+        <description>Allows user to View Facility service by insurance companies</description>
     </privilege>
     <privilege>
         <name>Add Insurance</name>
