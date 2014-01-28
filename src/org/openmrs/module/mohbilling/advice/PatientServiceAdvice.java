@@ -51,7 +51,6 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 		BillingService service = Context.getService(BillingService.class);
 
 		if (method.getName().equals("savePatient")) {
-
 			String[] splits = returnVal.toString().split("#");
 
 			Integer patientId = Integer.parseInt(splits[1]);
@@ -78,7 +77,7 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 						new Date(), 20));
 				policy.setInsurance(service.getInsurance(12));
 				policy.setOwner(patient);
-
+				
 				InsurancePolicyUtil.createInsurancePolicy(policy);
 			}
 		}

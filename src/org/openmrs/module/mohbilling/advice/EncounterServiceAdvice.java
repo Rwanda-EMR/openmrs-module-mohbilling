@@ -106,7 +106,7 @@ public class EncounterServiceAdvice implements AfterReturningAdvice {
 							}
 						}
 						
-						if (card != null && obs.getConcept().getConceptId() == BillingConstants.PRIMARY_CARE_INSURANCE_COVERAGE_START_DATE) {
+						if (card != null && obs.getConcept().getConceptId() == Integer.parseInt(BillingConstants.PRIMARY_CARE_INSURANCE_COVERAGE_START_DATE)) {
 							// checking the value of this Coverage Date:
 							if (obs.getObsDatetime() != null) {
 	
@@ -115,7 +115,7 @@ public class EncounterServiceAdvice implements AfterReturningAdvice {
 							}
 						}
 						
-						if (card != null && obs.getConcept().getConceptId() == BillingConstants.PRIMARY_CARE_INSURANCE_EXPIRATION_DATE) {
+						if (card != null && obs.getConcept().getConceptId() == Integer.parseInt(BillingConstants.PRIMARY_CARE_INSURANCE_EXPIRATION_DATE)) {
 							// checking the value of this Expiration Date:
 							if (obs.getObsDatetime() != null) {
 	
@@ -133,6 +133,7 @@ public class EncounterServiceAdvice implements AfterReturningAdvice {
 						// checking whether the card does not exist already, and save the New Card
 						if(InsurancePolicyUtil.insuranceDoesNotExist(encounter.getPatient(), card.getInsuranceCardNo()))
 							InsurancePolicyUtil.createInsurancePolicy(card);
+
 					}
 				}
 			}
