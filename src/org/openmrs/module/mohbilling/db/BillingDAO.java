@@ -210,4 +210,18 @@ public interface BillingDAO {
 	 */
 	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
 			Date endDate, Integer patientId, String serviceName);
+
+	/**
+	 * Gets a BillableService by selecting those having the provided
+	 * FacilityServicePrice and the Insurance.
+	 * 
+	 * @param price
+	 *            the FacilityServicePrice
+	 * @param insurance
+	 *            the Insurance
+	 * @return BillableService that matches both FacilityServicePrice and
+	 *         Insurance
+	 */
+	public BillableService getBillableServiceByConcept(
+			FacilityServicePrice price, Insurance insurance);
 }

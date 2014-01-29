@@ -30,6 +30,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.openmrs.Concept;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.db.BillingDAO;
@@ -123,6 +124,24 @@ public class HibernateBillingDAO implements BillingDAO {
 	public FacilityServicePrice getFacilityServicePrice(Integer id) {
 		return (FacilityServicePrice) sessionFactory.getCurrentSession().get(
 				FacilityServicePrice.class, id);
+	}
+
+	/**
+	 * (non-Javadoc)
+	 * 
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillableServiceByConcept(Concept
+	 *      concept, Insurance insurance)
+	 */
+	@Override
+	public BillableService getBillableServiceByConcept(
+			FacilityServicePrice price, Insurance insurance) {
+		return (BillableService) sessionFactory
+				.getCurrentSession()
+				.createCriteria(BillableService.class)
+				.add(Restrictions.eq("facility_service_price_id",
+						price.getFacilityServicePriceId()))
+				.add(Restrictions.eq("insurance_id", insurance.getInsuranceId()))
+				.uniqueResult();
 	}
 
 	/**

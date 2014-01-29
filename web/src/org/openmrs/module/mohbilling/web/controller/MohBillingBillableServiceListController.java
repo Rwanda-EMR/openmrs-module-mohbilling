@@ -27,6 +27,7 @@ import org.springframework.web.servlet.view.RedirectView;
 public class MohBillingBillableServiceListController extends
 		ParameterizableViewController {
 
+	@SuppressWarnings("unused")
 	private Log log = LogFactory.getLog(this.getClass());
 
 	@Override

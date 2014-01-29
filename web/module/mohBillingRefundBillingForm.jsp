@@ -5,9 +5,15 @@
 
 <script type="text/javascript">
 
-	var index=$("#index").val();
+	var $bill = jQuery.noConflict();
 
-	function deleteRow(serviceId) {
+	var index=$bill("#index").val();
+
+	function deleteRow(serviceId,rowNumber,patientBillId,cardNumber) {
+
+		var serv = "#delete_"+rowNumber;
+		var hrefValue = "service.list?deleteService=true&serviceId=" + rowNumber;
+		var hrefValue = "refundBill.form?patientBillId="+patientBillId+"&billItemId="+serviceId+"&ipCardNumber="+cardNumber+"&removeIt=false";
         if(confirm("Are you sure you want to remove selected service?")){
 		    try {
 			    var table = document.getElementById("cartOfServices");
@@ -23,19 +29,19 @@
 			            rowCount--;
 			            i--;
 
-			            $("#billableService_"+serviceId).removeClass("selectedService");
-			    	    $("#billableService_"+serviceId).addClass("unselectedService");
+			            $bill("#billableService_"+serviceId).removeClass("selectedService");
+			    	    $bill("#billableService_"+serviceId).addClass("unselectedService");
 			        }
 
 			    }
 
 			    calculateTheBill();
-
-			    recountServiceInTheCart();
 			    
 		    }catch(e) {
 		        alert(e);
 		    }
+    	}else{
+    		$bill(serv).attr("href", hrefValue);
     	}
 	}
 
@@ -43,7 +49,7 @@
 		try {
 			var bill=0.00;
 			var j=0;
-			var index=$("#index").val();
+			var index=$bill("#index").val();
 			
 		    while(j<index){
 			   	if(document.getElementById("servicePrice_"+j)!=null && document.getElementById("servicePrice_"+j)!="undefined"){
@@ -55,7 +61,7 @@
 			}
 
 		    document.getElementById("pBill").innerHTML=bill.toFixed(2)+" RWF";
-		    $("#totalAmount").val(bill.toFixed(2));
+		    $bill("#totalAmount").val(bill.toFixed(2));
 	    }catch(e) {
 	        alert(e);
 	    }
@@ -64,7 +70,7 @@
 	function  savePatientBill(){
 		if(confirm("Are you sure you want to save?")){
 			//set the number of services which has been clicked
-			$("#numberOfServicesClicked").val(index);
+			$bill("#numberOfServicesClicked").val(index);
 
 			//submit the patient bill form
 			document.getElementById("form_save_patient_bill").submit();
@@ -124,8 +130,8 @@
 								<td><input type="text" size="3" name="quantity_${status.count-1}" id="quantity_${status.count-1}" style="text-align: center;" value="${billItem.quantity}" onblur="calculateTheBill();"/></td>
 								<td><span id="price_${status.count-1}"><b>${billItem.unitPrice}</b></span><input type="hidden" name="servicePrice_${status.count-1}" id="servicePrice_${status.count-1}" value="${billItem.unitPrice}"/></td>
 								<td>
-									<a style="color: red;" href="refundBill.form?patientBillId=${patientBill.patientBillId}&billItemId=${billItem.patientServiceBillId}&ipCardNumber=${patientBill.beneficiary.policyIdNumber}">
-										<span title='Remove Service' onclick=deleteRow(${billItem.patientServiceBillId}) class='deleteBt' id="delete_${status.count-1}"><b>X</b></span>
+									<a onclick="deleteRow(${billItem.patientServiceBillId},${status.count-1},${patientBill.patientBillId},${patientBill.beneficiary.policyIdNumber});" id="delete_${status.count-1}" style="color: red;" href="refundBill.form?patientBillId=${patientBill.patientBillId}&billItemId=${billItem.patientServiceBillId}&ipCardNumber=${patientBill.beneficiary.policyIdNumber}&removeIt=true">
+										<span title='Remove Service' class='deleteBt'><b>X</b></span>
 									</a>
 								</td>
 								<td><input type="hidden" size="5" name="billableServiceId_${status.count-1}" id="billableServiceId_${status.count-1}" value="${billItem.patientServiceBillId}"/></td>

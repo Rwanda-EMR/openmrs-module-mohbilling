@@ -232,4 +232,10 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.buildCohort(insurance, startDate, endDate, patientId,
 				serviceName);
 	}
+
+	@Override
+	public BillableService getBillableServiceByConcept(
+			FacilityServicePrice price, Insurance insurance) {
+		return billingDAO.getBillableServiceByConcept(price, insurance);
+	}
 }

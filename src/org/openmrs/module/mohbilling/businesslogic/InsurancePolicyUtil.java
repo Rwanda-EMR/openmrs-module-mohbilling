@@ -146,7 +146,12 @@ public class InsurancePolicyUtil {
 			Beneficiary beneficiary = new Beneficiary();
 
 			beneficiary.setInsurancePolicy(card);
+			
+			/* Check how it should be working for NONE insurance */
 			beneficiary.setPolicyIdNumber(card.getInsuranceCardNo());
+			/* End of checking */
+			
+			
 			beneficiary.setCreatedDate(card.getCreatedDate());
 			beneficiary.setCreator(card.getCreator());
 			beneficiary.setPatient(card.getOwner());

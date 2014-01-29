@@ -36,18 +36,18 @@ public class MohBillingRefundBillFormController extends
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-		
+
 		Integer billItemId = null;
 
 		if (request.getParameter("billItemId") != null
 				&& !request.getParameter("billItemId").equals("")) {
-			
+
 			billItemId = Integer.parseInt(request.getParameter("billItemId"));
 		}
 
 		if (request.getParameter("ipCardNumber") != null
 				&& !request.getParameter("ipCardNumber").equals("")) {
-			
+
 			Beneficiary ben = InsurancePolicyUtil
 					.getBeneficiaryByPolicyIdNo(request
 							.getParameter("ipCardNumber"));
@@ -60,25 +60,28 @@ public class MohBillingRefundBillFormController extends
 
 		if (request.getParameter("patientBillId") != null
 				&& !request.getParameter("patientBillId").equals("")) {
-			
+
 			PatientBill bill = PatientBillUtil.getPatientBillById(Integer
 					.parseInt(request.getParameter("patientBillId")));
-			if(billItemId != null){
-				PatientServiceBill temp = null;
-				for(PatientServiceBill psb: bill.getBillItems()){
-					if(psb.getPatientServiceBillId().intValue() == billItemId.intValue()){
-						temp = psb;
-						break;
+			if (billItemId != null)
+				if (request.getParameter("removeIt") != null)
+					if (!request.getParameter("removeIt").equals("false")) {
+						PatientServiceBill temp = null;
+						for (PatientServiceBill psb : bill.getBillItems()) {
+							if (psb.getPatientServiceBillId().intValue() == billItemId
+									.intValue()) {
+								temp = psb;
+								break;
+							}
+						}
+
+						// Removing the no-needed bill item...
+						bill.removeBillItem(temp);
+
+						// Saving the changes made...
+						PatientBillUtil.savePatientBill(bill);
 					}
-				}
-				
-				// Removing the no-needed bill item...
-				bill.removeBillItem(temp);
-				
-				// Saving the changes made...
-				PatientBillUtil.savePatientBill(bill);
-			}
-			
+
 			mav.addObject("patientBill", bill);
 			mav.addObject("index", bill.getBillItems().size());
 		}

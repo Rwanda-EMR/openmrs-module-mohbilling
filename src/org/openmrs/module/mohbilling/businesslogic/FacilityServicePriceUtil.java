@@ -426,4 +426,24 @@ public class FacilityServicePriceUtil {
 		return fspList;
 	}
 
+	/**
+	 * Gets a BillableService by selecting those having the provided Concept
+	 * (passing by FacilityServicePrice, as it is the one having Concept) and
+	 * the Insurance.
+	 * 
+	 * @param concept
+	 *            the Concept to retrieve the corresponding FacilityServicePrice
+	 * @param insurance
+	 *            the Insurance
+	 * @return BillableService that matches both FacilityServicePrice and
+	 *         Insurance
+	 */
+	public static BillableService getBillableServiceByConcept(Concept concept,
+			Insurance insurance) {
+
+		BillingService service = Context.getService(BillingService.class);
+
+		return service.getBillableServiceByConcept(
+				getFacilityServiceByConcept(concept), insurance);
+	}
 }
