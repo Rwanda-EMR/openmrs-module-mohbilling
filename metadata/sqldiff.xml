@@ -305,7 +305,7 @@
 			Change the fields size (moh_bill_beneficiary.policy_id_number, moh_bill_insurance_policy.insurance_card_no) from 150 to 250
 		</description>
 		<sql>
-			ALTER TABLE moh_bill_insurance_policy 
+			ALTER TABLE `moh_bill_insurance_policy` 
 					ADD COLUMN `third_part_rate` FLOAT NULL  
 								AFTER `expiration_date`, 
 					ADD COLUMN `has_third_part`SMALLINT(1) NOT NULL default '0' 
