@@ -23,6 +23,10 @@ public class InsurancePolicy {
 	private String insuranceCardNo;
 	private Date coverageStartDate;
 	private Date expirationDate;
+	
+	private Boolean hasThirdPart;
+	private Float thirdPartRate;
+	
 	private User creator;
 	private Date createdDate;
 	private Boolean retired = false;
@@ -119,6 +123,34 @@ public class InsurancePolicy {
 	 */
 	public void setExpirationDate(Date expirationDate) {
 		this.expirationDate = expirationDate;
+	}
+
+	/**
+	 * @return the hasThirdPart
+	 */
+	public Boolean hasThirdPart() {
+		return hasThirdPart;
+	}
+
+	/**
+	 * @param hasThirdPart the hasThirdPart to set
+	 */
+	public void setHasThirdPart(Boolean hasThirdPart) {
+		this.hasThirdPart = hasThirdPart;
+	}
+
+	/**
+	 * @return the thirdPartRate
+	 */
+	public Float getThirdPartRate() {
+		return thirdPartRate;
+	}
+
+	/**
+	 * @param thirdPartRate the thirdPartRate to set
+	 */
+	public void setThirdPartRate(Float thirdPartRate) {
+		this.thirdPartRate = thirdPartRate;
 	}
 
 	/**
