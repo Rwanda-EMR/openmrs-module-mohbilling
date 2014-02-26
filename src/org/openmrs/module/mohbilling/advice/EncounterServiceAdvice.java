@@ -48,7 +48,7 @@ public class EncounterServiceAdvice implements AfterReturningAdvice {
 	public void afterReturning(Object returnVal, Method method, Object[] args,
 			Object target) throws Throwable {
 
-		createInsurancePolicyCard(returnVal, method, args);
+//		createInsurancePolicyCard(returnVal, method, args);
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class EncounterServiceAdvice implements AfterReturningAdvice {
 					&& encounter.getEncounterId().intValue() != encounterId){
 				
 				InsurancePolicy card = null;
-				if(encounter.getEncounterType().equals(Context.getEncounterService().getEncounterType(11))){
+				if(encounter.getEncounterType().equals(Context.getEncounterService().getEncounterType(11))){//TODO: This should be changed to GLOBAL PROPERTY instead...
 
 					// Putting some conditions:
 					boolean insuranceIsThere = false, insuranceNumberIsThere = false, 
