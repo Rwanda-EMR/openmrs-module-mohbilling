@@ -83,6 +83,8 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 																	// be
 																	// changed
 																	// to GP...
+				policy.setHasThirdPart(false);// Just added the default value of
+												// THIRD PART
 				policy.setOwner(patient);
 
 				InsurancePolicyUtil.createInsurancePolicy(policy);
