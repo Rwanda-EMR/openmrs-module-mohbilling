@@ -25,6 +25,7 @@ public class InsurancePolicy {
 	private Date expirationDate;
 	
 	private Boolean hasThirdPart;
+
 	private Float thirdPartRate;
 	
 	private User creator;
@@ -129,6 +130,13 @@ public class InsurancePolicy {
 	 * @return the hasThirdPart
 	 */
 	public Boolean hasThirdPart() {
+		return hasThirdPart;
+	}
+	
+	/**
+	 * @return the hasThirdPart
+	 */
+	public Boolean getHasThirdPart() {
 		return hasThirdPart;
 	}
 

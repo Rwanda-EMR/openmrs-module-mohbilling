@@ -10,7 +10,7 @@
 	{
 		width:16px; 
 		height:16px;
-		padding: 1px; 
+		padding: 1px;
 		margin:4px;
 		cursor: pointer;
 		background-image: url("add.gif");
