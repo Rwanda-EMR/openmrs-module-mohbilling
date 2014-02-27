@@ -78,7 +78,11 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 				policy.setExpirationDate(InsurancePolicyUtil.addYears(
 						new Date(), 20));
 				policy.setInsurance(InsuranceUtil.getInsuranceByConcept(Context
-						.getConceptService().getConcept(1107)));
+						.getConceptService().getConcept(
+								BillingConstants.NONE_CONCEPT_ID)));// TODO: to
+																	// be
+																	// changed
+																	// to GP...
 				policy.setOwner(patient);
 
 				InsurancePolicyUtil.createInsurancePolicy(policy);
