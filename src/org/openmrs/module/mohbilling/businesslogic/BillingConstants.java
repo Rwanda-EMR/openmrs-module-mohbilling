@@ -52,5 +52,7 @@ public class BillingConstants {
 	// public static final String MOTHER_NAME_ATTRIBUTE_TYPE = "Mother's name";
 	// public static final String FATHER_NAME_ATTRIBUTE_TYPE = "Father's name";
 	public static EncounterType ENCOUNTER_TYPE_REGISTRATION;
+	
+	public static final int NONE_CONCEPT_ID = 1107;
 
 }

@@ -68,6 +68,9 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			HttpServletResponse response) throws Exception {
 		Document document = new Document();
 
+		Image image = Image.getInstance("/usr/share/tomcat6/.OpenMRS/mohbranding/images/chub_logo.jpg");
+		image.scaleToFit(190, 190);
+
 		PatientBill pb = null;
 
 		pb = Context.getService(BillingService.class).getPatientBill(
@@ -112,13 +115,11 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 		
 		/** I would like a LOGO here!!! */
-		
-		document.add(fontTitle.process("POLICE NATIONALE\n"));
-		document.add(fontTitle.process("KACYIRU POLICE HOSPITAL\n"));
-		document.add(fontTitle.process("B.P. 6183 KIGALI\n"));
-		document.add(fontTitle.process("Phone : 584897\n"));
-		document.add(fontTitle.process("E-mail : medical@police.gov.rw\n"));
-		document.add(fontTitle.process("         kphmedipolice2@gmail.com"));
+		document.add(image);
+		document.add(fontTitle.process("CENTRE HOSPITALIER UNIVERSITAIRE DE BUTARE\n"));
+		document.add(fontTitle.process("P.O. Box	: 255 BUTARE\n"));
+		document.add(fontTitle.process("Short code 	: 584897\n"));
+		document.add(fontTitle.process("E-mail 		: chub@rwanda1.com\n"));
 		// End Report title
 
 		document.add(new Paragraph("\n"));
