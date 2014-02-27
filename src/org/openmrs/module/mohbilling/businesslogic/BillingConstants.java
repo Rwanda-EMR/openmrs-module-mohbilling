@@ -9,7 +9,7 @@ public class BillingConstants {
 	// public static EncounterType ENCOUNTER_TYPE_VITALS;
 	// public static EncounterType ENCOUNTER_TYPE_DIAGNOSIS;
 	// public static Privilege PRINT_BARCODE_OFFLINE_PRIVILEGE;
-	// public static int ageRange = 10;
+	public static final int NONE_CONCEPT_ID = 1107;
 	public static final String PRIMARY_CARE_INSURANCE_EXPIRATION_DATE = Context
 			.getAdministrationService().getGlobalProperty(
 					"registration.insuranceExpirationDateConcept");
@@ -52,7 +52,5 @@ public class BillingConstants {
 	// public static final String MOTHER_NAME_ATTRIBUTE_TYPE = "Mother's name";
 	// public static final String FATHER_NAME_ATTRIBUTE_TYPE = "Father's name";
 	public static EncounterType ENCOUNTER_TYPE_REGISTRATION;
-	
-	public static final int NONE_CONCEPT_ID = 1107;
 
 }
