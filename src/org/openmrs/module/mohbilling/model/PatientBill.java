@@ -80,7 +80,7 @@ public class PatientBill {
 	 * @return the amount
 	 */
 	public BigDecimal getAmount() {
-		return amount;
+		return this.amount;
 	}
 
 	/**
@@ -236,7 +236,7 @@ public class PatientBill {
 				billItems = new TreeSet<PatientServiceBill>();
 			if (!OpenmrsUtil.collectionContains(billItems, serviceBill)){
 				this.amount = this.amount.add(serviceBill.getAmount());
-				System.out.println("***************** New Amoount after ADDING ******** : "+this.amount);		
+				System.out.println("***************** New Amount after ADDING ******** : "+this.amount);		
 				return billItems.add(serviceBill);
 			}
 		}
@@ -250,7 +250,7 @@ public class PatientBill {
 	public boolean removeBillItem(PatientServiceBill psb) {
 		if (billItems != null){
 			this.amount = this.amount.subtract(psb.getAmount());
-			System.out.println("***************** New Amoount after SUBTRACTING ******** : "+this.amount);
+			System.out.println("***************** New Amount after SUBTRACTING ******** : "+this.amount);
 			return billItems.remove(psb);
 		}
 		return false;
