@@ -20,6 +20,12 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE = "billing.primaryIdentifierType";
 	public static final String GLOBAL_PROPERTY_OTHER_IDENTIFIER_TYPES = "billing.otherIdentifierTypes";
 	public static final String GLOBAL_PROPERTY_DEFAULT_LOCATION = "billing.defaultLocation";
+	
+	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO = "billing.healthFacilityLogo";
+	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_NAME = "billing.healthFacilityName";
+	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS = "billing.healthFacilityPhysicalAddress";
+	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE = "billing.healthFacilityShortCode";
+	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL = "billing.healthFacilityEmail";
 	// //TODO: the location code architecture is wrong -- all location codes
 	// come from module
 	// //TODO: this needs to correspond to a single default location
