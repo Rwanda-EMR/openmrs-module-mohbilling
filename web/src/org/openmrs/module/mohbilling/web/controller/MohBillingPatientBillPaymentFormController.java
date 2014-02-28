@@ -66,11 +66,10 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			// check the validity of the insurancePolicy for today
 			Date today = new Date();
-			mav
-					.addObject("valid",
-							((ip.getCoverageStartDate().getTime() <= today
-									.getTime()) && (today.getTime() <= ip
-									.getExpirationDate().getTime())));
+			mav.addObject(
+					"valid",
+					((ip.getCoverageStartDate().getTime() <= today.getTime()) && (today
+							.getTime() <= ip.getExpirationDate().getTime())));
 			mav.addObject("todayDate", today);
 			mav.addObject("authUser", Context.getAuthenticatedUser());
 
@@ -96,12 +95,33 @@ public class MohBillingPatientBillPaymentFormController extends
 							Integer.parseInt(request
 									.getParameter("patientBillId")));
 
-			if (null != request.getParameter("receivedCash")){
-					//&& Integer.parseInt(request.getParameter("receivedCash")
-							//.trim()) > 0) {
+			Float rate = pb.getBeneficiary().getInsurancePolicy()
+					.getThirdPartRate();
+			BigDecimal amountPaidByThirdPart = new BigDecimal(0);
+
+			if (rate != null)// to avoid NullPointerException when this is
+								// null...
+				amountPaidByThirdPart = pb.getAmount()
+						.multiply(BigDecimal.valueOf(rate))
+						.divide(new BigDecimal(100));
+
+			if (null != request.getParameter("receivedCash")) {
 				BillPayment bp = new BillPayment();
-				bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
-						.getParameter("receivedCash").trim())));
+				/**
+				 * We need to add both Patient Due amount and amount paid
+				 * by third part
+				 */
+				if (pb.getBeneficiary().getInsurancePolicy().hasThirdPart()) {
+					BigDecimal patientAmount = BigDecimal.valueOf(Double
+							.parseDouble(request.getParameter("receivedCash")));
+
+					bp.setAmountPaid(patientAmount.add(amountPaidByThirdPart));
+				} else
+					// We don't need to add anything as the patient will be
+					// paying...
+					bp.setAmountPaid(BigDecimal.valueOf(Double
+							.parseDouble(request.getParameter("receivedCash"))));
+
 				bp.setCollector(Context.getUserService()
 						.getUser(
 								Integer.parseInt(request
@@ -121,8 +141,7 @@ public class MohBillingPatientBillPaymentFormController extends
 				return billPayment;
 
 			} else {
-				request
-						.getSession()
+				request.getSession()
 						.setAttribute(
 								WebConstants.OPENMRS_MSG_ATTR,
 								"The Bill Payment cannot be saved when the 'Received Amount' is not greater than 0 !");
