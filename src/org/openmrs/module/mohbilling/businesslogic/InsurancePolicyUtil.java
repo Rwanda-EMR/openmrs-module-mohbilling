@@ -115,6 +115,9 @@ public class InsurancePolicyUtil {
 				.getService(BillingService.class);
 
 		if (card != null) {
+			
+			if(card.getInsurancePolicyId() != null)
+				billingService.saveInsurancePolicy(card);
 
 			card.setCreatedDate(new Date());
 			card.setCreator(Context.getAuthenticatedUser());
