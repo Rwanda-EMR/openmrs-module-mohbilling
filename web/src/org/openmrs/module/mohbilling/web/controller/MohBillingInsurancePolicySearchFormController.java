@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.GlobalProperty;
 import org.openmrs.api.context.Context;
+import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -37,7 +38,9 @@ public class MohBillingInsurancePolicySearchFormController extends
 		// searching
 		// this will be retrieved from GPs in order to be the same as the one
 		// used by OpenMRS
-		int numberOfCharacters = 3;
+		Integer numberOfCharacters = Integer.valueOf(Context
+				.getAdministrationService().getGlobalPropertyObject(
+						"minSearchCharacters").getPropertyValue());
 		try {
 
 			GlobalProperty gpMinSearchCharacters = Context
@@ -47,12 +50,16 @@ public class MohBillingInsurancePolicySearchFormController extends
 			if (gpMinSearchCharacters != null
 					&& gpMinSearchCharacters.getProperty().trim().compareTo("") != 0) {
 				numberOfCharacters = Integer.valueOf(gpMinSearchCharacters
-						.getProperty().trim());
+						.getPropertyValue().trim());
 			}
 		} catch (Exception e) {
-			log
-					.error(">>>>MOH>>>BILLING>> An error occured when trying to load the GP minSearchCharacters"
-							+ e.getMessage());
+
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					"The insurance policy could not be saved !");
+			
+			log.error(">>>>MOH>>>BILLING>> An error occured when trying "
+					+ "to load the GP minSearchCharacters" + e.getMessage());
+			
 			e.printStackTrace();
 		}
 
