@@ -31,36 +31,36 @@
 </style>
 
 <script type="text/javascript">
-	var $j = jQuery.noConflict();
+	var $bill = jQuery.noConflict();
 	
 	var fieldGroupCount = 0;
 	var count = 1;
-	$j(document).ready(function() {
-		$j('.beneficiariesC').hide();
-		$j('#addBeneficiaryId').click(function() {
+	$bill(document).ready(function() {
+		$bill('.beneficiariesC').hide();
+		$bill('#addBeneficiaryId').click(function() {
 			var i = 1;
 			for(i = 1; i<=10; i++) {
-				if ( $j('#beneficiaryI_'+i).is(':hidden') ) {
-					   $j('#beneficiaryI_'+i).show(200);
+				if ( $bill('#beneficiaryI_'+i).is(':hidden') ) {
+					   $bill('#beneficiaryI_'+i).show(200);
 					   break;
 				}
 			}
 		});
 	
-		$j('.redbox').click(function() {
+		$bill('.redbox').click(function() {
 			var deleteIdVar = this.id;
 			var idArr = new Array();
 			idArr = deleteIdVar.split("_");
 			var idVar = idArr[1];
 			var selectorElmt = 'beneficiaryI_'+idVar;
-			$j('#'+selectorElmt).hide(200);
+			$bill('#'+selectorElmt).hide(200);
 		});
 	
-		$j('#submitButtonId').click(function() {
+		$bill('#submitButtonId').click(function() {
 			var i = 1;
 			for(i = 1; i <= 10; i++) {
-				if($j('#beneficiaryI_'+i).is(':hidden')) {
-					$j('#beneficiaryI_'+i).remove();
+				if($bill('#beneficiaryI_'+i).is(':hidden')) {
+					$bill('#beneficiaryI_'+i).remove();
 				}
 			}
 		});
@@ -87,6 +87,7 @@
 	</div>
 	<br />
 	
+	<input type="hidden" name="cardId" value="${insurancePolicy.insurancePolicyId}"/>
 	<b class="boxHeader">Section II >> Insurance</b>
 	<div class="box">
 		<table>
@@ -110,6 +111,21 @@
 				<td>Expiration Date</td>
 				<td><input value="<openmrs:formatDate date='${insurancePolicy.expirationDate}' type="string"/>" type="text" name="insurancePolicyExpirationDate" size="11" onclick="showCalendar(this);" autocomplete="off"/></td>
 			</tr>
+			
+			<tr>
+				<td>Has Third part?</td>
+				<td><input type="checkbox" name="hasThirdPart"/>
+				<td>
+					<div id="rateDisplay">
+						<table>
+							<tr>
+								<td>Rate</td>
+								<td><input value="${insurancePolicy.thirdPartRate}" type="text" name="thirdPartRate" size="5" />%</td>
+							</tr>
+						</table>
+					</div>
+			</tr>
+			
 		</table>
 	</div>
 	<br />
