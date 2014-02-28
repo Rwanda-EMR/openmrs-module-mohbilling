@@ -104,28 +104,10 @@ public class MohBillingBillingFormController extends
 
 			PatientBill pb = new PatientBill();
 
-//			pb.setAmount(BigDecimal.valueOf(Double.valueOf(request
-//					.getParameter("totalAmount"))));
-
-			// Patient owner = Context.getPatientService().getPatient(
-			// Integer.valueOf(request.getParameter("patientId")));
 
 			Beneficiary beneficiary = InsurancePolicyUtil
 					.getBeneficiaryByPolicyIdNo(request
 							.getParameter("ipCardNumber"));
-
-			// log
-			// .info(">>>>MOH>>BILLING>> Trying to find corresponding Insurance Policy for "
-			// + beneficiary.getPatient().getPersonName());
-			// InsurancePolicy ip = ipUtil
-			// .getInsurancePolicyByBeneficiary(beneficiary);
-
-			// log.info(">>>>MOH>>BILLING>> Corresponding Insurance Policy : "
-			// + ip);
-			//
-			// log
-			// .info(">>>>MOH>>BILLING>> The Owner of Insurance Policy as Beneficiary : "
-			// + ipUtil.getInsurancePolicyOwner(ip));
 
 			pb.setBeneficiary(beneficiary);
 			pb.setIsPaid(false);
