@@ -41,26 +41,17 @@ public class MohBillingInsurancePolicyFormController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 
-		if (request.getParameter("save") != null) {
+		if (request.getParameter("save") != null
+				&& request.getParameter("save").equals("true")) {
+
 			boolean saved = handleSaveInsurancePolicy(request, mav);
 			if (saved)
 				return new ModelAndView(new RedirectView(
 						"insurancePolicySearch.form"));
+
 		} else {
 			try {
 				if (null != request.getParameter("patientId")) {
-					// if a patientId is specified, then creation of an
-					// insurancePolicy is the only option possible
-					// mav
-					// .addObject(
-					// "insurancePolicy",
-					// (new InsurancePolicyUtil())
-					// .getInsurancePolicyByOwner(Context
-					// .getPatientService()
-					// .getPatient(
-					// Integer
-					// .valueOf(request
-					// .getParameter("patientId")))));
 
 					InsurancePolicy ip = new InsurancePolicy();
 					ip.setOwner(Context.getPatientService().getPatient(
@@ -76,6 +67,7 @@ public class MohBillingInsurancePolicyFormController extends
 							BillingService.class).getInsurancePolicy(
 							Integer.valueOf(request
 									.getParameter("insurancePolicyId")));
+
 					mav.addObject("insurancePolicy", ip);
 					mav.addObject("beneficiaryId", ip.getOwner().getPatientId());
 				} else
@@ -90,7 +82,6 @@ public class MohBillingInsurancePolicyFormController extends
 			}
 		}
 
-		new InsuranceUtil();
 		mav.addObject("insurances", InsuranceUtil.getInsurances(true));
 
 		return mav;
@@ -105,37 +96,74 @@ public class MohBillingInsurancePolicyFormController extends
 	private boolean handleSaveInsurancePolicy(HttpServletRequest request,
 			ModelAndView mav) {
 
+		InsurancePolicy card = null;
 		try {
 			// insurancePolicy
-			InsurancePolicy ip = new InsurancePolicy();
+			if (request.getParameter("cardId") != null
+					&& !request.getParameter("cardId").equals("")) {
+				
+				card = Context
+						.getService(BillingService.class)
+						.getInsurancePolicy(
+								Integer.parseInt(request.getParameter("cardId")));
+
+			} else
+				card = new InsurancePolicy();
+
+			if (request.getParameter("thirdPartRate") != null
+					&& !request.getParameter("thirdPartRate").equals("")) {
+				
+				card.setThirdPartRate(Float.valueOf(request
+						.getParameter("thirdPartRate")));
+			}
+
+			if (request.getParameter("hasThirdPart") != null
+					&& !request.getParameter("hasThirdPart").equals("")) {
+				
+				card.setHasThirdPart(true);
+			} else {
+				card.setHasThirdPart(false);
+			}
 
 			if (request.getParameter("insurancePolicyCoverageStartDate") != null
 					&& !request
 							.getParameter("insurancePolicyCoverageStartDate")
-							.equals(""))
-				ip.setCoverageStartDate(Context
+							.equals("")) {
+
+				card.setCoverageStartDate(Context
 						.getDateFormat()
 						.parse(request
 								.getParameter("insurancePolicyCoverageStartDate")));
+			}
 
 			if (request.getParameter("insurancePolicyExpirationDate") != null
 					&& !request.getParameter("insurancePolicyExpirationDate")
-							.equals(""))
-				ip.setExpirationDate(Context.getDateFormat().parse(
-						request.getParameter("insurancePolicyExpirationDate")));
+							.equals("")) {
 
-			ip.setInsurance(Context.getService(BillingService.class)
-					.getInsurance(
-							Integer.valueOf(request
-									.getParameter("insurancePolicyInsurance"))));
+				card.setExpirationDate(Context.getDateFormat().parse(
+						request.getParameter("insurancePolicyExpirationDate")));
+			}
+
+			if (request.getParameter("insurancePolicyInsurance") != null
+					&& !request.getParameter("insurancePolicyInsurance")
+							.equals("")) {
+				
+				card.setInsurance(Context
+						.getService(BillingService.class)
+						.getInsurance(
+								Integer.valueOf(request
+										.getParameter("insurancePolicyInsurance"))));
+			}
 
 			if (request.getParameter("insurancePolicyOwnerCardNumber") != null
 					&& !request.getParameter("insurancePolicyOwnerCardNumber")
-							.equals(""))
-				ip.setInsuranceCardNo(request
+							.equals("")) {
+				
+				card.setInsuranceCardNo(request
 						.getParameter("insurancePolicyOwnerCardNumber"));
+			}
 
-			ip.setOwner(Context.getPatientService().getPatient(
+			card.setOwner(Context.getPatientService().getPatient(
 					Integer.valueOf(request
 							.getParameter("insurancePolicyOwner"))));
 
@@ -159,15 +187,15 @@ public class MohBillingInsurancePolicyFormController extends
 					b.setCreator(Context.getAuthenticatedUser());
 					b.setRetired(false);
 
-					ip.addBeneficiary(b);
+					card.addBeneficiary(b);
 				}
 			}
 
-			ip.setCreatedDate(new Date());
-			ip.setCreator(Context.getAuthenticatedUser());
-			ip.setRetired(false);
+			card.setCreatedDate(new Date());
+			card.setCreator(Context.getAuthenticatedUser());
+			card.setRetired(false);
 
-			InsurancePolicyUtil.createInsurancePolicy(ip);
+			InsurancePolicyUtil.createInsurancePolicy(card);
 
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"The insurance policy has been saved successfully !");
@@ -180,74 +208,7 @@ public class MohBillingInsurancePolicyFormController extends
 			return false;
 		}
 
-		/**
-		 * Updating an existing InsurancePolicy (i.e. beneficiaries)
-		 */
-		if (request.getParameter("insurancePolicyId") != null) {
-			try {
-				InsurancePolicy ip = Context.getService(BillingService.class)
-						.getInsurancePolicy(
-								Integer.valueOf(request
-										.getParameter("insurancePolicyId")));
-				if (null == ip) {
-					request.getSession().setAttribute(
-							WebConstants.OPENMRS_ERROR_ATTR,
-							"The insurance policy with ID ['"
-									+ request.getParameter("insurancePolicyId")
-									+ "'] cannot be found !");
-				} else {
-
-					// =============  Change the existing one...
-					if (request
-							.getParameter("insurancePolicyCoverageStartDate") != null
-							&& !request.getParameter(
-									"insurancePolicyCoverageStartDate").equals(
-									""))
-						ip.setCoverageStartDate(Context
-								.getDateFormat()
-								.parse(request
-										.getParameter("insurancePolicyCoverageStartDate")));
-
-					if (request.getParameter("insurancePolicyExpirationDate") != null
-							&& !request.getParameter(
-									"insurancePolicyExpirationDate").equals(""))
-						ip.setExpirationDate(Context
-								.getDateFormat()
-								.parse(request
-										.getParameter("insurancePolicyExpirationDate")));
-
-					ip.setInsurance(Context
-							.getService(BillingService.class)
-							.getInsurance(
-									Integer.valueOf(request
-											.getParameter("insurancePolicyInsurance"))));
-
-					if (request.getParameter("insurancePolicyOwnerCardNumber") != null
-							&& !request.getParameter(
-									"insurancePolicyOwnerCardNumber")
-									.equals(""))
-						ip.setInsuranceCardNo(request
-								.getParameter("insurancePolicyOwnerCardNumber"));
-
-					ip.setOwner(Context.getPatientService().getPatient(
-							Integer.valueOf(request
-									.getParameter("insurancePolicyOwner"))));
-					
-					// ==============  End of Changes...
-					
-					mav.addObject("insurancePolicy", ip);
-				}
-			} catch (Exception e) {
-				request.getSession().setAttribute(
-						WebConstants.OPENMRS_ERROR_ATTR,
-						"The insurance policy with ID ['"
-								+ request.getParameter("insurancePolicyId")
-								+ "'] cannot be found !");
-				log.error(">>>MOH>>BILLING>> " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-
 		return true;
 	}
+
 }
