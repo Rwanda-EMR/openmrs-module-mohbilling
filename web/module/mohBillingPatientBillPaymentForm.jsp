@@ -63,13 +63,15 @@
 				<td><b>Received Date</b></td>
 				<td colspan="2"><input type="text" autocomplete="off" name="dateBillReceived" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 				<td colspan="2"></td>
-				<td><div style="text-align: right;"><b>Rest</b></div></td>
-				<td><div class="amount">${billingtag:amountNotPaidForPatientBill(patientBill.patientBillId)}</div></td>
+				<td><div style="text-align: right;"><b>Paid by Third Part</b></div></td>
+				<td><div class="amount">${billingtag:amountPaidByThirdPart(patientBill.patientBillId)}</div></td>
 			</tr>
 			<tr>
 				<td><b>Received Cash</b></td>
 				<td colspan="2"><input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/></td>
-				<td colspan="4"></td>
+				<td colspan="2"></td>
+				<td><div style="text-align: right;"><b>Rest</b></div></td>
+				<td><div class="amount">${billingtag:amountNotPaidForPatientBill(patientBill.patientBillId)}</div></td>
 			</tr>
 			<tr>
 				<td colspan="7"><hr/></td>
