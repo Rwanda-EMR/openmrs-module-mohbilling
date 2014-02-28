@@ -74,12 +74,56 @@
 			have an identifier of this type added to them. 
 		</description>
 	</globalProperty>
+	
 	<globalProperty>
 		<property>billing.otherIdentifierTypes</property>
 		<defaultValue></defaultValue>
 		<description>
 			Optionally other patient identifier types that should can be searched on and displayed
 			on the patient page. This should be a comma-separated list of patient identifier ids.
+		</description>
+	</globalProperty>
+	<!-- SOME NEW GP to handle dynamic fields ... -->
+	<globalProperty>
+		<property>billing.healthFacilityName</property>
+		<defaultValue></defaultValue>
+		<description>
+			This should be the name of The Health Facility that will be displayed to Printed Out docs
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>billing.healthFacilityPhysicalAddress</property>
+		<defaultValue></defaultValue>
+		<description>
+			This should be the Physical Address (P.O. Box or Others) of The Health Facility 
+			that will be displayed to Printed Out docs
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>billing.healthFacilityShortCode</property>
+		<defaultValue></defaultValue>
+		<description>
+			This should be the Short Code of The Health Facility that will be displayed to Printed Out docs
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>billing.healthFacilityEmail</property>
+		<defaultValue></defaultValue>
+		<description>
+			This should be the E-Mail address of The Health Facility that will be displayed to Printed Out docs
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>billing.healthFacilityLogo</property>
+		<defaultValue></defaultValue>
+		<description>
+			This should be the Logo location (full file path: 
+			e.g. /usr/share/tomcat6/.OpenMRS/mohbranding/images/chub_logo.jpg) of The Health Facility 
+			that will be displayed to Printed Out docs
 		</description>
 	</globalProperty>
 	
