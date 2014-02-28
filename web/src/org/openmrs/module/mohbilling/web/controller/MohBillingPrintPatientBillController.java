@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.PatientBill;
@@ -50,10 +51,9 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 	/**
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * org.springframework.web.servlet.mvc.AbstractController#handleRequestInternal
-	 * (javax.servlet.http.HttpServletRequest,
-	 * javax.servlet.http.HttpServletResponse)
+	 * @see org.springframework.web.servlet.mvc.AbstractController#handleRequestInternal
+	 *      (javax.servlet.http.HttpServletRequest,
+	 *      javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
@@ -68,7 +68,9 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			HttpServletResponse response) throws Exception {
 		Document document = new Document();
 
-		Image image = Image.getInstance("/usr/share/tomcat6/.OpenMRS/mohbranding/images/chub_logo.jpg");
+		Image image = Image.getInstance(Context.getAdministrationService()
+				.getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
 		image.scaleToFit(190, 190);
 
 		PatientBill pb = null;
@@ -85,17 +87,17 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		response.setHeader("Content-Disposition", "attachment; filename=\""
 				+ filename + "\""); // file name
 
-		PdfWriter writer = PdfWriter.getInstance(document, response
-				.getOutputStream());
-//		writer.setBoxSize("art", new Rectangle(0, 0, 2382, 3369));
+		PdfWriter writer = PdfWriter.getInstance(document,
+				response.getOutputStream());
+		// writer.setBoxSize("art", new Rectangle(0, 0, 2382, 3369));
 		writer.setBoxSize("art", PageSize.A4);
 
 		HeaderFooter event = new HeaderFooter();
 		writer.setPageEvent(event);
 
 		document.open();
-		 document.setPageSize(PageSize.A4);
-//		document.setPageSize(new Rectangle(0, 0, 2382, 3369));
+		document.setPageSize(PageSize.A4);
+		// document.setPageSize(new Rectangle(0, 0, 2382, 3369));
 
 		document.addAuthor(Context.getAuthenticatedUser().getPersonName()
 				.toString());// the name of the author
@@ -113,13 +115,29 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		document.add(todayDate);
 
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
-		
+
 		/** I would like a LOGO here!!! */
 		document.add(image);
-		document.add(fontTitle.process("CENTRE HOSPITALIER UNIVERSITAIRE DE BUTARE\n"));
-		document.add(fontTitle.process("P.O. Box	: 255 BUTARE\n"));
-		document.add(fontTitle.process("Short code 	: 584897\n"));
-		document.add(fontTitle.process("E-mail 		: chub@rwanda1.com\n"));
+		document.add(fontTitle.process(Context.getAdministrationService()
+				.getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)
+				+ "\n"));
+		document.add(fontTitle
+				.process(Context
+						.getAdministrationService()
+						.getGlobalProperty(
+								BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)
+						+ "\n"));
+		document.add(fontTitle
+				.process(Context
+						.getAdministrationService()
+						.getGlobalProperty(
+								BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE)
+						+ "\n"));
+		document.add(fontTitle.process(Context.getAdministrationService()
+				.getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)
+				+ "\n"));
 		// End Report title
 
 		document.add(new Paragraph("\n"));
@@ -135,45 +153,59 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		// title row
 		FontSelector fontTitleSelector = new FontSelector();
 		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 9, Font.BOLD));
-		
+
 		PdfPTable tableHeader = new PdfPTable(1);
 		tableHeader.setWidthPercentage(100f);
-		
+
 		// Table of identification;
 		PdfPTable table = null;
 		table = new PdfPTable(2);
 		table.setWidthPercentage(100f);
-		
-		PdfPCell cell = new PdfPCell(fontTitleSelector.process("Compagnie d'Assurance : "+pb.getBeneficiary().getInsurancePolicy().getInsurance().getName()));
+
+		PdfPCell cell = new PdfPCell(
+				fontTitleSelector.process("Compagnie d'Assurance : "
+						+ pb.getBeneficiary().getInsurancePolicy()
+								.getInsurance().getName()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
-		
-		cell = new PdfPCell(fontTitleSelector.process("Phone : "+pb.getBeneficiary().getInsurancePolicy().getInsurance().getPhone()));
+
+		cell = new PdfPCell(fontTitleSelector.process("Phone : "
+				+ pb.getBeneficiary().getInsurancePolicy().getInsurance()
+						.getPhone()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
-		
-		cell = new PdfPCell(fontTitleSelector.process("Noms du malade : "+pb.getBeneficiary().getPatient().getPersonName()));
+
+		cell = new PdfPCell(fontTitleSelector.process("Noms du malade : "
+				+ pb.getBeneficiary().getPatient().getPersonName()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
-		
-		cell = new PdfPCell(fontTitleSelector.process("Date de Naissance : "+new SimpleDateFormat("dd-MMM-yyyy").format(pb.getBeneficiary().getPatient().getBirthdate())));
+
+		cell = new PdfPCell(fontTitleSelector.process("Date de Naissance : "
+				+ new SimpleDateFormat("dd-MMM-yyyy").format(pb
+						.getBeneficiary().getPatient().getBirthdate())));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
-		
-		cell = new PdfPCell(fontTitleSelector.process("Noms de l'assure Principal : "+pb.getBeneficiary().getInsurancePolicy().getOwner().getPersonName()));
+
+		cell = new PdfPCell(
+				fontTitleSelector.process("Noms de l'assure Principal : "
+						+ pb.getBeneficiary().getInsurancePolicy().getOwner()
+								.getPersonName()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
-		
-		cell = new PdfPCell(fontTitleSelector.process("Numero Carte d'assure : "+pb.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()));
+
+		cell = new PdfPCell(
+				fontTitleSelector.process("Numero Carte d'assure : "
+						+ pb.getBeneficiary().getInsurancePolicy()
+								.getInsuranceCardNo()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
-		
+
 		tableHeader.addCell(table);
-		
+
 		document.add(tableHeader);
 
 		document.add(new Paragraph("\n"));
-		
+
 		// Table of bill items;
 		float[] colsWidth = { 2f, 15f, 2f, 3.5f, 5f, 5f, 5f };
 		table = new PdfPTable(colsWidth);
@@ -324,18 +356,19 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		document.add(table);
 
 		document.add(new Paragraph("\n\n"));
-		
+
 		// Table of signatures;
 		table = new PdfPTable(2);
 		table.setWidthPercentage(100f);
 
-		cell = new PdfPCell(fontTitleSelector.process("Signature du Patient :\n"
-				+ pb.getBeneficiary().getPatient().getPersonName()));
+		cell = new PdfPCell(
+				fontTitleSelector.process("Signature du Patient :\n"
+						+ pb.getBeneficiary().getPatient().getPersonName()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 
-		cell = new PdfPCell(fontTitleSelector
-				.process("Noms et Signature du Caissier\n"
+		cell = new PdfPCell(
+				fontTitleSelector.process("Noms et Signature du Caissier\n"
 						+ Context.getAuthenticatedUser().getPersonName()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
@@ -343,33 +376,35 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		document.add(table);
 
 		document.close();
-		
+
 		// Mark the Bill as Printed
 		PatientBillUtil.printBill(pb);
-		
+
 	}
 
 	static class HeaderFooter extends PdfPageEventHelper {
 		public void onEndPage(PdfWriter writer, Document document) {
 			Rectangle rect = writer.getBoxSize("art");
 
-			Phrase header = new Phrase(String.format("- %d -", writer
-					.getPageNumber()));
+			Phrase header = new Phrase(String.format("- %d -",
+					writer.getPageNumber()));
 			header.setFont(new Font(FontFamily.COURIER, 4, Font.NORMAL));
 
 			if (document.getPageNumber() > 1) {
 				ColumnText.showTextAligned(writer.getDirectContent(),
-						Element.ALIGN_CENTER, header, (rect.getLeft() + rect
-								.getRight()) / 2, rect.getTop() + 40, 0);
+						Element.ALIGN_CENTER, header,
+						(rect.getLeft() + rect.getRight()) / 2,
+						rect.getTop() + 40, 0);
 			}
 
-			Phrase footer = new Phrase(String.format("- %d -", writer
-					.getPageNumber()));
+			Phrase footer = new Phrase(String.format("- %d -",
+					writer.getPageNumber()));
 			footer.setFont(new Font(FontFamily.COURIER, 4, Font.NORMAL));
 
 			ColumnText.showTextAligned(writer.getDirectContent(),
-					Element.ALIGN_CENTER, footer, (rect.getLeft() + rect
-							.getRight()) / 2, rect.getBottom() - 40, 0);
+					Element.ALIGN_CENTER, footer,
+					(rect.getLeft() + rect.getRight()) / 2,
+					rect.getBottom() - 40, 0);
 
 		}
 	}
