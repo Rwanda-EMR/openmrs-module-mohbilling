@@ -228,9 +228,10 @@ public class BillingServiceImpl implements BillingService {
 
 	@Override
 	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
-			Date endDate, Integer patientId, String serviceName) {
+			Date endDate, Integer patientId, String serviceName,
+			String billStatus) {
 		return billingDAO.buildCohort(insurance, startDate, endDate, patientId,
-				serviceName);
+				serviceName, billStatus);
 	}
 
 	@Override

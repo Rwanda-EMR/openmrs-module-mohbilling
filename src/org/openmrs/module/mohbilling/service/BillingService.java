@@ -186,7 +186,7 @@ public interface BillingService {
 	 * @return
 	 */
 	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
-			Date endDate, Integer patientId, String serviceName);
+			Date endDate, Integer patientId, String serviceName, String billStatus);
 
 	/**
 	 * Gets a BillableService by selecting those having the provided
