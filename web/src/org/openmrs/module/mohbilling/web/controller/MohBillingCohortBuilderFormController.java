@@ -78,13 +78,15 @@ public class MohBillingCohortBuilderFormController extends
 				&& request.getParameter("insurance") != null
 				&& request.getParameter("startDate") != null
 				&& request.getParameter("endDate") != null
-				&& request.getParameter("serviceId") != null) {
+				&& request.getParameter("serviceId") != null
+				&& request.getParameter("billStatus") != null) {
 
 			String patientIdStr = request.getParameter("patientId"), insuranceStr = request
 					.getParameter("insurance"), startDateStr = request
 					.getParameter("startDate"), endDateStr = request
 					.getParameter("endDate"), serviceId = request
-					.getParameter("serviceId");
+					.getParameter("serviceId"), billStatus = request
+					.getParameter("billStatus");
 
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
@@ -119,13 +121,14 @@ public class MohBillingCohortBuilderFormController extends
 			}
 
 			reportedPatientBills = ReportsUtil.buildCohort(insurance,
-					startDate, endDate, patientId, serviceId);
+					startDate, endDate, patientId, serviceId, billStatus);
 
 			mav.addObject("startDateStr", startDateStr);
 			mav.addObject("endDateStr", endDateStr);
 			mav.addObject("serviceId", serviceId);
 			mav.addObject("insurance", insurance);
 			mav.addObject("patientId", patientId);
+			mav.addObject("billStatus", billStatus);
 
 			double totalAmount = 0, totalPatientDueAmount = 0, totalInsuranceDueAmount = 0;
 			List<Object[]> billObj = new ArrayList<Object[]>();
@@ -165,7 +168,8 @@ public class MohBillingCohortBuilderFormController extends
 								.getInsurance().getName(),
 						roundTwoDecimals(insDueAmt),
 						roundTwoDecimals(patDueAmt),
-						roundTwoDecimals(totalDueAmt) });
+						roundTwoDecimals(totalDueAmt),
+						bill.getIsPaid()});/** Last added Bill Status*/
 
 				totalAmount += totalDueAmt;
 				totalPatientDueAmount += patDueAmt;
@@ -273,7 +277,7 @@ public class MohBillingCohortBuilderFormController extends
 		document.add(fontTitle.process("POLICE NATIONALE\n"));
 		document.add(fontTitle.process("KACYIRU POLICE HOSPITAL\n"));
 		document.add(fontTitle.process("B.P. 6183 KIGALI\n"));
-		document.add(fontTitle.process("Tél : 584897\n"));
+		document.add(fontTitle.process("Tï¿½l : 584897\n"));
 		document.add(fontTitle.process("E-mail : medical@police.gov.rw"));
 		// End Report title
 
