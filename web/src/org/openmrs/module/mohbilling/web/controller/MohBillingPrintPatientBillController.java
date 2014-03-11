@@ -68,10 +68,12 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			HttpServletResponse response) throws Exception {
 		Document document = new Document();
 
+		/** Initializing image to be the logo if any... */
 		Image image = Image.getInstance(Context.getAdministrationService()
 				.getGlobalProperty(
 						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
-		image.scaleToFit(190, 190);
+		image.scaleToFit(90, 90);
+		/** END of Initializing image */
 
 		PatientBill pb = null;
 
@@ -105,7 +107,8 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		FontSelector fontTitle = new FontSelector();
 		fontTitle.addFont(new Font(FontFamily.COURIER, 10.0f, Font.BOLD));
 
-		// Report title
+		/** ------------- Report title ------------- */
+		
 		Chunk chk = new Chunk("Printed on : "
 				+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
 		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.BOLD));
@@ -138,7 +141,8 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 				.getGlobalProperty(
 						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)
 				+ "\n"));
-		// End Report title
+		
+		/** ------------- End Report title ------------- */
 
 		document.add(new Paragraph("\n"));
 		chk = new Chunk("FACTURE");
