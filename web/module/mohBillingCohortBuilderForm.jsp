@@ -58,16 +58,31 @@
 	<tr>
 		<td>Insurance:</td>
 		<td><select name="insurance">
-			<option selected="selected" value="${insurance.insuranceId}">
-				<c:choose>
-					<c:when test="${insurance!=null}">${insurance.name}</c:when>
-					<c:otherwise>--Select insurance--</c:otherwise>
-				</c:choose>
-			</option>
-			<c:forEach items="${allInsurances}" var="ins">
-				<option value="${ins.insuranceId}">${ins.name}</option>
-			</c:forEach>
-		</select></td>
+				<option selected="selected" value="${insurance.insuranceId}">
+					<c:choose>
+						<c:when test="${insurance!=null}">${insurance.name}</c:when>
+						<c:otherwise>--Select insurance--</c:otherwise>
+					</c:choose>
+				</option>
+				<c:forEach items="${allInsurances}" var="ins">
+					<option value="${ins.insuranceId}">${ins.name}</option>
+				</c:forEach>
+			</select>
+		</td>
+		<td>Bill Status</td>
+		<td>
+			<select name="billStatus">
+				<option selected="selected" value="${billStatus}">
+					<c:choose>
+						<c:when test="${billStatus==1}">PAID</c:when>
+						<c:when test="${billStatus==0}">NOT PAID</c:when>
+					</c:choose>
+				</option>
+				<option value="2">---</option>
+				<option value="1">PAID</option>
+				<option value="0">NOT PAID</option>
+			</select>
+		</td>
 
 	</tr>
 
@@ -76,7 +91,8 @@
 		<td>
 			<openmrs_tag:patientField formFieldName="patientId" initialValue="${patientId}" />
 		</td>
-		<td>Facility Services 
+		<td>Facility Services</td>
+		<td>
 			<select name="serviceId">
 				<option selected="selected" value="${serviceId}">
 					<c:choose>
@@ -125,6 +141,7 @@
 		<td>Insurance due</td>
 		<td>Patient Due</td>
 		<td>Amount</td>
+		<td>Status</td>
 	</tr>
 
 	<c:forEach items="${billObj}" var="obj" varStatus="status">
@@ -165,6 +182,10 @@
 			<td class="rowAmountValue">${obj[5]}</td>
 			<td class="rowAmountValue">${obj[6]}</td>
 			<td class="rowAmountValue"><b style="color: blue;">${obj[7]}</b></td>
+			<td class="rowAmountValue" style="color: green; font-weight: bold;">
+				<c:if test="${obj[8]=='false'}">NOT PAID</c:if>
+				<c:if test="${obj[8]=='true'}">PAID</c:if>
+			</td>
 			
 		</tr>
 
@@ -174,6 +195,7 @@
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${insuranceDueAmount}</b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${patientDueAmount}</b></td>
 		<td class="rowTotalValue"><b style="color: red;font-size: 14px;"><u>${totalAmount}</u></b></td>
+		<td class="rowTotalValue"></td>
 	</tr>
 </table>
 </div>
