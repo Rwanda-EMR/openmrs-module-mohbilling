@@ -65,6 +65,16 @@ public class MohBillingTagUtil {
 						.getCurrentRate().getRate()))) / 100)
 						- amountPaid;
 
+				/** Marking the BILL as PAID */
+				if (new BigDecimal(1).multiply(
+						BigDecimal.valueOf(amountNotPaid), mc).doubleValue() <= 0.0) {
+					pb.setIsPaid(true);
+					Context.getService(BillingService.class)
+							.savePatientBill(pb);
+				}
+				
+				/** END of PAID part... */
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				return "";
@@ -98,7 +108,8 @@ public class MohBillingTagUtil {
 				if (rate != null)
 					amountPaidByThirdPart = ((pb.getAmount().doubleValue() * (rate)) / 100)
 							- amountPaid;
-				else;
+				else
+					;
 
 			} catch (Exception e) {
 				e.printStackTrace();
