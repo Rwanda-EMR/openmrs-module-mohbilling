@@ -340,7 +340,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	 */
 	@Override
 	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
-			Date endDate, Integer patientId, String serviceName) {
+			Date endDate, Integer patientId, String serviceName, String billStatus) {
 
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 		Session session = sessionFactory.getCurrentSession();
@@ -360,6 +360,10 @@ public class HibernateBillingDAO implements BillingDAO {
 						+ "INNER JOIN moh_bill_service_category sc ON sc.service_category_id = bs.service_category_id "
 						+ "INNER JOIN moh_bill_insurance i ON i.insurance_id = sc.insurance_id WHERE pb.voided = 0");
 
+		if (billStatus != null && !billStatus.equals(""))
+			if(!billStatus.equals("2"))//when it's "2" it does affect the query...
+				combinedSearch.append(" AND pb.is_paid = " + Integer.parseInt(billStatus));
+		
 		if (insurance != null)
 			combinedSearch.append(" AND i.insurance_id = "
 					+ insurance.getInsuranceId().intValue());
@@ -426,6 +430,8 @@ public class HibernateBillingDAO implements BillingDAO {
 			bills.add(bill);
 
 		}
+		
+		System.out.println("_____________________ BILL QUERY __________\n"+ combinedSearch.toString());
 		return bills;
 	}
 
