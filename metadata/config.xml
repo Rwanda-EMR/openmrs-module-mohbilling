@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.2.4</version>
+	<version>0.0.2.5</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
