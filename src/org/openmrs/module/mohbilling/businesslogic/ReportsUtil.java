@@ -364,12 +364,13 @@ public class ReportsUtil {
 	}
 
 	public static List<PatientBill> buildCohort(Insurance insurance,
-			Date startDate, Date endDate, Integer patientId, String serviceName, String billStatus) {
+			Date startDate, Date endDate, Integer patientId,
+			String serviceName, String billStatus, String billCollector) {
 
 		BillingService service = Context.getService(BillingService.class);
 
 		List<PatientBill> bills = service.buildCohort(insurance, startDate,
-				endDate, patientId, serviceName, billStatus);
+				endDate, patientId, serviceName, billStatus, billCollector);
 		return bills;
 	}
 

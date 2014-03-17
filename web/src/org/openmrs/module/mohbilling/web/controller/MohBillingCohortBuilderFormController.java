@@ -79,14 +79,16 @@ public class MohBillingCohortBuilderFormController extends
 				&& request.getParameter("startDate") != null
 				&& request.getParameter("endDate") != null
 				&& request.getParameter("serviceId") != null
-				&& request.getParameter("billStatus") != null) {
+				&& request.getParameter("billStatus") != null
+				&& request.getParameter("billCollector") != null) {
 
 			String patientIdStr = request.getParameter("patientId"), insuranceStr = request
 					.getParameter("insurance"), startDateStr = request
 					.getParameter("startDate"), endDateStr = request
 					.getParameter("endDate"), serviceId = request
 					.getParameter("serviceId"), billStatus = request
-					.getParameter("billStatus");
+					.getParameter("billStatus"), billCollector = request
+					.getParameter("billCollector");
 
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
@@ -105,15 +107,8 @@ public class MohBillingCohortBuilderFormController extends
 
 				patientIdStr = request.getParameter("patientId");
 				patientId = Integer.parseInt(patientIdStr);
-				// mav.addObject("patientId", patientIdStr);
 			}
 
-			// if (request.getParameter("patientIdnew") != null)
-			// if (!request.getParameter("patientIdnew").equals("")) {
-			// patientIdStr = request.getParameter("patientIdnew");
-			// patientId = Integer.parseInt(patientIdStr);
-			// mav.addObject("patientId", patientId);
-			// }
 
 			if (!request.getParameter("insurance").equals("")) {
 				insuranceIdInt = Integer.parseInt(insuranceStr);
@@ -121,7 +116,7 @@ public class MohBillingCohortBuilderFormController extends
 			}
 
 			reportedPatientBills = ReportsUtil.buildCohort(insurance,
-					startDate, endDate, patientId, serviceId, billStatus);
+					startDate, endDate, patientId, serviceId, billStatus, billCollector);
 
 			mav.addObject("startDateStr", startDateStr);
 			mav.addObject("endDateStr", endDateStr);
@@ -129,6 +124,7 @@ public class MohBillingCohortBuilderFormController extends
 			mav.addObject("insurance", insurance);
 			mav.addObject("patientId", patientId);
 			mav.addObject("billStatus", billStatus);
+			mav.addObject("billCollector", billCollector);
 
 			double totalAmount = 0, totalPatientDueAmount = 0, totalInsuranceDueAmount = 0;
 			List<Object[]> billObj = new ArrayList<Object[]>();

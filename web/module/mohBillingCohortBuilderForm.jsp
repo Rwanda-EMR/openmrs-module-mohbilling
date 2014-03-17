@@ -53,6 +53,8 @@
 			</tr>
 		</table>
 		</td>
+		<td>Collector :</td>
+		<td><openmrs_tag:userField formFieldName="billCollector" initialValue="${billCollector}"/></td>
 	</tr>
 
 	<tr>

@@ -340,7 +340,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	 */
 	@Override
 	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
-			Date endDate, Integer patientId, String serviceName, String billStatus) {
+			Date endDate, Integer patientId, String serviceName, String billStatus, String billCollector) {
 
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 		Session session = sessionFactory.getCurrentSession();
@@ -351,15 +351,29 @@ public class HibernateBillingDAO implements BillingDAO {
 				.append("SELECT DISTINCT pb.patient_bill_id,pb.description,"
 						+ "pb.amount,pb.printed,pb.is_paid,pb.created_date,pb.voided,"
 						+ "pb.voided_date,pb.void_reason,pb.beneficiary_id,"
-						+ "pb.voided_by,pb.creator FROM moh_bill_patient_bill pb ");
+						+ "pb.voided_by,pb.creator");
+		
+		// This is to get also the Bill Collector
+		if (billCollector != null && !billCollector.equals(""))
+			combinedSearch.append(",bp.collector");
+		
 		combinedSearch
-				.append("INNER JOIN moh_bill_patient_service_bill psb "
+				.append(" FROM moh_bill_patient_bill pb INNER JOIN moh_bill_patient_service_bill psb "
 						+ "ON psb.patient_bill_id = pb.patient_bill_id "
 						+ "INNER JOIN moh_bill_beneficiary b ON b.beneficiary_id = pb.beneficiary_id "
 						+ "INNER JOIN moh_bill_billable_service bs ON bs.billable_service_id = psb.billable_service_id "
 						+ "INNER JOIN moh_bill_service_category sc ON sc.service_category_id = bs.service_category_id "
-						+ "INNER JOIN moh_bill_insurance i ON i.insurance_id = sc.insurance_id WHERE pb.voided = 0");
+						+ "INNER JOIN moh_bill_insurance i ON i.insurance_id = sc.insurance_id ");
 
+		// This is to INNER JOIN the bill_payment that has Collector in it.
+		if (billCollector != null && !billCollector.equals(""))
+			combinedSearch.append("INNER JOIN moh_bill_payment bp ON pb.patient_bill_id = bp.patient_bill_id ");
+		
+		combinedSearch.append("WHERE pb.voided = 0");
+
+		if (billCollector != null && !billCollector.equals(""))
+			combinedSearch.append(" AND bp.collector = " + billCollector);
+			
 		if (billStatus != null && !billStatus.equals(""))
 			if(!billStatus.equals("2"))//when it's "2" it does affect the query...
 				combinedSearch.append(" AND pb.is_paid = " + Integer.parseInt(billStatus));
