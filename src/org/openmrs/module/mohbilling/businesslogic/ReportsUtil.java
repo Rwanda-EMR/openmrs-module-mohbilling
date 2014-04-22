@@ -32,6 +32,11 @@ import org.openmrs.module.mohbilling.service.BillingService;
 public class ReportsUtil {
 
 	protected final Log log = LogFactory.getLog(getClass());
+	
+	public static BillingService getService(){
+		
+		return Context.getService(BillingService.class);
+	}
 
 	/**
 	 * The patient Bill (Listing all the received services and their detailed
@@ -46,11 +51,9 @@ public class ReportsUtil {
 	public static PatientBill getPatientBillByBeneficiary(
 			Beneficiary beneficiary, Date date) {
 
-		BillingService service = Context.getService(BillingService.class);
-
 		if (beneficiary != null)
 			// if(date!=null)
-			for (PatientBill bill : service.getAllPatientBills())
+			for (PatientBill bill : getService().getAllPatientBills())
 				if (!bill.isVoided()
 						&& bill.getBeneficiary().getBeneficiaryId().intValue() == beneficiary
 								.getBeneficiaryId().intValue())
@@ -73,13 +76,12 @@ public class ReportsUtil {
 	 */
 	public static List<PatientBill> getPaidBills(Date date, Boolean isPaid) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<PatientBill> bills;
 		Set<PatientServiceBill> itemBills;
 
 		if (date != null && isPaid != null) {
 			bills = new ArrayList<PatientBill>();
-			for (PatientBill pb : service.getAllPatientBills())
+			for (PatientBill pb : getService().getAllPatientBills())
 				if (!pb.isVoided() && pb.getIsPaid() == isPaid) {
 					itemBills = new TreeSet<PatientServiceBill>();
 
@@ -117,11 +119,10 @@ public class ReportsUtil {
 	public static List<BillableService> getPaidServices(Date startDate,
 			Date endDate, Boolean isPaid) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<BillableService> services = new ArrayList<BillableService>();
 
-		if (service.getAllPatientBills() != null)
-			for (PatientBill pb : service.getAllPatientBills())
+		if (getService().getAllPatientBills() != null)
+			for (PatientBill pb : getService().getAllPatientBills())
 				if (!pb.isVoided())
 					if (pb != null && pb.getIsPaid() == isPaid) {
 
@@ -160,10 +161,9 @@ public class ReportsUtil {
 	public static List<PatientBill> getMonthlyGeneralBills(Date startDate,
 			Date endDate, Boolean isPaid) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : service.getAllPatientBills())
+		for (PatientBill pb : getService().getAllPatientBills())
 			if (isPaid != null) {
 				if (!pb.isVoided() && pb.getIsPaid() == isPaid)
 					for (PatientServiceBill psb : pb.getBillItems())
@@ -200,10 +200,9 @@ public class ReportsUtil {
 	public static List<PatientBill> getMonthlyBillsByInsurance(
 			Insurance insurance, Date startDate, Date endDate, Boolean isPaid) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : service.getAllPatientBills())
+		for (PatientBill pb : getService().getAllPatientBills())
 			if (!pb.isVoided()
 					&& pb.getBeneficiary().getInsurancePolicy().getInsurance()
 							.getInsuranceId().intValue() == insurance
@@ -260,10 +259,9 @@ public class ReportsUtil {
 	 */
 	public static List<BillPayment> getDailyPayments(Date day) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<BillPayment> payments = new ArrayList<BillPayment>();
 
-		for (PatientBill pb : service.getAllPatientBills())
+		for (PatientBill pb : getService().getAllPatientBills())
 			if (!pb.isVoided() && pb.getPayments() != null)
 				for (BillPayment bp : pb.getPayments())
 					if (!bp.isVoided()
@@ -289,10 +287,9 @@ public class ReportsUtil {
 	public static List<PatientBill> getMonthlyReportByInsurance(
 			Insurance insurance, Date startDate, Date endDate, Integer patientId) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : service.getAllPatientBills())
+		for (PatientBill pb : getService().getAllPatientBills())
 			if (!pb.isVoided()
 					&& pb.getBeneficiary().getInsurancePolicy().getInsurance()
 							.getInsuranceId().intValue() == insurance
@@ -315,7 +312,7 @@ public class ReportsUtil {
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0
 								&& psb.getServiceDate().compareTo(endDate) <= 0) {
-							if (!bills.contains(service.getPatientBill(pb
+							if (!bills.contains(getService().getPatientBill(pb
 									.getPatientBillId()))) {
 								if (psb.getPatientBill().getBeneficiary()
 										.getPatient().getPatientId()
@@ -333,7 +330,7 @@ public class ReportsUtil {
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0
 								&& psb.getServiceDate().compareTo(endDate) <= 0) {
-							if (!bills.contains(service.getPatientBill(pb
+							if (!bills.contains(getService().getPatientBill(pb
 									.getPatientBillId()))) {
 								bills.add(pb);
 							}
@@ -343,19 +340,19 @@ public class ReportsUtil {
 							&& patientId == null)
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0)
-							if (!bills.contains(service.getPatientBill(pb
+							if (!bills.contains(getService().getPatientBill(pb
 									.getPatientBillId())))
 								bills.add(pb);
 					if (startDate == null && endDate != null
 							&& patientId == null)
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(endDate) <= 0)
-							if (!bills.contains(service.getPatientBill(pb
+							if (!bills.contains(getService().getPatientBill(pb
 									.getPatientBillId())))
 								bills.add(pb);
 					if (startDate == null && endDate == null
 							&& patientId == null)
-						if (!bills.contains(service.getPatientBill(pb
+						if (!bills.contains(getService().getPatientBill(pb
 								.getPatientBillId())))
 
 							bills.add(pb);
@@ -367,9 +364,7 @@ public class ReportsUtil {
 			Date startDate, Date endDate, Integer patientId,
 			String serviceName, String billStatus, String billCollector) {
 
-		BillingService service = Context.getService(BillingService.class);
-
-		List<PatientBill> bills = service.buildCohort(insurance, startDate,
+		List<PatientBill> bills = getService().buildCohort(insurance, startDate,
 				endDate, patientId, serviceName, billStatus, billCollector);
 		return bills;
 	}
@@ -383,10 +378,9 @@ public class ReportsUtil {
 	public static Float getMonthlyInsuranceDueAmount(Insurance insurance,
 			Date startDate, Date endDate, Boolean isPaid) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : service.getAllPatientBills()) {
+		for (PatientBill pb : getService().getAllPatientBills()) {
 
 			if (!pb.isVoided()
 					&& pb.getBeneficiary().getInsurancePolicy().getInsurance()
@@ -430,10 +424,9 @@ public class ReportsUtil {
 			FacilityServicePrice sc, Date startDate, Date endDate,
 			Patient patient, Insurance insurance) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : service.getAllPatientBills())
+		for (PatientBill pb : getService().getAllPatientBills())
 			for (PatientServiceBill psb : pb.getBillItems()) {
 				if (sc != null && startDate == null && endDate == null
 						&& patient == null && insurance == null)

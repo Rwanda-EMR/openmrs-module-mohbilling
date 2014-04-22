@@ -28,6 +28,15 @@ import org.openmrs.module.mohbilling.service.BillingService;
  */
 public class FacilityServicePriceUtil {
 
+	/**
+	 * Offers the BillingService to be use to talk to the DB
+	 * 
+	 * @return the BillingService
+	 */
+	private static BillingService getService() {
+		return Context.getService(BillingService.class);
+	}
+
 	private static Comparator<BillableService> BILLABLE_SERVICE_COMPARATOR = new Comparator<BillableService>() {
 		// This is where the sorting happens.
 		public int compare(BillableService bs1, BillableService bs2) {
@@ -76,10 +85,10 @@ public class FacilityServicePriceUtil {
 	public static List<FacilityServicePrice> getFacilityServicesOnDate(
 			Location location, Date date, Boolean isRetired) {
 
-		BillingService bs = Context.getService(BillingService.class);
 		List<FacilityServicePrice> fspList = new ArrayList<FacilityServicePrice>();
 
-		for (FacilityServicePrice fs : bs.getAllFacilityServicePrices()) {
+		for (FacilityServicePrice fs : getService()
+				.getAllFacilityServicePrices()) {
 			if (fs.getEndDate() != null)
 				if (fs.isRetired() == isRetired
 						&& fs.getLocation().equals(location)
@@ -107,9 +116,9 @@ public class FacilityServicePriceUtil {
 			ServiceCategory serviceCategory, Date date, Boolean isValid) {
 
 		List<BillableService> services = new ArrayList<BillableService>();
-		BillingService bs = Context.getService(BillingService.class);
 
-		for (FacilityServicePrice fsp : bs.getAllFacilityServicePrices())
+		for (FacilityServicePrice fsp : getService()
+				.getAllFacilityServicePrices())
 			if (!fsp.isRetired())
 				for (BillableService service : fsp.getBillableServices()) {
 
@@ -139,28 +148,8 @@ public class FacilityServicePriceUtil {
 	public static List<BillableService> getBillableServicesByInsurance(
 			Insurance insurance, Date date) {
 
-		List<BillableService> services = new ArrayList<BillableService>();
-		BillingService bs = Context.getService(BillingService.class);
-
-		for (FacilityServicePrice fsp : bs.getAllFacilityServicePrices())
-			if (!fsp.isRetired())
-				for (BillableService service : fsp.getBillableServices()) {
-
-					if (service.getInsurance() != null
-							&& service.getInsurance().getInsuranceId()
-									.intValue() == insurance.getInsuranceId()
-									.intValue()) {
-						if (!service.isRetired()
-								&& service.getInsurance() != null
-								&& service.getStartDate().compareTo(date) <= 0)
-							services.add(service);
-						if (service.getEndDate() != null)
-							if (service.getInsurance() != null
-									&& service.getEndDate().compareTo(date) > 0
-									&& service.getStartDate().compareTo(date) <= 0)
-								services.add(service);
-					}
-				}
+		List<BillableService> services = getService()
+				.getBillableServicesByInsurance(insurance);
 
 		// Sorting by Service Category
 		Collections.sort(services, BILLABLE_SERVICE_COMPARATOR);
@@ -183,22 +172,7 @@ public class FacilityServicePriceUtil {
 	public static List<BillableService> getBillableServices(
 			FacilityServicePrice fsp, Date date, Boolean isRetired) {
 
-		List<BillableService> services = new ArrayList<BillableService>();
-
-		if (fsp != null)
-			for (BillableService service : fsp.getBillableServices()) {
-
-				if (service.isRetired() == isRetired
-						&& service.getInsurance() != null
-						&& service.getStartDate().compareTo(date) <= 0)
-					services.add(service);
-				if (service.getEndDate() != null)
-					if (service.getInsurance() != null
-							&& service.getEndDate().compareTo(date) > 0
-							&& service.getStartDate().compareTo(date) <= 0)
-						services.add(service);
-			}
-		return services;
+		return getService().getBillableServicesByFacilityService(fsp);
 	}
 
 	/**
@@ -214,9 +188,9 @@ public class FacilityServicePriceUtil {
 			Boolean isRetired) {
 
 		List<BillableService> services = new ArrayList<BillableService>();
-		BillingService bs = Context.getService(BillingService.class);
 
-		for (FacilityServicePrice fsp : bs.getAllFacilityServicePrices())
+		for (FacilityServicePrice fsp : getService()
+				.getAllFacilityServicePrices())
 			if (!fsp.isRetired())
 				for (BillableService service : fsp.getBillableServices()) {
 
@@ -249,7 +223,6 @@ public class FacilityServicePriceUtil {
 	public static void retireBillableService(BillableService billableService,
 			Date retiredDate, String retireReason) {
 
-		BillingService service = Context.getService(BillingService.class);
 		FacilityServicePrice fsp = billableService.getFacilityServicePrice();
 
 		billableService.setRetired(true);
@@ -259,7 +232,7 @@ public class FacilityServicePriceUtil {
 		billableService.setRetireReason(retireReason != null
 				|| retireReason != "" ? retireReason : "No reason provided");
 
-		service.saveFacilityServicePrice(fsp);
+		getService().saveFacilityServicePrice(fsp);
 	}
 
 	/**
@@ -276,8 +249,6 @@ public class FacilityServicePriceUtil {
 	public static void retireFacilityServicePrice(
 			FacilityServicePrice facilityServicePrice, Date retiredDate,
 			String retireReason) {
-
-		BillingService service = Context.getService(BillingService.class);
 
 		for (BillableService bs : facilityServicePrice.getBillableServices()) {
 			if (!bs.isRetired()) {
@@ -299,7 +270,7 @@ public class FacilityServicePriceUtil {
 		facilityServicePrice.setRetireReason(retireReason != null
 				|| retireReason != "" ? retireReason : "No reason provided");
 
-		service.saveFacilityServicePrice(facilityServicePrice);
+		getService().saveFacilityServicePrice(facilityServicePrice);
 	}
 
 	/**
@@ -313,13 +284,7 @@ public class FacilityServicePriceUtil {
 	public static FacilityServicePrice getFacilityServiceByConcept(
 			Concept concept) {
 
-		BillingService bs = Context.getService(BillingService.class);
-
-		for (FacilityServicePrice fsp : bs.getAllFacilityServicePrices()) {
-			if (fsp.getConcept().equals(concept) && !fsp.isRetired())
-				return fsp;
-		}
-		return null;
+		return getService().getFacilityServiceByConcept(concept);
 	}
 
 	/**
@@ -335,7 +300,7 @@ public class FacilityServicePriceUtil {
 			FacilityServicePrice fsp) {
 
 		if (fsp != null) {
-			BillingService bs = Context.getService(BillingService.class);
+
 			BillableService service = new BillableService();
 
 			// Adding the Billable Service automatically for non insured
@@ -350,7 +315,7 @@ public class FacilityServicePriceUtil {
 			// Adding the Billable service to the FSP.
 			fsp.addBillableService(service);
 
-			bs.saveFacilityServicePrice(fsp);
+			getService().saveFacilityServicePrice(fsp);
 
 			return fsp;
 		}
@@ -371,7 +336,7 @@ public class FacilityServicePriceUtil {
 			FacilityServicePrice fsp) {
 
 		if (fsp != null) {
-			BillingService bs = Context.getService(BillingService.class);
+
 			BillableService service = new BillableService();
 
 			// Editing the Billable Service automatically for non insured
@@ -393,7 +358,7 @@ public class FacilityServicePriceUtil {
 			// Editing the Billable service to the FSP.
 			fsp.addBillableService(service);
 
-			bs.saveFacilityServicePrice(fsp);
+			getService().saveFacilityServicePrice(fsp);
 
 			return fsp;
 		}
@@ -413,12 +378,8 @@ public class FacilityServicePriceUtil {
 	 */
 	public static List<FacilityServicePrice> getFacilityServices(Boolean isValid) {
 
-		BillingService bs = Context.getService(BillingService.class);
-		List<FacilityServicePrice> fspList = new ArrayList<FacilityServicePrice>();
-
-		for (FacilityServicePrice fs : bs.getAllFacilityServicePrices())
-			if (fs.isRetired() != isValid)
-				fspList.add(fs);
+		List<FacilityServicePrice> fspList = getService()
+				.getAllFacilityServicePrices();
 
 		// Sorting Facility Service Price by Name
 		Collections.sort(fspList, FACILITY_SERVICE_PRICE_COMPARATOR);
@@ -441,9 +402,7 @@ public class FacilityServicePriceUtil {
 	public static BillableService getBillableServiceByConcept(Concept concept,
 			Insurance insurance) {
 
-		BillingService service = Context.getService(BillingService.class);
-
-		return service.getBillableServiceByConcept(
+		return getService().getBillableServiceByConcept(
 				getFacilityServiceByConcept(concept), insurance);
 	}
 }

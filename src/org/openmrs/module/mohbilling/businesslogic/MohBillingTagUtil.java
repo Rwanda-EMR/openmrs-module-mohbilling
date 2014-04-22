@@ -100,7 +100,7 @@ public class MohBillingTagUtil {
 						.getPatientBill(patientBillId);
 
 				Float rate = pb.getBeneficiary().getInsurancePolicy()
-						.getThirdPartRate();
+						.getThirdParty().getRate();
 				for (BillPayment bp : pb.getPayments()) {
 					amountPaid = amountPaid + bp.getAmountPaid().doubleValue();
 				}

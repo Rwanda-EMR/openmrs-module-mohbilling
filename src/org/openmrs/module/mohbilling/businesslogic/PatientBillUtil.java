@@ -28,24 +28,14 @@ import org.openmrs.module.mohbilling.service.BillingService;
 public class PatientBillUtil {
 
 	/**
-	 * @param insurance
-	 * @param date
-	 * @param amount
-	 * @return
+	 * Offers the BillingService to be use to talk to the DB
+	 * 
+	 * @return the BillingService
 	 */
-	/*
-	 * public static BigDecimal applyInsuranceRate(Insurance insurance, Date
-	 * date, BigDecimal amount) {
-	 * 
-	 * MathContext mc = new MathContext(BigDecimal.ROUND_DOWN); BigDecimal rate
-	 * = BigDecimal.valueOf(insurance.getRateOnDate(date) .getRate());
-	 * 
-	 * //System.out.println(
-	 * "fdddddddddddddddddddddddddddfffffffffffffffffffddddddddddddddddddddddddddddd"
-	 * +rate+"  fggg "+amount.multiply(rate, mc));
-	 * 
-	 * return (insurance == null) ? amount : amount.multiply(rate, mc); }
-	 */
+	private static BillingService getService() {
+
+		return Context.getService(BillingService.class);
+	}
 
 	/**
 	 * @param insurance
@@ -79,10 +69,9 @@ public class PatientBillUtil {
 	public static List<PatientBill> getBillsByPatientOnDate(Patient patient,
 			Date date) {
 
-		BillingService bs = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : bs.getAllPatientBills()) {
+		for (PatientBill pb : getService().getAllPatientBills()) {
 			if (pb.getBeneficiary().getPatient().getPatientId().intValue() == patient
 					.getPatientId().intValue()) {
 				for (PatientServiceBill psb : pb.getBillItems()) {
@@ -108,10 +97,9 @@ public class PatientBillUtil {
 	public static List<PatientBill> getBillsByBeneficiaryOnDate(
 			Beneficiary beneficiary, Date date) {
 
-		BillingService bs = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : bs.getAllPatientBills()) {
+		for (PatientBill pb : getService().getAllPatientBills()) {
 			if (pb.getBeneficiary().getBeneficiaryId().intValue() == beneficiary
 					.getBeneficiaryId().intValue()) {
 				for (PatientServiceBill psb : pb.getBillItems()) {
@@ -132,10 +120,9 @@ public class PatientBillUtil {
 	 */
 	public static List<PatientBill> getBillsByPatient(Patient patient) {
 
-		BillingService bs = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : bs.getAllPatientBills()) {
+		for (PatientBill pb : getService().getAllPatientBills()) {
 			if (pb.getBeneficiary().getPatient() == patient) {
 				bills.add(pb);
 			}
@@ -152,15 +139,7 @@ public class PatientBillUtil {
 	public static List<PatientBill> getBillsByBeneficiary(
 			Beneficiary beneficiary) {
 
-		BillingService bs = Context.getService(BillingService.class);
-		List<PatientBill> bills = new ArrayList<PatientBill>();
-
-		for (PatientBill pb : bs.getAllPatientBills()) {
-			if (pb.getBeneficiary() == beneficiary) {
-				bills.add(pb);
-			}
-		}
-		return bills;
+		return getService().getBillsByBeneficiary(beneficiary);
 	}
 
 	/**
@@ -172,10 +151,9 @@ public class PatientBillUtil {
 	 */
 	public static List<PatientBill> getPaidBills(Boolean isPaid, Date date) {
 
-		BillingService bs = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : bs.getAllPatientBills()) {
+		for (PatientBill pb : getService().getAllPatientBills()) {
 			if (pb.getIsPaid() == true
 					&& pb.getCreatedDate().compareTo(date) == 0) {
 				bills.add(pb);
@@ -196,10 +174,10 @@ public class PatientBillUtil {
 	 */
 	public static List<PatientBill> getPatientBillsInDates(Date startDate,
 			Date endDate) {
-		BillingService bs = Context.getService(BillingService.class);
+
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : bs.getAllPatientBills()) {
+		for (PatientBill pb : getService().getAllPatientBills()) {
 			if (startDate != null && endDate == null)
 				if (pb.getCreatedDate().compareTo(startDate) >= 0)
 					bills.add(pb);
@@ -225,10 +203,9 @@ public class PatientBillUtil {
 	public static List<PatientBill> getPaidBillsByBeneficiary(
 			Beneficiary beneficiary, Boolean isPaid) {
 
-		BillingService bs = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		for (PatientBill pb : bs.getAllPatientBills()) {
+		for (PatientBill pb : getService().getAllPatientBills()) {
 			if (pb.getIsPaid() == isPaid
 					&& pb.getBeneficiary().equals(beneficiary)) {
 				bills.add(pb);
@@ -244,9 +221,8 @@ public class PatientBillUtil {
 	 */
 	public static void printBill(PatientBill bill) {
 
-		BillingService bs = Context.getService(BillingService.class);
 		bill.setPrinted(true);
-		bs.savePatientBill(bill);
+		getService().savePatientBill(bill);
 	}
 
 	/**
@@ -259,11 +235,9 @@ public class PatientBillUtil {
 	 */
 	public static void calculateBill(PatientBill bill, Insurance insurance) {
 
-		BillingService bs = Context.getService(BillingService.class);
-
 		bill.setAmount(calculateTotalBill(insurance, bill));
 
-		bs.savePatientBill(bill);
+		getService().savePatientBill(bill);
 	}
 
 	/**
@@ -303,10 +277,8 @@ public class PatientBillUtil {
 	 */
 	public static PatientBill savePatientBill(PatientBill bill) {
 
-		BillingService service = Context.getService(BillingService.class);
-
 		if (bill != null) {
-			service.savePatientBill(bill);
+			getService().savePatientBill(bill);
 			return bill;
 		}
 
@@ -324,13 +296,12 @@ public class PatientBillUtil {
 	public static PatientServiceBill createPatientServiceBill(
 			PatientServiceBill psb) {
 
-		BillingService service = Context.getService(BillingService.class);
 		PatientBill bill = new PatientBill();
 
 		if (psb != null) {
 			bill = psb.getPatientBill();
 			bill.addBillItem(psb);
-			service.savePatientBill(bill);
+			getService().savePatientBill(bill);
 			return psb;
 		}
 
@@ -347,7 +318,6 @@ public class PatientBillUtil {
 	 */
 	public static BillPayment createBillPayment(BillPayment payment) {
 
-		BillingService service = Context.getService(BillingService.class);
 		PatientBill bill = new PatientBill();
 
 		if (payment != null) {
@@ -356,7 +326,7 @@ public class PatientBillUtil {
 			payment.setCreator(Context.getAuthenticatedUser());
 			bill = payment.getPatientBill();
 			bill.addBillPayment(payment);
-			service.savePatientBill(bill);
+			getService().savePatientBill(bill);
 			return payment;
 		}
 
@@ -382,11 +352,10 @@ public class PatientBillUtil {
 	public static List<PatientBill> getBillsByPatient(Patient patient,
 			Date startDate, Date endDate, Boolean isPaid) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<PatientBill> bills = new ArrayList<PatientBill>();
 
-		if (service.getAllPatientBills() != null)
-			for (PatientBill pb : service.getAllPatientBills())
+		if (getService().getAllPatientBills() != null)
+			for (PatientBill pb : getService().getAllPatientBills())
 				if (!pb.isVoided())
 					if (pb.getBeneficiary().getPatient().getPatientId()
 							.intValue() == patient.getPatientId().intValue()
@@ -440,17 +409,45 @@ public class PatientBillUtil {
 
 		return bill;
 	}
-	
+
 	/**
 	 * Gets the PatientBill by billId
 	 * 
-	 * @param billId the one to be matched
+	 * @param billId
+	 *            the one to be matched
 	 * @return the PatientBill that matches the provided billId
 	 */
-	public static PatientBill getPatientBillById(Integer billId){
+	public static PatientBill getPatientBillById(Integer billId) {
 
-		BillingService service = Context.getService(BillingService.class);
-		
-		return service.getPatientBill(billId);
+		return getService().getPatientBill(billId);
+	}
+
+	/**
+	 * Gets Bills by a given Period
+	 * 
+	 * @param startDate
+	 *            the starting period
+	 * @param endDate
+	 *            the ending period
+	 * @return bills as a list of all matched bills
+	 */
+	public static List<PatientBill> getBillsByPeriod(Date startDate,
+			Date endDate) {
+
+		List<PatientBill> bills = null;
+
+		if (startDate != null && endDate != null) {
+
+			bills = new ArrayList<PatientBill>();
+
+			for (PatientBill bill : getService().getAllPatientBills()) {
+				if (bill.getCreatedDate().compareTo(startDate) >= 0
+						&& bill.getCreatedDate().compareTo(endDate) <= 0) {
+					bills.add(bill);
+				}
+			}
+		}
+
+		return bills;
 	}
 }

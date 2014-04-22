@@ -16,6 +16,7 @@ import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceCategory;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 /**
@@ -29,11 +30,27 @@ import org.openmrs.module.mohbilling.service.BillingService;
  */
 public class InsurancePolicyUtil {
 
+	/**
+	 * Offers the BillingService to be use to talk to the DB
+	 * 
+	 * @return the BillingService
+	 */
+	private static BillingService getService() {
+		return Context.getService(BillingService.class);
+	}
+
+	/**
+	 * Auto generated method comment
+	 * 
+	 * @param beneficiary
+	 * @param date
+	 * @return
+	 */
 	public static List<InsurancePolicy> getValidInsurancePolicyOnDate(
 			Beneficiary beneficiary, Date date) {
-		BillingService service = Context.getService(BillingService.class);
+
 		List<InsurancePolicy> insurancePolicies = new ArrayList<InsurancePolicy>();
-		for (InsurancePolicy insurancePolicy : service
+		for (InsurancePolicy insurancePolicy : getService()
 				.getAllInsurancePolicies()) {
 			for (Beneficiary ben : insurancePolicy.getBeneficiaries()) {
 
@@ -59,9 +76,9 @@ public class InsurancePolicyUtil {
 	 */
 	public static List<InsurancePolicy> getValidInsurancePolicyOnDate(
 			Person owner, Date date) {
-		BillingService service = Context.getService(BillingService.class);
+
 		List<InsurancePolicy> insurancePolicies = new ArrayList<InsurancePolicy>();
-		for (InsurancePolicy insurancePolicy : service
+		for (InsurancePolicy insurancePolicy : getService()
 				.getAllInsurancePolicies()) {
 			for (Beneficiary ben : insurancePolicy.getBeneficiaries()) {
 
@@ -87,15 +104,13 @@ public class InsurancePolicyUtil {
 	 */
 	public static Beneficiary createBeneficiary(Beneficiary beneficiary) {
 
-		BillingService bs = Context.getService(BillingService.class);
-
 		if (beneficiary != null) {
 			beneficiary.setRetired(false);
 			beneficiary.setCreatedDate(new Date());
 			beneficiary.setCreator(Context.getAuthenticatedUser());
 
 			beneficiary.getInsurancePolicy().addBeneficiary(beneficiary);
-			bs.saveInsurancePolicy(beneficiary.getInsurancePolicy());
+			getService().saveInsurancePolicy(beneficiary.getInsurancePolicy());
 
 			return beneficiary;
 		}
@@ -111,13 +126,11 @@ public class InsurancePolicyUtil {
 	 * @return card if the card is not null, and null otherwise
 	 */
 	public static InsurancePolicy createInsurancePolicy(InsurancePolicy card) {
-		BillingService billingService = Context
-				.getService(BillingService.class);
 
 		if (card != null) {
-			
-			if(card.getInsurancePolicyId() != null)
-				billingService.saveInsurancePolicy(card);
+
+			if (card.getInsurancePolicyId() != null)
+				getService().saveInsurancePolicy(card);
 
 			card.setCreatedDate(new Date());
 			card.setCreator(Context.getAuthenticatedUser());
@@ -126,20 +139,25 @@ public class InsurancePolicyUtil {
 			if (card.getInsurance().getCategory().toString()
 					.equalsIgnoreCase(InsuranceCategory.NONE.toString())
 					&& getPrimaryPatientIdentiferType()
-							.equals(Context.getPatientService().getPatientIdentifierType(
-											Integer.valueOf(Context.getAdministrationService()
+							.equals(Context
+									.getPatientService()
+									.getPatientIdentifierType(
+											Integer.valueOf(Context
+													.getAdministrationService()
 													.getGlobalProperty(
 															BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
 
 				/** Getting the Patient Identifier from the system **/
-				PatientIdentifier pi = InsurancePolicyUtil.getPrimaryPatientIdentifierForLocation(
-								card.getOwner(), InsurancePolicyUtil.getLocationLoggedIn());
+				PatientIdentifier pi = InsurancePolicyUtil
+						.getPrimaryPatientIdentifierForLocation(
+								card.getOwner(),
+								InsurancePolicyUtil.getLocationLoggedIn());
 
 				card.setInsuranceCardNo(pi.getIdentifier().toString());
 				card.setCoverageStartDate(new Date());
 			}
 
-			billingService.saveInsurancePolicy(card);
+			getService().saveInsurancePolicy(card);
 
 			/**
 			 * Creating the owner who is at the same time the very first
@@ -149,12 +167,11 @@ public class InsurancePolicyUtil {
 			Beneficiary beneficiary = new Beneficiary();
 
 			beneficiary.setInsurancePolicy(card);
-			
+
 			/* Check how it should be working for NONE insurance */
 			beneficiary.setPolicyIdNumber(card.getInsuranceCardNo());
 			/* End of checking */
-			
-			
+
 			beneficiary.setCreatedDate(card.getCreatedDate());
 			beneficiary.setCreator(card.getCreator());
 			beneficiary.setPatient(card.getOwner());
@@ -165,7 +182,7 @@ public class InsurancePolicyUtil {
 
 			card.addBeneficiary(beneficiary);
 
-			billingService.saveInsurancePolicy(card);
+			getService().saveInsurancePolicy(card);
 
 			return card;
 		}
@@ -181,11 +198,9 @@ public class InsurancePolicyUtil {
 	 * @return card the Insurance policy that has been changed, null otherwise
 	 */
 	public static InsurancePolicy editInsurancePolicy(InsurancePolicy card) {
-		BillingService billingService = Context
-				.getService(BillingService.class);
 
 		if (card != null) {
-			billingService.saveInsurancePolicy(card);
+			getService().saveInsurancePolicy(card);
 			for (Beneficiary beneficiary : card.getBeneficiaries())
 				// Checking also the matching owner beneficiary
 				if (beneficiary.getPolicyIdNumber().equals(
@@ -218,8 +233,7 @@ public class InsurancePolicyUtil {
 	 */
 	public static void retireInsurancePolicy(InsurancePolicy card,
 			String retireReason) {
-		BillingService billingService = Context
-				.getService(BillingService.class);
+
 		card.setRetired(true);
 		card.setRetireReason(retireReason);
 		card.setRetiredDate(new Date());
@@ -235,7 +249,7 @@ public class InsurancePolicyUtil {
 					retireBeneficiary(ben, retireReason);
 			}
 
-		billingService.saveInsurancePolicy(card);
+		getService().saveInsurancePolicy(card);
 
 	}
 
@@ -251,8 +265,6 @@ public class InsurancePolicyUtil {
 	 */
 	public static Beneficiary retireBeneficiary(Beneficiary beneficiary,
 			String retiredReason) {
-		BillingService billingService = Context
-				.getService(BillingService.class);
 
 		if (beneficiary != null) {
 			for (Beneficiary ben : beneficiary.getInsurancePolicy()
@@ -271,8 +283,8 @@ public class InsurancePolicyUtil {
 									.setRetireReason("The beneficiary has been "
 											+ "retired and no reason was provided");
 
-					billingService.saveInsurancePolicy(beneficiary
-							.getInsurancePolicy());
+					getService().saveInsurancePolicy(
+							beneficiary.getInsurancePolicy());
 				}
 			return beneficiary;
 		}
@@ -289,17 +301,7 @@ public class InsurancePolicyUtil {
 	public static InsurancePolicy getInsurancePolicyByBeneficiary(
 			Beneficiary beneficiary) {
 
-		BillingService billingService = Context
-				.getService(BillingService.class);
-		if (beneficiary != null)
-			for (InsurancePolicy card : billingService
-					.getAllInsurancePolicies())
-
-				for (Beneficiary ben : card.getBeneficiaries())
-					if (ben.equals(beneficiary))
-						return card;
-
-		return null;
+		return getService().getInsurancePolicyByBeneficiary(beneficiary);
 	}
 
 	/**
@@ -311,11 +313,8 @@ public class InsurancePolicyUtil {
 	 */
 	public static InsurancePolicy getInsurancePolicyByOwner(Patient patient) {
 
-		BillingService billingService = Context
-				.getService(BillingService.class);
 		if (patient != null)
-			for (InsurancePolicy card : billingService
-					.getAllInsurancePolicies())
+			for (InsurancePolicy card : getService().getAllInsurancePolicies())
 
 				if (card.getOwner().equals(patient))
 					return card;
@@ -332,10 +331,8 @@ public class InsurancePolicyUtil {
 	public static List<InsurancePolicy> getInsurancePoliciesByInsurance(
 			Insurance insurance) {
 		List<InsurancePolicy> CardsList = new ArrayList<InsurancePolicy>();
-		BillingService billingService = Context
-				.getService(BillingService.class);
-		List<InsurancePolicy> allCards = billingService
-				.getAllInsurancePolicies();
+
+		List<InsurancePolicy> allCards = getService().getAllInsurancePolicies();
 		for (InsurancePolicy oneCard : allCards) {
 			if (oneCard.getInsurance().equals(insurance)) {
 				CardsList.add(oneCard);
@@ -365,9 +362,8 @@ public class InsurancePolicyUtil {
 		// than 1
 		// (InsurancePolicy), then after it returns the InsurancePolicy or NULL
 		List<InsurancePolicy> patientCards = new ArrayList<InsurancePolicy>();
-		BillingService billingService = Context
-				.getService(BillingService.class);
-		List<InsurancePolicy> insurancePolicies = billingService
+
+		List<InsurancePolicy> insurancePolicies = getService()
 				.getAllInsurancePolicies();
 		for (InsurancePolicy insurancePolicy : insurancePolicies) {
 			if (insurancePolicy.getOwner().equals(patient)) {
@@ -391,10 +387,8 @@ public class InsurancePolicyUtil {
 		// condition: valid.
 
 		List<InsurancePolicy> CardsList = new ArrayList<InsurancePolicy>();
-		BillingService billingService = Context
-				.getService(BillingService.class);
-		List<InsurancePolicy> allCards = billingService
-				.getAllInsurancePolicies();
+
+		List<InsurancePolicy> allCards = getService().getAllInsurancePolicies();
 		for (InsurancePolicy oneCard : allCards) {
 			if (oneCard.getInsurance().equals(insurance)) {
 				CardsList.add(oneCard);
@@ -418,9 +412,8 @@ public class InsurancePolicyUtil {
 	public static InsurancePolicy getInsurancePolicyByCardNo(
 			String insuranceCardNo) {
 
-		BillingService service = Context.getService(BillingService.class);
 		InsurancePolicy card = null;
-		List<InsurancePolicy> allCards = service.getAllInsurancePolicies();
+		List<InsurancePolicy> allCards = getService().getAllInsurancePolicies();
 		for (InsurancePolicy insurancePolicy : allCards) {
 			if (insurancePolicy.getInsuranceCardNo().equals(insuranceCardNo)) {
 				return card;
@@ -439,9 +432,7 @@ public class InsurancePolicyUtil {
 	public static InsurancePolicy getInsurancePolicyByPolicyIdNo(
 			String policyIdNumber, Boolean isRetired) {
 
-		BillingService service = Context.getService(BillingService.class);
-
-		for (InsurancePolicy card : service.getAllInsurancePolicies())
+		for (InsurancePolicy card : getService().getAllInsurancePolicies())
 			if (card.isRetired() == isRetired)
 				for (Beneficiary ben : card.getBeneficiaries())
 					if (ben.getPolicyIdNumber().equals(policyIdNumber))
@@ -460,8 +451,7 @@ public class InsurancePolicyUtil {
 	public static InsurancePolicy getBeneficiaryByCardNo(Insurance insurance,
 			String insuranceCardNo) {
 
-		BillingService service = Context.getService(BillingService.class);
-		for (InsurancePolicy card : service.getAllInsurancePolicies()) {
+		for (InsurancePolicy card : getService().getAllInsurancePolicies()) {
 			if (card.getInsuranceCardNo().equals(insuranceCardNo))
 				return card;
 		}
@@ -479,14 +469,7 @@ public class InsurancePolicyUtil {
 	 */
 	public static Beneficiary getBeneficiaryByPolicyIdNo(String policyIdNumber) {
 
-		BillingService service = Context.getService(BillingService.class);
-		for (InsurancePolicy card : service.getAllInsurancePolicies()) {
-			for (Beneficiary ben : card.getBeneficiaries()) {
-				if (ben.getPolicyIdNumber().equals(policyIdNumber))
-					return ben;
-			}
-		}
-		return null;
+		return getService().getBeneficiaryByPolicyNumber(policyIdNumber);
 	}
 
 	/**
@@ -518,11 +501,10 @@ public class InsurancePolicyUtil {
 	 */
 	public static List<Beneficiary> getBeneficiaryByPatient(Patient patient) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<Beneficiary> beneficiaries = new ArrayList<Beneficiary>();
 
 		if (patient != null)
-			for (InsurancePolicy ip : service.getAllInsurancePolicies())
+			for (InsurancePolicy ip : getService().getAllInsurancePolicies())
 				for (Beneficiary ben : ip.getBeneficiaries())
 					if (!ben.isRetired() && ben.getPatient() == patient)
 						beneficiaries.add(ben);
@@ -539,11 +521,10 @@ public class InsurancePolicyUtil {
 	 */
 	public static List<Beneficiary> getBeneficiaryByOwner(Patient owner) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<Beneficiary> beneficiaries = new ArrayList<Beneficiary>();
 
 		if (owner != null)
-			for (InsurancePolicy ip : service.getAllInsurancePolicies())
+			for (InsurancePolicy ip : getService().getAllInsurancePolicies())
 				if (ip.getOwner() == owner)
 					for (Beneficiary ben : ip.getBeneficiaries())
 						if (!ben.isRetired())
@@ -652,6 +633,7 @@ public class InsurancePolicyUtil {
 
 	public static PatientIdentifier getPrimaryPatientIdentifierForLocation(
 			Patient patient, Location location) {
+
 		List<PatientIdentifier> piList = patient.getActiveIdentifiers();
 		for (PatientIdentifier piTmp : piList) {
 
@@ -701,9 +683,8 @@ public class InsurancePolicyUtil {
 			InsurancePolicyUtil.getPrimaryPatientIdentifierForLocation(patient,
 					InsurancePolicyUtil.getLocationLoggedIn()).getIdentifier();
 		}
-		BillingService service = Context.getService(BillingService.class);
 
-		if (service.getInsurancePolicyByCardNo(insuranceCardNo) == null)
+		if (getService().getInsurancePolicyByCardNo(insuranceCardNo) == null)
 			return true;
 		else
 			return false;
@@ -717,13 +698,14 @@ public class InsurancePolicyUtil {
 	 *            the patient to be matched
 	 * @return true if the patient does not have any, false otherwise
 	 */
-	public static boolean insuranceDoesNotExist(Patient patient, String insuranceCardNo) {
+	public static boolean insuranceDoesNotExist(Patient patient,
+			String insuranceCardNo) {
 
-		BillingService service = Context.getService(BillingService.class);
 		/** Getting the Patient Identifier from the system **/
-		InsurancePolicy  card = service.getInsurancePolicyByCardNo(insuranceCardNo);
+		InsurancePolicy card = getService().getInsurancePolicyByCardNo(
+				insuranceCardNo);
 
-		if(card != null && !card.getOwner().equals(patient))
+		if (card != null && !card.getOwner().equals(patient))
 			return true;
 		else if (card == null)
 			return true;
@@ -745,6 +727,58 @@ public class InsurancePolicyUtil {
 		cal.setTime(date);
 		cal.add(Calendar.YEAR, years); // minus number would decrement the days
 		return cal.getTime();
+	}
+
+	/**
+	 * Gets all Third Parties
+	 * 
+	 * @return
+	 */
+	public static List<ThirdParty> getAllThirdParties() {
+
+		return getService().getAllThirdParties();
+	}
+
+	/**
+	 * Gets all Third Parties
+	 * 
+	 * @return
+	 */
+	public static ThirdParty getThirdParty(Integer thirdPartyId) {
+
+		return getService().getThirdParty(thirdPartyId);
+	}
+
+	/**
+	 * Gets all Third Parties
+	 * 
+	 * @return
+	 */
+	public static void saveThirdParty(ThirdParty thirdParty) {
+
+		thirdParty.setVoided(false);
+		thirdParty.setCreator(Context.getAuthenticatedUser());
+		thirdParty.setCreatedDate(new Date());
+
+		getService().saveThirdParty(thirdParty);
+	}
+
+	/**
+	 * Voids Third Party that is provided
+	 * 
+	 * @param thirdParty
+	 *            the ThirdParty to void
+	 */
+	public static void voidThirdParty(ThirdParty thirdParty) {
+
+		thirdParty.setVoided(true);
+		thirdParty.setVoidedBy(Context.getAuthenticatedUser());
+		thirdParty.setVoidedDate(new Date());
+		thirdParty.setVoidReason("This Third Party : "
+				+ thirdParty.getName().toUpperCase()
+				+ " is no longer in use...");
+
+		getService().saveThirdParty(thirdParty);
 	}
 
 }

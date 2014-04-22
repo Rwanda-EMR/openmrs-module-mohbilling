@@ -17,7 +17,6 @@ import org.openmrs.module.mohbilling.model.InsuranceCategory;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
-import org.openmrs.GlobalProperty;
 
 /**
  * This is a helper class for the Insurance domain, to contain all business
@@ -30,6 +29,16 @@ import org.openmrs.GlobalProperty;
  * 
  */
 public class InsuranceUtil {
+
+	/**
+	 * Offers the BillingService to be use to talk to the DB
+	 * 
+	 * @return the BillingService
+	 */
+	private static BillingService getService() {
+
+		return Context.getService(BillingService.class);
+	}
 
 	private static Comparator<BillableService> BILLABLE_SERVICE_COMPARATOR = new Comparator<BillableService>() {
 		// This is where the sorting happens.
@@ -88,8 +97,6 @@ public class InsuranceUtil {
 	public static void updateInsuranceInfomations(Insurance insurance,
 			String name, String address, String phone) {
 
-		BillingService service = Context.getService(BillingService.class);
-
 		if (name != null) {
 			insurance.setName(name);
 		}
@@ -100,7 +107,7 @@ public class InsuranceUtil {
 			insurance.setPhone(phone);
 		}
 
-		service.saveInsurance(insurance);
+		getService().saveInsurance(insurance);
 	}
 
 	/**
@@ -114,8 +121,6 @@ public class InsuranceUtil {
 	public static void updateInsuranceCreationInfos(Insurance insurance,
 			User creator, Date createdDate, Concept concept) {
 
-		BillingService service = Context.getService(BillingService.class);
-
 		if (creator != null) {
 			insurance.setCreator(creator);
 		}
@@ -126,7 +131,7 @@ public class InsuranceUtil {
 			insurance.setConcept(concept);
 		}
 
-		service.saveInsurance(insurance);
+		getService().saveInsurance(insurance);
 	}
 
 	/**
@@ -138,7 +143,6 @@ public class InsuranceUtil {
 	public static void createInsurance(String name, String address,
 			String phone, Concept concept) {
 
-		BillingService service = Context.getService(BillingService.class);
 		Insurance insurance = new Insurance();
 
 		insurance.setName(name);
@@ -148,7 +152,7 @@ public class InsuranceUtil {
 		insurance.setCreator(Context.getAuthenticatedUser());
 		insurance.setCreatedDate(new Date());
 
-		service.saveInsurance(insurance);
+		getService().saveInsurance(insurance);
 	}
 
 	/**
@@ -164,8 +168,6 @@ public class InsuranceUtil {
 	 */
 	public static Insurance createInsurance(Insurance insurance,
 			InsuranceRate rate) {
-
-		BillingService service = Context.getService(BillingService.class);
 
 		if (insurance != null) {
 			if (rate != null) {
@@ -188,7 +190,7 @@ public class InsuranceUtil {
 				insurance.addInsuranceRate(rate);
 			}
 
-			service.saveInsurance(insurance);
+			getService().saveInsurance(insurance);
 			return insurance;
 		} else
 			return null;
@@ -210,7 +212,6 @@ public class InsuranceUtil {
 			BigDecimal flatFee, Date startDate) {
 		// Create a new insurance rate will be the Retire Reason for the current
 		// one to be retired
-		BillingService service = Context.getService(BillingService.class);
 		InsuranceRate insuranceRate = new InsuranceRate();
 
 		insuranceRate.setFlatFee(flatFee);
@@ -236,7 +237,7 @@ public class InsuranceUtil {
 			}
 
 		insurance.addInsuranceRate(insuranceRate);
-		service.saveInsurance(insurance);
+		getService().saveInsurance(insurance);
 	}
 
 	/**
@@ -248,8 +249,6 @@ public class InsuranceUtil {
 	 */
 	public static void retireInsuranceRate(Insurance insurance,
 			InsuranceRate rate, String reason) {
-
-		BillingService service = Context.getService(BillingService.class);
 
 		// Retire the previous rate.
 		for (InsuranceRate ir : insurance.getRates()) {
@@ -263,7 +262,7 @@ public class InsuranceUtil {
 			}
 		}
 
-		service.saveInsurance(insurance);
+		getService().saveInsurance(insurance);
 	}
 
 	/**
@@ -275,8 +274,6 @@ public class InsuranceUtil {
 	 */
 	public static void editInsuranceRate(Insurance insurance, InsuranceRate rate) {
 
-		BillingService service = Context.getService(BillingService.class);
-
 		for (InsuranceRate ir : insurance.getRates()) {
 			if (ir.equals(rate)) {
 				ir.setRetireReason("The previous Insurance Rate of ID: '"
@@ -287,32 +284,9 @@ public class InsuranceUtil {
 			}
 		}
 
-		service.saveInsurance(insurance);
+		getService().saveInsurance(insurance);
 
 	}
-
-	// /**
-	// * @param rate
-	// */
-	// public void createInsuranceRate(InsuranceRate rate) {
-	// // TODO:At the same time we retire the existing ones or the current
-	// // (valid) one : see Edit link in insurance form. Look through the Rates
-	// // and retire all existing Rates. Also check the StartDate is not ranged
-	// // in the previous Rate validity dates range (this has to be implemented
-	// // in the business logic)
-	//
-	// }// I think this is already implemented above: public void
-	// createInsuranceRate(Insurance insurance, Float rate, BigDecimal flatFee,
-	// Date startDate);
-
-	// /**
-	// * @param insurance
-	// */
-	// public void createInsurance(Insurance insurance) {
-	// // TODO:Creates a very new Insurance company
-	//
-	// }// I think this is alredy implemented above: createInsurance(String
-	// name, String address, String phone, Concept concept);
 
 	/**
 	 * This is the same as Saving an insurance: addNewInsurance();
@@ -321,10 +295,8 @@ public class InsuranceUtil {
 	 */
 	public static void editInsurance(Insurance insurance) {
 
-		BillingService service = Context.getService(BillingService.class);
-
 		if (insurance != null)
-			service.saveInsurance(insurance);
+			getService().saveInsurance(insurance);
 	}
 
 	/**
@@ -334,8 +306,6 @@ public class InsuranceUtil {
 	 * @param voidReason
 	 */
 	public static void voidInsurance(Insurance insurance, String voidReason) {
-
-		BillingService service = Context.getService(BillingService.class);
 
 		if (!insurance.isVoided()) {
 			insurance.setVoided(true);
@@ -352,7 +322,7 @@ public class InsuranceUtil {
 							+ " has been voided");
 				}
 			}
-			service.saveInsurance(insurance);
+			getService().saveInsurance(insurance);
 		}
 	}
 
@@ -408,10 +378,9 @@ public class InsuranceUtil {
 	 */
 	public static List<Insurance> getInsurances(Boolean isValid) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<Insurance> insurances = new ArrayList<Insurance>();
 
-		for (Insurance insurance : service.getAllInsurances())
+		for (Insurance insurance : getService().getAllInsurances())
 			if (insurance.isVoided() != isValid)
 				insurances.add(insurance);
 
@@ -432,10 +401,9 @@ public class InsuranceUtil {
 	public static List<ServiceCategory> getServiceCategoriesByInsurance(
 			Insurance insurance, Boolean isValid) {
 
-		BillingService service = Context.getService(BillingService.class);
 		List<ServiceCategory> categories = new ArrayList<ServiceCategory>();
 
-		for (ServiceCategory category : service.getInsurance(
+		for (ServiceCategory category : getService().getInsurance(
 				insurance.getInsuranceId()).getCategories()) {
 			if (category.isRetired() != isValid) {
 				categories.add(category);
@@ -457,9 +425,9 @@ public class InsuranceUtil {
 			Insurance insurance, Date date, Boolean isRetired) {
 
 		List<BillableService> services = new ArrayList<BillableService>();
-		BillingService bs = Context.getService(BillingService.class);
 
-		for (FacilityServicePrice fsp : bs.getAllFacilityServicePrices())
+		for (FacilityServicePrice fsp : getService()
+				.getAllFacilityServicePrices())
 			if (!fsp.isRetired())
 				for (BillableService service : fsp.getBillableServices()) {
 
@@ -473,6 +441,7 @@ public class InsuranceUtil {
 								&& service.getStartDate().compareTo(date) <= 0)
 							services.add(service);
 				}
+
 		// Sorting by Service Category
 		Collections.sort(services, BILLABLE_SERVICE_COMPARATOR);
 
@@ -490,18 +459,8 @@ public class InsuranceUtil {
 	public static List<BillableService> getBillableServicesByServiceCategory(
 			ServiceCategory sc, Date date, Boolean isRetired) {
 
-		List<BillableService> bsByServiceCategory = new ArrayList<BillableService>();
-		BillingService bs = Context.getService(BillingService.class);
-
-		for (BillableService service : bs.getAllBillableServices()) {
-			if (service.getServiceCategory() != null
-					&& service.getFacilityServicePrice().isRetired() == isRetired)
-				if (service.getServiceCategory().getServiceCategoryId()
-						.intValue() == sc.getServiceCategoryId().intValue()
-						&& service.isRetired() == isRetired)
-					bsByServiceCategory.add(service);
-		}
-
+		List<BillableService> bsByServiceCategory = getService().getBillableServiceByCategory(sc);
+		
 		// Sorting by Service Category
 		Collections.sort(bsByServiceCategory, BILLABLE_SERVICE_COMPARATOR);
 		return bsByServiceCategory;
@@ -519,7 +478,6 @@ public class InsuranceUtil {
 	// Service form on the GUI. Or just find a way of handling it.
 	public static BillableService saveBillableService(BillableService service) {
 
-		BillingService bs = Context.getService(BillingService.class);
 		FacilityServicePrice fsp = service.getFacilityServicePrice();
 		BigDecimal quarter = new BigDecimal(25).divide(new BigDecimal(100));
 		BigDecimal fifth = new BigDecimal(20).divide(new BigDecimal(100));
@@ -563,7 +521,7 @@ public class InsuranceUtil {
 				service.setMaximaToPay(service.getMaximaToPay());
 
 			fsp.addBillableService(service);
-			bs.saveFacilityServicePrice(fsp);
+			getService().saveFacilityServicePrice(fsp);
 
 			return service;
 		} else
@@ -598,11 +556,7 @@ public class InsuranceUtil {
 	 */
 	public static BillableService getValidBillableService(Integer id) {
 
-		for (BillableService bs : getAllBillableServices(new Date(), false)) {
-			if (bs.getServiceId().intValue() == id.intValue())
-				return bs;
-		}
-		return null;
+		return getService().getBillableService(id);
 	}
 
 	/**
@@ -618,9 +572,9 @@ public class InsuranceUtil {
 			Boolean isRetired) {
 
 		List<BillableService> services = new ArrayList<BillableService>();
-		BillingService bs = Context.getService(BillingService.class);
 
-		for (FacilityServicePrice fsp : bs.getAllFacilityServicePrices())
+		for (FacilityServicePrice fsp : getService()
+				.getAllFacilityServicePrices())
 			if (!fsp.isRetired())
 				for (BillableService service : fsp.getBillableServices()) {
 
@@ -646,15 +600,8 @@ public class InsuranceUtil {
 	 * @return category Service if ID matches, and null otherwise
 	 */
 	public static ServiceCategory getValidServiceCategory(Integer id) {
-		BillingService bs = Context.getService(BillingService.class);
 
-		for (Insurance insurance : bs.getAllInsurances())
-			for (ServiceCategory category : insurance.getCategories()) {
-				if (category.getServiceCategoryId().intValue() == id.intValue()
-						&& !category.isRetired())
-					return category;
-			}
-		return null;
+		return getService().getServiceCategory(id);
 	}
 
 	/**
@@ -672,7 +619,6 @@ public class InsuranceUtil {
 	public static void retireBillableService(BillableService billableService,
 			Date retiredDate, String retireReason) {
 
-		BillingService service = Context.getService(BillingService.class);
 		FacilityServicePrice fsp = billableService.getFacilityServicePrice();
 
 		billableService.setRetired(true);
@@ -682,13 +628,13 @@ public class InsuranceUtil {
 		billableService.setRetireReason(retireReason != null
 				|| retireReason != "" ? retireReason : "No reason provided");
 
-		service.saveFacilityServicePrice(fsp);
+		getService().saveFacilityServicePrice(fsp);
 	}
-	
-	public static List<String> getAllServiceCategories(){
-		
+
+	public static List<String> getAllServiceCategories() {
+
 		List<String> categories = new ArrayList<String>();
-		
+
 		categories.add(Category.CHIRURGIE.getDescription());
 		categories.add(Category.CONSOMMABLES.getDescription());
 		categories.add(Category.CONSULTATION.getDescription());
@@ -709,18 +655,28 @@ public class InsuranceUtil {
 		categories.add(Category.SOINS_INFIRMIERS.getDescription());
 		categories.add(Category.SOINS_INTENSIFS.getDescription());
 		categories.add(Category.STOMATOLOGIE.getDescription());
-		
+
 		return categories;
 	}
-	
-	public static Insurance getInsuranceByConcept(Concept concept){
-		
-		for(Insurance insurance: getInsurances(true)){
-			if(insurance.getConcept().equals(concept))
+
+	public static Insurance getInsuranceByConcept(Concept concept) {
+
+		for (Insurance insurance : getInsurances(true)) {
+			if (insurance.getConcept().equals(concept))
 				return insurance;
 		}
-		
+
 		return null;
+	}
+
+	public static Insurance getInsurance(Integer insuranceId) {
+
+		return getService().getInsurance(insuranceId);
+	}
+
+	public static Object getAllInsurances() {
+		
+		return getService().getAllInsurances();
 	}
 
 }
