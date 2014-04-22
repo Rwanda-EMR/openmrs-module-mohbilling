@@ -16,8 +16,6 @@
 		<property name="insuranceCardNo" column="insurance_card_no" type="text" />
 		<property name="coverageStartDate" column="coverage_start_date" type="date" />
 		<property name="expirationDate" column="expiration_date" type="date" />
-		<property name="hasThirdPart" column="has_third_part" type="boolean" />
-		<property name="thirdPartRate" column="third_part_rate" type="float" />
 		<property name="createdDate" column="created_date" type="date" />
 		<property name="retired" column="retired" type="boolean" />
 		<property name="retiredDate" column="retire_date" type="date" />
@@ -25,6 +23,7 @@
 		
 		<many-to-one name="owner" class="org.openmrs.Patient" column="owner" />
 		<many-to-one name="insurance" class="org.openmrs.module.mohbilling.model.Insurance" column="insurance_id" />
+		<many-to-one name="thirdParty" class="org.openmrs.module.mohbilling.model.ThirdParty" column="third_party_id" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
 		
