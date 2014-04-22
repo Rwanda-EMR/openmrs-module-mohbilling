@@ -360,7 +360,8 @@ public class PatientBill {
 				+ this.beneficiary.getPatient().getGivenName()
 				+ "\n - Amount : " + this.amount + "\n - is Paid : "
 				+ this.isPaid + "\n - Is Printed : " + this.printed
-				+ "\n - Creator : " + this.creator.getName();
+				+ "\n - Creator : " + this.creator.getPerson().getFamilyName()
+				+ "\n - Creation date : " + this.createdDate;
 
 	}
 
