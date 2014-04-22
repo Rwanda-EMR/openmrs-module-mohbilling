@@ -35,8 +35,13 @@
 	
 	var fieldGroupCount = 0;
 	var count = 1;
+	
 	$bill(document).ready(function() {
+
 		$bill('.beneficiariesC').hide();
+		
+		$bill('#rateDisplay').hide();
+		
 		$bill('#addBeneficiaryId').click(function() {
 			var i = 1;
 			for(i = 1; i<=10; i++) {
@@ -63,6 +68,14 @@
 					$bill('#beneficiaryI_'+i).remove();
 				}
 			}
+		});
+
+		$bill('#hasThirdPart').change(function(){
+
+			if($bill('#hasThirdPart').is(':checked'))
+				$bill('#rateDisplay').show();
+			else
+				$bill('#rateDisplay').hide();
 		});
 	
 	});
@@ -114,13 +127,18 @@
 			
 			<tr>
 				<td>Has Third part?</td>
-				<td><input type="checkbox" name="hasThirdPart"/>
+				<td><input type="checkbox" name="hasThirdPart" id="hasThirdPart"/>
 				<td>
 					<div id="rateDisplay">
 						<table>
 							<tr>
-								<td>Rate</td>
-								<td><input value="${insurancePolicy.thirdPartRate}" type="text" name="thirdPartRate" size="5" />%</td>
+								<td>Third Party</td>
+								<td><select name="thirdParty">
+										<c:forEach items="${thirdParties}" var="party">
+											<option value="${party.thirdPartyId}" <c:if test="${party==insurancePolicy.thirdParty.thirdPartyId}">selected='selected'</c:if>>${party.name}</option>
+										</c:forEach>
+									</select>
+								</td>
 							</tr>
 						</table>
 					</div>

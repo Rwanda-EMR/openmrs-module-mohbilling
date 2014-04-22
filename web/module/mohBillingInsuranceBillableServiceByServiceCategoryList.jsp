@@ -49,13 +49,11 @@
 
 				if (null != request.getParameter("serviceCategoryId")) {
 
-					InsuranceUtil util = new InsuranceUtil();
-
-					ServiceCategory sc = util
+					ServiceCategory sc = InsuranceUtil
 							.getValidServiceCategory(Integer.valueOf(request
 									.getParameter("serviceCategoryId")));
 
-					List<BillableService> billableServices = util
+					List<BillableService> billableServices = InsuranceUtil
 							.getBillableServicesByServiceCategory(sc,
 									new Date(), false);
 

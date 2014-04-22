@@ -3,9 +3,16 @@
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <openmrs:require privilege="View Current Insurances" otherwise="/login.htm" redirect="/module/@MODULE_ID@/insurance.list" />
+
 <h2><spring:message code="@MODULE_ID@.insurance.manage" /></h2>
+
 <openmrs:hasPrivilege privilege="Add Insurance">
-<a href="insurance.form"><spring:message code="@MODULE_ID@.insurance.add" /></a> </openmrs:hasPrivilege>
+	<a href="insurance.form"><spring:message code="@MODULE_ID@.insurance.add" /></a>
+</openmrs:hasPrivilege> | 
+<openmrs:hasPrivilege privilege="Manage Third Party">
+	<a href="thirdParty.form"><spring:message code="@MODULE_ID@.billing.thirdParty" /></a>
+</openmrs:hasPrivilege>
+
 <br/><br/>
 
 <b class="boxHeader"><spring:message code="@MODULE_ID@.insurance.current" /></b>
