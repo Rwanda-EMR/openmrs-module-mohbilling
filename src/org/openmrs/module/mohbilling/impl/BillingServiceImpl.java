@@ -6,9 +6,11 @@ package org.openmrs.module.mohbilling.impl;
 import java.util.Date;
 import java.util.List;
 
+import org.openmrs.Concept;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.db.BillingDAO;
+import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -17,6 +19,7 @@ import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
+import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -238,5 +241,135 @@ public class BillingServiceImpl implements BillingService {
 	public BillableService getBillableServiceByConcept(
 			FacilityServicePrice price, Insurance insurance) {
 		return billingDAO.getBillableServiceByConcept(price, insurance);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getThirdParty(java.lang.Integer)
+	 */
+	@Override
+	public ThirdParty getThirdParty(Integer thirdPartyId) throws DAOException {
+
+		return billingDAO.getThirdParty(thirdPartyId);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getAllThirdParties()
+	 */
+	@Override
+	public List<ThirdParty> getAllThirdParties() {
+
+		return billingDAO.getAllThirdParties();
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#saveThirdParty(org.openmrs.module.mohbilling.model.ThirdParty)
+	 */
+	@Override
+	public void saveThirdParty(ThirdParty thirdParty) throws DAOException {
+
+		billingDAO.saveThirdParty(thirdParty);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getAllRecoveries()
+	 */
+	@Override
+	public List<Recovery> getAllRecoveries() throws DAOException {
+
+		return billingDAO.getAllRecoveries();
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getRecovery(java.lang.Integer)
+	 */
+	@Override
+	public Recovery getRecovery(Integer recoveryId) throws DAOException {
+
+		return billingDAO.getRecovery(recoveryId);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getBeneficiaryByPolicyNumber(java.lang.String)
+	 */
+	@Override
+	public Beneficiary getBeneficiaryByPolicyNumber(String policyIdNumber)
+			throws DAOException {
+
+		return billingDAO.getBeneficiaryByPolicyNumber(policyIdNumber);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getBillsByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
+	 */
+	@Override
+	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary) {
+
+		return billingDAO.getBillsByBeneficiary(beneficiary);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getInsurancePolicyByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
+	 */
+	@Override
+	public InsurancePolicy getInsurancePolicyByBeneficiary(
+			Beneficiary beneficiary) {
+
+		return billingDAO.getInsurancePolicyByBeneficiary(beneficiary);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getValidBillableService(java.lang.Integer)
+	 */
+	@Override
+	public BillableService getBillableService(Integer id) {
+
+		return billingDAO.getBillableService(id);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getServiceCategory(java.lang.Integer)
+	 */
+	@Override
+	public ServiceCategory getServiceCategory(Integer id) {
+
+		return billingDAO.getServiceCategory(id);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getBillableServiceByCategory(org.openmrs.module.mohbilling.model.ServiceCategory)
+	 */
+	@Override
+	public List<BillableService> getBillableServiceByCategory(ServiceCategory sc) {
+
+		return billingDAO.getBillableServiceByCategory(sc);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getFacilityServiceByConcept(org.openmrs.Concept)
+	 */
+	@Override
+	public FacilityServicePrice getFacilityServiceByConcept(Concept concept) {
+
+		return billingDAO.getFacilityServiceByConcept(concept);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getBillableServicesByFacilityService(org.openmrs.module.mohbilling.model.FacilityServicePrice)
+	 */
+	@Override
+	public List<BillableService> getBillableServicesByFacilityService(
+			FacilityServicePrice fsp) {
+
+		return billingDAO.getBillableServicesByFacilityService(fsp);
+	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getBillableServicesByInsurance(org.openmrs.module.mohbilling.model.Insurance)
+	 */
+	@Override
+	public List<BillableService> getBillableServicesByInsurance(
+			Insurance insurance) {
+
+		return billingDAO.getBillableServicesByInsurance(insurance);
 	}
 }
