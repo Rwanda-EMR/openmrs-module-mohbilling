@@ -50,8 +50,6 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 	public void afterReturning(Object returnVal, Method method, Object[] args,
 			Object target) throws Throwable {
 
-		BillingService service = Context.getService(BillingService.class);
-
 		if (method.getName().equals("savePatient")) {
 			String[] splits = returnVal.toString().split("#");
 
@@ -83,7 +81,7 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 																	// be
 																	// changed
 																	// to GP...
-				policy.setHasThirdPart(false);// Just added the default value of
+//				policy.setHasThirdPart(false);// Just added the default value of
 												// THIRD PART
 				policy.setOwner(patient);
 
