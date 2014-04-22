@@ -6,7 +6,9 @@ package org.openmrs.module.mohbilling.service;
 import java.util.Date;
 import java.util.List;
 
+import org.openmrs.Concept;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -14,6 +16,7 @@ import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
+import org.openmrs.module.mohbilling.model.ThirdParty;
 
 /**
  * @author Kamonyo
@@ -186,7 +189,8 @@ public interface BillingService {
 	 * @return
 	 */
 	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
-			Date endDate, Integer patientId, String serviceName, String billStatus, String billCollector);
+			Date endDate, Integer patientId, String serviceName,
+			String billStatus, String billCollector);
 
 	/**
 	 * Gets a BillableService by selecting those having the provided
@@ -201,4 +205,138 @@ public interface BillingService {
 	 */
 	public BillableService getBillableServiceByConcept(
 			FacilityServicePrice price, Insurance insurance);
+
+	/**
+	 * Gets a Third Party from the DB
+	 * 
+	 * @param id
+	 *            , The Third Party ID to be matched
+	 * @return the matched Third Party
+	 * 
+	 * @throws DAOException
+	 */
+	public ThirdParty getThirdParty(Integer thirdPartyId) throws DAOException;
+
+	/**
+	 * Gets all Third Parties
+	 * 
+	 * @return
+	 */
+	public List<ThirdParty> getAllThirdParties() throws DAOException;
+
+	/**
+	 * Adds a Third Party to the DB
+	 * 
+	 * @param thirdParty
+	 *            , the Third Party to save
+	 * 
+	 * @throws DAOException
+	 */
+	public void saveThirdParty(ThirdParty thirdParty) throws DAOException;
+
+	/**
+	 * Gets all Recovery History
+	 * 
+	 * @return
+	 */
+	public List<Recovery> getAllRecoveries() throws DAOException;
+
+	/**
+	 * Gets a Recovery from the DB by recoveryId
+	 * 
+	 * @param recoveryId
+	 *            , the Recovery to retrieve
+	 * 
+	 * @throws DAOException
+	 */
+	public Recovery getRecovery(Integer recoveryId) throws DAOException;
+
+	/**
+	 * Gets a Beneficiary by passing its PolicyNumber
+	 * 
+	 * @param policyIdNumber
+	 *            the Number of the policy card to be matched
+	 * @return beneficiary that matches
+	 * @throws DAOException
+	 */
+	public Beneficiary getBeneficiaryByPolicyNumber(String policyIdNumber)
+			throws DAOException;
+
+	/**
+	 * Gets all Bills for a given beneficiary
+	 * 
+	 * @param beneficiary
+	 *            the one to match
+	 * @return bills for the given beneficiary
+	 */
+	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary)
+			throws DAOException;
+
+	/**
+	 * Gets the InsurancePolicy for a given Beneficiary
+	 * 
+	 * @param beneficiary
+	 *            the one to be
+	 * @return InsurancePolicy that matches
+	 */
+	public InsurancePolicy getInsurancePolicyByBeneficiary(
+			Beneficiary beneficiary);
+
+	/**
+	 * Gets a Billable Service by matching a given Id
+	 * 
+	 * @param id
+	 *            the Id for Billable Service
+	 * @return BillableService that matches
+	 */
+	public BillableService getBillableService(Integer id);
+
+	/**
+	 * Gets a Service Category by its ID
+	 * 
+	 * @param id
+	 *            of a service to be matched
+	 * @return serviceCategory that matches
+	 */
+	public ServiceCategory getServiceCategory(Integer id);
+
+	/**
+	 * Gets all BillableServices that matches the provided Service Category
+	 * 
+	 * @param sc
+	 *            the Service Category to match
+	 * @return billableServices a list of all Billable Services that are in a
+	 *         category
+	 */
+	public List<BillableService> getBillableServiceByCategory(ServiceCategory sc);
+
+	/**
+	 * Gets a Facility Service Price by providing a Concept
+	 * 
+	 * @param concept
+	 *            the concept to be matched
+	 * @return facilityServicePrice that matches the concept
+	 */
+	public FacilityServicePrice getFacilityServiceByConcept(Concept concept);
+
+	/**
+	 * Gets all Billable Services for a given Facility Service Price
+	 * 
+	 * @param fsp
+	 *            the FacilityServicePrice to match
+	 * @return billableServices that matches the fsp
+	 */
+	public List<BillableService> getBillableServicesByFacilityService(
+			FacilityServicePrice fsp);
+
+	/**
+	 * Gets all Billable Services that correspond to a given Insurance
+	 * 
+	 * @param insurance
+	 *            the Company to be matched
+	 * @return billableServices that matches the Insurance
+	 */
+	public List<BillableService> getBillableServicesByInsurance(
+			Insurance insurance);
+
 }
