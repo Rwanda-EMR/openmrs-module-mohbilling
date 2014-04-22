@@ -31,16 +31,31 @@
 				<prop key="module/@MODULE_ID@/insurancePolicy.form">mohBillingInsurancePolicyFormController</prop>
 				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortController</prop>
 				<prop key="module/@MODULE_ID@/printPDFPatientBill.form">mohBillingPrintPDFPatientBillController</prop>
-			    <prop key="module/@MODULE_ID@/manageRecovery.form">manageRecovery</prop>			   
+			    <prop key="module/@MODULE_ID@/manageRecovery.form">manageRecovery</prop>
+			    <prop key="module/@MODULE_ID@/recovery.list">mohBillingRecoveryListController</prop>
+			    <prop key="module/@MODULE_ID@/processRecovery.form">mohBillingProcessRecoveryController</prop>	
 			    <prop key="module/@MODULE_ID@/ReportRecovery.form">ReportRecovery</prop>
 			    <prop key="module/@MODULE_ID@/hmisReport.form">mohBillingHMISReportController</prop>
 			    <prop key="module/@MODULE_ID@/refundBill.form">mohBillingRefundBillFormController</prop>
+			    <prop key="module/@MODULE_ID@/thirdParty.form">mohBillingThirdPatryFormController</prop>
 			
 			</props>
 		</property>
 	</bean>
 
 	<!-- Controllers -->
+	
+	<bean id="mohBillingProcessRecoveryController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProcessRecoveryController">
+		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingManageRecovery</value></property>
+	</bean>
+	
+	<bean id="mohBillingRecoveryListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRecoveryListController">
+		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingRecoveryList</value></property>
+	</bean>
+	
+	<bean id="mohBillingThirdPatryFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingThirdPatryFormController">
+		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingThirdPartyForm</value></property>
+	</bean>
 	
 	<bean id="mohBillingRefundBillFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundBillFormController">
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingRefundBillingForm</value></property>
