@@ -18,17 +18,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
-import org.openmrs.api.PatientService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
-import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
-import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.model.ServiceCategory;
-import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -62,13 +57,11 @@ public class MohBillingCohortBuilderFormController extends
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
-		BillingService billingService = Context
-				.getService(BillingService.class);
 		List<String> categories = InsuranceUtil.getAllServiceCategories();
 		List<PatientBill> reportedPatientBills = new ArrayList<PatientBill>();
 
 		ModelAndView mav = new ModelAndView();
-		mav.addObject("allInsurances", billingService.getAllInsurances());
+		mav.addObject("allInsurances", InsuranceUtil.getAllInsurances());
 		mav.addObject("categories", categories);
 
 		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -112,7 +105,7 @@ public class MohBillingCohortBuilderFormController extends
 
 			if (!request.getParameter("insurance").equals("")) {
 				insuranceIdInt = Integer.parseInt(insuranceStr);
-				insurance = billingService.getInsurance(insuranceIdInt);
+				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
 			}
 
 			reportedPatientBills = ReportsUtil.buildCohort(insurance,
@@ -359,11 +352,6 @@ public class MohBillingCohortBuilderFormController extends
 		// empty row
 		FontSelector fontTotals = new FontSelector();
 		fontTotals.addFont(new Font(FontFamily.COURIER, 9, Font.BOLD));
-
-		int ids = 0;
-		Double totalToBePaidOnService = 0.0;
-		Double totalToBePaidByInsurance = 0.0, totalToBePaidOnServiceByInsurance = 0.0;
-		Double totalToBePaidByPatient = 0.0, totalToBePaidOnServiceByPatient = 0.0;
 
 		// ===========================================================
 		int count = 1;

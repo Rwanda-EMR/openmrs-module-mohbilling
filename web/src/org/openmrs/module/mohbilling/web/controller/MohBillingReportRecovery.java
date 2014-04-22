@@ -3,9 +3,7 @@ package org.openmrs.module.mohbilling.web.controller;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -130,7 +128,7 @@ public class MohBillingReportRecovery extends ParameterizableViewController {
 						.getMonthlyInsuranceDueAmount(insurance, recovery
 								.getStartPeriod(), recovery.getEndPeriod(),
 								false);
-				float paidAmount = recovery.getPaidAmount();
+				float paidAmount = recovery.getPaidAmount().floatValue();
 				float remainingAmount = insuranceDueAmount - paidAmount;
                 //int month =
 				if (recoveryReports.size() > 0) {
@@ -173,7 +171,7 @@ public class MohBillingReportRecovery extends ParameterizableViewController {
 				}
 				recoveryReport.setPaidAmount(paidAmount);
 				recoveryReport.setRemainingAmount(remainingAmount);
-				recoveryReport.setPaidDate(recovery.getPayementDate()
+				recoveryReport.setPaidDate(recovery.getPaymentDate()
 						.toString());
 
 				totalPaidAmount = totalPaidAmount + paidAmount;
@@ -283,7 +281,7 @@ public class MohBillingReportRecovery extends ParameterizableViewController {
 		document.add(fontTitle.process("POLICE NATIONALE\n"));
 		document.add(fontTitle.process("KACYIRU POLICE HOSPITAL\n"));
 		document.add(fontTitle.process("B.P. 6183 KIGALI\n"));
-		document.add(fontTitle.process("Tél : 584897\n"));
+		document.add(fontTitle.process("Tï¿½l : 584897\n"));
 		document.add(fontTitle.process("E-mail : medical@police.gov.rw"));
 		// End Report title
 

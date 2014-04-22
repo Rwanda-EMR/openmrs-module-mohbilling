@@ -87,31 +87,32 @@ public class MohBillingPatientBillPaymentFormController extends
 	 * @return
 	 */
 	private BillPayment handleSavePatientBillPayment(HttpServletRequest request) {
+
 		BillPayment billPayment = null;
+		Float rate = null;
 
 		try {
-			PatientBill pb = Context.getService(BillingService.class)
-					.getPatientBill(
-							Integer.parseInt(request
-									.getParameter("patientBillId")));
+			PatientBill pb = PatientBillUtil.getPatientBillById(Integer
+					.parseInt(request.getParameter("patientBillId")));
 
-			Float rate = pb.getBeneficiary().getInsurancePolicy()
-					.getThirdPartRate();
 			BigDecimal amountPaidByThirdPart = new BigDecimal(0);
-
-			if (rate != null)// to avoid NullPointerException when this is
-								// null...
-				amountPaidByThirdPart = pb.getAmount()
-						.multiply(BigDecimal.valueOf(rate))
-						.divide(new BigDecimal(100));
 
 			if (null != request.getParameter("receivedCash")) {
 				BillPayment bp = new BillPayment();
 				/**
-				 * We need to add both Patient Due amount and amount paid
-				 * by third part
+				 * We need to add both Patient Due amount and amount paid by
+				 * third part
 				 */
-				if (pb.getBeneficiary().getInsurancePolicy().hasThirdPart()) {
+				if (pb.getBeneficiary().getInsurancePolicy().getThirdParty() != null) {
+					rate = pb.getBeneficiary().getInsurancePolicy()
+							.getThirdParty().getRate();
+					if (rate != null)// to avoid NullPointerException when this
+										// is
+						// null...
+						amountPaidByThirdPart = pb.getAmount()
+								.multiply(BigDecimal.valueOf(rate))
+								.divide(new BigDecimal(100));
+
 					BigDecimal patientAmount = BigDecimal.valueOf(Double
 							.parseDouble(request.getParameter("receivedCash")));
 

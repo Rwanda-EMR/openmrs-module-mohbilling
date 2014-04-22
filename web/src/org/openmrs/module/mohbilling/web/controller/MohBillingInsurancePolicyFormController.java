@@ -83,6 +83,7 @@ public class MohBillingInsurancePolicyFormController extends
 		}
 
 		mav.addObject("insurances", InsuranceUtil.getInsurances(true));
+		mav.addObject("thirdParties", InsurancePolicyUtil.getAllThirdParties());
 
 		return mav;
 
@@ -101,7 +102,7 @@ public class MohBillingInsurancePolicyFormController extends
 			// insurancePolicy
 			if (request.getParameter("cardId") != null
 					&& !request.getParameter("cardId").equals("")) {
-				
+
 				card = Context
 						.getService(BillingService.class)
 						.getInsurancePolicy(
@@ -110,19 +111,11 @@ public class MohBillingInsurancePolicyFormController extends
 			} else
 				card = new InsurancePolicy();
 
-			if (request.getParameter("thirdPartRate") != null
-					&& !request.getParameter("thirdPartRate").equals("")) {
+			if (request.getParameter("thirdParty") != null
+					&& !request.getParameter("thirdParty").equals("")) {
 				
-				card.setThirdPartRate(Float.valueOf(request
-						.getParameter("thirdPartRate")));
-			}
-
-			if (request.getParameter("hasThirdPart") != null
-					&& !request.getParameter("hasThirdPart").equals("")) {
-				
-				card.setHasThirdPart(true);
-			} else {
-				card.setHasThirdPart(false);
+				card.setThirdParty(InsurancePolicyUtil.getThirdParty(Integer
+						.parseInt(request.getParameter("thirdParty"))));
 			}
 
 			if (request.getParameter("insurancePolicyCoverageStartDate") != null
@@ -147,7 +140,7 @@ public class MohBillingInsurancePolicyFormController extends
 			if (request.getParameter("insurancePolicyInsurance") != null
 					&& !request.getParameter("insurancePolicyInsurance")
 							.equals("")) {
-				
+
 				card.setInsurance(Context
 						.getService(BillingService.class)
 						.getInsurance(
@@ -158,7 +151,7 @@ public class MohBillingInsurancePolicyFormController extends
 			if (request.getParameter("insurancePolicyOwnerCardNumber") != null
 					&& !request.getParameter("insurancePolicyOwnerCardNumber")
 							.equals("")) {
-				
+
 				card.setInsuranceCardNo(request
 						.getParameter("insurancePolicyOwnerCardNumber"));
 			}
