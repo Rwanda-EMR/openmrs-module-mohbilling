@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.2.5</version>
+	<version>0.0.2.7</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -233,6 +233,10 @@
         <name>Manage Refund Bill</name>
         <description>Allows user to Refund a existing Bill</description>
     </privilege>
+    <privilege>
+        <name>Manage Third Party</name>
+        <description>Allows user to CRUD Third Party for Insurances</description>
+    </privilege>
   
 	<!-- Internationalization -->
 	<!-- All message codes should start with @MODULE_ID@.* -->
@@ -259,6 +263,7 @@
 		BillPayment.hbm.xml
 		FacilityServicePrice.hbm.xml
 		Recovery.hbm.xml
+		ThirdParty.hbm.xml
 	</mappingFiles>
 
 
