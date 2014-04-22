@@ -43,6 +43,7 @@ public class MohBillingThirdPatryFormController extends
 					InsurancePolicyUtil.getAllThirdParties());
 		}
 
+		/** UPDATE the specified ThirdParty... */
 		if (request.getParameter("editThirdParty") != null
 				&& request.getParameter("editThirdParty").equals("true")) {
 
@@ -56,6 +57,7 @@ public class MohBillingThirdPatryFormController extends
 			return mav;
 		}
 
+		/** DELETE the specified ThirdParty: this means voiding it... */
 		if (request.getParameter("deleteThirdParty") != null
 				&& request.getParameter("deleteThirdParty").equals("true")) {
 
