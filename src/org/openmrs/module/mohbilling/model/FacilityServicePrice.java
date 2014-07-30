@@ -23,6 +23,7 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	private String name;
 	private String shortName;
 	private String description;
+	private String category;
 	private BigDecimal fullPrice;
 	private Date startDate;
 	private Date endDate;
@@ -108,6 +109,20 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	 */
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	/**
+	 * @return the category
+	 */
+	public String getCategory() {
+		return category;
+	}
+
+	/**
+	 * @param category the category to set
+	 */
+	public void setCategory(String category) {
+		this.category = category;
 	}
 
 	/**

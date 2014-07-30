@@ -396,7 +396,7 @@
 	<diff>
 		<version>1.3.0.2</version>
 		<author>MoH Rwanda</author>
-		<date>February 26th 2014</date>
+		<date>April 16th 2014</date>
 		<description>
 		    Change the 'payement_date' field and make it not required, and if possible rename it to 'payment'
 		</description>
@@ -409,13 +409,27 @@
 	<diff>
 		<version>1.3.0.3</version>
 		<author>MoH Rwanda</author>
-		<date>February 26th 2014</date>
+		<date>April 17th 2014</date>
 		<description>
 		    Change the 'insurance_id' field and make it not required
 		</description>
 		<sql>
 			ALTER TABLE `moh_bill_recovery` 
 					MODIFY COLUMN `insurance_id` INT(11) NULL;
+		</sql>
+	</diff>
+	
+	<diff>
+		<version>1.3.0.4</version>
+		<author>MoH Rwanda</author>
+		<date>April 29th 2014</date>
+		<description>
+			Add a new field to `moh_bill_facility_service_price` table to specify the Category of each Facility Service.
+		</description>
+		<sql>
+			ALTER TABLE `moh_bill_facility_service_price` 
+					ADD COLUMN `category` VARCHAR(150) NULL  
+								AFTER `description`;
 		</sql>
 	</diff>
 

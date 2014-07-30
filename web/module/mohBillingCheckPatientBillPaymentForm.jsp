@@ -1,38 +1,56 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
-<%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
+<%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
 <h2>Checking Patient Bill Payment</h2>
 
 <b class="boxHeader">Patient & Period</b>
-<div class="box">
-	<form action="checkPatientBillPayment.form" method="get">
+<div class="box" style="height: 100px;">
+	<div style="float: left; height: inherit;">
+		<form action="checkPatientBillPayment.form" method="get">
+			<table>
+				<tr>
+					<td>Patient</td>
+					<td><openmrs_tag:patientField formFieldName="patientId" initialValue="${param.patientId}"/></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>Period</td>
+					<td>From:<input autocomplete="off" type="text" name="dateFrom" size="11" value="${param.dateFrom}" onclick="showCalendar(this);"/></td>
+					<td>To:<input autocomplete="off" type="text" name="dateTo" size="11" value="${param.dateTo}" onclick="showCalendar(this);"/></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td><input type="submit" value="Check Payment"/></td>
+					<td></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div style="float: right; height: inherit;">
 		<table>
+		<c:if test="${!empty policies}">
 			<tr>
-				<td>Patient</td>
-				<td><openmrs_tag:patientField formFieldName="patientId" initialValue="${param.patientId}"/></td>
-				<td></td>
+				<td colspan="2"><b>INSURANCES</b></td>
 			</tr>
+		</c:if>	
 			<tr>
-				<td>Period</td>
-				<td>From:<input autocomplete="off" type="text" name="dateFrom" size="11" value="${param.dateFrom}" onclick="showCalendar(this);"/></td>
-				<td>To:<input autocomplete="off" type="text" name="dateTo" size="11" value="${param.dateTo}" onclick="showCalendar(this);"/></td>
-			</tr>
-			<tr>
-				<td></td>
-				<td><input type="submit" value="Check Payment"/></td>
-				<td></td>
-			</tr>
+			<c:forEach items="${policies}" var="policy">
+				<tr>
+					<td>${policy[0]}:</td>
+					<td><b>${policy[1]}</b></td>
+				</tr>
+			</c:forEach>
 		</table>
-	</form>
+	</div>
 </div>
 <br/>
 
 <b class="boxHeader">Bill Payment</b>
-<div class="box">
+<div class="box" style="clear: both;">
 	<table width="99%">
 		<tr>
 			<th class="columnHeader"></th>

@@ -187,11 +187,13 @@ public class Beneficiary implements Comparable<Beneficiary> {
 		if (obj instanceof Beneficiary == false)
 			return false;
 		Beneficiary other = (Beneficiary) obj;
-		if (other.getBeneficiaryId() != null
-				&& other.getBeneficiaryId().equals(this.getBeneficiaryId())
-				&& this.hashCode() == other.hashCode()) {
-			return true;
-		}
+		if (other.getBeneficiaryId() != null)
+			if ((other.getBeneficiaryId().equals(this.getBeneficiaryId()) && this
+					.hashCode() == other.hashCode())
+					|| other.getPolicyIdNumber().equals(
+							this.getPolicyIdNumber())) {
+				return true;
+			}
 
 		return false;
 	}
@@ -232,13 +234,13 @@ public class Beneficiary implements Comparable<Beneficiary> {
 	 */
 	@Override
 	public int compareTo(Beneficiary other) {
-		int ret = other.isRetired().compareTo(this.isRetired());
+		int ret = other.getPolicyIdNumber().compareTo(this.getPolicyIdNumber());
 		if (ret == 0)
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getCreatedDate(),
 					other.getCreatedDate());
 		if (ret == 0 && this.getCreatedDate() != null)
-			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other
-					.hashCode());
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(),
+					other.hashCode());
 		return ret;
 	}
 

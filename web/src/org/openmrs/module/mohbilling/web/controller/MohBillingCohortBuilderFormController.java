@@ -158,7 +158,7 @@ public class MohBillingCohortBuilderFormController extends
 						roundTwoDecimals(insDueAmt),
 						roundTwoDecimals(patDueAmt),
 						roundTwoDecimals(totalDueAmt),
-						bill.getIsPaid()});/** Last added Bill Status*/
+						bill.getPatientBillId()});/** Last added Bill ID*/
 
 				totalAmount += totalDueAmt;
 				totalPatientDueAmount += patDueAmt;

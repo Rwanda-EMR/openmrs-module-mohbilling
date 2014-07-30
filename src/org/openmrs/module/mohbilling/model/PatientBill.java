@@ -20,11 +20,11 @@ public class PatientBill {
 	private String description;
 	private Beneficiary beneficiary;
 	private BigDecimal amount = new BigDecimal(0);
-	private Boolean printed;
-	private Boolean isPaid;
+	private boolean printed;
+	private boolean isPaid;
 	private User creator;
 	private Date createdDate;
-	private Boolean voided = false;
+	private boolean voided = false;
 	private User voidedBy;
 	private Date voidedDate;
 	private String voidReason;

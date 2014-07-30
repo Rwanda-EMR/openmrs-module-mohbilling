@@ -7,7 +7,10 @@
 
 <h2><spring:message code="@MODULE_ID@.facility.service.manage" /></h2>
 <openmrs:hasPrivilege privilege="Add Facility service">
-<a href="facilityService.form"><spring:message code="@MODULE_ID@.facility.service.add" /></a> </openmrs:hasPrivilege>
+<a href="facilityService.form"><spring:message code="@MODULE_ID@.facility.service.add" /></a> | 
+<a style="color: red;" href="facilityService.list?addCategoryToFacility=UPDATE"><spring:message code="@MODULE_ID@.facility.service.addCategory" /></a>
+</openmrs:hasPrivilege>
+
 <br/><br/>
 
 <b class="boxHeader"><spring:message code="@MODULE_ID@.facility.service.current" /></b>
@@ -16,11 +19,11 @@
 		<tr>
 			<th class="columnHeader"></th>
 			<th class="columnHeader">Name</td>
-			<!-- <th class="columnHeader">Short Name</td> -->
+			<th class="columnHeader">Category</td>
 			<th class="columnHeader">Description</td>
 			<th class="columnHeader">Related Concept</td>
 			<th class="columnHeader">Full Price</td>
-			<th class="columnHeader">Start Date</td>
+			<!-- <th class="columnHeader">Start Date</td>-->
 			<!-- <th class="columnHeader">Location</td>-->
 			<th class="columnHeader"></td>
 		</tr>
@@ -29,11 +32,16 @@
 			<tr>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}. </td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="facilityService.form?facilityServiceId=${facilityService.facilityServicePriceId}">${facilityService.name}</a></td>
-				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}">${facilityService.shortName}</td> -->
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">
+					${facilityService.category}
+					<c:if test="${empty facilityService.category}">
+						<a style="color: red;" href="facilityService.list?facilityServiceId=${facilityService.facilityServicePriceId}">ADD CATEGORY</a>
+					</c:if>
+				</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${facilityService.description}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${facilityService.concept.name}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${facilityService.fullPrice} Rwf</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}"><openmrs:formatDate date="${facilityService.startDate}" type="medium"/></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;">${facilityService.fullPrice}</b> Rwf</td>
+				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}"><openmrs:formatDate date="${facilityService.startDate}" type="medium"/></td>-->
 				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}">${facilityService.location.name}</td>-->
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">
 					<openmrs:hasPrivilege privilege="View Facility service by insurance campanies">

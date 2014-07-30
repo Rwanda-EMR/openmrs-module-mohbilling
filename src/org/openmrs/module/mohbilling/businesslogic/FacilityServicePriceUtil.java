@@ -405,4 +405,76 @@ public class FacilityServicePriceUtil {
 		return getService().getBillableServiceByConcept(
 				getFacilityServiceByConcept(concept), insurance);
 	}
+
+	/**
+	 * Adds Category to All Facility Services that do not have it...
+	 * 
+	 * @param category
+	 *            the one to be added
+	 */
+	public static Boolean addCategoryToAllFacilityServices(String category) {
+
+		Insurance insurance = null;
+		for (Insurance ins : InsuranceUtil.getAllInsurances()) {
+			if (ins.getCategory().equalsIgnoreCase(category)) {
+				insurance = ins;
+				break;
+			}
+		}
+
+		if (insurance != null) {
+
+			for (BillableService billable : getBillableServicesByInsurance(
+					insurance, null)) {
+
+				if (billable.getServiceCategory() != null) {
+
+					FacilityServicePrice fsp = billable
+							.getFacilityServicePrice();
+					if (fsp.getCategory() == null)
+						fsp.setCategory(billable.getServiceCategory().getName());
+
+					getService().saveFacilityServicePrice(fsp);
+				}
+			}
+			return true;
+
+		} else
+			return false;
+	}
+
+	/**
+	 * Gets FacilityServicePrice by facilityId
+	 * 
+	 * @param facilityId
+	 *            the ID to match
+	 * @return facilityServicePrice that matches the ID
+	 */
+	public static FacilityServicePrice getFacilityServicePrice(
+			Integer facilityId) {
+
+		return getService().getFacilityServicePrice(facilityId);
+	}
+
+	/**
+	 * Adds Category to Facility Service Price where it misses
+	 * 
+	 * @param facilityServicePrice
+	 *            the one to be updated
+	 */
+	public static void addCategoryToFacilityService(
+			FacilityServicePrice facilityServicePrice) {
+
+		for (BillableService bill : getBillableServices(facilityServicePrice,
+				null, null)) {
+
+			if (bill.getServiceCategory() != null) {
+
+				facilityServicePrice.setCategory(bill.getServiceCategory()
+						.getName());
+				getService().saveFacilityServicePrice(facilityServicePrice);
+				break;
+			}
+		}
+	}
 }

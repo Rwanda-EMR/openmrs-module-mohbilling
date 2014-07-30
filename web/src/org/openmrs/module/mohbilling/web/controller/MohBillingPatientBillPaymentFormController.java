@@ -89,13 +89,13 @@ public class MohBillingPatientBillPaymentFormController extends
 	private BillPayment handleSavePatientBillPayment(HttpServletRequest request) {
 
 		BillPayment billPayment = null;
-		Float rate = null;
+		// Float rate = null;
 
 		try {
 			PatientBill pb = PatientBillUtil.getPatientBillById(Integer
 					.parseInt(request.getParameter("patientBillId")));
 
-			BigDecimal amountPaidByThirdPart = new BigDecimal(0);
+			// BigDecimal amountPaidByThirdPart = new BigDecimal(0);
 
 			if (null != request.getParameter("receivedCash")) {
 				BillPayment bp = new BillPayment();
@@ -103,25 +103,28 @@ public class MohBillingPatientBillPaymentFormController extends
 				 * We need to add both Patient Due amount and amount paid by
 				 * third part
 				 */
-				if (pb.getBeneficiary().getInsurancePolicy().getThirdParty() != null) {
-					rate = pb.getBeneficiary().getInsurancePolicy()
-							.getThirdParty().getRate();
-					if (rate != null)// to avoid NullPointerException when this
-										// is
-						// null...
-						amountPaidByThirdPart = pb.getAmount()
-								.multiply(BigDecimal.valueOf(rate))
-								.divide(new BigDecimal(100));
 
-					BigDecimal patientAmount = BigDecimal.valueOf(Double
-							.parseDouble(request.getParameter("receivedCash")));
+				// if (pb.getBeneficiary().getInsurancePolicy().getThirdParty()
+				// != null) {
+				// rate = pb.getBeneficiary().getInsurancePolicy()
+				// .getThirdParty().getRate();
+				// if (rate != null)// to avoid NullPointerException when this
+				// // is
+				// // null...
+				// amountPaidByThirdPart = pb.getAmount()
+				// .multiply(BigDecimal.valueOf(rate))
+				// .divide(new BigDecimal(100));
+				//
+				// BigDecimal patientAmount = BigDecimal.valueOf(Double
+				// .parseDouble(request.getParameter("receivedCash")));
+				//
+				// bp.setAmountPaid(patientAmount.add(amountPaidByThirdPart));
+				// } else
+				// We don't need to add anything as the patient will be
+				// paying...
 
-					bp.setAmountPaid(patientAmount.add(amountPaidByThirdPart));
-				} else
-					// We don't need to add anything as the patient will be
-					// paying...
-					bp.setAmountPaid(BigDecimal.valueOf(Double
-							.parseDouble(request.getParameter("receivedCash"))));
+				bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
+						.getParameter("receivedCash"))));
 
 				bp.setCollector(Context.getUserService()
 						.getUser(
@@ -129,6 +132,7 @@ public class MohBillingPatientBillPaymentFormController extends
 										.getParameter("billCollector"))));
 				bp.setDateReceived(Context.getDateFormat().parse(
 						request.getParameter("dateBillReceived")));
+				
 				bp.setPatientBill(pb);
 
 				bp.setCreatedDate(new Date());
@@ -136,16 +140,20 @@ public class MohBillingPatientBillPaymentFormController extends
 
 				billPayment = PatientBillUtil.createBillPayment(bp);
 
+				/** Marking a Bill as PAID */
+				markBillAsPaid(pb);
+
 				request.getSession().setAttribute(
 						WebConstants.OPENMRS_MSG_ATTR,
 						"The Bill Payment has been saved successfully !");
+
 				return billPayment;
 
 			} else {
 				request.getSession()
 						.setAttribute(
 								WebConstants.OPENMRS_MSG_ATTR,
-								"The Bill Payment cannot be saved when the 'Received Amount' is not greater than 0 !");
+								"The Bill Payment cannot be saved when the 'Received Amount' is BLANK or is < 0 !");
 				return null;
 			}
 
@@ -158,6 +166,39 @@ public class MohBillingPatientBillPaymentFormController extends
 			return null;
 		}
 
+	}
+
+	private void markBillAsPaid(PatientBill pb) {
+
+		double amountNotPaid = 0d;
+
+		double amountPaid = 0d;
+		Float insuranceRate = pb.getBeneficiary().getInsurancePolicy()
+				.getInsurance().getCurrentRate().getRate();
+		Float patientRate = (100f - insuranceRate) / 100f;
+		double amountDueByPatient = (pb.getAmount().doubleValue() * patientRate
+				.doubleValue());
+
+		if (pb.getBeneficiary().getInsurancePolicy().getThirdParty() == null) {
+			amountNotPaid = amountDueByPatient - amountPaid;
+		} else {
+
+			double thirdPartRate = pb.getBeneficiary().getInsurancePolicy()
+					.getThirdParty().getRate().doubleValue();
+
+			double amountPaidByThirdPart = pb.getAmount().doubleValue()
+					* (thirdPartRate / 100);
+
+			amountNotPaid = amountDueByPatient
+					- (amountPaidByThirdPart + amountPaid);
+
+		}
+
+		/** Marking the BILL as PAID */
+		if (amountNotPaid <= 0) {
+			pb.setIsPaid(true);
+			Context.getService(BillingService.class).savePatientBill(pb);
+		}
 	}
 
 }

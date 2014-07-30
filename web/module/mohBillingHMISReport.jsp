@@ -4,6 +4,19 @@
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
+<h2><spring:message code="@MODULE_ID@.billing.report"/></h2>
+
+<ul id="menu">
+		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
+			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort"/></a>
+		</li>
+		<openmrs:hasPrivilege privilege="Manage Billing Reports">
+			<li>
+				<a href="hmisReport.form">HMIS Reports</a>
+			</li>
+		</openmrs:hasPrivilege>
+</ul>
+
 <b class="boxHeader"> Select period</b>
 <div class="box">
 

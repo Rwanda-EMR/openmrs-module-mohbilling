@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.web.WebConstants;
@@ -42,7 +43,12 @@ public class MohBillingCheckPatientBillPaymentFormController extends
 										Integer.valueOf(request
 												.getParameter("patientId"))));
 
+				mav.addObject("policies", InsurancePolicyUtil
+						.getPolicyIdByPatient(Integer.valueOf(request
+								.getParameter("patientId"))));
+				
 				mav.addObject("patientBills", pbList);
+
 			} else {
 				request.getSession()
 						.setAttribute(WebConstants.OPENMRS_ERROR_ATTR,

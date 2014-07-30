@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.2.7</version>
+	<version>0.0.2.10</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -27,6 +27,10 @@
 	<extension>
 		<point>org.openmrs.tracmodule.list</point>
 		<class>@MODULE_PACKAGE@.extension.html.AdminList</class>
+	</extension>
+	<extension>
+		<point>org.openmrs.patientDashboardTab</point>
+		<class>@MODULE_PACKAGE@.extension.html.BillingDashboardTab</class>
 	</extension>
 	
 	<extension>

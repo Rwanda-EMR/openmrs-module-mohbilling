@@ -13,6 +13,7 @@
                                             
 		<property name="mappings">
 			<props>
+            	<prop key="**/billingPortlet.portlet">billingPortletController</prop>
 				<prop key="module/@MODULE_ID@/insurance.list">mohBillingInsuranceListController</prop>
 				<prop key="module/@MODULE_ID@/insurance.form">mohBillingInsuranceFormController</prop>
 				<prop key="module/@MODULE_ID@/insuranceServiceCategory.list">mohBillingInsuranceServiceCategoryListController</prop>
@@ -44,6 +45,8 @@
 	</bean>
 
 	<!-- Controllers -->
+	
+    <bean id="billingPortletController" class="@MODULE_PACKAGE@.web.controller.BillingDashboardPortletController" />
 	
 	<bean id="mohBillingProcessRecoveryController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProcessRecoveryController">
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingManageRecovery</value></property>

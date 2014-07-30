@@ -31,11 +31,7 @@
 		<openmrs:hasPrivilege privilege="Manage Billing Reports"><li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
 			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.report"/></a>
 		</li>	</openmrs:hasPrivilege>
-		<openmrs:hasPrivilege privilege="Manage Billing Reports">
-			<li>
-				<a href="hmisReport.form">HMIS Reports</a>
-			</li>
-		</openmrs:hasPrivilege>
+		
 </ul>
 
 	   <!-- Here I would like to set the totals at the bottom --> 

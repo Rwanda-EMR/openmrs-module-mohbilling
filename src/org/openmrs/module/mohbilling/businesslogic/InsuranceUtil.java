@@ -674,7 +674,7 @@ public class InsuranceUtil {
 		return getService().getInsurance(insuranceId);
 	}
 
-	public static Object getAllInsurances() {
+	public static List<Insurance> getAllInsurances() {
 		
 		return getService().getAllInsurances();
 	}

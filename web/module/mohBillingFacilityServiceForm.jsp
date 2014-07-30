@@ -32,6 +32,16 @@
 				<td><textarea cols="30" rows="3" name="facilityServiceDescription">${facilityService.description}</textarea></td>
 			</tr>
 			<tr>
+				<td>Service Category</td>
+				<td>
+					<select name="facilityServiceCategory">
+						<c:forEach items="${categories}" var="category">
+							<option value="${category}" <c:if test='${facilityService.category==category}'>selected='selected'</c:if>>${category}</option>
+						</c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
 				<td>Full Price</td>
 				<td><input autocomplete="off" type="text" name="facilityServiceFullPrice" size="8" class="numbers" value="${facilityService.fullPrice}"/> Rwf</td>
 			</tr>

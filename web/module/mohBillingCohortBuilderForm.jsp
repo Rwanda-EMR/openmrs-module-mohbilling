@@ -4,6 +4,7 @@
 	file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 <openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery.PrintArea.js" />	
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
+<%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <script type="text/javascript" language="JavaScript">
@@ -18,20 +19,24 @@
 			$bill('#header').show();
 			$bill("div.printarea").printArea();
 			$bill('#header').hide();
-		});	
+		});
 	});
 	
 </script>
+
+<h2><spring:message code="@MODULE_ID@.billing.report"/></h2>
 
 <ul id="menu">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
 			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort"/></a>
 		</li>
-		
-		<li class="<c:if test='<%= request.getRequestURI().contains("Recovery")%>'> active</c:if>">
-			<a href="ReportRecovery.form"><spring:message code="@MODULE_ID@.billing.recovery"/></a>
-		</li>	
+		<openmrs:hasPrivilege privilege="Manage Billing Reports">
+			<li>
+				<a href="hmisReport.form">HMIS Reports</a>
+			</li>
+		</openmrs:hasPrivilege>
 </ul>
+
 <b class="boxHeader">Search Form(Advanced)</b>
 <div class="box">
 
@@ -185,8 +190,7 @@
 			<td class="rowAmountValue">${obj[6]}</td>
 			<td class="rowAmountValue"><b style="color: blue;">${obj[7]}</b></td>
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">
-				<c:if test="${obj[8]=='false'}">NOT PAID</c:if>
-				<c:if test="${obj[8]=='true'}">PAID</c:if>
+				${((billingtag:amountNotPaidForPatientBill(obj[8]))<=0.0)?'PAID':'NOT PAID'}
 			</td>
 			
 		</tr>

@@ -681,4 +681,22 @@ public class HibernateBillingDAO implements BillingDAO {
 				.add(Restrictions.eq("insurance", insurance)).list();
 	}
 
+	/**
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPolicyIdByPatient(java.lang.Integer)
+	 */
+	@Override
+	public List<String[]> getPolicyIdByPatient(Integer patientId) {
+
+		return (List<String[]>) sessionFactory
+				.getCurrentSession()
+				.createSQLQuery(
+						"SELECT ins.name, b.policy_id_number"
+								+ " FROM moh_bill_beneficiary b INNER JOIN moh_bill_insurance_policy ip"
+								+ " ON b.insurance_policy_id = ip.insurance_policy_id INNER JOIN moh_bill_insurance ins"
+								+ " ON ip.insurance_id = ins.insurance_id WHERE b.patient_id ="
+								+ patientId
+								+ " AND ins.voided = 0 AND ip.retired = 0 AND b.retired = 0;")
+				.list();
+	}
+
 }

@@ -16,6 +16,7 @@
 		<property name="name" column="name" type="java.lang.String" />
 		<property name="shortName" column="short_name" type="java.lang.String" />
 		<property name="description" column="description" type="java.lang.String" />
+		<property name="category" column="category" type="java.lang.String" />
 		<property name="fullPrice" column="full_price" type="big_decimal" />	
 		<property name="startDate" column="start_date" type="java.util.Date" />
 		<property name="endDate" column="end_date" type="java.util.Date" />

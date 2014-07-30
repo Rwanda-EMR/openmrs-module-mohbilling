@@ -372,4 +372,13 @@ public class BillingServiceImpl implements BillingService {
 
 		return billingDAO.getBillableServicesByInsurance(insurance);
 	}
+
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getPolicyIdByPatient(java.lang.Integer)
+	 */
+	@Override
+	public List<String[]> getPolicyIdByPatient(Integer patientId) {
+
+		return billingDAO.getPolicyIdByPatient(patientId);
+	}
 }

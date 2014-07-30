@@ -16,6 +16,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.Location;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
@@ -39,6 +40,7 @@ public class MohBillingFacilityServiceFormController extends
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
+		mav.addObject("categories", InsuranceUtil.getAllServiceCategories());
 
 		if (request.getParameter("save") != null) {
 			boolean saved = handleSaveFacilityService(request, mav);
@@ -119,6 +121,8 @@ public class MohBillingFacilityServiceFormController extends
 			fs.setShortName(request.getParameter("facilityServiceShortName"));
 			fs.setDescription(request
 					.getParameter("facilityServiceDescription"));
+			fs.setCategory(request
+					.getParameter("facilityServiceCategory"));
 			fs.setStartDate(Context.getDateFormat().parse(
 					request.getParameter("facilityServiceStartDate")));
 			

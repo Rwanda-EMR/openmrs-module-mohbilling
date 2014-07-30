@@ -132,57 +132,60 @@ public class InsurancePolicyUtil {
 			if (card.getInsurancePolicyId() != null)
 				getService().saveInsurancePolicy(card);
 
-			card.setCreatedDate(new Date());
-			card.setCreator(Context.getAuthenticatedUser());
-			card.setRetired(false);
+			else {
 
-			if (card.getInsurance().getCategory().toString()
-					.equalsIgnoreCase(InsuranceCategory.NONE.toString())
-					&& getPrimaryPatientIdentiferType()
-							.equals(Context
-									.getPatientService()
-									.getPatientIdentifierType(
-											Integer.valueOf(Context
-													.getAdministrationService()
-													.getGlobalProperty(
-															BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
+				card.setCreatedDate(new Date());
+				card.setCreator(Context.getAuthenticatedUser());
+				card.setRetired(false);
 
-				/** Getting the Patient Identifier from the system **/
-				PatientIdentifier pi = InsurancePolicyUtil
-						.getPrimaryPatientIdentifierForLocation(
-								card.getOwner(),
-								InsurancePolicyUtil.getLocationLoggedIn());
+				if (card.getInsurance().getCategory().toString()
+						.equalsIgnoreCase(InsuranceCategory.NONE.toString())
+						&& getPrimaryPatientIdentiferType()
+								.equals(Context
+										.getPatientService()
+										.getPatientIdentifierType(
+												Integer.valueOf(Context
+														.getAdministrationService()
+														.getGlobalProperty(
+																BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
 
-				card.setInsuranceCardNo(pi.getIdentifier().toString());
-				card.setCoverageStartDate(new Date());
+					/** Getting the Patient Identifier from the system **/
+					PatientIdentifier pi = InsurancePolicyUtil
+							.getPrimaryPatientIdentifierForLocation(
+									card.getOwner(),
+									InsurancePolicyUtil.getLocationLoggedIn());
+
+					card.setInsuranceCardNo(pi.getIdentifier().toString());
+					card.setCoverageStartDate(new Date());
+				}
+
+				getService().saveInsurancePolicy(card);
+
+				/**
+				 * Creating the owner who is at the same time the very first
+				 * beneficiary of this insurance policy (In this case
+				 * <code>insuranceCardNo == policyIdNumber</code>)
+				 */
+				Beneficiary beneficiary = new Beneficiary();
+
+				beneficiary.setInsurancePolicy(card);
+
+				/* Check how it should be working for NONE insurance */
+				beneficiary.setPolicyIdNumber(card.getInsuranceCardNo());
+				/* End of checking */
+
+				beneficiary.setCreatedDate(card.getCreatedDate());
+				beneficiary.setCreator(card.getCreator());
+				beneficiary.setPatient(card.getOwner());
+				beneficiary.setRetired(card.isRetired());
+				beneficiary.setRetiredBy(card.getRetiredBy());
+				beneficiary.setRetiredDate(card.getRetiredDate());
+				beneficiary.setRetireReason(card.getRetireReason());
+
+				card.addBeneficiary(beneficiary);
+
+				getService().saveInsurancePolicy(card);
 			}
-
-			getService().saveInsurancePolicy(card);
-
-			/**
-			 * Creating the owner who is at the same time the very first
-			 * beneficiary of this insurance policy (In this case
-			 * <code>insuranceCardNo == policyIdNumber</code>)
-			 */
-			Beneficiary beneficiary = new Beneficiary();
-
-			beneficiary.setInsurancePolicy(card);
-
-			/* Check how it should be working for NONE insurance */
-			beneficiary.setPolicyIdNumber(card.getInsuranceCardNo());
-			/* End of checking */
-
-			beneficiary.setCreatedDate(card.getCreatedDate());
-			beneficiary.setCreator(card.getCreator());
-			beneficiary.setPatient(card.getOwner());
-			beneficiary.setRetired(card.isRetired());
-			beneficiary.setRetiredBy(card.getRetiredBy());
-			beneficiary.setRetiredDate(card.getRetiredDate());
-			beneficiary.setRetireReason(card.getRetireReason());
-
-			card.addBeneficiary(beneficiary);
-
-			getService().saveInsurancePolicy(card);
 
 			return card;
 		}
@@ -736,7 +739,12 @@ public class InsurancePolicyUtil {
 	 */
 	public static List<ThirdParty> getAllThirdParties() {
 
-		return getService().getAllThirdParties();
+		List<ThirdParty> parts = getService().getAllThirdParties();
+
+		if (parts != null)
+			return parts;
+		else
+			return new ArrayList<ThirdParty>();
 	}
 
 	/**
@@ -781,4 +789,15 @@ public class InsurancePolicyUtil {
 		getService().saveThirdParty(thirdParty);
 	}
 
+	/**
+	 * Gets all PolicyIds that are associated to the given patient
+	 * 
+	 * @param patientId
+	 *            the patient ID to match
+	 * @return list of String[] : {INSURANCE NAME, POLICY ID}
+	 */
+	public static List<String[]> getPolicyIdByPatient(Integer patientId) {
+
+		return getService().getPolicyIdByPatient(patientId);
+	}
 }

@@ -339,4 +339,12 @@ public interface BillingService {
 	public List<BillableService> getBillableServicesByInsurance(
 			Insurance insurance);
 
+	/**
+	 * Gets all PolicyIds that are associated to the given patient
+	 * 
+	 * @param patientId
+	 *            the patient ID to match
+	 * @return list of String[] : {INSURANCE NAME, POLICY ID}
+	 */
+	public List<String[]> getPolicyIdByPatient(Integer patientId);
 }

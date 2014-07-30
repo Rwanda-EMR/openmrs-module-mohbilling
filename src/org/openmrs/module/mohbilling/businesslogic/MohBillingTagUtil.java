@@ -28,9 +28,11 @@ public class MohBillingTagUtil {
 			try {
 				PatientBill pb = Context.getService(BillingService.class)
 						.getPatientBill(patientBillId);
+
 				for (BillPayment bp : pb.getPayments()) {
 					amountPaid = amountPaid + bp.getAmountPaid().longValue();
 				}
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				return "";
@@ -43,37 +45,68 @@ public class MohBillingTagUtil {
 						.longValue();
 	}
 
+	/**
+	 * Gets the REST of the whole Patient Bill
+	 * 
+	 * @param patientBillId
+	 *            the patient bill ID
+	 * @return the REST that is in String
+	 */
 	public static String getTotalAmountNotPaidByPatientBill(
 			Integer patientBillId) {
 
-		Double amountNotPaid = 0d;
-		MathContext mc = new MathContext(BigDecimal.ROUND_HALF_DOWN);
+		double amountNotPaid = 0d;
+//		MathContext mc = new MathContext(BigDecimal.ROUND_HALF_DOWN);
 
 		if (null == patientBillId)
 			return "";
 		else {
 			try {
-				Double amountPaid = 0d;
+				double amountPaid = 0d;
 				PatientBill pb = Context.getService(BillingService.class)
 						.getPatientBill(patientBillId);
+				Float insuranceRate = pb.getBeneficiary().getInsurancePolicy()
+						.getInsurance().getCurrentRate().getRate();
+				Float patientRate = (100f - insuranceRate) / 100f;
+				double amountDueByPatient = (pb.getAmount().doubleValue() * patientRate
+						.doubleValue());
+
 				for (BillPayment bp : pb.getPayments()) {
 					amountPaid = amountPaid + bp.getAmountPaid().doubleValue();
 				}
 
-				amountNotPaid = ((pb.getAmount().doubleValue() * (100 - (pb
-						.getBeneficiary().getInsurancePolicy().getInsurance()
-						.getCurrentRate().getRate()))) / 100)
-						- amountPaid;
+				if (pb.getBeneficiary().getInsurancePolicy().getThirdParty() == null) {
+					amountNotPaid = amountDueByPatient - amountPaid;
 
-				/** Marking the BILL as PAID */
-				if (new BigDecimal(1).multiply(
-						BigDecimal.valueOf(amountNotPaid), mc).doubleValue() <= 0.0) {
-					pb.setIsPaid(true);
-					Context.getService(BillingService.class)
-							.savePatientBill(pb);
+					/** Marking the BILL as PAID */
+					if (amountNotPaid <= 0) {
+						pb.setIsPaid(true);
+						Context.getService(BillingService.class)
+								.savePatientBill(pb);
+					}
+
+					/** END of PAID part... */
+				} else {
+
+					double thirdPartRate = pb.getBeneficiary()
+							.getInsurancePolicy().getThirdParty().getRate()
+							.doubleValue();
+
+					double amountPaidByThirdPart = pb.getAmount().doubleValue()
+							* (thirdPartRate / 100);
+
+					amountNotPaid = amountDueByPatient - (amountPaidByThirdPart + amountPaid);
+
+					/** Marking the BILL as PAID */
+					if (amountNotPaid <= 0) {
+						pb.setIsPaid(true);
+						
+						Context.getService(BillingService.class)
+								.savePatientBill(pb);
+					}
+
+					/** END of PAID part... */
 				}
-				
-				/** END of PAID part... */
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -81,9 +114,11 @@ public class MohBillingTagUtil {
 			}
 		}
 
-		return ""
-				+ new BigDecimal(1).multiply(BigDecimal.valueOf(amountNotPaid),
-						mc).doubleValue();
+		/** Rounding the value to 2 decimals */
+		double roundedAmountNotPaid = Math.round(amountNotPaid * 100);
+		roundedAmountNotPaid = roundedAmountNotPaid / 100;
+
+		return "" + roundedAmountNotPaid;
 	}
 
 	public static String getAmountPaidByThirdPart(Integer patientBillId) {
@@ -95,19 +130,15 @@ public class MohBillingTagUtil {
 			return "";
 		else {
 			try {
-				Double amountPaid = 0d;
 				PatientBill pb = Context.getService(BillingService.class)
 						.getPatientBill(patientBillId);
 
-				Float rate = pb.getBeneficiary().getInsurancePolicy()
+				Float thirdPartRate = pb.getBeneficiary().getInsurancePolicy()
 						.getThirdParty().getRate();
-				for (BillPayment bp : pb.getPayments()) {
-					amountPaid = amountPaid + bp.getAmountPaid().doubleValue();
-				}
 
-				if (rate != null)
-					amountPaidByThirdPart = ((pb.getAmount().doubleValue() * (rate)) / 100)
-							- amountPaid;
+				if (thirdPartRate != null)
+					amountPaidByThirdPart = (pb.getAmount().doubleValue()
+							* thirdPartRate / 100);
 				else
 					;
 

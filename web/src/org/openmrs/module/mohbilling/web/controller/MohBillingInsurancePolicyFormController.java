@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.exception.ConstraintViolationException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
@@ -29,6 +30,7 @@ import org.springframework.web.servlet.view.RedirectView;
  *         is tied to that jsp page in the
  *         /metadata/moduleApplicationContext.xml file
  */
+
 public class MohBillingInsurancePolicyFormController extends
 		ParameterizableViewController {
 	/** Logger for this class and subclasses */
@@ -74,6 +76,7 @@ public class MohBillingInsurancePolicyFormController extends
 					return new ModelAndView(new RedirectView(
 							"insurancePolicySearch.form"));
 			} catch (Exception e) {
+				
 				log.error(">>>MOH>>BILLING>> " + e.getMessage());
 				e.printStackTrace();
 
@@ -112,7 +115,8 @@ public class MohBillingInsurancePolicyFormController extends
 				card = new InsurancePolicy();
 
 			if (request.getParameter("thirdParty") != null
-					&& !request.getParameter("thirdParty").equals("")) {
+					&& !request.getParameter("thirdParty").equals("")
+					&& !request.getParameter("thirdParty").equals("0")) {
 				
 				card.setThirdParty(InsurancePolicyUtil.getThirdParty(Integer
 						.parseInt(request.getParameter("thirdParty"))));
@@ -166,6 +170,7 @@ public class MohBillingInsurancePolicyFormController extends
 						&& request
 								.getParameter("insurancePolicyBeneficiary_" + i)
 								.trim().compareTo("") != 0) {
+					
 					Beneficiary b = new Beneficiary();
 
 					b.setPatient(Context.getPatientService().getPatient(
@@ -180,6 +185,7 @@ public class MohBillingInsurancePolicyFormController extends
 					b.setCreator(Context.getAuthenticatedUser());
 					b.setRetired(false);
 
+					// check if it does not exists already...
 					card.addBeneficiary(b);
 				}
 			}
@@ -192,7 +198,19 @@ public class MohBillingInsurancePolicyFormController extends
 
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"The insurance policy has been saved successfully !");
+			
+		} catch(ConstraintViolationException cve){
+			
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					"The insurance policy number already exists !");
+			
+			log.error(">>>>MOH>>BILLING>> " + cve.getMessage());
+			cve.printStackTrace();
+			
+			return false;
+			
 		} catch (Exception e) {
+			
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					"The insurance policy has not been saved !");
 			log.error(">>>>MOH>>BILLING>> " + e.getMessage());
