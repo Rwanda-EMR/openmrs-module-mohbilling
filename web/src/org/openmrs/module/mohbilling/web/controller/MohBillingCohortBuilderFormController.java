@@ -18,8 +18,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
+import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
@@ -87,6 +89,7 @@ public class MohBillingCohortBuilderFormController extends
 			Integer patientId = null;
 			Date endDate = null;
 			Insurance insurance = null;
+			String patientNames = null;
 
 			if (!startDateStr.equals("")) {
 				startDate = (Date) formatter.parse(startDateStr);
@@ -100,6 +103,15 @@ public class MohBillingCohortBuilderFormController extends
 
 				patientIdStr = request.getParameter("patientId");
 				patientId = Integer.parseInt(patientIdStr);
+				Patient patient = Context.getPatientService().getPatient(patientId);
+				patientNames = (patient.getFamilyName() != null ? patient
+						.getFamilyName() : "")
+						+ " "
+						+ (patient.getMiddleName() != null ? patient
+								.getMiddleName() : "")
+						+ " "
+						+ (patient.getGivenName() != null ? patient
+								.getGivenName() : "");
 			}
 
 
@@ -118,14 +130,21 @@ public class MohBillingCohortBuilderFormController extends
 			mav.addObject("patientId", patientId);
 			mav.addObject("billStatus", billStatus);
 			mav.addObject("billCollector", billCollector);
+			mav.addObject("healthFacilityName",Context.getAdministrationService().getGlobalProperty("billing.healthFacilityName"));
+			mav.addObject("address", Context.getAdministrationService().getGlobalProperty("billing.healthFacilityPhysicalAddress"));
+			mav.addObject("healthFacilityShortCode",Context.getAdministrationService().getGlobalProperty("billing.healthFacilityShortCode"));
+			mav.addObject("healthFacilityLogo", Context.getAdministrationService().getGlobalProperty("billing.healthFacilityLogo"));
+			mav.addObject("healthFacilityEmail", Context.getAdministrationService().getGlobalProperty("billing.healthFacilityEmail"));
+			mav.addObject("today", new Date());
+			mav.addObject("patientNames", patientNames);
 
-			double totalAmount = 0, totalPatientDueAmount = 0, totalInsuranceDueAmount = 0;
+			double totalAmount = 0, totalPatientDueAmount = 0, totalInsuranceDueAmount = 0, totalAmountReceived = 0;
 			List<Object[]> billObj = new ArrayList<Object[]>();
 
 			for (PatientBill bill : reportedPatientBills) {
 
 				Date serviceDate = null;
-				double patDueAmt = 0, insDueAmt = 0, totalDueAmt = 0;
+				double patDueAmt = 0, insDueAmt = 0, totalDueAmt = 0, payments = 0;
 				for (PatientServiceBill item : bill.getBillItems()) {
 					serviceDate = item.getServiceDate();
 
@@ -144,28 +163,29 @@ public class MohBillingCohortBuilderFormController extends
 									.getQuantity()) / 100);
 					totalDueAmt = patDueAmt + insDueAmt;
 				}
-
+				
+				payments = roundTwoDecimals(Long.parseLong(MohBillingTagUtil.getTotalAmountPaidByPatientBill(bill.getPatientBillId())));
 				billObj.add(new Object[] {
 						Context.getDateFormat().format(serviceDate),
 						bill.getBeneficiary().getPolicyIdNumber(),
-						bill.getBeneficiary().getPatient().getGivenName()
-								+ " "
-								+ bill.getBeneficiary().getPatient()
-										.getFamilyName(),
+						bill.getBeneficiary().getPatient().getGivenName() + " " + bill.getBeneficiary().getPatient().getFamilyName(),
 						bill.getBillItems(),
-						bill.getBeneficiary().getInsurancePolicy()
-								.getInsurance().getName(),
+						bill.getBeneficiary().getInsurancePolicy().getInsurance().getName(),
 						roundTwoDecimals(insDueAmt),
 						roundTwoDecimals(patDueAmt),
+						roundTwoDecimals(payments),
 						roundTwoDecimals(totalDueAmt),
 						bill.getPatientBillId()});/** Last added Bill ID*/
 
 				totalAmount += totalDueAmt;
 				totalPatientDueAmount += patDueAmt;
 				totalInsuranceDueAmount += insDueAmt;
+				totalAmountReceived += payments;
 
 			}
-
+			
+			mav.addObject("totalAmountReceived",
+					roundTwoDecimals(totalAmountReceived));
 			mav.addObject("insuranceDueAmount",
 					roundTwoDecimals(totalInsuranceDueAmount));
 			mav.addObject("patientDueAmount",
