@@ -77,7 +77,9 @@
 				<td colspan="7"><hr/></td>
 			</tr>
 			<tr style="font-size: 1.2em">
-				<td colspan="2"><input type="button" onclick="savePatientBillPayment();" value="Confirm Bill" style="min-width: 200px;"/></td>
+				<openmrs:hasPrivilege privilege="Edit Bill">
+					<td colspan="2"><input type="button" onclick="savePatientBillPayment();" value="Confirm Bill" style="min-width: 200px;"/></td>
+				</openmrs:hasPrivilege>
 				<td colspan="3"></td>
 				<td colspan="2"><div style="text-align: right;"><a href="printPDFPatientBill.form?patientBillId=${patientBill.patientBillId}">Print Bill</a></div></td>
 			</tr>
