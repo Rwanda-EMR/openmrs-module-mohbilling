@@ -79,15 +79,9 @@
 		<td>Bill Status</td>
 		<td>
 			<select name="billStatus">
-				<option selected="selected" value="${billStatus}">
-					<c:choose>
-						<c:when test="${billStatus==1}">PAID</c:when>
-						<c:when test="${billStatus==0}">NOT PAID</c:when>
-					</c:choose>
-				</option>
 				<option value="2">---</option>
-				<option value="1">PAID</option>
-				<option value="0">NOT PAID</option>
+				<option value="1" ${billStatus== '1' ? 'selected' : ''}>PAID</option>
+				<option value="0" ${billStatus== '0' ? 'selected' : ''}>NOT PAID</option>
 			</select>
 		</td>
 
@@ -128,13 +122,17 @@
 	<div style="float:right"><a style="" href="cohort.form?print=true&patientId=${patientId}&startDate=${startDate}&endDate=${endDate}&insurance=${insurance.insuranceId}&serviceId=${serviceId}"><b style="color: red;font-size: 14px;">Print PDF</b></a></div>
 </b>
 
-<div class="header" style="display: none;">  
 
-  KPH
-
- </div>
 <div class="printarea" ">
 
+<div class="meta" style="display: none;">
+<span style="float: left"><b>REPUBLIQUE DU RWANDA</b></span><span style="float: right;">Printed on: ${today}</span>
+<div></div>
+<b>${healthFacilityName}</b>
+<b>${address}</b>
+<b>${shortCode}</b>
+<b>${healthFacilityEmail}</b>
+</div>
 <table width="99%">
 	<tr>
 		<td>No</td>
@@ -147,6 +145,7 @@
 		<td>Insurance Name</td>
 		<td>Insurance due</td>
 		<td>Patient Due</td>
+		<td>Received Amount</td>
 		<td>Amount</td>
 		<td>Status</td>
 	</tr>
@@ -188,9 +187,10 @@
 			<td class="rowValue">${obj[4]}</td>
 			<td class="rowAmountValue">${obj[5]}</td>
 			<td class="rowAmountValue">${obj[6]}</td>
-			<td class="rowAmountValue"><b style="color: blue;">${obj[7]}</b></td>
+			<td class="rowAmountValue">${obj[7]}</td>
+			<td class="rowAmountValue"><b style="color: blue;">${obj[8]}</b></td>
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">
-				${((billingtag:amountNotPaidForPatientBill(obj[8]))<=0.0)?'PAID':'NOT PAID'}
+				${((billingtag:amountNotPaidForPatientBill(obj[9]))<=0.0)?'PAID':'NOT PAID'}
 			</td>
 			
 		</tr>
@@ -200,10 +200,18 @@
 		<td class="rowTotalValue" colspan="6"><b style="color: blue;font-size: 14px;">TOTAL</b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${insuranceDueAmount}</b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${patientDueAmount}</b></td>
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${totalAmountReceived}</b></td>		
 		<td class="rowTotalValue"><b style="color: red;font-size: 14px;"><u>${totalAmount}</u></b></td>
 		<td class="rowTotalValue"></td>
 	</tr>
 </table>
+<br />
+<br />
+
+<div class="meta">
+	<span><b>Signature du patient: <br />${}</b></span>
+</div>
+
 </div>
 
 </div> 
