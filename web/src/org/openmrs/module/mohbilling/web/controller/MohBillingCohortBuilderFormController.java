@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.openmrs.Patient;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
@@ -90,6 +91,17 @@ public class MohBillingCohortBuilderFormController extends
 			Date endDate = null;
 			Insurance insurance = null;
 			String patientNames = null;
+			
+			User user = Context.getAuthenticatedUser();
+			
+			String cashierNames = (user.getPersonName().getFamilyName() != null ? user
+					.getPersonName().getFamilyName() : "")
+					+ " "
+					+ (user.getPersonName().getMiddleName() != null ? user
+							.getPersonName().getMiddleName() : "")
+					+ " "
+					+ (user.getPersonName().getGivenName() != null ? user
+							.getPersonName().getGivenName() : "");
 
 			if (!startDateStr.equals("")) {
 				startDate = (Date) formatter.parse(startDateStr);
@@ -137,6 +149,7 @@ public class MohBillingCohortBuilderFormController extends
 			mav.addObject("healthFacilityEmail", Context.getAdministrationService().getGlobalProperty("billing.healthFacilityEmail"));
 			mav.addObject("today", new Date());
 			mav.addObject("patientNames", patientNames);
+			mav.addObject("cashierNames", cashierNames);
 
 			double totalAmount = 0, totalPatientDueAmount = 0, totalInsuranceDueAmount = 0, totalAmountReceived = 0;
 			List<Object[]> billObj = new ArrayList<Object[]>();
@@ -195,6 +208,7 @@ public class MohBillingCohortBuilderFormController extends
 			mav.addObject("reportedPatientBills", reportedPatientBills);
 			mav.addObject("startDate", request.getParameter("startDate"));
 			mav.addObject("endDate", request.getParameter("endDate"));
+			mav.addObject("cashier", Context.getAuthenticatedUser().getPersonName().getGivenName());
 
 			List<String> serviceNames = new ArrayList<String>();
 			// new ReportsUtil();
