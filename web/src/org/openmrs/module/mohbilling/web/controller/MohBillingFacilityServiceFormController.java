@@ -138,9 +138,9 @@ public class MohBillingFacilityServiceFormController extends
 			fs.setLocation(Context.getLocationService().getLocation(
 					Integer.valueOf(request
 							.getParameter("facilityServiceLocation"))));
-			fs.setConcept(Context.getConceptService().getConcept(
-					Integer.valueOf(request
-							.getParameter("facilityServiceRelatedConcept"))));
+//			fs.setConcept(Context.getConceptService().getConcept(
+//					Integer.valueOf(request
+//							.getParameter("facilityServiceRelatedConcept"))));
 
 			// check if the facilityService is NEW or if you are trying to
 			// UPDATE an
