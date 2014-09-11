@@ -11,14 +11,12 @@
 	var $bill = jQuery.noConflict();
 
 	$bill(document).ready(function() {
+		$bill('.meta').hide();
+		
 		$bill("input#print_button").click(function() {
+			$bill('.meta').show();
 			$bill("div.printarea").printArea();
-		});	
-
-		$bill("input#print_button").click(function() {
-			$bill('#header').show();
-			$bill("div.printarea").printArea();
-			$bill('#header').hide();
+			$bill('.meta').hide();
 		});
 	});
 	
@@ -125,14 +123,26 @@
 
 <div class="printarea" ">
 
-<div class="meta" style="display: none;">
-<span style="float: left"><b>REPUBLIQUE DU RWANDA</b></span><span style="float: right;">Printed on: ${today}</span>
-<div></div>
-<b>${healthFacilityName}</b>
-<b>${address}</b>
-<b>${shortCode}</b>
-<b>${healthFacilityEmail}</b>
+<div class="meta">
+<span style="float: left"><b>REPUBLIQUE DU RWANDA</b></span><span style="float: right;">Printed on: <openmrs:formatDate date="${today}" type="short" /></span><br />
+<img src="${healthFacilityLogo}" height="90" width="90"><br />
+<b>${healthFacilityName}</b><br />
+
+<c:if test="${not empty address}">
+	<b>${address}</b><br />
+</c:if>
+
+<c:if test="${not empty healthFacilityShortCode}">
+	<b>Short code: ${healthFacilityShortCode}</b><br />
+</c:if>
+
+<c:if test="${not empty healthFacilityEmail}">
+	<b>Email: ${healthFacilityEmail}</b><br />
+</c:if>
+
 </div>
+<br />
+<br />
 <table width="99%">
 	<tr>
 		<td>No</td>
@@ -209,7 +219,10 @@
 <br />
 
 <div class="meta">
-	<span><b>Signature du patient: <br />${}</b></span>
+	<c:if test="${not empty patientNames}">
+		<span style="float: left;"><b>Signature du patient: <br />${patientNames}</b></span>
+	</c:if>
+	<span style="float: right;"><b>Noms et Signature du Caissier: <br />${cashierNames}</b></span>
 </div>
 
 </div>
