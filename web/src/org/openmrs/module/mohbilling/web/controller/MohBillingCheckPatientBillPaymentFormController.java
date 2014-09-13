@@ -43,6 +43,11 @@ public class MohBillingCheckPatientBillPaymentFormController extends
 										Integer.valueOf(request
 												.getParameter("patientId"))));
 
+				/** Updating status for unmarked ones */
+				for(PatientBill bill: pbList)
+					if(bill.getStatus() == null)
+						PatientBillUtil.markBillAsPaid(bill);
+
 				mav.addObject("policies", InsurancePolicyUtil
 						.getPolicyIdByPatient(Integer.valueOf(request
 								.getParameter("patientId"))));
