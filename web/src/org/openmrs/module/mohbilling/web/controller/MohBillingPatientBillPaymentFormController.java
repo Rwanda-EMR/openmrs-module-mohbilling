@@ -15,6 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.BillStatus;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -54,8 +55,14 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			pb = Context.getService(BillingService.class).getPatientBill(
 					Integer.parseInt(request.getParameter("patientBillId")));
+			
 			patientBills = PatientBillUtil.getBillsByBeneficiary(pb
 					.getBeneficiary());
+			
+			/** Updating status for unmarked ones */
+			for(PatientBill bill: patientBills)
+				if(bill.getStatus() == null)
+					PatientBillUtil.markBillAsPaid(bill);
 
 			mav.addObject("patientBill", pb);
 			mav.addObject("patientBills", patientBills);
@@ -141,7 +148,7 @@ public class MohBillingPatientBillPaymentFormController extends
 				billPayment = PatientBillUtil.createBillPayment(bp);
 
 				/** Marking a Bill as PAID */
-				markBillAsPaid(pb);
+				PatientBillUtil.markBillAsPaid(pb);
 
 				request.getSession().setAttribute(
 						WebConstants.OPENMRS_MSG_ATTR,
@@ -166,39 +173,6 @@ public class MohBillingPatientBillPaymentFormController extends
 			return null;
 		}
 
-	}
-
-	private void markBillAsPaid(PatientBill pb) {
-
-		double amountNotPaid = 0d;
-
-		double amountPaid = 0d;
-		Float insuranceRate = pb.getBeneficiary().getInsurancePolicy()
-				.getInsurance().getCurrentRate().getRate();
-		Float patientRate = (100f - insuranceRate) / 100f;
-		double amountDueByPatient = (pb.getAmount().doubleValue() * patientRate
-				.doubleValue());
-
-		if (pb.getBeneficiary().getInsurancePolicy().getThirdParty() == null) {
-			amountNotPaid = amountDueByPatient - amountPaid;
-		} else {
-
-			double thirdPartRate = pb.getBeneficiary().getInsurancePolicy()
-					.getThirdParty().getRate().doubleValue();
-
-			double amountPaidByThirdPart = pb.getAmount().doubleValue()
-					* (thirdPartRate / 100);
-
-			amountNotPaid = amountDueByPatient
-					- (amountPaidByThirdPart + amountPaid);
-
-		}
-
-		/** Marking the BILL as PAID */
-		if (amountNotPaid <= 0) {
-			pb.setIsPaid(true);
-			Context.getService(BillingService.class).savePatientBill(pb);
-		}
 	}
 
 }

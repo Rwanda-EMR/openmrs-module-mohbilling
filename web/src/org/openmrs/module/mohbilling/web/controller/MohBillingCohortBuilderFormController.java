@@ -23,6 +23,7 @@ import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
@@ -156,27 +157,28 @@ public class MohBillingCohortBuilderFormController extends
 
 			for (PatientBill bill : reportedPatientBills) {
 
+				/** Updating status for unmarked ones */
+				if(bill.getStatus() == null)
+					PatientBillUtil.markBillAsPaid(bill);
+				
 				Date serviceDate = null;
 				double patDueAmt = 0, insDueAmt = 0, totalDueAmt = 0, payments = 0;
 				for (PatientServiceBill item : bill.getBillItems()) {
 					serviceDate = item.getServiceDate();
+					double maxima = item.getService().getMaximaToPay().doubleValue();
+					double qty = item.getQuantity();
+					double rate = bill.getBeneficiary().getInsurancePolicy()
+							.getInsurance().getCurrentRate().getRate();
+					double unitPrice = item.getUnitPrice().doubleValue();
+					double insuranceDue = (rate	 * (unitPrice * qty) / 100);
 
-					patDueAmt += roundTwoDecimals((item.getService()
-							.getMaximaToPay().doubleValue() * item
-							.getQuantity())
-							- (bill.getBeneficiary().getInsurancePolicy()
-									.getInsurance().getCurrentRate().getRate()
-									* (item.getUnitPrice().doubleValue() * item
-											.getQuantity()) / 100));
+					patDueAmt += roundTwoDecimals((maxima * qty) - insuranceDue);
 
-					insDueAmt += roundTwoDecimals(bill.getBeneficiary()
-							.getInsurancePolicy().getInsurance()
-							.getCurrentRate().getRate()
-							* (item.getUnitPrice().doubleValue() * item
-									.getQuantity()) / 100);
+					insDueAmt += roundTwoDecimals(insuranceDue);
+					
 					totalDueAmt = patDueAmt + insDueAmt;
 				}
-				
+				//TODO: must check this method called right here from Tag...
 				payments = roundTwoDecimals(Long.parseLong(MohBillingTagUtil.getTotalAmountPaidByPatientBill(bill.getPatientBillId())));
 				billObj.add(new Object[] {
 						Context.getDateFormat().format(serviceDate),
@@ -188,7 +190,7 @@ public class MohBillingCohortBuilderFormController extends
 						roundTwoDecimals(patDueAmt),
 						roundTwoDecimals(payments),
 						roundTwoDecimals(totalDueAmt),
-						bill.getPatientBillId()});/** Last added Bill ID*/
+						bill.getStatus()});
 
 				totalAmount += totalDueAmt;
 				totalPatientDueAmount += patDueAmt;
