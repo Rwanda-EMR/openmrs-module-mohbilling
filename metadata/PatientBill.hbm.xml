@@ -17,6 +17,7 @@
 		<property name="amount" column="amount" type="big_decimal" />
 		<property name="printed" column="printed" type="boolean" />
 		<property name="isPaid" column="is_paid" type="boolean" />
+		<property name="status" column="status" type="text" />
 		<property name="createdDate" column="created_date" type="date" />
 		<property name="voided" column="voided" type="boolean" />
 		<property name="voidedDate" column="voided_date" type="date" />
