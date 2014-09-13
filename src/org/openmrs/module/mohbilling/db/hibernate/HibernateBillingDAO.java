@@ -412,7 +412,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		combinedSearch
 				.append("SELECT DISTINCT pb.patient_bill_id,pb.description,"
-						+ "pb.amount,pb.printed,pb.is_paid,pb.created_date,pb.voided,"
+						+ "pb.amount,pb.printed,pb.is_paid,pb.status,pb.created_date,pb.voided,"
 						+ "pb.voided_date,pb.void_reason,pb.beneficiary_id,"
 						+ "pb.voided_by,pb.creator");
 
@@ -439,10 +439,10 @@ public class HibernateBillingDAO implements BillingDAO {
 			combinedSearch.append(" AND bp.collector = " + billCollector);
 
 		if (billStatus != null && !billStatus.equals(""))
-			if (!billStatus.equals("2"))// when it's "2" it does affect the
+			if (!billStatus.equals("0"))// when it's "0" it does affect the
 										// query...
-				combinedSearch.append(" AND pb.is_paid = "
-						+ Integer.parseInt(billStatus));
+				combinedSearch.append(" AND pb.status = '"
+						+ billStatus + "'");
 
 		if (insurance != null)
 			combinedSearch.append(" AND i.insurance_id = "
@@ -496,14 +496,15 @@ public class HibernateBillingDAO implements BillingDAO {
 				else
 					bill.setIsPaid(true);
 			}
-			bill.setCreatedDate((Date) object[5]);
+			bill.setStatus((String)object[5]);
+			bill.setCreatedDate((Date) object[6]);
 			bill.setVoided(false);
 			bill.setVoidedDate(null);
 			bill.setVoidReason(null);
-			bill.setBeneficiary(getBeneficiary((Integer) object[9]));
+			bill.setBeneficiary(getBeneficiary((Integer) object[10]));
 			bill.setVoidedBy(null);
 			bill.setCreator(Context.getUserService().getUser(
-					(Integer) object[11]));
+					(Integer) object[12]));
 
 			bill.setBillItems(getBillItems(bill, serviceName));
 
