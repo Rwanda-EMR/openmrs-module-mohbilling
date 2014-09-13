@@ -81,7 +81,7 @@
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice*billItem.quantity}</td>
-					<td colspan="2" class="rowValue right ${(status.count%2!=0)?'even':''}">${((billingtag:amountNotPaidForPatientBill(patientBill.patientBillId))<=0.0)?'PAID':'NOT PAID'}</td>
+					<td colspan="2" class="rowValue right ${(status.count%2!=0)?'even':''}">${patientBill.status}</td>
 				</tr>
 			</c:forEach>
 		</c:forEach>

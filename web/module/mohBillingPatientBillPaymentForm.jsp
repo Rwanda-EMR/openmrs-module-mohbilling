@@ -122,7 +122,7 @@
 				<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billingtag:amountPaidForPatientBill(pb.patientBillId)}</td>
 				<td class="rowValue right ${(status.count%2!=0)?'even':''}">${pb.amount}</td>
 				<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billingtag:amountNotPaidForPatientBill(pb.patientBillId)}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${((billingtag:amountNotPaidForPatientBill(pb.patientBillId))<=0.0)?'PAID':'NOT PAID'}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${pb.status}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="patientBillPayment.form?patientBillId=${pb.patientBillId}&ipCardNumber=${pb.beneficiary.policyIdNumber}">View<!-- ${pb.patientBillId} --></a></td>
 			</tr>
 		</c:forEach>

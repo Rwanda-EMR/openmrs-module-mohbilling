@@ -77,9 +77,10 @@
 		<td>Bill Status</td>
 		<td>
 			<select name="billStatus">
-				<option value="2">---</option>
-				<option value="1" ${billStatus== '1' ? 'selected' : ''}>PAID</option>
-				<option value="0" ${billStatus== '0' ? 'selected' : ''}>NOT PAID</option>
+				<option value="0">---</option>
+				<option value="FULLY PAID" ${billStatus== 'FULLY PAID' ? 'selected' : ''}>FULLY PAID</option>
+				<option value="UNPAID" ${billStatus== 'UNPAID' ? 'selected' : ''}>UNPAID</option>
+				<option value="PARTLY PAID" ${billStatus== 'PARTLY PAID' ? 'selected' : ''}>PARTLY PAID</option>
 			</select>
 		</td>
 
@@ -199,9 +200,7 @@
 			<td class="rowAmountValue">${obj[6]}</td>
 			<td class="rowAmountValue">${obj[7]}</td>
 			<td class="rowAmountValue"><b style="color: blue;">${obj[8]}</b></td>
-			<td class="rowAmountValue" style="color: green; font-weight: bold;">
-				${((billingtag:amountNotPaidForPatientBill(obj[9]))<=0.0)?'PAID':'NOT PAID'}
-			</td>
+			<td class="rowAmountValue" style="color: green; font-weight: bold;">${obj[9]}</td>
 			
 		</tr>
 
