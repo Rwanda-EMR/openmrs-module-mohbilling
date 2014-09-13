@@ -22,6 +22,7 @@ public class PatientBill {
 	private BigDecimal amount = new BigDecimal(0);
 	private boolean printed;
 	private boolean isPaid;
+	private String status;
 	private User creator;
 	private Date createdDate;
 	private boolean voided = false;
@@ -119,6 +120,20 @@ public class PatientBill {
 	 */
 	public void setIsPaid(Boolean isPaid) {
 		this.isPaid = isPaid;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public String getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 	/**
@@ -234,9 +249,11 @@ public class PatientBill {
 			serviceBill.setPatientBill(this);
 			if (billItems == null)
 				billItems = new TreeSet<PatientServiceBill>();
-			if (!OpenmrsUtil.collectionContains(billItems, serviceBill)){
+			if (!OpenmrsUtil.collectionContains(billItems, serviceBill)) {
 				this.amount = this.amount.add(serviceBill.getAmount());
-				System.out.println("***************** New Amount after ADDING ******** : "+this.amount);		
+				System.out
+						.println("***************** New Amount after ADDING ******** : "
+								+ this.amount);
 				return billItems.add(serviceBill);
 			}
 		}
@@ -248,9 +265,11 @@ public class PatientBill {
 	 * @return
 	 */
 	public boolean removeBillItem(PatientServiceBill psb) {
-		if (billItems != null){
+		if (billItems != null) {
 			this.amount = this.amount.subtract(psb.getAmount());
-			System.out.println("***************** New Amount after SUBTRACTING ******** : "+this.amount);
+			System.out
+					.println("***************** New Amount after SUBTRACTING ******** : "
+							+ this.amount);
 			return billItems.remove(psb);
 		}
 		return false;
@@ -261,6 +280,25 @@ public class PatientBill {
 	 */
 	public Set<BillPayment> getPayments() {
 		return payments;
+	}
+
+	/**
+	 * Gets all payments made by the beneficiary
+	 * 
+	 * @return paidAmount
+	 */
+	public BigDecimal getAmountPaid() {
+
+		if (payments != null) {
+			BigDecimal paidAmount = new BigDecimal(0);
+			
+			for (BillPayment pay : payments)
+				paidAmount = paidAmount.add(pay.getAmountPaid());
+
+			return paidAmount;
+		}
+		
+		return new BigDecimal(0);
 	}
 
 	/**
