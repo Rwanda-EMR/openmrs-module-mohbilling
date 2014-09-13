@@ -29,9 +29,11 @@ public class MohBillingTagUtil {
 				PatientBill pb = Context.getService(BillingService.class)
 						.getPatientBill(patientBillId);
 
-				for (BillPayment bp : pb.getPayments()) {
-					amountPaid = amountPaid + bp.getAmountPaid().longValue();
-				}
+				if(pb.getAmountPaid() != null)
+					amountPaid = pb.getAmountPaid().longValue();
+//				for (BillPayment bp : pb.getPayments()) {
+//					amountPaid = amountPaid + bp.getAmountPaid().longValue();
+//				}
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -39,10 +41,7 @@ public class MohBillingTagUtil {
 			}
 		}
 
-		return ""
-				+ new BigDecimal(1)
-						.multiply(BigDecimal.valueOf(amountPaid), mc)
-						.longValue();
+		return "" + amountPaid;
 	}
 
 	/**

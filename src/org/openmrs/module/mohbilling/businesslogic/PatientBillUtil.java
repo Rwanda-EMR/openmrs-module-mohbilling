@@ -9,6 +9,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.BillStatus;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
@@ -449,5 +450,48 @@ public class PatientBillUtil {
 		}
 
 		return bills;
+	}
+	
+	public static void markBillAsPaid(PatientBill bill) {
+
+		PatientBill pb = getService().getPatientBill(bill.getPatientBillId());
+		double amountNotPaid = 0d;
+		double amountPaid = pb.getAmountPaid().doubleValue();
+		double insuranceRate = pb.getBeneficiary().getInsurancePolicy()
+				.getInsurance().getCurrentRate().getRate();
+		double patientRate = (100f - insuranceRate) / 100f;
+		double amountDueByPatient = (pb.getAmount().doubleValue() * patientRate);
+
+		if (pb.getBeneficiary().getInsurancePolicy().getThirdParty() == null)
+			
+			amountNotPaid = amountDueByPatient - amountPaid;
+		else {
+
+			double thirdPartRate = pb.getBeneficiary().getInsurancePolicy()
+					.getThirdParty().getRate().doubleValue();
+
+			double amountPaidByThirdPart = pb.getAmount().doubleValue()
+					* (thirdPartRate / 100);
+
+			amountNotPaid = amountDueByPatient
+					- (amountPaidByThirdPart + amountPaid);
+			amountDueByPatient -= amountPaidByThirdPart;
+
+		}
+
+		/** Marking the BILL as FULLY PAID */
+		if (amountPaid >= amountDueByPatient) {
+			pb.setIsPaid(true);
+			pb.setStatus(BillStatus.FULLY_PAID.getDescription());
+		}
+		/** Marking the BILL as NOT PAID at all */
+		if (amountNotPaid == amountDueByPatient){
+			pb.setStatus(BillStatus.UNPAID.getDescription());
+		}
+		/** Marking the BILL as PARTLY PAID */
+		if (amountNotPaid > 0d && amountNotPaid < amountDueByPatient)
+			pb.setStatus(BillStatus.PARTLY_PAID.getDescription());
+		
+		getService().savePatientBill(pb);
 	}
 }
