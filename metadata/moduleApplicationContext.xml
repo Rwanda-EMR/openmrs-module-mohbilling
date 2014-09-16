@@ -39,6 +39,7 @@
 			    <prop key="module/@MODULE_ID@/hmisReport.form">mohBillingHMISReportController</prop>
 			    <prop key="module/@MODULE_ID@/refundBill.form">mohBillingRefundBillFormController</prop>
 			    <prop key="module/@MODULE_ID@/thirdParty.form">mohBillingThirdPatryFormController</prop>
+			    <prop key="module/@MODULE_ID@/received.form">mohBillingReceivedController</prop>
 			
 			</props>
 		</property>
@@ -143,8 +144,12 @@
 	<bean id="mohBillingHMISReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingHMISReportController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingHMISReport</value></property>
 	</bean>
+	<bean id="mohBillingReceivedController" class="org.openmrs.module.mohbilling.web.controller.MohBIllingrReceivedAmountController">
+		<property name="viewName"><value>/module/mohbilling/mohBIllingReceivedAmount</value></property>
+	</bean>
 	
 	<bean id="mohBillingPrintPDFPatientBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingPrintPatientBillController"/>
+	
 
 	<!-- /Controllers -->
 

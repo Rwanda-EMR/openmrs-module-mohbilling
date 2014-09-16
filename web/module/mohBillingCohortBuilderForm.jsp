@@ -33,6 +33,9 @@
 				<a href="hmisReport.form">HMIS Reports</a>
 			</li>
 		</openmrs:hasPrivilege>
+		      <li>
+				<a href="received.form">Received Amount</a>
+			</li>
 </ul>
 
 <b class="boxHeader">Search Form(Advanced)</b>

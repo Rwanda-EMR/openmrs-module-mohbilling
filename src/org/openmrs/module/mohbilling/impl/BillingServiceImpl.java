@@ -7,10 +7,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.openmrs.Concept;
+import org.openmrs.User;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -381,4 +383,18 @@ public class BillingServiceImpl implements BillingService {
 
 		return billingDAO.getPolicyIdByPatient(patientId);
 	}
+
+	@Override
+	public List<BillPayment> getAllBillPayments(){
+		return billingDAO.getAllBillPayments();
+	}
+
+	@Override
+	public List<BillPayment> getBillPaymentsByDateAndCollector(
+			Date createdDate, User collector) {
+	
+		return billingDAO.getBillPaymentsByDateAndCollector(createdDate,collector);
+	}
+	
+	
 }

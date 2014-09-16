@@ -30,10 +30,12 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -698,6 +700,40 @@ public class HibernateBillingDAO implements BillingDAO {
 								+ patientId
 								+ " AND ins.voided = 0 AND ip.retired = 0 AND b.retired = 0;")
 				.list();
+	}
+	
+	public List<BillPayment> getAllBillPayments(){
+		
+		return sessionFactory.getCurrentSession()
+				.createCriteria(BillPayment.class).list();
+		
+	}
+   public List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate,User collector){
+	   
+	   List<BillPayment> paymentItems = new ArrayList<BillPayment>();
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+	   Session session = sessionFactory.getCurrentSession();
+	   StringBuilder combinedSearch = new StringBuilder("");
+	   combinedSearch
+		.append(" select amount_paid,created_date,collector from moh_bill_payment where created_date ='"+formatter.format(createdDate)+"' and collector ="+collector.getUserId()+";");
+	   
+	   
+	   
+	   List<Object[]> paymentItem = session.createSQLQuery(
+				combinedSearch.toString()).list();
+	 
+	   
+	   for(Object[] object: paymentItem){
+		 
+		   BillPayment billPayment = new BillPayment();
+		   
+		   billPayment.setAmountPaid((BigDecimal)object[0]); 
+		   billPayment.setCreatedDate((Date)object[1]);
+		   paymentItems.add(billPayment);
+	   }
+	   
+	   
+	  return paymentItems;
 	}
 
 }

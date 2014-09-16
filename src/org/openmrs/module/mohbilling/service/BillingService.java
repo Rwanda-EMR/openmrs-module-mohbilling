@@ -7,8 +7,10 @@ import java.util.Date;
 import java.util.List;
 
 import org.openmrs.Concept;
+import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -44,6 +46,15 @@ public interface BillingService {
 	 * @throws DAOException
 	 */
 	public List<PatientBill> getAllPatientBills() throws DAOException;
+	
+	/**
+	 * Gets all existing Bill Payments
+	 * 
+	 * @return <code>List<BillPayment></code> a list of BillPayment
+	 * 
+	 * @throws DAOException
+	 */
+	public List<BillPayment> getAllBillPayments() throws DAOException;
 
 	/**
 	 * Gets the insurance from the DB by specifying the Object/ID
@@ -347,4 +358,12 @@ public interface BillingService {
 	 * @return list of String[] : {INSURANCE NAME, POLICY ID}
 	 */
 	public List<String[]> getPolicyIdByPatient(Integer patientId);
+	
+	/**
+	 * 
+	 * @param Gets billPayments by date and collector
+	 * @param collector
+	 * @return
+	 */
+	public List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate,User collector);
 }

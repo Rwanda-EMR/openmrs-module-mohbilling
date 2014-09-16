@@ -17,8 +17,10 @@ import java.util.Date;
 import java.util.List;
 
 import org.openmrs.Concept;
+import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -370,5 +372,29 @@ public interface BillingDAO {
 	 * @return list of String[] : {INSURANCE NAME, POLICY ID}
 	 */
 	public List<String[]> getPolicyIdByPatient(Integer patientId);
+
+	
+	/**
+	 * Get all BIllPayments 
+	 * 
+	 * 
+	 * @return
+	 */
+	
+	
+	public List<BillPayment> getAllBillPayments();
+	
+	/**
+	 * 
+	 * @param Gets billPayments by date and collector
+	 * @param collector
+	 * @return
+	 */
+
+	public List<BillPayment> getBillPaymentsByDateAndCollector(
+			Date createdDate, User collector);
+	
+	
+	
 
 }
