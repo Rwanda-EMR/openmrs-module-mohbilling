@@ -750,13 +750,11 @@ public class HibernateBillingDAO implements BillingDAO {
 		   BillPayment billPayment = new BillPayment();
 		   
 		   billPayment.setAmountPaid((BigDecimal)object[0]); 
+	
+		   billPayment.setCreatedDate((Date)object[1]);
+		   User user = Context.getUserService().getUser((Integer)object[2]);
 		   
-		   
-		   
-		   Date date = (Date)object[1];
-		   
-		   
-		   billPayment.setCreatedDate(date);
+		   billPayment.setCollector(user);
 		   paymentItems.add(billPayment);
 		  
 	   }
