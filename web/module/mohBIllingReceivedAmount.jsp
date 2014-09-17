@@ -65,6 +65,9 @@
 </div>
 <br/>
 
+${startDate} <br/>
+${billCollector}
+
 <br/>
 <c:if test="${fn:length(billPaymentsByDateAndCollector)!=0}">
 <table width="40%">

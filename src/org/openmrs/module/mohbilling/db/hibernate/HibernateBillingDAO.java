@@ -712,24 +712,53 @@ public class HibernateBillingDAO implements BillingDAO {
 	   
 	   List<BillPayment> paymentItems = new ArrayList<BillPayment>();
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		DateFormat formatterTime = new SimpleDateFormat("HH:mm");
 	   Session session = sessionFactory.getCurrentSession();
 	   StringBuilder combinedSearch = new StringBuilder("");
+	   
+	   
 	   combinedSearch
-		.append(" select amount_paid,created_date,collector from moh_bill_payment where created_date ='"+formatter.format(createdDate)+"' and collector ="+collector.getUserId()+";");
+		.append(" select amount_paid,created_date,collector from moh_bill_payment ");
 	   
-	   
-	   
+	   if(createdDate != null && collector == null){
+		   
+		   combinedSearch
+			.append(" where created_date ='"+formatter.format(createdDate)+"' ");
+		   
+		   }
+         if(createdDate == null && collector != null){
+		   
+		   combinedSearch
+			.append(" where collector ="+collector.getUserId()+" ");
+		   
+		   }
+	     if(createdDate != null && collector != null){
+		   
+		   combinedSearch
+			.append(" where created_date ='"+formatter.format(createdDate)+"' and collector ="+collector.getUserId()+" ");
+		   
+		   }
+	     combinedSearch
+			.append(" ; ");
 	   List<Object[]> paymentItem = session.createSQLQuery(
 				combinedSearch.toString()).list();
 	 
+	   
 	   
 	   for(Object[] object: paymentItem){
 		 
 		   BillPayment billPayment = new BillPayment();
 		   
 		   billPayment.setAmountPaid((BigDecimal)object[0]); 
-		   billPayment.setCreatedDate((Date)object[1]);
+		   
+		   
+		   
+		   Date date = (Date)object[1];
+		   
+		   
+		   billPayment.setCreatedDate(date);
 		   paymentItems.add(billPayment);
+		  
 	   }
 	   
 	   
