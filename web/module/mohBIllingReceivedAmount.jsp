@@ -78,7 +78,7 @@
 	<tr>
 		<td><b><h2>No</h2></b</td>
 		<td><b><h2>Date</h2></b</td>
-		<td><b><h2>User</h2></b</td>
+		<td><b><h2>Collector</h2></b</td>
 		<td><b><h2>Received Amount</h2></b</td>
 	</tr>
 
