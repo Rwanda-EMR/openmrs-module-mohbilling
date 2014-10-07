@@ -34,33 +34,40 @@ public class MohBIllingrReceivedAmountController extends
 
 		ModelAndView mav = new ModelAndView();
 		String startDateStr = null;
+		String endDateStr = null;
 		String billCollector = null;
 		Date startDate = null;
+		Date endDate = null ;
 		User collector = null;
 		BillPaymentUtil billPaymentUtil = null;
 		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 
-		if (request.getParameter("startDate") != null
+		if (request.getParameter("startDate") != null && request.getParameter("endDate") != null
 				&& request.getParameter("billCollector") != null) {
 			
 			
 			
 			startDateStr = request.getParameter("startDate");
+			endDateStr = request.getParameter("endDate");
 
 			billCollector = request.getParameter("billCollector");
 
 			if (!startDateStr.equals("")) {
 				startDate = (Date) formatter.parse(startDateStr);
 			}
+			if (!endDateStr.equals("")) {
+				endDate = (Date) formatter.parse(endDateStr);
+			}
 			
 			Integer billCollectorId = null;
-             if(billCollector != null && billCollector != ""){
+             
+			if(billCollector != null && billCollector != ""){
 			billCollectorId = Integer.parseInt(billCollector);
 			collector = Context.getUserService().getUser(billCollectorId);
              }
 
 			List<BillPayment> billPaymentsByDateAndCollector = billPaymentUtil
-					.getBillPaymentsByDateAndCollector(startDate, collector);
+					.getBillPaymentsByDateAndCollector(startDate,endDate, collector);
 
 			mav.addObject("billPaymentsByDateAndCollector",
 					billPaymentsByDateAndCollector);

@@ -392,7 +392,7 @@ public interface BillingDAO {
 	 */
 
 	public List<BillPayment> getBillPaymentsByDateAndCollector(
-			Date createdDate, User collector);
+			Date createdDate,Date endDate, User collector);
 	
 	
 	

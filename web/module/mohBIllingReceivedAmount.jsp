@@ -46,12 +46,14 @@
 <input type="hidden" name="patientIdnew" value="${patientId}"/>	
 <table>
 	<tr>
-		<td width="10%">When?</td>
+		<td width="10%"><b>When?</b></td>
 		<td>
 		<table>
 			<tr>
-				<td>On <input type="text" size="11" value="${startDate}"
+				<td>On Or After : <input type="text" size="11" value="${startDate}"
 					name="startDate" onclick="showCalendar(this)" /></td>
+				 <td>On Or Before<input type="text" size="11" value="${endDate}"
+					name="endDate" onclick="showCalendar(this)" /></td>
 			</tr>
 			
 		</table>

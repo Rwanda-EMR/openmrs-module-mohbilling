@@ -708,36 +708,71 @@ public class HibernateBillingDAO implements BillingDAO {
 				.createCriteria(BillPayment.class).list();
 		
 	}
-   public List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate,User collector){
+   public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,Date endDate,User collector){
 	   
 	   List<BillPayment> paymentItems = new ArrayList<BillPayment>();
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		DateFormat formatterTime = new SimpleDateFormat("HH:mm");
+	//	DateFormat formatterTime = new SimpleDateFormat("HH:mm");
 	   Session session = sessionFactory.getCurrentSession();
 	   StringBuilder combinedSearch = new StringBuilder("");
 	   
-	   
+         //works 
 	   combinedSearch
 		.append(" select amount_paid,created_date,collector from moh_bill_payment ");
-	   
-	   if(createdDate != null && collector == null){
+	    //works 
+	   if(startDate != null && endDate != null && collector == null){
 		   
 		   combinedSearch
-			.append(" where created_date ='"+formatter.format(createdDate)+"' ");
+			.append(" where created_date >='"+formatter.format(startDate)+"' and created_date <='"+formatter.format(endDate)+"'");
 		   
 		   }
-         if(createdDate == null && collector != null){
+	   System.out.println("endDateendDateendDateendDateendDateendDateendDateendDateendDateendDateendDate"+endDate);
+	   log.info("startDatestartDatestartDatestartDatestartDatestartDatestartDatestartDatestartDate"+startDate);
+	  
+	   if(startDate != null && endDate == null && collector == null){
+		   System.out.println("startDatestartDatestartDatestartDatestartDatestartDatestartDatestartDatestartDate"+startDate);
+		   log.info("startDatestartDatestartDatestartDatestartDatestartDatestartDatestartDatestartDate"+startDate);
+        	
+		   combinedSearch
+			.append(" where created_date >='"+formatter.format(startDate)+"'");
+		   
+		   }
+	   if(startDate == null && endDate != null && collector == null){
+ 		   System.out.println("endDateendDateendDateendDateendDateendDateendDateendDateendDateendDateendDate"+endDate);
+ 		   combinedSearch
+ 			.append(" where created_date <='"+formatter.format(endDate)+"'");
+ 		   
+ 		   }
+	   
+         	   
+	   if(startDate == null && endDate == null && collector != null){
 		   
 		   combinedSearch
 			.append(" where collector ="+collector.getUserId()+" ");
 		   
 		   }
-	     if(createdDate != null && collector != null){
+	    
+	    if(startDate != null && endDate != null && collector != null){
 		   
 		   combinedSearch
-			.append(" where created_date ='"+formatter.format(createdDate)+"' and collector ="+collector.getUserId()+" ");
+			.append(" where created_date >='"+formatter.format(startDate)+"' and created_date <='"+formatter.format(endDate)+"' and collector ="+collector.getUserId()+" ");
 		   
 		   }
+
+	     
+	    if(startDate != null && endDate == null && collector != null){
+			   
+			   combinedSearch
+				.append(" where created_date >='"+formatter.format(startDate)+"' and collector ="+collector.getUserId()+" ");
+			   
+			   }
+	    if(startDate == null && endDate != null && collector != null){
+			   
+			   combinedSearch
+				.append(" where created_date <='"+formatter.format(endDate)+"' and collector ="+collector.getUserId()+" ");
+			   
+			   }
+	     
 	     combinedSearch
 			.append(" ; ");
 	   List<Object[]> paymentItem = session.createSQLQuery(

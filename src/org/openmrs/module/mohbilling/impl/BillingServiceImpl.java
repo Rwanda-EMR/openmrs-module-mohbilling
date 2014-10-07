@@ -391,9 +391,9 @@ public class BillingServiceImpl implements BillingService {
 
 	@Override
 	public List<BillPayment> getBillPaymentsByDateAndCollector(
-			Date createdDate, User collector) {
+			Date createdDate,Date endDate, User collector) {
 	
-		return billingDAO.getBillPaymentsByDateAndCollector(createdDate,collector);
+		return billingDAO.getBillPaymentsByDateAndCollector(createdDate,endDate,collector);
 	}
 	
 	
