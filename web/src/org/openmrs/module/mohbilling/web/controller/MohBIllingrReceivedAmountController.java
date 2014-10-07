@@ -45,8 +45,6 @@ public class MohBIllingrReceivedAmountController extends
 		if (request.getParameter("startDate") != null && request.getParameter("endDate") != null
 				&& request.getParameter("billCollector") != null) {
 			
-			
-			
 			startDateStr = request.getParameter("startDate");
 			endDateStr = request.getParameter("endDate");
 
@@ -66,13 +64,14 @@ public class MohBIllingrReceivedAmountController extends
 			collector = Context.getUserService().getUser(billCollectorId);
              }
 
+			@SuppressWarnings("static-access")
 			List<BillPayment> billPaymentsByDateAndCollector = billPaymentUtil
 					.getBillPaymentsByDateAndCollector(startDate,endDate, collector);
 
 			mav.addObject("billPaymentsByDateAndCollector",
 					billPaymentsByDateAndCollector);
 
-			Double TotalReceivedAmount = 0.0;
+			Double TotalReceivedAmount = (double) 0;
 
 			for (BillPayment billPayment : billPaymentsByDateAndCollector) {
 
