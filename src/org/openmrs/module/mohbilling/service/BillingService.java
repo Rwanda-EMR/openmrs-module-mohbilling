@@ -365,5 +365,5 @@ public interface BillingService {
 	 * @param collector
 	 * @return
 	 */
-	public List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate,User collector);
+	public List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate,Date endDate,User collector);
 }

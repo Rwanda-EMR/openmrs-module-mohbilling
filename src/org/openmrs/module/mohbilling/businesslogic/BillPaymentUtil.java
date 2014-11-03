@@ -36,9 +36,9 @@ public class BillPaymentUtil {
 		return payments;
 	}
 	
-	public static List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate,User collector){
+	public static List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate,Date endDate,User collector){
 		List<BillPayment> payments = new ArrayList<BillPayment>();
-		payments = getService().getBillPaymentsByDateAndCollector(createdDate, collector);
+		payments = getService().getBillPaymentsByDateAndCollector(createdDate,endDate, collector);
 		
 		return payments;
 		
