@@ -451,16 +451,16 @@ public class HibernateBillingDAO implements BillingDAO {
 					+ insurance.getInsuranceId().intValue());
 
 		if (startDate != null && endDate != null)
-			combinedSearch.append(" AND psb.service_date BETWEEN '"
+			combinedSearch.append(" AND bp.date_received BETWEEN '"
 					+ formatter.format(startDate) + "'" + " AND '"
 					+ formatter.format(endDate) + "'");
 
 		if (startDate != null && endDate == null)
-			combinedSearch.append(" AND psb.service_date = '"
+			combinedSearch.append(" AND bp.date_received <= '"
 					+ formatter.format(startDate) + "'");
 
 		if (startDate == null && endDate != null)
-			combinedSearch.append(" AND psb.service_date = '"
+			combinedSearch.append(" AND bp.date_received = '"
 					+ formatter.format(endDate) + "'");
 
 		if (patientId != null)
@@ -718,29 +718,24 @@ public class HibernateBillingDAO implements BillingDAO {
 	   
          //works 
 	   combinedSearch
-		.append(" select amount_paid,created_date,collector from moh_bill_payment ");
+		.append(" select amount_paid,date_received,collector from moh_bill_payment ");
 	    //works 
 	   if(startDate != null && endDate != null && collector == null){
 		   
 		   combinedSearch
-			.append(" where created_date >='"+formatter.format(startDate)+"' and created_date <='"+formatter.format(endDate)+"'");
+			.append(" where date_received >='"+formatter.format(startDate)+"' and date_received <='"+formatter.format(endDate)+"'");
 		   
 		   }
-	   System.out.println("endDateendDateendDateendDateendDateendDateendDateendDateendDateendDateendDate"+endDate);
-	   log.info("startDatestartDatestartDatestartDatestartDatestartDatestartDatestartDatestartDate"+startDate);
 	  
 	   if(startDate != null && endDate == null && collector == null){
-		   System.out.println("startDatestartDatestartDatestartDatestartDatestartDatestartDatestartDatestartDate"+startDate);
-		   log.info("startDatestartDatestartDatestartDatestartDatestartDatestartDatestartDatestartDate"+startDate);
         	
 		   combinedSearch
-			.append(" where created_date >='"+formatter.format(startDate)+"'");
+			.append(" where date_received >='"+formatter.format(startDate)+"'");
 		   
 		   }
 	   if(startDate == null && endDate != null && collector == null){
- 		   System.out.println("endDateendDateendDateendDateendDateendDateendDateendDateendDateendDateendDate"+endDate);
  		   combinedSearch
- 			.append(" where created_date <='"+formatter.format(endDate)+"'");
+ 			.append(" where date_received <='"+formatter.format(endDate)+"'");
  		   
  		   }
 	   
@@ -755,7 +750,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	    if(startDate != null && endDate != null && collector != null){
 		   
 		   combinedSearch
-			.append(" where created_date >='"+formatter.format(startDate)+"' and created_date <='"+formatter.format(endDate)+"' and collector ="+collector.getUserId()+" ");
+			.append(" where date_received >='"+formatter.format(startDate)+"' and date_received <='"+formatter.format(endDate)+"' and collector ="+collector.getUserId()+" ");
 		   
 		   }
 
@@ -763,13 +758,13 @@ public class HibernateBillingDAO implements BillingDAO {
 	    if(startDate != null && endDate == null && collector != null){
 			   
 			   combinedSearch
-				.append(" where created_date >='"+formatter.format(startDate)+"' and collector ="+collector.getUserId()+" ");
+				.append(" where date_received >='"+formatter.format(startDate)+"' and collector ="+collector.getUserId()+" ");
 			   
 			   }
 	    if(startDate == null && endDate != null && collector != null){
 			   
 			   combinedSearch
-				.append(" where created_date <='"+formatter.format(endDate)+"' and collector ="+collector.getUserId()+" ");
+				.append(" where date_received <='"+formatter.format(endDate)+"' and collector ="+collector.getUserId()+" ");
 			   
 			   }
 	     
