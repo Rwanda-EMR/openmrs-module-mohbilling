@@ -77,19 +77,21 @@
 <b class="boxHeader"> RECEIVED AMOUNT REPORT</b>
 <div class="box">
 <table width="40%">
+
 	<tr>
-		<td><b><h2>No</h2></b</td>
-		<td><b><h2>Date</h2></b</td>
-		<td><b><h2>Collector</h2></b</td>
-		<td><b><h2>Received Amount</h2></b</td>
+			<th class="columnHeader"></th>
+			<th class="columnHeader">No</td>
+			<th class="columnHeader">Date</td>
+			<th class="columnHeader">Collector</td>
+			<th class="columnHeader">Received Amount</td>
 	</tr>
 
    <c:forEach items="${billPaymentsByDateAndCollector}" var="payment" varStatus="status">
    <tr>
-		<td>${status.count}</td>
-			<td>${payment.createdDate}</td>
-			<td>${payment.collector}</td>
-			<td>${payment.amountPaid}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}. bla</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.dateReceived}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.collector}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.amountPaid}</td>
 
 	</tr>
 </c:forEach>
