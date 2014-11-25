@@ -18,7 +18,7 @@ import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.RecoveryReport;
 import org.openmrs.module.mohbilling.service.BillingService;
-import org.openmrs.module.mohbilling.web.controller.MohBillingCohortBuilderFormController.HeaderFooter;
+import org.openmrs.module.mohbilling.web.controller.MohBillingPrintPatientBillController.HeaderFooter;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
