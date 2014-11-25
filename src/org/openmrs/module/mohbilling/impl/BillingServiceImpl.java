@@ -232,10 +232,10 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	@Override
-	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
+	public List<PatientBill> billCohortBuilder(Insurance insurance, Date startDate,
 			Date endDate, Integer patientId, String serviceName,
 			String billStatus, String billCollector) {
-		return billingDAO.buildCohort(insurance, startDate, endDate, patientId,
+		return billingDAO.billCohortBuilder(insurance, startDate, endDate, patientId,
 				serviceName, billStatus, billCollector);
 	}
 
@@ -394,6 +394,13 @@ public class BillingServiceImpl implements BillingService {
 			Date createdDate,Date endDate, User collector) {
 	
 		return billingDAO.getBillPaymentsByDateAndCollector(createdDate,endDate,collector);
+	}
+
+	@Override
+	public List<BillPayment> paymentsCohortBuilder(Insurance insurance,
+			Date startDate, Date endDate, Integer patientId,
+			String serviceName, String billStatus, String billCollector) {
+		return billingDAO.paymentsCohortBuilder(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
 	}
 	
 	
