@@ -1,8 +1,12 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 
+<openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
+
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <openmrs:require privilege="View Facility service by insurance campanies" otherwise="/login.htm" redirect="/module/@MODULE_ID@/facilityServiceByInsuranceCompany.list" />
+
+
 <h2><spring:message code="@MODULE_ID@.facility.service.by.insurance" /></h2>
 
 <b class="boxHeader"><spring:message code="@MODULE_ID@.facility.service" /></b>
@@ -25,6 +29,22 @@
 			<td></td>
 		</tr>
 	</table>
+</div>
+<br/>
+
+<b class="boxHeader"><spring:message code="Billables by insurance Form" /></b>
+<div class="box">
+	<form method="post" action="facilityServiceByInsuranceCompany.list?facilityServiceId=${param.facilityServiceId}">
+		<table width="100%">
+			<tr>
+				<td>Start Date <input type="hidden" name="facilityServiceId" value="${param.facilityServiceId}" />
+				 : <input autocomplete="off" type="text" name="startDate" size="11" onclick="showCalendar(this);"/>
+			</tr>
+			<tr>
+				<td><input type="submit" value="Bulk Update" /></td>
+			</tr>
+		</table>
+	</form>
 </div>
 <br/>
 

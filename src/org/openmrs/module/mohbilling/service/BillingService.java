@@ -370,4 +370,12 @@ public interface BillingService {
 	 * @return
 	 */
 	public List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate,Date endDate,User collector);
+	
+	/**
+	 * 
+	 * @param Gets service category by name
+	 * @param name
+	 * @return
+	 */
+	public ServiceCategory getServiceCategoryByName(String name, Insurance insurance);
 }

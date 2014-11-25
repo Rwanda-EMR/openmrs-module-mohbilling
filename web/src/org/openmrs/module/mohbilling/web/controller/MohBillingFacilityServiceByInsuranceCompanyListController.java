@@ -3,7 +3,11 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -12,7 +16,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
+import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
@@ -31,10 +37,16 @@ public class MohBillingFacilityServiceByInsuranceCompanyListController extends
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
-
+		
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-
+		
+		
+		if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")
+				&& request.getParameter("facilityServiceId") != null && !request.getParameter("facilityServiceId").equals("")) {			
+			mav.addObject("msg", FacilityServicePriceUtil.saveBillableServiceByInsurance(request));
+		}
+		
 		try {
 			FacilityServicePrice facilityService = Context.getService(
 					BillingService.class).getFacilityServicePrice(

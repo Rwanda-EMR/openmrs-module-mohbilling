@@ -517,7 +517,7 @@ public class InsuranceUtil {
 					service.setMaximaToPay(initial.add(initial.multiply(fifth)));
 				}
 			} else
-				// This happens when Maxima to Pay is set in the service
+				//This happens when Maxima to Pay is set in the service
 				service.setMaximaToPay(service.getMaximaToPay());
 
 			fsp.addBillableService(service);
@@ -526,6 +526,30 @@ public class InsuranceUtil {
 			return service;
 		} else
 			return null;
+	}
+	
+	public static BillableService saveBillableServiceForPharmacyItems(BillableService service) {
+		
+		FacilityServicePrice fsp = service.getFacilityServicePrice();
+
+		if (service != null && fsp != null) {
+
+			BigDecimal amount = fsp.getFullPrice();
+
+			// This means the Maxima to Pay is not set in the service
+			if (service.getMaximaToPay() == null) {
+				service.setMaximaToPay(amount);
+			} else
+				// This happens when Maxima to Pay is set in the service
+				service.setMaximaToPay(service.getMaximaToPay());
+
+			fsp.addBillableService(service);
+			getService().saveFacilityServicePrice(fsp);
+
+			return service;
+		}
+		
+		return null;
 	}
 
 	public static String getCategoryName(ServiceCategory category) {

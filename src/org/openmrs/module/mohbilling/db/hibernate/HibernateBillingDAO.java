@@ -139,9 +139,9 @@ public class HibernateBillingDAO implements BillingDAO {
 		return (BillableService) sessionFactory
 				.getCurrentSession()
 				.createCriteria(BillableService.class)
-				.add(Restrictions.eq("facility_service_price_id",
-						price.getFacilityServicePriceId()))
-				.add(Restrictions.eq("insurance_id", insurance.getInsuranceId()))
+				.add(Restrictions.eq("facilityServicePrice",
+						price))
+				.add(Restrictions.eq("insurance", insurance))
 				.uniqueResult();
 	}
 
@@ -901,6 +901,22 @@ public class HibernateBillingDAO implements BillingDAO {
 	   
 	   
 	  return paymentItems;
+	}
+   
+   /**
+	 * (non-Javadoc)
+	 * 
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillableServiceByConcept(Concept
+	 *      concept, Insurance insurance)
+	 */
+	@Override
+	public ServiceCategory getServiceCategoryByName(String name, Insurance insurance) {
+		return (ServiceCategory) sessionFactory
+				.getCurrentSession()
+				.createCriteria(ServiceCategory.class)
+				.add(Restrictions.eq("name", name))
+				.add(Restrictions.eq("insurance", insurance))
+				.uniqueResult();
 	}
 
 

@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.2.13</version>
+	<version>0.0.2.14</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -128,6 +128,22 @@
 			This should be the Logo location (full file path: 
 			e.g. /usr/share/tomcat6/.OpenMRS/mohbranding/images/chub_logo.jpg) of The Health Facility 
 			that will be displayed to Printed Out docs
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>billing.tarrif.act</property>
+		<defaultValue>act</defaultValue>
+		<description>
+			This should be the categories in which tariff are provided at the high level (acts and pharmacy)
+		</description>
+	</globalProperty>
+	
+	<globalProperty>
+		<property>billing.tarrif.pharmacy</property>
+		<defaultValue>pharmacy</defaultValue>
+		<description>
+			This should be the categories in which tariff are provided at the high level (acts and pharmacy)
 		</description>
 	</globalProperty>
 	

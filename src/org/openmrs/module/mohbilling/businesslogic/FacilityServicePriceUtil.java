@@ -1,11 +1,18 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.api.context.Context;
@@ -27,6 +34,8 @@ import org.openmrs.module.mohbilling.service.BillingService;
  * 
  */
 public class FacilityServicePriceUtil {
+	
+	private static Log log = LogFactory.getLog(FacilityServicePriceUtil.class);
 
 	/**
 	 * Offers the BillingService to be use to talk to the DB
@@ -477,4 +486,122 @@ public class FacilityServicePriceUtil {
 			}
 		}
 	}
+	
+	public static boolean isBillableCreated(FacilityServicePrice facilityService, Insurance insurance) {		
+		BillableService billableService = getService().getBillableServiceByConcept(facilityService, insurance);		
+		if(billableService != null)
+			return true;		
+		return false;
+	}
+	
+	public static String saveBillableServiceByInsurance(HttpServletRequest request) {
+		List<Insurance> insurances = getService().getAllInsurances();
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		
+		FacilityServicePrice fsp = null;
+		BillableService bs = null;
+		
+		String startDateStr = null, msg = null;
+		Date startDate = null;
+		
+		if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")
+				&& request.getParameter("facilityServiceId") != null && !request.getParameter("facilityServiceId").equals("")) {
+			System.out.println("Facility Service Id: " + request.getParameter("facilityServiceId"));
+			
+			startDateStr = request.getParameter("startDate");
+			
+			try {
+				startDate = sdf.parse(startDateStr.split("/")[2] + "-" + startDateStr.split("/")[1] + "-" + startDateStr.split("/")[0]);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}			
+			
+			fsp = getService().getFacilityServicePrice(Integer.valueOf(request.getParameter("facilityServiceId")));
+		}
+		
+		BigDecimal quarter = new BigDecimal(25).divide(new BigDecimal(100));
+		BigDecimal fifth = new BigDecimal(20).divide(new BigDecimal(100));
+		
+		for(Insurance insurance : insurances) {
+			try {
+				if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
+					if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
+						System.out.println("The bill exist already");
+						bs = getService().getBillableServiceByConcept(fsp, insurance);
+						bs.setStartDate(startDate);
+						bs.setInsurance(insurance);
+						bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+						bs.setCreatedDate(new Date());
+						bs.setRetired(false);
+						bs.setCreator(Context.getAuthenticatedUser());
+						bs.setFacilityServicePrice(fsp);
+						
+						if(insurance.getCategory().toLowerCase().equals("base")) {
+							bs.setMaximaToPay(fsp.getFullPrice());
+						} else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+							bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
+						} else if(insurance.getCategory().toLowerCase().equals("private")) {
+							bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+						} else if(insurance.getCategory().toLowerCase().equals("none")) {
+							BigDecimal initial = fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter));
+							bs.setMaximaToPay(initial.add(initial.multiply(fifth)));
+						}
+					} else {
+						bs = new BillableService();
+						bs.setStartDate(startDate);
+						bs.setInsurance(insurance);
+						bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+						bs.setCreatedDate(new Date());
+						bs.setRetired(false);
+						bs.setCreator(Context.getAuthenticatedUser());
+						bs.setFacilityServicePrice(fsp);
+						if(insurance.getCategory().toLowerCase().equals("base")) {
+							bs.setMaximaToPay(fsp.getFullPrice());
+						} else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+							bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
+						} else if(insurance.getCategory().toLowerCase().equals("private")) {
+							bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+						} else if(insurance.getCategory().toLowerCase().equals("none")) {
+							BigDecimal initial = fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter));
+							bs.setMaximaToPay(initial.add(initial.multiply(fifth)));
+						}
+					}
+				} else {
+					if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
+						System.out.println("Existing tarrif item");
+						bs = getService().getBillableServiceByConcept(fsp, insurance);
+						bs.setStartDate(startDate);
+						bs.setInsurance(insurance);
+						bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+						bs.setCreatedDate(new Date());
+						bs.setRetired(false);
+						bs.setCreator(Context.getAuthenticatedUser());
+						bs.setFacilityServicePrice(fsp);
+						bs.setMaximaToPay(fsp.getFullPrice());
+					} else {
+						System.out.println("New Tarrif item");
+						bs = new BillableService();
+						bs.setStartDate(startDate);
+						bs.setInsurance(insurance);
+						bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+						bs.setCreatedDate(new Date());
+						bs.setRetired(false);
+						bs.setCreator(Context.getAuthenticatedUser());
+						bs.setFacilityServicePrice(fsp);
+						bs.setMaximaToPay(fsp.getFullPrice());
+					}
+				}
+				
+				fsp.addBillableService(bs);
+				getService().saveFacilityServicePrice(fsp);
+				msg = "Updated Successfully";
+			} catch(Exception e) {
+				log.error(">>>MOH>>BILLING>>BULK UPDATE>> " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+		return msg;
+	}
+
 }

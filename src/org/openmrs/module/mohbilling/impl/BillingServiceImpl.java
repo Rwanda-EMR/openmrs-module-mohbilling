@@ -402,6 +402,11 @@ public class BillingServiceImpl implements BillingService {
 			String serviceName, String billStatus, String billCollector) {
 		return billingDAO.paymentsCohortBuilder(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
 	}
+
+	@Override
+	public ServiceCategory getServiceCategoryByName(String name, Insurance insurance) {
+		return billingDAO.getServiceCategoryByName(name, insurance);
+	}
 	
 	
 }
