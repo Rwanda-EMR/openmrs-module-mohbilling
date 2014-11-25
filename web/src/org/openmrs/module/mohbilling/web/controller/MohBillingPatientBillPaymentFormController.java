@@ -130,8 +130,10 @@ public class MohBillingPatientBillPaymentFormController extends
 				// We don't need to add anything as the patient will be
 				// paying...
 
+//				if(Integer.parseInt(request.getParameter("receivedCash"))>0)
 				bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
 						.getParameter("receivedCash"))));
+					
 
 				bp.setCollector(Context.getUserService()
 						.getUser(
