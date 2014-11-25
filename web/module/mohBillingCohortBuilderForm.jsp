@@ -28,14 +28,16 @@
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
 			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort"/></a>
 		</li>
+		
+	    <li>
+			<a href="received.form"><spring:message code="@MODULE_ID@.billing.received"/></a>
+		</li>
 		<openmrs:hasPrivilege privilege="Manage Billing Reports">
 			<li>
 				<a href="hmisReport.form">HMIS Reports</a>
 			</li>
 		</openmrs:hasPrivilege>
-		      <li>
-				<a href="received.form">Received Amount</a>
-			</li>
+
 </ul>
 
 <b class="boxHeader">Search Form(Advanced)</b>
@@ -59,8 +61,8 @@
 			</tr>
 		</table>
 		</td>
-		<td>Collector :</td>
-		<td><openmrs_tag:userField formFieldName="billCollector" initialValue="${billCollector}"/></td>
+		<td>Bill Creator :</td>
+		<td><openmrs_tag:userField formFieldName="billCreator" initialValue="${billCreator}"/></td>
 	</tr>
 
 	<tr>
