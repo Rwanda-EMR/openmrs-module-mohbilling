@@ -199,7 +199,11 @@ public interface BillingService {
 	 * @param serviceName
 	 * @return
 	 */
-	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
+	public List<PatientBill> billCohortBuilder(Insurance insurance, Date startDate,
+			Date endDate, Integer patientId, String serviceName,
+			String billStatus, String billCollector);
+	
+	public List<BillPayment> paymentsCohortBuilder(Insurance insurance, Date startDate,
 			Date endDate, Integer patientId, String serviceName,
 			String billStatus, String billCollector);
 
