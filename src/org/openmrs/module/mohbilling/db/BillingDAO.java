@@ -213,7 +213,20 @@ public interface BillingDAO {
 	 * @param serviceName
 	 * @return
 	 */
-	public List<PatientBill> buildCohort(Insurance insurance, Date startDate,
+	public List<BillPayment> paymentsCohortBuilder(Insurance insurance, Date startDate,
+			Date endDate, Integer patientId, String serviceName,
+			String billStatus, String billCollector);
+	/**
+	 * Gets all bill payments by entered parameters
+	 * 
+	 * @param insurance
+	 * @param startDate
+	 * @param endDate
+	 * @param patientId
+	 * @param serviceName
+	 * @return
+	 */
+	public List<PatientBill> billCohortBuilder(Insurance insurance, Date startDate,
 			Date endDate, Integer patientId, String serviceName,
 			String billStatus, String billCollector);
 
