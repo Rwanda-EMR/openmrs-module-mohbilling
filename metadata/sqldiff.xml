@@ -446,5 +446,23 @@
 								AFTER `is_paid`;
 		</sql>
 	</diff>
+		<diff>
+		<version>1.3.0.6</version>
+		<author>MoH Rwanda</author>
+		<date>November 26th 2014</date>
+		<description>
+			alter table 
+		</description>
+		<sql>
+			ALTER TABLE moh_bill_payment
+              MODIFY COLUMN created_date DATETIME,
+              MODIFY COLUMN voided_date DATETIME;
+              
+              ALTER TABLE moh_bill_patient_bill
+              MODIFY COLUMN created_date DATETIME,
+              MODIFY COLUMN voided_date DATETIME; 
+		</sql>
+
+	</diff>
 
 </sqldiff>
