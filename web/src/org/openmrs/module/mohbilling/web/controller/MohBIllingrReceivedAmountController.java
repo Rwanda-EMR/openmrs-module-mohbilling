@@ -3,7 +3,6 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,6 +43,12 @@ public class MohBIllingrReceivedAmountController extends
 
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	//	Date startDate = null;
+		
+		log.info("testtestetetetetttttttttttttt--today "+new Date());
+		log.info("testtestetetetetttttttttttttt--startHour "+request.getParameter("startHour"));
+		log.info("testtestetetetetttttttttttttt--startMinute "+request.getParameter("startMinute"));
+		log.info("testtestetetetetttttttttttttt--endHour "+request.getParameter("endHour"));
+		log.info("testtestetetetetttttttttttttt--endMinute "+request.getParameter("endMinute"));
 
 		if (request.getParameter("patientId") != null
 				&& request.getParameter("insurance") != null
@@ -57,7 +62,9 @@ public class MohBIllingrReceivedAmountController extends
 					.getParameter("startDate"), endDateStr = request
 					.getParameter("endDate"), serviceId = request
 					.getParameter("serviceId"), cashCollector = request
-					.getParameter("cashCollector");
+					.getParameter("cashCollector"),startHourStr=request.getParameter("startHour"),startMinute=request.getParameter("startMinute"),
+					endHourStr=request.getParameter("endHour"),endMinuteStr=request.getParameter("endMinute")
+					;
 			
 			Date startDate = sdf.parse(startDateStr.split("/")[2] + "-"
 					+ startDateStr.split("/")[1] + "-"
