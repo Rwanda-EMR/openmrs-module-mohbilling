@@ -4,6 +4,8 @@
 package org.openmrs.module.mohbilling.web.controller;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -97,7 +99,7 @@ public class MohBillingPatientBillPaymentFormController extends
 
 		BillPayment billPayment = null;
 		// Float rate = null;
-
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			PatientBill pb = PatientBillUtil.getPatientBillById(Integer
 					.parseInt(request.getParameter("patientBillId")));
