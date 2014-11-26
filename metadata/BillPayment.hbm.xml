@@ -15,10 +15,10 @@
 		</id>
 
 		<property name="amountPaid" column="amount_paid" type="big_decimal" />
-		<property name="dateReceived" column="date_received" type="date" />
-		<property name="createdDate" column="created_date" type="date" />
+		<property name="dateReceived" column="date_received" />
+		<property name="createdDate" column="created_date" />
 		<property name="voided" column="voided" type="java.lang.Boolean" />
-		<property name="voidedDate" column="voided_date" type="date" />
+		<property name="voidedDate" column="voided_date"  />
 		<property name="voidReason" column="void_reason" type="text" />
 		
 		<many-to-one name="collector" class="org.openmrs.User" column="collector" />
