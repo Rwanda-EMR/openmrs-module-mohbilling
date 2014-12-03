@@ -407,14 +407,11 @@ public class HibernateBillingDAO implements BillingDAO {
 			Date endDate, Integer patientId, String serviceName,
 			String billStatus, String billCollector) {
 
-		List<PatientBill> bills = new ArrayList<PatientBill>();
 		Session session = sessionFactory.getCurrentSession();
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		StringBuilder combinedSearch = new StringBuilder("");
 		
-		combinedSearch.append(" SELECT pb.patient_bill_id,pb.description,pb.amount,pb.printed,pb.is_paid,pb.status,pb.created_date,pb.voided,pb.voided_date,pb.void_reason,pb.beneficiary_id,pb.voided,pb.creator "
-		+ " FROM moh_bill_patient_bill pb "
-		+ " inner join moh_bill_payment pay on pb.patient_bill_id = pay.patient_bill_id "
+		combinedSearch.append(" SELECT pb.* FROM moh_bill_patient_bill pb "
 		+" inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id "
 		+ " inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
 		+" inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id " 
@@ -426,7 +423,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			combinedSearch.append(" and pb.creator =  "+ billCollector);
 			
 		if (startDate != null && endDate != null)
-			combinedSearch.append(" and pb.created_date >= '"+formatter.format(startDate)+"' and pb.created_date <= '"+formatter.format(endDate)+"' ");
+			combinedSearch.append(" and pb.created_date >= '"+formatter.format(startDate)+" 00:00:00' and pb.created_date <= '"+formatter.format(endDate)+" 24:59:59' ");
 
 		if (startDate != null && endDate == null)
 			combinedSearch.append(" and pb.created_date >= '"+formatter.format(startDate)+"' ");
@@ -440,75 +437,12 @@ public class HibernateBillingDAO implements BillingDAO {
 		if(serviceName != null && !serviceName.equals(""))	{	
 			combinedSearch.append(" and sc.name = '"+serviceName +"'");
 		}
-//		combinedSearch
-//				.append("SELECT DISTINCT pb.patient_bill_id,pb.description,"
-//						+ "pb.amount,pb.printed,pb.is_paid,pb.status,pb.created_date,pb.voided,"
-//						+ "pb.voided_date,pb.void_reason,pb.beneficiary_id,"
-//						+ "pb.voided_by,pb.creator");
-//		combinedSearch
-//		.append("SELECT pb.patient_bill_id,pb.description,pb.amount,pb.printed,pb.is_paid,pb.status,pb.created_date,pb.voided,pb.voided_date,pb.void_reason,pb.beneficiary_id,pb.voided,pb.creator FROM moh_bill_payment pay "
-//		+ " INNER JOIN moh_bill_patient_bill pb on pb.patient_bill_id=pay.patient_bill_id "
-//		+ " INNER JOIN moh_bill_beneficiary f on f.beneficiary_id=pb.beneficiary_id "
-//		+ "INNER JOIN moh_bill_insurance_policy ip on ip.insurance_policy_id=f.policy_id_number "
-//		+ " INNER JOIN moh_bill_insurance bi on bi.insurance_id=ip.insurance_id  "
-//		);
-//		
 		
-
-//		// This is to get also the Bill Collector
-//		if (billCollector != null && !billCollector.equals(""))
-////			combinedSearch.append(",bp.collector");
-//			combinedSearch.append(" AND pay.collector= "+ billCollector + " AND pb.voided=0 ");
-
-//		combinedSearch
-//				.append(" FROM moh_bill_patient_bill pb INNER JOIN moh_bill_patient_service_bill psb "
-//						+ "ON psb.patient_bill_id = pb.patient_bill_id "
-//						+ "INNER JOIN moh_bill_beneficiary b ON b.beneficiary_id = pb.beneficiary_id "
-//						+ "INNER JOIN moh_bill_billable_service bs ON bs.billable_service_id = psb.billable_service_id "
-//						+ "INNER JOIN moh_bill_service_category sc ON sc.service_category_id = bs.service_category_id "
-//						+ "INNER JOIN moh_bill_insurance i ON i.insurance_id = sc.insurance_id "
-//						+ " INNER JOIN moh_bill_payment bp on bp."
-//						);
-
-		// This is to INNER JOIN the bill_payment that has Collector in it.
-//		if (billCollector != null && !billCollector.equals(""))
-//			combinedSearch
-//					.append("INNER JOIN moh_bill_payment bp ON pb.patient_bill_id = bp.patient_bill_id ");
-
-//		combinedSearch.append("WHERE pb.voided = 0");
-		
-
-
-//		if (billCollector != null && !billCollector.equals(""))
-//			combinedSearch.append(" AND bp.collector = " + billCollector);
-
 		if (billStatus != null && !billStatus.equals(""))
-			if (!billStatus.equals("0"))// when it's "0" it does affect the
-										// query...
-				combinedSearch.append(" AND pb.status = '"
-						+ billStatus + "'");
-
-
-//		if (insurance != null)
-//			combinedSearch.append(" AND bi.insurance_id = "
-//					+ insurance.getInsuranceId().intValue());
-//
-//		if (startDate != null && endDate != null)
-//			combinedSearch.append(" AND pay.date_received >= '"
-//					+ formatter.format(startDate) + "' AND pay.date_received <= '"
-//					+ formatter.format(endDate) + "'");
-//
-//		if (startDate != null && endDate == null)
-//			combinedSearch.append(" AND pay.date_received >= '"
-//					+ formatter.format(startDate) + "'");
-//
-//		if (startDate == null && endDate != null)
-//			combinedSearch.append(" AND pay.date_received <= '"
-//					+ formatter.format(endDate) + "'");
-
+			if (!billStatus.equals("0"))// when it's "0" it does affect the query...
+				combinedSearch.append(" AND pb.status = '" + billStatus + "'");
 		
 		if (patientId != null)
-//			combinedSearch.append(" AND f.patient_id = " + patientId.intValue());
 		    combinedSearch.append(" INNER JOIN moh_bill_beneficiary b ON b.beneficiary_id = pb.beneficiary_id AND b.patient_id = " + patientId.intValue());
 
 		if (serviceName != null && !serviceName.equals("")){
@@ -517,53 +451,14 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		combinedSearch.append(" GROUP BY pb.patient_bill_id;");
 		
-		log.info("ttttttttttttttttttttttttttttttt "+combinedSearch.toString());
+		log.info("tttttttttttttttttttttttttttttttbills "+combinedSearch.toString());
 
-		List<Object[]> payments = session.createSQLQuery(
-				combinedSearch.toString()).list();
-
-		for (Object[] object : payments) {
-
-			PatientBill bill = new PatientBill();
-			
-			bill.setPatientBillId((Integer) object[0]);
-			bill.setDescription((String) object[1]);
-			bill.setAmount((BigDecimal) object[2]);
-
-			Short printed = null, isPaid = null;
-			if (object[3] != null) {
-				printed = (Short) object[3];
-				if (printed.intValue() == 0)
-					bill.setPrinted(false);
-				else
-					bill.setPrinted(true);
-			}
-			if (object[4] != null) {
-				isPaid = (Short) object[4];
-				if (isPaid.intValue() == 0)
-					bill.setIsPaid(false);
-				else
-					bill.setIsPaid(true);
-			}
-			bill.setStatus((String)object[5]);
-			bill.setCreatedDate((Date) object[6]);
-			bill.setVoided(false);
-			bill.setVoidedDate(null);
-			bill.setVoidReason(null);
-			bill.setBeneficiary(getBeneficiary((Integer) object[10]));
-			bill.setVoidedBy(null);
-			bill.setCreator(Context.getUserService().getUser(
-					(Integer) object[12]));
-
-			bill.setBillItems(getBillItems(bill, serviceName));
-
-			bills.add(bill);
-
-		}
+		List<PatientBill> patientBills = session.createSQLQuery(
+				combinedSearch.toString()).addEntity("pb", PatientBill.class).list();
 
 		System.out.println("_____________________ BILL QUERY __________\n"
 				+ combinedSearch.toString());
-		return bills;
+		return patientBills;
 	}
 	
 	@Override
@@ -571,7 +466,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			Date startDate, Date endDate, Integer patientId, String serviceName,
 			String billStatus, String billCollector) {
 		Session session = sessionFactory.getCurrentSession();
-		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder combinedSearch = new StringBuilder("");
 		
 		combinedSearch.append(" SELECT pay.* FROM moh_bill_payment pay "

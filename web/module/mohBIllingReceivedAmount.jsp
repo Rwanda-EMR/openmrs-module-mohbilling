@@ -335,7 +335,6 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><a
 						href="patientBillPayment.form?patientBillId=${payment.patientBill.patientBillId}&ipCardNumber=${payment.patientBill.beneficiary.insurancePolicy.insuranceCardNo}">View
 							Bill</a></td>
-
 				</tr>
 			</c:forEach>
 			<tr>

@@ -41,14 +41,9 @@ public class MohBIllingrReceivedAmountController extends
 		mav.addObject("allInsurances", InsuranceUtil.getAllInsurances());
 		mav.addObject("categories", categories);
 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	//	Date startDate = null;
 		
-		log.info("testtestetetetetttttttttttttt--today "+new Date());
-		log.info("testtestetetetetttttttttttttt--startHour "+request.getParameter("startHour"));
-		log.info("testtestetetetetttttttttttttt--startMinute "+request.getParameter("startMinute"));
-		log.info("testtestetetetetttttttttttttt--endHour "+request.getParameter("endHour"));
-		log.info("testtestetetetetttttttttttttt--endMinute "+request.getParameter("endMinute"));
 
 		if (request.getParameter("patientId") != null
 				&& request.getParameter("insurance") != null
@@ -66,13 +61,17 @@ public class MohBIllingrReceivedAmountController extends
 					endHourStr=request.getParameter("endHour"),endMinuteStr=request.getParameter("endMinute")
 					;
 			
+			String startTimeStr = startHourStr+":"+startMinute+":00";
+			String endTimeStr = endHourStr+":"+endMinuteStr+":59";
+			
+			
 			Date startDate = sdf.parse(startDateStr.split("/")[2] + "-"
 					+ startDateStr.split("/")[1] + "-"
-					+ startDateStr.split("/")[0]);
+					+ startDateStr.split("/")[0]+" "+startTimeStr);
 			
 			Date endDate = sdf.parse(endDateStr.split("/")[2] + "-"
 					+ endDateStr.split("/")[1] + "-"
-					+ endDateStr.split("/")[0]);
+					+ endDateStr.split("/")[0]+" "+endTimeStr);
 
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
@@ -90,14 +89,6 @@ public class MohBIllingrReceivedAmountController extends
 					+ " "
 					+ (user.getPersonName().getGivenName() != null ? user
 							.getPersonName().getGivenName() : "");
-
-//			if (!startDateStr.equals("")) {
-//				startDate = (Date) formatter.parse(startDateStr);
-//			}
-//
-//			if (!endDateStr.equals("")) {
-//				endDate = (Date) formatter.parse(endDateStr);
-//			}
 
 			if (!request.getParameter("patientId").equals("")) {
 
