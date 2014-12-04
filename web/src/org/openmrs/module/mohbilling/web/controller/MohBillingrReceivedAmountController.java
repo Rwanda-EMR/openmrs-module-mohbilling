@@ -24,7 +24,7 @@ import org.openmrs.module.mohbilling.model.Insurance;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
-public class MohBIllingrReceivedAmountController extends
+public class MohBillingrReceivedAmountController extends
 		ParameterizableViewController {
 
 	protected final Log log = LogFactory.getLog(getClass());
@@ -42,40 +42,50 @@ public class MohBIllingrReceivedAmountController extends
 		mav.addObject("categories", categories);
 
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	//	Date startDate = null;
-		
+		// Date startDate = null;
 
-		if (request.getParameter("patientId") != null
-				&& request.getParameter("insurance") != null
-				&& request.getParameter("startDate") != null
-				&& request.getParameter("endDate") != null
-				&& request.getParameter("serviceId") != null
-				&& request.getParameter("cashCollector") != null) {
+		String patientIdStr = null, insuranceStr = null, 
+				startDateStr = null, endDateStr = null, serviceId = null, 
+				cashCollector = null, startHourStr = null, startMinute = null, 
+				endHourStr = null, endMinuteStr = null;
 
-			String patientIdStr = request.getParameter("patientId"), insuranceStr = request
-					.getParameter("insurance"), startDateStr = request
-					.getParameter("startDate"), endDateStr = request
-					.getParameter("endDate"), serviceId = request
-					.getParameter("serviceId"), cashCollector = request
-					.getParameter("cashCollector"),startHourStr=request.getParameter("startHour"),startMinute=request.getParameter("startMinute"),
-					endHourStr=request.getParameter("endHour"),endMinuteStr=request.getParameter("endMinute")
-					;
+		if (request.getParameter("formStatus") != null && !request.getParameter("formStatus").equals("")) {
 			
-			String startTimeStr = startHourStr+":"+startMinute+":00";
-			String endTimeStr = endHourStr+":"+endMinuteStr+":59";
+			startHourStr = request.getParameter("startHour");
+			startMinute = request.getParameter("startMinute"); 
+			endHourStr = request.getParameter("endHour");
+			endMinuteStr = request.getParameter("endMinute");
+
+			String startTimeStr = startHourStr + ":" + startMinute + ":00";
+			String endTimeStr = endHourStr + ":" + endMinuteStr + ":59";
+			Date startDate = null, endDate = null;
+			if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")) {
+				startDateStr = request.getParameter("startDate");
+				startDate = sdf.parse(startDateStr.split("/")[2] + "-"
+						+ startDateStr.split("/")[1] + "-"
+						+ startDateStr.split("/")[0] + " " + startTimeStr);
+			}
+			
+			if(request.getParameter("endDate") != null && !request.getParameter("endDate").equals("")) {
+				endDateStr = request.getParameter("endDate");
+				endDate = sdf.parse(endDateStr.split("/")[2] + "-"
+						+ endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0]
+						+ " " + endTimeStr);
+			}
+			
+			if(request.getParameter("patientId") != null)
+				patientIdStr = request.getParameter("patientId");
+				
+			if(request.getParameter("cashCollector") != null)
+				cashCollector = request.getParameter("cashCollector");
 			
 			
-			Date startDate = sdf.parse(startDateStr.split("/")[2] + "-"
-					+ startDateStr.split("/")[1] + "-"
-					+ startDateStr.split("/")[0]+" "+startTimeStr);
-			
-			Date endDate = sdf.parse(endDateStr.split("/")[2] + "-"
-					+ endDateStr.split("/")[1] + "-"
-					+ endDateStr.split("/")[0]+" "+endTimeStr);
+			if(request.getParameter("insurance") != null)
+				insuranceStr = request.getParameter("insurance");			
 
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
-	//		Date endDate = null;
+			// Date endDate = null;
 			Insurance insurance = null;
 			String patientNames = null;
 
@@ -114,9 +124,7 @@ public class MohBIllingrReceivedAmountController extends
 			reportedPayments = ReportsUtil.paymentsCohortBuilder(insurance,
 					startDate, endDate, patientId, serviceId, null,
 					cashCollector);
-			
-			
-			
+
 			mav.addObject("reportedPayments", reportedPayments);
 			mav.addObject("startDateStr", startDateStr);
 			mav.addObject("endDateStr", endDateStr);
@@ -145,7 +153,7 @@ public class MohBIllingrReceivedAmountController extends
 			mav.addObject("today", new Date());
 			mav.addObject("patientNames", patientNames);
 			mav.addObject("cashierNames", cashierNames);
-			
+
 			Double TotalReceivedAmount = (double) 0;
 
 			for (BillPayment billPayment : reportedPayments) {
@@ -153,10 +161,9 @@ public class MohBIllingrReceivedAmountController extends
 						+ billPayment.getAmountPaid().doubleValue();
 
 			}
-			
-            
-			mav.addObject("TotalReceivedAmount", TotalReceivedAmount); 
-		
+
+			mav.addObject("TotalReceivedAmount", TotalReceivedAmount);
+
 		}
 
 		mav.setViewName(getViewName());

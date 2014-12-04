@@ -411,43 +411,43 @@ public class HibernateBillingDAO implements BillingDAO {
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		StringBuilder combinedSearch = new StringBuilder("");
 		
-		combinedSearch.append(" SELECT pb.* FROM moh_bill_patient_bill pb "
-		+" inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id "
-		+ " inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
-		+" inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id " 
-		+" inner join moh_bill_service_category sc on bs.service_category_id = sc.service_category_id "
-		);
+		combinedSearch
+				.append("SELECT pb.* FROM moh_bill_patient_bill pb "
+						+ "inner join moh_bill_beneficiary b on pb.beneficiary_id = b.beneficiary_id ");
 		
+		if (patientId != null)
+		    combinedSearch.append(" b.patient_id = " + patientId.intValue());
+		
+		combinedSearch
+				.append("inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id and psb.voided = 0 "
+						+ "inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
+						+ "inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id ");
+		
+		if(insurance != null)
+			combinedSearch.append( " and i.insurance_id =  "+insurance.getInsuranceId().intValue());
+		
+		combinedSearch.append(" WHERE 1 = 1 ");
 		
 		if(billCollector != null && !billCollector.equals(""))
 			combinedSearch.append(" and pb.creator =  "+ billCollector);
 			
 		if (startDate != null && endDate != null)
-			combinedSearch.append(" and pb.created_date >= '"+formatter.format(startDate)+" 00:00:00' and pb.created_date <= '"+formatter.format(endDate)+" 24:59:59' ");
+			combinedSearch.append(" and pb.created_date >= '"
+					+ formatter.format(startDate)
+					+ " 00:00:00' and pb.created_date <= '"
+					+ formatter.format(endDate) + " 24:59:59' ");
 
 		if (startDate != null && endDate == null)
-			combinedSearch.append(" and pb.created_date >= '"+formatter.format(startDate)+"' ");
-		
+			combinedSearch.append(" and pb.created_date >= '"
+					+ formatter.format(startDate) + " 00:00:00' ");
+
 		if (startDate == null && endDate != null)
-			combinedSearch.append(" and pb.created_date <= '"+formatter.format(endDate)+"' ");
-
-		if(insurance != null)
-			combinedSearch.append( " and i.insurance_id =  "+insurance.getInsuranceId().intValue());
-
-		if(serviceName != null && !serviceName.equals(""))	{	
-			combinedSearch.append(" and sc.name = '"+serviceName +"'");
-		}
-		
+			combinedSearch.append(" and pb.created_date <= '"
+					+ formatter.format(endDate) + " 24:59:59' ");
+				
 		if (billStatus != null && !billStatus.equals(""))
-			if (!billStatus.equals("0"))// when it's "0" it does affect the query...
 				combinedSearch.append(" AND pb.status = '" + billStatus + "'");
-		
-		if (patientId != null)
-		    combinedSearch.append(" INNER JOIN moh_bill_beneficiary b ON b.beneficiary_id = pb.beneficiary_id AND b.patient_id = " + patientId.intValue());
-
-		if (serviceName != null && !serviceName.equals("")){
-			combinedSearch.append(" AND sc.name = '" + serviceName + "'");
-		}
+			
 
 		combinedSearch.append(" GROUP BY pb.patient_bill_id;");
 		
@@ -470,12 +470,19 @@ public class HibernateBillingDAO implements BillingDAO {
 		StringBuilder combinedSearch = new StringBuilder("");
 		
 		combinedSearch.append(" SELECT pay.* FROM moh_bill_payment pay "
-		+ " inner join moh_bill_patient_bill pb on pay.patient_bill_id = pb.patient_bill_id "
-		+" inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id "
-		+ " inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
-		+" inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id " 
-		+" inner join moh_bill_service_category sc on bs.service_category_id = sc.service_category_id "
-		);
+				+ "inner join moh_bill_patient_bill pb on pay.patient_bill_id = pb.patient_bill_id "
+				+ " INNER JOIN moh_bill_beneficiary b ON pb.beneficiary_id = b.beneficiary_id ");
+		if (patientId != null)
+		    combinedSearch.append(" AND b.patient_id = " + patientId.intValue());
+		
+		combinedSearch.append(" inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id "
+				+ " inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
+				+ " inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id " );
+		
+		if(insurance != null)
+			combinedSearch.append(" and i.insurance_id =  "+insurance.getInsuranceId().intValue());
+		
+		combinedSearch.append(" inner join moh_bill_service_category sc on bs.service_category_id = sc.service_category_id WHERE 1 = 1");
 		
 		
 		if(billCollector != null && !billCollector.equals(""))
@@ -490,35 +497,20 @@ public class HibernateBillingDAO implements BillingDAO {
 		if (startDate == null && endDate != null)
 			combinedSearch.append(" and pay.created_date <= '"+formatter.format(endDate)+"' ");
 
-		if(insurance != null)
-			combinedSearch.append( " and i.insurance_id =  "+insurance.getInsuranceId().intValue());
-
-		if(serviceName != null && !serviceName.equals(""))	{	
-			combinedSearch.append(" and sc.name = '"+serviceName +"'");
-		}
-
 		// payment status
 		if (billStatus != null && !billStatus.equals(""))
 			if (!billStatus.equals("0"))// when it's "0" it does affect the
 										// query...
 				combinedSearch.append(" AND pb.status = '"
 						+ billStatus + "'");
-
 		
-		if (patientId != null)
-		    combinedSearch.append(" INNER JOIN moh_bill_beneficiary b ON b.beneficiary_id = pb.beneficiary_id AND b.patient_id = " + patientId.intValue());
-
-//		
 		combinedSearch.append(" GROUP BY bill_payment_id");
 		
 		log.info("ttttttttttttttttttttttttttttttt "+combinedSearch.toString());
 
 		List<BillPayment> billPayments = session.createSQLQuery(
 				combinedSearch.toString()).addEntity("pay", BillPayment.class).list();
-		
-//		List<Double> q = (List<Double>) session.createSQLQuery("select sum(amount_paid) from moh_bill_payment where date_received>='"+formatter.format(startDate)+"' and date_received<='"+formatter.format(endDate)+"' ").list();
 
-//		System.out.println("ppppppppppppppppppppppp "+q);
 		System.out.println("_____________________ BILL QUERY __________\n"
 				+ combinedSearch.toString());
 		return billPayments;

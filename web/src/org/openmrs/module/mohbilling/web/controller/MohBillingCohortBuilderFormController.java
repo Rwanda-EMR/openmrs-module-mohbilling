@@ -3,9 +3,7 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.math.BigDecimal;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,26 +29,6 @@ import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.Chunk;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.Image;
-import com.itextpdf.text.PageSize;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.Phrase;
-import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.Font.FontFamily;
-import com.itextpdf.text.pdf.ColumnText;
-import com.itextpdf.text.pdf.FontSelector;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfPageEventHelper;
-import com.itextpdf.text.pdf.PdfTemplate;
-import com.itextpdf.text.pdf.PdfWriter;
-
 public class MohBillingCohortBuilderFormController extends
 		ParameterizableViewController {
 
@@ -70,28 +48,35 @@ public class MohBillingCohortBuilderFormController extends
 
 		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 		Date startDate = null;
-
-		if (request.getParameter("patientId") != null
-				&& request.getParameter("insurance") != null
-				&& request.getParameter("startDate") != null
-				&& request.getParameter("endDate") != null
-				&& request.getParameter("serviceId") != null
-				&& request.getParameter("billStatus") != null
-				&& request.getParameter("billCreator") != null) {
-
-			String patientIdStr = request.getParameter("patientId"), insuranceStr = request
-					.getParameter("insurance"), startDateStr = request
-					.getParameter("startDate"), endDateStr = request
-					.getParameter("endDate"), serviceId = request
-					.getParameter("serviceId"), billStatus = request
-					.getParameter("billStatus"), billCreator = request
-					.getParameter("billCreator");
-
+		String patientIdStr = null, startDateStr = null, endDateStr = null, billStatus = null, billCreator = null;
+		if (request.getParameter("startDate") != null || request.getParameter("endDate") != null) {
+			startDateStr = request.getParameter("startDate");
+			endDateStr = request.getParameter("endDate");
+			
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
 			Date endDate = null;
 			Insurance insurance = null;
 			String patientNames = null;
+			
+			
+			if(request.getParameter("patientId") != null)
+				patientIdStr = request.getParameter("patientId");
+		
+			if(request.getParameter("insurance") != null && !request.getParameter("insurance").equals("")) {
+				insuranceIdInt = Integer.parseInt(request.getParameter("insurance"));
+				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
+			}
+			
+			if(request.getParameter("billStatus") != null && !request.getParameter("billStatus").equals(""))
+				billStatus = request.getParameter("billStatus");
+			
+			if(request.getParameter("billCreator") != null && !request.getParameter("billCreator").equals(""))
+				billCreator = request.getParameter("billCreator");
+
+			
+
+			
 			
 			User user = Context.getAuthenticatedUser();
 			
@@ -104,11 +89,11 @@ public class MohBillingCohortBuilderFormController extends
 					+ (user.getPersonName().getGivenName() != null ? user
 							.getPersonName().getGivenName() : "");
 
-			if (!startDateStr.equals("")) {
+			if (startDateStr != null) {
 				startDate = (Date) formatter.parse(startDateStr);
 			}
 
-			if (!endDateStr.equals("")) {
+			if (endDateStr != null) {
 				endDate = (Date) formatter.parse(endDateStr);
 			}
 
@@ -129,16 +114,15 @@ public class MohBillingCohortBuilderFormController extends
 
 
 			if (!request.getParameter("insurance").equals("")) {
-				insuranceIdInt = Integer.parseInt(insuranceStr);
-				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
+				
 			}
 
 			reportedPatientBills = ReportsUtil.billCohortBuilder(insurance,
-					startDate, endDate, patientId, serviceId, billStatus, billCreator);
+					startDate, endDate, patientId, null, billStatus, billCreator);
 
 			mav.addObject("startDateStr", startDateStr);
 			mav.addObject("endDateStr", endDateStr);
-			mav.addObject("serviceId", serviceId);
+//			mav.addObject("serviceId", serviceId);
 			mav.addObject("insurance", insurance);
 			mav.addObject("patientId", patientId);
 			mav.addObject("billStatus", billStatus);
@@ -178,6 +162,7 @@ public class MohBillingCohortBuilderFormController extends
 					
 					totalDueAmt = patDueAmt + insDueAmt;
 				}
+				
 				//TODO: must check this method called right here from Tag...
 				payments = ReportsUtil.roundTwoDecimals(Long.parseLong(MohBillingTagUtil.getTotalAmountPaidByPatientBill(bill.getPatientBillId())));
 				billObj.add(new Object[] {

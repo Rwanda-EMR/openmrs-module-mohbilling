@@ -16,7 +16,9 @@
 
 	$bill(document).ready(function() {
 		$bill('.meta').hide();
-
+		$bill('#submitId').click(function() {
+			$bill('#formStatusId').val("clicked");
+		});
 		$bill("input#print_button").click(function() {
 			$bill('.meta').show();
 			$bill("div.printarea").printArea();
@@ -30,24 +32,22 @@
 </h2>
 
 <ul id="menu">
-	<li
-		class="<c:if test='<%=request.getRequestURI().contains("Cohort")%>'> active</c:if>">
-		<a href="cohort.form"><spring:message
-				code="@MODULE_ID@.billing.cohort" /></a>
+	<li>
+		<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort" /></a>
 	</li>
-	<openmrs:hasPrivilege privilege="Manage Billing Reports">
-		<li><a href="hmisReport.form">HMIS Reports</a></li>
-	</openmrs:hasPrivilege>
-	<li><a href="received.form"><spring:message
-				code="@MODULE_ID@.billing.received" /></a></li>
+	<li class="<c:if test='<%=request.getRequestURI().contains("received")%>'> active</c:if>">
+		<a href="received.form"><spring:message code="@MODULE_ID@.billing.received" /></a>
+	</li>
+	<li><a href="hmisReport.form">HMIS Reports</a></li>
 </ul>
 
 <b class="boxHeader">Search Form(Advanced)</b>
 <div class="box">
 
 
-	<form action="received.form" method="post" name="">
+	<form method="post" action="received.form">
 		<input type="hidden" name="patientIdnew" value="${patientId}" />
+		<input type="hidden" name="formStatus" id="formStatusId" value="" />
 		<table>
 			<tr>
 				<td width="10%">When?</td>
@@ -251,7 +251,7 @@
 				</td>
 				<td>Collector :</td>
 				<td><openmrs_tag:userField formFieldName="cashCollector"
-						initialValue="${cashCollector}" /></td>
+						initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
 			</tr>
 
 			<tr>
@@ -267,17 +267,15 @@
 							<option value="${ins.insuranceId}">${ins.name}</option>
 						</c:forEach>
 				</select></td>
-				<td>Bill Status</td>
-				<td><select name="billStatus">
+				<!--td>Bill Status</td>
+				<td>
+					<select name="billStatus">
 						<option value="0">---</option>
-						<option value="FULLY PAID"
-							${billStatus== 'FULLY PAID' ? 'selected' : ''}>FULLY
-							PAID</option>
+						<option value="FULLY PAID" ${billStatus== 'FULLY PAID' ? 'selected' : ''}>FULLY PAID</option>
 						<option value="UNPAID" ${billStatus== 'UNPAID' ? 'selected' : ''}>UNPAID</option>
-						<option value="PARTLY PAID"
-							${billStatus== 'PARTLY PAID' ? 'selected' : ''}>PARTLY
-							PAID</option>
-				</select></td>
+						<option value="PARTLY PAID" ${billStatus== 'PARTLY PAID' ? 'selected' : ''}>PARTLY PAID</option>
+					</select>
+				</td-->
 
 			</tr>
 
@@ -285,8 +283,9 @@
 				<td>Patient</td>
 				<td><openmrs_tag:patientField formFieldName="patientId"
 						initialValue="${patientId}" /></td>
-				<td>Facility Services</td>
-				<td><select name="serviceId">
+				<!--td>Facility Services</td>
+				<td>
+					<select name="serviceId">
 						<option selected="selected" value="${serviceId}">
 							<c:choose>
 								<c:when test="${serviceId!=null}">${serviceId}</c:when>
@@ -296,11 +295,12 @@
 						<c:forEach items="${categories}" var="service">
 							<option value="${service}">${service}</option>
 						</c:forEach>
-				</select></td>
+					</select>
+				</td-->
 			</tr>
 
 		</table>
-		<input type="submit" value="Search" />
+		<input type="submit" value="Search" id="submitId" />
 	</form>
 
 </div>

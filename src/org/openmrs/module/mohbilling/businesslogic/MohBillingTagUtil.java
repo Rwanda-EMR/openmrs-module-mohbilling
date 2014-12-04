@@ -20,7 +20,7 @@ public class MohBillingTagUtil {
 	public static String getTotalAmountPaidByPatientBill(Integer patientBillId) {
 
 		Long amountPaid = 0l;
-		MathContext mc = new MathContext(BigDecimal.ROUND_HALF_DOWN);
+//		MathContext mc = new MathContext(BigDecimal.ROUND_HALF_DOWN);
 
 		if (null == patientBillId)
 			return "";

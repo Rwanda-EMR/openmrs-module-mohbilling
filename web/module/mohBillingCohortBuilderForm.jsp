@@ -28,16 +28,12 @@
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
 			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort"/></a>
 		</li>
-		
 	    <li>
 			<a href="received.form"><spring:message code="@MODULE_ID@.billing.received"/></a>
 		</li>
-		<openmrs:hasPrivilege privilege="Manage Billing Reports">
-			<li>
-				<a href="hmisReport.form">HMIS Reports</a>
-			</li>
-		</openmrs:hasPrivilege>
-
+		<li>
+			<a href="hmisReport.form">HMIS Reports</a>
+		</li>
 </ul>
 
 <b class="boxHeader">Search Form(Advanced)</b>
@@ -82,7 +78,7 @@
 		<td>Bill Status</td>
 		<td>
 			<select name="billStatus">
-				<option value="0">---</option>
+				<option value="">---</option>
 				<option value="FULLY PAID" ${billStatus== 'FULLY PAID' ? 'selected' : ''}>FULLY PAID</option>
 				<option value="UNPAID" ${billStatus== 'UNPAID' ? 'selected' : ''}>UNPAID</option>
 				<option value="PARTLY PAID" ${billStatus== 'PARTLY PAID' ? 'selected' : ''}>PARTLY PAID</option>
@@ -96,7 +92,7 @@
 		<td>
 			<openmrs_tag:patientField formFieldName="patientId" initialValue="${patientId}" />
 		</td>
-		<td>Facility Services</td>
+		<!--td>Facility Services</td>
 		<td>
 			<select name="serviceId">
 				<option selected="selected" value="${serviceId}">
@@ -109,7 +105,7 @@
 					<option value="${service}">${service}</option>
 				</c:forEach>
 			</select>
-		</td>
+		</td-->
 	</tr>
 
 </table>
