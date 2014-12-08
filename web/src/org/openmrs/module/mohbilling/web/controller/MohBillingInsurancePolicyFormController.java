@@ -110,6 +110,14 @@ public class MohBillingInsurancePolicyFormController extends
 						.getService(BillingService.class)
 						.getInsurancePolicy(
 								Integer.parseInt(request.getParameter("cardId")));
+				Beneficiary b = Context
+						.getService(BillingService.class)
+						.getBeneficiaryByPolicyNumber(card.getInsuranceCardNo());
+				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> insurance card number: " + request.getParameter("insurancePolicyOwnerCardNumber"));
+				if(card.getOwner().getPatientId() == b.getPatient().getPatientId()) {
+					b.setPolicyIdNumber(request.getParameter("insurancePolicyOwnerCardNumber"));
+					card.addBeneficiary(b);
+				}
 
 			} else
 				card = new InsurancePolicy();
@@ -163,6 +171,9 @@ public class MohBillingInsurancePolicyFormController extends
 			card.setOwner(Context.getPatientService().getPatient(
 					Integer.valueOf(request
 							.getParameter("insurancePolicyOwner"))));
+			
+			//owner update
+			
 
 			// beneficiaries
 			for (int i = 1; i < 11; i++) {
