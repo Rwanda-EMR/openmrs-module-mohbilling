@@ -416,12 +416,12 @@ public class HibernateBillingDAO implements BillingDAO {
 						+ "inner join moh_bill_beneficiary b on pb.beneficiary_id = b.beneficiary_id ");
 		
 		if (patientId != null)
-		    combinedSearch.append(" b.patient_id = " + patientId.intValue());
+		    combinedSearch.append(" and b.patient_id = " + patientId.intValue());
 		
 		combinedSearch
-				.append("inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id and psb.voided = 0 "
-						+ "inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
-						+ "inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id ");
+				.append(" inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id and psb.voided = 0 "
+						+ " inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
+						+ " inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id ");
 		
 		if(insurance != null)
 			combinedSearch.append( " and i.insurance_id =  "+insurance.getInsuranceId().intValue());
@@ -435,7 +435,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			combinedSearch.append(" and pb.created_date >= '"
 					+ formatter.format(startDate)
 					+ " 00:00:00' and pb.created_date <= '"
-					+ formatter.format(endDate) + " 24:59:59' ");
+					+ formatter.format(endDate) + " 23:59:59' ");
 
 		if (startDate != null && endDate == null)
 			combinedSearch.append(" and pb.created_date >= '"
@@ -443,10 +443,10 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		if (startDate == null && endDate != null)
 			combinedSearch.append(" and pb.created_date <= '"
-					+ formatter.format(endDate) + " 24:59:59' ");
+					+ formatter.format(endDate) + " 23:59:59' ");
 				
 		if (billStatus != null && !billStatus.equals(""))
-				combinedSearch.append(" AND pb.status = '" + billStatus + "'");
+				combinedSearch.append(" AND pb.status = '" + billStatus + "' ");
 			
 
 		combinedSearch.append(" GROUP BY pb.patient_bill_id;");
