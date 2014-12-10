@@ -314,15 +314,15 @@ public class FacilityServicePriceUtil {
 
 			// Adding the Billable Service automatically for non insured
 			// patients.
-			service.setCreatedDate(fsp.getCreatedDate());
-			service.setCreator(fsp.getCreator());
-			service.setFacilityServicePrice(fsp);
-			service.setStartDate(fsp.getStartDate());
-			service.setMaximaToPay(fsp.getFullPrice());
-			service.setRetired(fsp.isRetired());
+//			service.setCreatedDate(fsp.getCreatedDate());
+//			service.setCreator(fsp.getCreator());
+//			service.setFacilityServicePrice(fsp);
+//			service.setStartDate(fsp.getStartDate());
+//			service.setMaximaToPay(fsp.getFullPrice());
+//			service.setRetired(fsp.isRetired());
 
 			// Adding the Billable service to the FSP.
-			fsp.addBillableService(service);
+//			fsp.addBillableService(service);
 
 			getService().saveFacilityServicePrice(fsp);
 
@@ -350,12 +350,12 @@ public class FacilityServicePriceUtil {
 
 			// Editing the Billable Service automatically for non insured
 			// patients.
-			service.setCreatedDate(fsp.getCreatedDate());
-			service.setCreator(fsp.getCreator());
-			service.setFacilityServicePrice(fsp);
-			service.setStartDate(fsp.getStartDate());
-			service.setMaximaToPay(fsp.getFullPrice());
-			service.setRetired(false);
+//			service.setCreatedDate(fsp.getCreatedDate());
+//			service.setCreator(fsp.getCreator());
+//			service.setFacilityServicePrice(fsp);
+//			service.setStartDate(fsp.getStartDate());
+//			service.setMaximaToPay(fsp.getFullPrice());
+//			service.setRetired(false);
 
 			// Retiring the existing Billable service
 			for (BillableService serv : fsp.getBillableServices()) {
@@ -365,7 +365,7 @@ public class FacilityServicePriceUtil {
 				}
 			}
 			// Editing the Billable service to the FSP.
-			fsp.addBillableService(service);
+//			fsp.addBillableService(service);
 
 			getService().saveFacilityServicePrice(fsp);
 
@@ -524,81 +524,82 @@ public class FacilityServicePriceUtil {
 		BigDecimal fifth = new BigDecimal(20).divide(new BigDecimal(100));
 		
 		for(Insurance insurance : insurances) {
-			try {
-				if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
-					if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
-						System.out.println("The bill exist already");
-						bs = getService().getBillableServiceByConcept(fsp, insurance);
-						bs.setStartDate(startDate);
-						bs.setInsurance(insurance);
-						bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
-						bs.setCreatedDate(new Date());
-						bs.setRetired(false);
-						bs.setCreator(Context.getAuthenticatedUser());
-						bs.setFacilityServicePrice(fsp);
-						
-						if(insurance.getCategory().toLowerCase().equals("base")) {
-							bs.setMaximaToPay(fsp.getFullPrice());
-						} else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
-							bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
-						} else if(insurance.getCategory().toLowerCase().equals("private")) {
-							bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
-						} else if(insurance.getCategory().toLowerCase().equals("none")) {
-							BigDecimal initial = fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter));
-							bs.setMaximaToPay(initial.add(initial.multiply(fifth)));
+			if(!insurance.isVoided())			
+				try {
+					if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
+						if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
+							System.out.println("The bill exist already");
+							bs = getService().getBillableServiceByConcept(fsp, insurance);
+							bs.setStartDate(startDate);
+							bs.setInsurance(insurance);
+							bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+							bs.setCreatedDate(new Date());
+							bs.setRetired(false);
+							bs.setCreator(Context.getAuthenticatedUser());
+							bs.setFacilityServicePrice(fsp);
+							
+							if(insurance.getCategory().toLowerCase().equals("base")) {
+								bs.setMaximaToPay(fsp.getFullPrice());
+							} else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+								bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
+							} else if(insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+							} else if(insurance.getCategory().toLowerCase().equals("none")) {
+								BigDecimal initial = fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter));
+								bs.setMaximaToPay(initial.add(initial.multiply(fifth)));
+							}
+						} else {
+							bs = new BillableService();
+							bs.setStartDate(startDate);
+							bs.setInsurance(insurance);
+							bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+							bs.setCreatedDate(new Date());
+							bs.setRetired(false);
+							bs.setCreator(Context.getAuthenticatedUser());
+							bs.setFacilityServicePrice(fsp);
+							if(insurance.getCategory().toLowerCase().equals("base")) {
+								bs.setMaximaToPay(fsp.getFullPrice());
+							} else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+								bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
+							} else if(insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+							} else if(insurance.getCategory().toLowerCase().equals("none")) {
+								BigDecimal initial = fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter));
+								bs.setMaximaToPay(initial.add(initial.multiply(fifth)));
+							}
 						}
 					} else {
-						bs = new BillableService();
-						bs.setStartDate(startDate);
-						bs.setInsurance(insurance);
-						bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
-						bs.setCreatedDate(new Date());
-						bs.setRetired(false);
-						bs.setCreator(Context.getAuthenticatedUser());
-						bs.setFacilityServicePrice(fsp);
-						if(insurance.getCategory().toLowerCase().equals("base")) {
+						if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
+							System.out.println("Existing tarrif item");
+							bs = getService().getBillableServiceByConcept(fsp, insurance);
+							bs.setStartDate(startDate);
+							bs.setInsurance(insurance);
+							bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+							bs.setCreatedDate(new Date());
+							bs.setRetired(false);
+							bs.setCreator(Context.getAuthenticatedUser());
+							bs.setFacilityServicePrice(fsp);
 							bs.setMaximaToPay(fsp.getFullPrice());
-						} else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
-							bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
-						} else if(insurance.getCategory().toLowerCase().equals("private")) {
-							bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
-						} else if(insurance.getCategory().toLowerCase().equals("none")) {
-							BigDecimal initial = fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter));
-							bs.setMaximaToPay(initial.add(initial.multiply(fifth)));
+						} else {
+							System.out.println("New Tarrif item");
+							bs = new BillableService();
+							bs.setStartDate(startDate);
+							bs.setInsurance(insurance);
+							bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+							bs.setCreatedDate(new Date());
+							bs.setRetired(false);
+							bs.setCreator(Context.getAuthenticatedUser());
+							bs.setFacilityServicePrice(fsp);
+							bs.setMaximaToPay(fsp.getFullPrice());
 						}
 					}
-				} else {
-					if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
-						System.out.println("Existing tarrif item");
-						bs = getService().getBillableServiceByConcept(fsp, insurance);
-						bs.setStartDate(startDate);
-						bs.setInsurance(insurance);
-						bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
-						bs.setCreatedDate(new Date());
-						bs.setRetired(false);
-						bs.setCreator(Context.getAuthenticatedUser());
-						bs.setFacilityServicePrice(fsp);
-						bs.setMaximaToPay(fsp.getFullPrice());
-					} else {
-						System.out.println("New Tarrif item");
-						bs = new BillableService();
-						bs.setStartDate(startDate);
-						bs.setInsurance(insurance);
-						bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
-						bs.setCreatedDate(new Date());
-						bs.setRetired(false);
-						bs.setCreator(Context.getAuthenticatedUser());
-						bs.setFacilityServicePrice(fsp);
-						bs.setMaximaToPay(fsp.getFullPrice());
-					}
-				}
-				
-				fsp.addBillableService(bs);
-				getService().saveFacilityServicePrice(fsp);
-				msg = "Updated Successfully";
-			} catch(Exception e) {
-				log.error(">>>MOH>>BILLING>>BULK UPDATE>> " + e.getMessage());
-				e.printStackTrace();
+					
+					fsp.addBillableService(bs);
+					getService().saveFacilityServicePrice(fsp);
+					msg = "Updated Successfully";
+				} catch(Exception e) {
+					log.error(">>>MOH>>BILLING>>BULK UPDATE>> " + e.getMessage());
+					e.printStackTrace();
 			}
 		}
 		return msg;
