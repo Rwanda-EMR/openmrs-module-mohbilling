@@ -43,14 +43,14 @@
 		<c:if test="${empty billableServices}"><tr><td colspan="8"><center>No Billable Services for this Insurance found !</center></td></tr></c:if>
 		<c:forEach items="${billableServices}" var="bs" varStatus="status">
 			<tr>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${bs.facilityServicePrice.name}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${bs.facilityServicePrice.shortName}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${bs.facilityServicePrice.concept.name}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${bs.serviceCategory.name}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${bs.facilityServicePrice.fullPrice} Rwf</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${bs.maximaToPay} Rwf</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billableService.form?insuranceId=${insurance.insuranceId}&billableServiceId=${bs.serviceId}">Edit</a></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><font color="${bs.retired ? 'red' : ''}">${status.count}.</font></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><font color="${bs.retired ? 'red' : ''}">${bs.facilityServicePrice.name}</font></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><font color="${bs.retired ? 'red' : ''}">${bs.facilityServicePrice.shortName}</font></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><font color="${bs.retired ? 'red' : ''}">${bs.facilityServicePrice.concept.name}</font></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><font color="${bs.retired ? 'red' : ''}">${bs.serviceCategory.name}</font></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><font color="${bs.retired ? 'red' : ''}">${bs.facilityServicePrice.fullPrice} Rwf</font></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><font color="${bs.retired ? 'red' : ''}">${bs.maximaToPay} Rwf</font></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><font color="${bs.retired ? 'red' : ''}"><a href="billableService.form?insuranceId=${insurance.insuranceId}&billableServiceId=${bs.serviceId}">Edit</a></font></td>
 			</tr>
 		</c:forEach>
 	</table>

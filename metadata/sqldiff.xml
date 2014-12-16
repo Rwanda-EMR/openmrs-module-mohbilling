@@ -446,7 +446,7 @@
 								AFTER `is_paid`;
 		</sql>
 	</diff>
-		<diff>
+	<diff>
 		<version>1.3.0.6</version>
 		<author>MoH Rwanda</author>
 		<date>November 26th 2014</date>
@@ -464,5 +464,17 @@
 		</sql>
 
 	</diff>
+	<!--diff>
+		<version>1.3.0.7</version>
+		<author>MoH Rwanda</author>
+		<date>December 16th 2014</date>
+		<description>
+			Add unique constraint on facility_service_price_id and insurance_id in moh_bill_billable_service table.
+		</description>
+		<sql>
+			ALTER TABLE `moh_bill_billable_service` 
+			ADD UNIQUE `unique_facility_insurance`(`facility_service_price_id`, `insurance_id`);
+		</sql>
+	</diff-->
 
 </sqldiff>
