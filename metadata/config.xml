@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.2.18</version>
+	<version>0.0.2.19</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -257,6 +257,11 @@
         <name>Manage Third Party</name>
         <description>Allows user to CRUD Third Party for Insurances</description>
     </privilege>
+    <privilege>
+        <name>Patient Dashboard - View Billing Section</name>
+        <description>Allows users to view Billing Section on Patient Dashboard</description>
+    </privilege>
+    
   
 	<!-- Internationalization -->
 	<!-- All message codes should start with @MODULE_ID@.* -->
