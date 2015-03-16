@@ -103,13 +103,13 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 				.toString());// the name of the author
 
 		FontSelector fontTitle = new FontSelector();
-		fontTitle.addFont(new Font(FontFamily.COURIER, 10.0f, Font.BOLD));
+		fontTitle.addFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
 
 		/** ------------- Report title ------------- */
 		
 		Chunk chk = new Chunk("Printed on : "
 				+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
-		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.BOLD));
+		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
 		Paragraph todayDate = new Paragraph();
 		todayDate.setAlignment(Element.ALIGN_RIGHT);
 		todayDate.add(chk);
@@ -144,7 +144,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 
 		document.add(new Paragraph("\n"));
 		chk = new Chunk("FACTURE");
-		chk.setFont(new Font(FontFamily.COURIER, 12.0f, Font.BOLD));
+		chk.setFont(new Font(FontFamily.COURIER, 12.0f, Font.NORMAL));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
 		pa.add(chk);
@@ -154,7 +154,9 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 
 		// title row
 		FontSelector fontTitleSelector = new FontSelector();
-		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 9, Font.BOLD));
+//		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 9, Font.BOLD));
+		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 9, Font.NORMAL));
+
 
 		PdfPTable tableHeader = new PdfPTable(1);
 		tableHeader.setWidthPercentage(100f);
@@ -212,7 +214,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		float[] colsWidth = { 2f, 15f, 2f, 3.5f, 5f, 5f, 5f };
 		table = new PdfPTable(colsWidth);
 		table.setWidthPercentage(100f);
-		BaseColor bckGroundTitle = new BaseColor(170, 170, 170);
+		BaseColor bckGroundTitle = new BaseColor(255, 255, 255);
 
 		// table Header
 		cell = new PdfPCell(fontTitleSelector.process("No."));
@@ -253,7 +255,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 
 		// empty row
 		FontSelector fontTotals = new FontSelector();
-		fontTotals.addFont(new Font(FontFamily.COURIER, 9, Font.BOLD));
+		fontTotals.addFont(new Font(FontFamily.COURIER, 9, Font.NORMAL));
 
 		int ids = 0;
 		Double totalToBePaidOnService = 0.0;
@@ -319,12 +321,12 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 
 		cell = new PdfPCell(fontTotals.process("" + totalToBePaidByInsurance));
 		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		cell.setBackgroundColor(new BaseColor(201, 218, 255));
+		cell.setBackgroundColor(new BaseColor(255, 255, 255));
 		table.addCell(cell);
 
 		cell = new PdfPCell(fontTotals.process("" + totalToBePaidByPatient));
 		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		cell.setBackgroundColor(new BaseColor(201, 218, 255));
+		cell.setBackgroundColor(new BaseColor(255, 255, 255));
 		table.addCell(cell);
 
 		// Amount Paid
@@ -338,7 +340,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 				+ MohBillingTagUtil.getTotalAmountPaidByPatientBill(pb
 						.getPatientBillId())));
 		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		cell.setBackgroundColor(new BaseColor(201, 218, 255));
+		cell.setBackgroundColor(new BaseColor(255, 255, 255));
 		table.addCell(cell);
 
 		// Rest to be Paid
@@ -352,7 +354,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 				+ MohBillingTagUtil.getTotalAmountNotPaidByPatientBill(pb
 						.getPatientBillId())));
 		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		cell.setBackgroundColor(new BaseColor(201, 218, 255));
+		cell.setBackgroundColor(new BaseColor(255, 255, 255));
 		table.addCell(cell);
 
 		document.add(table);
@@ -401,7 +403,6 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 
 			Phrase footer = new Phrase(String.format("- %d -",
 					writer.getPageNumber()));
-			footer.setFont(new Font(FontFamily.COURIER, 4, Font.NORMAL));
 
 			ColumnText.showTextAligned(writer.getDirectContent(),
 					Element.ALIGN_CENTER, footer,

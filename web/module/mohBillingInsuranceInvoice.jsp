@@ -1,7 +1,7 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:require privilege="Manage Billing Reports"
-	otherwise="/login.htm" redirect="/mohbilling/cohort.form" />
+	otherwise="/login.htm" redirect="/mohbilling/cohort.orm" />
 <openmrs:htmlInclude
 	file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 <openmrs:htmlInclude
@@ -50,7 +50,7 @@
 <div class="box">
 
 
-	<form method="post" action="received.form">
+	<form method="post" action="invoice.form">
 		<input type="hidden" name="patientIdnew" value="${patientId}" />
 		<input type="hidden" name="formStatus" id="formStatusId" value="" />
 		<table>
@@ -272,15 +272,7 @@
 							<option value="${ins.insuranceId}">${ins.name}</option>
 						</c:forEach>
 				</select></td>
-				<!--td>Bill Status</td>
-				<td>
-					<select name="billStatus">
-						<option value="0">---</option>
-						<option value="FULLY PAID" ${billStatus== 'FULLY PAID' ? 'selected' : ''}>FULLY PAID</option>
-						<option value="UNPAID" ${billStatus== 'UNPAID' ? 'selected' : ''}>UNPAID</option>
-						<option value="PARTLY PAID" ${billStatus== 'PARTLY PAID' ? 'selected' : ''}>PARTLY PAID</option>
-					</select>
-				</td-->
+				
 
 			</tr>
 
@@ -288,20 +280,7 @@
 				<td>Patient</td>
 				<td><openmrs_tag:patientField formFieldName="patientId"
 						initialValue="${patientId}" /></td>
-				<!--td>Facility Services</td>
-				<td>
-					<select name="serviceId">
-						<option selected="selected" value="${serviceId}">
-							<c:choose>
-								<c:when test="${serviceId!=null}">${serviceId}</c:when>
-								<c:otherwise>--Select service--</c:otherwise>
-							</c:choose>
-						</option>
-						<c:forEach items="${categories}" var="service">
-							<option value="${service}">${service}</option>
-						</c:forEach>
-					</select>
-				</td-->
+				
 			</tr>
 
 		</table>
@@ -312,41 +291,56 @@
 <br />
 
 <br />
-<c:if test="${fn:length(reportedPayments)!=0}">
-	<b class="boxHeader"> RECEIVED AMOUNT REPORT</b>
+<c:if test="${fn:length(obj)!=0}">
+	<b class="boxHeader"> FACTURE DES PRESTATIONS DES SOINS DE SANTE</b>
 	<div class="box">
-		<table width="40%">
+		<table width="70%" border="0">
 
 			<tr>
-				<th class="columnHeader">No
-				</td>
-				<th class="columnHeader">Date
-				</td>
-				<th class="columnHeader">Collector
-				</td>
-				<th class="columnHeader">Received Amount
-				</td>
 				<th class="columnHeader">
-				</td>
+				</th>
+				<th class="columnHeader">Recording Date
+				</th>
+				<th class="columnHeader">Libelle
+				</th>
+				<th class="columnHeader">Unit Cost
+				</th>
+				<th class="columnHeader">Qty
+				</th>
+				<th class="columnHeader">Cost
+				</th>
 			</tr>
 
-			<c:forEach items="${reportedPayments}" var="payment"
-				varStatus="status">
+			<c:forEach var="map" items="${map}" varStatus="status">
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${map.key}</td>
 				<tr>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.dateReceived}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.collector}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.amountPaid}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}"><a
-						href="patientBillPayment.form?patientBillId=${payment.patientBill.patientBillId}&ipCardNumber=${payment.patientBill.beneficiary.insurancePolicy.insuranceCardNo}">View
-							Bill</a></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+					<c:forEach var="v" items="${map.value}" varStatus="status">
+					
+					<tr>
+					<td>${status.count}</td>
+					<td width="10%">${v[0]}</td>
+					<td width="50%">${v[1]}</td>
+					<td>&nbsp;&nbsp;${v[3]}</td>
+					<td>&nbsp;&nbsp;${v[4]}</td>
+					<td>&nbsp;&nbsp;${v[5]}</td>
+					</tr>
+					</c:forEach>
+					
+					<td></td><td></td><td></td><td></td><td></td><td><b>${subTotalMap[map.key]}</b></td>
+					<td></td><td></td><td></td><td></td><td></td><td><h2/></td>
 				</tr>
+				<tr><td><h2/></td></tr>
 			</c:forEach>
+
 			<tr>
 				<td></td>
 				<td></td>
-				<td></h2></td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><h3>${TotalReceivedAmount}</h3></b></td>
+				<td></td>
+				<td></td>
+				<td><h2/></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><h3>${bigTotal}</h3></b></td>
+				<td></td>
 			</tr>
 		</table>
 	</div>

@@ -378,4 +378,9 @@ public interface BillingService {
 	 * @return
 	 */
 	public ServiceCategory getServiceCategoryByName(String name, Insurance insurance);
+	
+	public List<Object[]> getAllServicesByPatient(Insurance insurance,
+			Date startDate, Date endDate, Integer patientId,
+			String serviceName, String billStatus, String billCollector);
+	
 }

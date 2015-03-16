@@ -434,6 +434,19 @@
 	</diff>
 	
 	<diff>
+	<version>1.3.0.5</version>
+		<author>MoH Rwanda</author>
+		<date>March 08th 2015</date>
+		<description>
+			Modify datatype of full_price.
+		</description>
+	 <sql>
+	  ALTER TABLE moh_bill_service_price
+	  MODIFY COLUMN full_price DECIMAL(20,8);
+	 </sql>
+	</diff>
+	
+	<diff>
 		<version>1.3.0.5</version>
 		<author>MoH Rwanda</author>
 		<date>September 9th 2014</date>
@@ -464,6 +477,8 @@
 		</sql>
 
 	</diff>
+	
+	<!--  
 	<diff>
 		<version>1.3.0.7</version>
 		<author>MoH Rwanda</author>
@@ -476,5 +491,6 @@
 			ADD UNIQUE `unique_facility_insurance`(`facility_service_price_id`, `insurance_id`);
 		</sql>
 	</diff>
+	-->
 
 </sqldiff>

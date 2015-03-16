@@ -415,7 +415,20 @@ public interface BillingDAO {
 	 */
 	public ServiceCategory getServiceCategoryByName(String name, Insurance insurance);
 	
-	
+	/**
+	 * Gets all services(acts+labo+pharmacy) given to patient
+	 * @param insurance
+	 * @param startDate
+	 * @param endDate
+	 * @param patientId
+	 * @param serviceName
+	 * @param billStatus
+	 * @param billCollector
+	 * @return
+	 */
+	public List<Object[]> getAllServicesByPatient(Insurance insurance,
+			Date startDate, Date endDate, Integer patientId,
+			String serviceName, String billStatus, String billCollector);
 	
 
 }

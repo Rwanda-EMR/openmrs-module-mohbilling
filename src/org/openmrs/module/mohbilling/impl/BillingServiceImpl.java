@@ -407,6 +407,13 @@ public class BillingServiceImpl implements BillingService {
 	public ServiceCategory getServiceCategoryByName(String name, Insurance insurance) {
 		return billingDAO.getServiceCategoryByName(name, insurance);
 	}
+
+	@Override
+	public List<Object[]> getAllServicesByPatient(Insurance insurance,
+			Date startDate, Date endDate, Integer patientId,
+			String serviceName, String billStatus, String billCollector) {
+		return billingDAO.getAllServicesByPatient(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
+	}
 	
 	
 }

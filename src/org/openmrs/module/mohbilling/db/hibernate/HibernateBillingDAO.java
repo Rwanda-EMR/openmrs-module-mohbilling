@@ -136,13 +136,10 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public BillableService getBillableServiceByConcept(
 			FacilityServicePrice price, Insurance insurance) {
-		return (BillableService) sessionFactory
-				.getCurrentSession()
+		return (BillableService) sessionFactory.getCurrentSession()
 				.createCriteria(BillableService.class)
-				.add(Restrictions.eq("facilityServicePrice",
-						price))
-				.add(Restrictions.eq("insurance", insurance))
-				.uniqueResult();
+				.add(Restrictions.eq("facilityServicePrice", price))
+				.add(Restrictions.eq("insurance", insurance)).uniqueResult();
 	}
 
 	/**
@@ -403,34 +400,36 @@ public class HibernateBillingDAO implements BillingDAO {
 	 *      java.util.Date, java.util.Date, java.lang.Integer, java.lang.String)
 	 */
 	@Override
-	public List<PatientBill> billCohortBuilder(Insurance insurance, Date startDate,
-			Date endDate, Integer patientId, String serviceName,
-			String billStatus, String billCollector) {
+	public List<PatientBill> billCohortBuilder(Insurance insurance,
+			Date startDate, Date endDate, Integer patientId,
+			String serviceName, String billStatus, String billCollector) {
 
 		Session session = sessionFactory.getCurrentSession();
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		StringBuilder combinedSearch = new StringBuilder("");
-		
+
 		combinedSearch
 				.append("SELECT pb.* FROM moh_bill_patient_bill pb "
 						+ "inner join moh_bill_beneficiary b on pb.beneficiary_id = b.beneficiary_id ");
-		
+
 		if (patientId != null)
-		    combinedSearch.append(" and b.patient_id = " + patientId.intValue());
-		
+			combinedSearch
+					.append(" and b.patient_id = " + patientId.intValue());
+
 		combinedSearch
 				.append(" inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id and psb.voided = 0 "
 						+ " inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
 						+ " inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id ");
-		
-		if(insurance != null)
-			combinedSearch.append( " and i.insurance_id =  "+insurance.getInsuranceId().intValue());
-		
+
+		if (insurance != null)
+			combinedSearch.append(" and i.insurance_id =  "
+					+ insurance.getInsuranceId().intValue());
+
 		combinedSearch.append(" WHERE 1 = 1 ");
-		
-		if(billCollector != null && !billCollector.equals(""))
-			combinedSearch.append(" and pb.creator =  "+ billCollector);
-			
+
+		if (billCollector != null && !billCollector.equals(""))
+			combinedSearch.append(" and pb.creator =  " + billCollector);
+
 		if (startDate != null && endDate != null)
 			combinedSearch.append(" and pb.created_date >= '"
 					+ formatter.format(startDate)
@@ -444,72 +443,82 @@ public class HibernateBillingDAO implements BillingDAO {
 		if (startDate == null && endDate != null)
 			combinedSearch.append(" and pb.created_date <= '"
 					+ formatter.format(endDate) + " 23:59:59' ");
-				
+
 		if (billStatus != null && !billStatus.equals(""))
-				combinedSearch.append(" AND pb.status = '" + billStatus + "' ");
-			
+			combinedSearch.append(" AND pb.status = '" + billStatus + "' ");
 
 		combinedSearch.append(" GROUP BY pb.patient_bill_id;");
-		
-		log.info("tttttttttttttttttttttttttttttttbills "+combinedSearch.toString());
 
-		List<PatientBill> patientBills = session.createSQLQuery(
-				combinedSearch.toString()).addEntity("pb", PatientBill.class).list();
+		log.info("tttttttttttttttttttttttttttttttbills "
+				+ combinedSearch.toString());
+
+		List<PatientBill> patientBills = session
+				.createSQLQuery(combinedSearch.toString())
+				.addEntity("pb", PatientBill.class).list();
 
 		System.out.println("_____________________ BILL QUERY __________\n"
 				+ combinedSearch.toString());
 		return patientBills;
 	}
-	
+
 	@Override
 	public List<BillPayment> paymentsCohortBuilder(Insurance insurance,
-			Date startDate, Date endDate, Integer patientId, String serviceName,
-			String billStatus, String billCollector) {
+			Date startDate, Date endDate, Integer patientId,
+			String serviceName, String billStatus, String billCollector) {
 		Session session = sessionFactory.getCurrentSession();
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder combinedSearch = new StringBuilder("");
-		
-		combinedSearch.append(" SELECT pay.* FROM moh_bill_payment pay "
-				+ "inner join moh_bill_patient_bill pb on pay.patient_bill_id = pb.patient_bill_id "
-				+ " INNER JOIN moh_bill_beneficiary b ON pb.beneficiary_id = b.beneficiary_id ");
+
+		combinedSearch
+				.append(" SELECT pay.* FROM moh_bill_payment pay "
+						+ "inner join moh_bill_patient_bill pb on pay.patient_bill_id = pb.patient_bill_id "
+						+ " INNER JOIN moh_bill_beneficiary b ON pb.beneficiary_id = b.beneficiary_id ");
 		if (patientId != null)
-		    combinedSearch.append(" AND b.patient_id = " + patientId.intValue());
-		
-		combinedSearch.append(" inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id "
-				+ " inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
-				+ " inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id " );
-		
-		if(insurance != null)
-			combinedSearch.append(" and i.insurance_id =  "+insurance.getInsuranceId().intValue());
-		
-		combinedSearch.append(" inner join moh_bill_service_category sc on bs.service_category_id = sc.service_category_id WHERE 1 = 1");
-		
-		
-		if(billCollector != null && !billCollector.equals(""))
-			combinedSearch.append(" AND pay.creator =  "+ billCollector);
-			
+			combinedSearch
+					.append(" AND b.patient_id = " + patientId.intValue());
+
+		combinedSearch
+				.append(" inner join moh_bill_patient_service_bill psb on pb.patient_bill_id = psb.patient_bill_id "
+						+ " inner join moh_bill_billable_service bs on psb.billable_service_id = bs.billable_service_id "
+						+ " inner join moh_bill_insurance i on bs.insurance_id = i.insurance_id ");
+
+		if (insurance != null)
+			combinedSearch.append(" and i.insurance_id =  "
+					+ insurance.getInsuranceId().intValue());
+
+		combinedSearch
+				.append(" inner join moh_bill_service_category sc on bs.service_category_id = sc.service_category_id WHERE 1 = 1");
+
+		if (billCollector != null && !billCollector.equals(""))
+			combinedSearch.append(" AND pay.creator =  " + billCollector);
+
 		if (startDate != null && endDate != null)
-			combinedSearch.append(" and pay.created_date >= '"+formatter.format(startDate)+"' and pay.created_date <= '"+formatter.format(endDate)+"' ");
+			combinedSearch.append(" and pay.created_date >= '"
+					+ formatter.format(startDate)
+					+ "' and pay.created_date <= '" + formatter.format(endDate)
+					+ "' ");
 
 		if (startDate != null && endDate == null)
-			combinedSearch.append(" and pay.created_date >= '"+formatter.format(startDate)+"' ");
-		
+			combinedSearch.append(" and pay.created_date >= '"
+					+ formatter.format(startDate) + "' ");
+
 		if (startDate == null && endDate != null)
-			combinedSearch.append(" and pay.created_date <= '"+formatter.format(endDate)+"' ");
+			combinedSearch.append(" and pay.created_date <= '"
+					+ formatter.format(endDate) + "' ");
 
 		// payment status
 		if (billStatus != null && !billStatus.equals(""))
 			if (!billStatus.equals("0"))// when it's "0" it does affect the
 										// query...
-				combinedSearch.append(" AND pb.status = '"
-						+ billStatus + "'");
-		
-		combinedSearch.append(" GROUP BY bill_payment_id");
-		
-		log.info("ttttttttttttttttttttttttttttttt "+combinedSearch.toString());
+				combinedSearch.append(" AND pb.status = '" + billStatus + "'");
 
-		List<BillPayment> billPayments = session.createSQLQuery(
-				combinedSearch.toString()).addEntity("pay", BillPayment.class).list();
+		combinedSearch.append(" GROUP BY bill_payment_id");
+
+		log.info("ttttttttttttttttttttttttttttttt " + combinedSearch.toString());
+
+		List<BillPayment> billPayments = session
+				.createSQLQuery(combinedSearch.toString())
+				.addEntity("pay", BillPayment.class).list();
 
 		System.out.println("_____________________ BILL QUERY __________\n"
 				+ combinedSearch.toString());
@@ -698,114 +707,174 @@ public class HibernateBillingDAO implements BillingDAO {
 								+ " AND ins.voided = 0 AND ip.retired = 0 AND b.retired = 0;")
 				.list();
 	}
-	
-	public List<BillPayment> getAllBillPayments(){
-		
+
+	public List<BillPayment> getAllBillPayments() {
+
 		return sessionFactory.getCurrentSession()
 				.createCriteria(BillPayment.class).list();
-		
-	}
-   public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,Date endDate,User collector){
-	   
-	   List<BillPayment> paymentItems = new ArrayList<BillPayment>();
-		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-	//	DateFormat formatterTime = new SimpleDateFormat("HH:mm");
-	   Session session = sessionFactory.getCurrentSession();
-	   StringBuilder combinedSearch = new StringBuilder("");
-	   
-         //works 
-	   combinedSearch
-		.append(" select amount_paid,date_received,collector from moh_bill_payment ");
-	    //works 
-	   if(startDate != null && endDate != null && collector == null){
-		   
-		   combinedSearch
-			.append(" where date_received >='"+formatter.format(startDate)+"' and date_received <='"+formatter.format(endDate)+"'");
-		   
-		   }
-	  
-	   if(startDate != null && endDate == null && collector == null){
-        	
-		   combinedSearch
-			.append(" where date_received >='"+formatter.format(startDate)+"'");
-		   
-		   }
-	   if(startDate == null && endDate != null && collector == null){
- 		   combinedSearch
- 			.append(" where date_received <='"+formatter.format(endDate)+"'");
- 		   
- 		   }
-	   
-         	   
-	   if(startDate == null && endDate == null && collector != null){
-		   
-		   combinedSearch
-			.append(" where collector ="+collector.getUserId()+" ");
-		   
-		   }
-	    
-	    if(startDate != null && endDate != null && collector != null){
-		   
-		   combinedSearch
-			.append(" where date_received >='"+formatter.format(startDate)+"' and date_received <='"+formatter.format(endDate)+"' and collector ="+collector.getUserId()+" ");
-		   
-		   }
 
-	     
-	    if(startDate != null && endDate == null && collector != null){
-			   
-			   combinedSearch
-				.append(" where date_received >='"+formatter.format(startDate)+"' and collector ="+collector.getUserId()+" ");
-			   
-			   }
-	    if(startDate == null && endDate != null && collector != null){
-			   
-			   combinedSearch
-				.append(" where date_received <='"+formatter.format(endDate)+"' and collector ="+collector.getUserId()+" ");
-			   
-			   }
-	     
-	     combinedSearch
-			.append(" ; ");
-	   List<Object[]> paymentItem = session.createSQLQuery(
-				combinedSearch.toString()).list();
-	 
-	   
-	   
-	   for(Object[] object: paymentItem){
-		 
-		   BillPayment billPayment = new BillPayment();
-		   
-		   billPayment.setAmountPaid((BigDecimal)object[0]); 
-	
-		   billPayment.setCreatedDate((Date)object[1]);
-		   User user = Context.getUserService().getUser((Integer)object[2]);
-		   
-		   billPayment.setCollector(user);
-		   paymentItems.add(billPayment);
-		  
-	   }
-	   
-	   
-	  return paymentItems;
 	}
-   
-   /**
+
+	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,
+			Date endDate, User collector) {
+
+		List<BillPayment> paymentItems = new ArrayList<BillPayment>();
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		// DateFormat formatterTime = new SimpleDateFormat("HH:mm");
+		Session session = sessionFactory.getCurrentSession();
+		StringBuilder combinedSearch = new StringBuilder("");
+
+		// works
+		combinedSearch
+				.append(" select amount_paid,date_received,collector from moh_bill_payment ");
+		// works
+		if (startDate != null && endDate != null && collector == null) {
+
+			combinedSearch.append(" where date_received >='"
+					+ formatter.format(startDate) + "' and date_received <='"
+					+ formatter.format(endDate) + "'");
+
+		}
+
+		if (startDate != null && endDate == null && collector == null) {
+
+			combinedSearch.append(" where date_received >='"
+					+ formatter.format(startDate) + "'");
+
+		}
+		if (startDate == null && endDate != null && collector == null) {
+			combinedSearch.append(" where date_received <='"
+					+ formatter.format(endDate) + "'");
+
+		}
+
+		if (startDate == null && endDate == null && collector != null) {
+
+			combinedSearch.append(" where collector =" + collector.getUserId()
+					+ " ");
+
+		}
+
+		if (startDate != null && endDate != null && collector != null) {
+
+			combinedSearch.append(" where date_received >='"
+					+ formatter.format(startDate) + "' and date_received <='"
+					+ formatter.format(endDate) + "' and collector ="
+					+ collector.getUserId() + " ");
+
+		}
+
+		if (startDate != null && endDate == null && collector != null) {
+
+			combinedSearch.append(" where date_received >='"
+					+ formatter.format(startDate) + "' and collector ="
+					+ collector.getUserId() + " ");
+
+		}
+		if (startDate == null && endDate != null && collector != null) {
+
+			combinedSearch.append(" where date_received <='"
+					+ formatter.format(endDate) + "' and collector ="
+					+ collector.getUserId() + " ");
+
+		}
+
+		combinedSearch.append(" ; ");
+		List<Object[]> paymentItem = session.createSQLQuery(
+				combinedSearch.toString()).list();
+
+		for (Object[] object : paymentItem) {
+
+			BillPayment billPayment = new BillPayment();
+
+			billPayment.setAmountPaid((BigDecimal) object[0]);
+
+			billPayment.setCreatedDate((Date) object[1]);
+			User user = Context.getUserService().getUser((Integer) object[2]);
+
+			billPayment.setCollector(user);
+			paymentItems.add(billPayment);
+
+		}
+
+		return paymentItems;
+	}
+
+	/**
 	 * (non-Javadoc)
 	 * 
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillableServiceByConcept(Concept
 	 *      concept, Insurance insurance)
 	 */
 	@Override
-	public ServiceCategory getServiceCategoryByName(String name, Insurance insurance) {
-		return (ServiceCategory) sessionFactory
-				.getCurrentSession()
+	public ServiceCategory getServiceCategoryByName(String name,
+			Insurance insurance) {
+		return (ServiceCategory) sessionFactory.getCurrentSession()
 				.createCriteria(ServiceCategory.class)
 				.add(Restrictions.eq("name", name))
-				.add(Restrictions.eq("insurance", insurance))
-				.uniqueResult();
+				.add(Restrictions.eq("insurance", insurance)).uniqueResult();
 	}
 
+	@Override
+	public List<Object[]> getAllServicesByPatient(Insurance insurance,
+			Date startDate, Date endDate, Integer patientId,
+			String serviceName, String billStatus, String billCollector) {
+		Session session = sessionFactory.getCurrentSession();
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		StringBuilder combinedSearch = new StringBuilder("");
 
+		combinedSearch
+		.append(" SELECT psb.created_date,fs.name,fs.category,psb.unit_price,psb.quantity,(psb.unit_price*psb.quantity) "
+				+" FROM moh_bill_facility_service_price fs "
+				+" inner join moh_bill_billable_service bs on bs.facility_service_price_id=fs.facility_service_price_id"
+				+" inner join moh_bill_patient_service_bill psb on psb.billable_service_id=bs.billable_service_id"
+				+" inner join moh_bill_patient_bill pb on pb.patient_bill_id=psb.patient_bill_id"
+				+" inner join moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id"
+				+" inner join moh_bill_beneficiary f on f.beneficiary_id=pb.beneficiary_id"
+				+" inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=f.insurance_policy_id " );
+						
+		if (patientId != null)
+			combinedSearch
+					.append(" AND f.patient_id = " + patientId.intValue());
+
+
+		if (insurance != null)
+			combinedSearch.append(" and ip.insurance_id =  "
+					+ insurance.getInsuranceId().intValue());
+
+		if (billCollector != null && !billCollector.equals(""))
+			combinedSearch.append(" AND pay.creator =  " + billCollector);
+
+		if (startDate != null && endDate != null)
+			combinedSearch.append(" and pay.created_date >= '"
+					+ formatter.format(startDate)
+					+ "' and pay.created_date <= '" + formatter.format(endDate)
+					+ "' ");
+
+		if (startDate != null && endDate == null)
+			combinedSearch.append(" and pay.created_date >= '"
+					+ formatter.format(startDate) + "' ");
+
+		if (startDate == null && endDate != null)
+			combinedSearch.append(" and pay.created_date <= '"
+					+ formatter.format(endDate) + "' ");
+
+		// payment status
+		if (billStatus != null && !billStatus.equals(""))
+			if (!billStatus.equals("0"))// when it's "0" it does affect the
+										// query...
+				combinedSearch.append(" AND pb.status = '" + billStatus + "'");
+
+		//combinedSearch.append(" GROUP BY bill_payment_id");
+
+		log.info("ttttttttttttttttttttttttttttttt " + combinedSearch.toString());
+
+		List<Object[]> obj = session
+				.createSQLQuery(combinedSearch.toString()).list();
+
+		System.out.println("_____________________ BILL QUERY __________\n"
+				+ combinedSearch.toString());
+		return obj;
+	}
 
 }
