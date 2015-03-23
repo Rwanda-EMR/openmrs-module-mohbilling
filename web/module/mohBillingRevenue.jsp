@@ -297,7 +297,7 @@
 
 <br />
 <c:if test="${fn:length(obj)!=0}">
-	<b class="boxHeader"> Recettes par service</b><b><a>Print</a></b>
+	<b class="boxHeader"> Recettes par service</b><b><a>Export</a></b>
 	<div class="box">
 		<table width="70%" border="0">
 
@@ -331,23 +331,23 @@
         <c:forEach var="j" items="${totalByCateg}" varStatus="status">
         <tr>
             <td></td>
-            <td>${j[0]}</td>
-            <td>${j[1]}</td>
-            <td>${j[2]}</td>
-            <td>${j[3]}</td>
-            <td>${j[4]}</td>
-            <td>${j[5]}</td>
-            <td>${j[5]}</td>
-            <td>${j[6]}</td>
-            <td>${j[7]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[0]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[1]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[2]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[3]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[4]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[5]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[5]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[6]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[7]}</td>
                         <td></td>
-            <td>${j[8]}</td>
-            <td>${j[9]}</td>
-            <td>${j[10]}</td>
-            <td>${j[11]}</td>
-            <td>${j[12]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[8]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[9]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[10]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[11]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[12]}</td>
                         <td></td>
-            <td>${j[13]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[13]}</td>
 		</tr>			
 		</c:forEach>
 	  	
