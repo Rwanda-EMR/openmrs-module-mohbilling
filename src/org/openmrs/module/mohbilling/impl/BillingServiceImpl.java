@@ -409,10 +409,10 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	@Override
-	public List<Object[]> getAllServicesByPatient(Insurance insurance,
+	public List<Object[]> getRevenueOfServices(Insurance insurance,
 			Date startDate, Date endDate, Integer patientId,
 			String serviceName, String billStatus, String billCollector) {
-		return billingDAO.getAllServicesByPatient(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
+		return billingDAO.getRevenueOfServices(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
 	}
 	
 	

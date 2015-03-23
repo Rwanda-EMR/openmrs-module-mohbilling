@@ -31,9 +31,17 @@
 	    <li>
 			<a href="received.form"><spring:message code="@MODULE_ID@.billing.received"/></a>
 		</li>
+		 <li>
+			<a href="recettes.form"><spring:message code="@MODULE_ID@.billing.revenue"/></a>
+		</li>
+		<li>
+			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
+		</li>
+		<!-- 
 		<li>
 			<a href="hmisReport.form">HMIS Reports</a>
 		</li>
+		 -->
 </ul>
 
 <b class="boxHeader">Search Form(Advanced)</b>

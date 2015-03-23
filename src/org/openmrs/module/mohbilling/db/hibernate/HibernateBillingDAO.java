@@ -816,7 +816,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	@Override
-	public List<Object[]> getAllServicesByPatient(Insurance insurance,
+	public List<Object[]> getRevenueOfServices(Insurance insurance,
 			Date startDate, Date endDate, Integer patientId,
 			String serviceName, String billStatus, String billCollector) {
 		Session session = sessionFactory.getCurrentSession();
@@ -824,14 +824,14 @@ public class HibernateBillingDAO implements BillingDAO {
 		StringBuilder combinedSearch = new StringBuilder("");
 
 		combinedSearch
-		.append(" SELECT psb.created_date,fs.name,fs.category,psb.unit_price,psb.quantity,(psb.unit_price*psb.quantity) "
-				+" FROM moh_bill_facility_service_price fs "
-				+" inner join moh_bill_billable_service bs on bs.facility_service_price_id=fs.facility_service_price_id"
-				+" inner join moh_bill_patient_service_bill psb on psb.billable_service_id=bs.billable_service_id"
-				+" inner join moh_bill_patient_bill pb on pb.patient_bill_id=psb.patient_bill_id"
-				+" inner join moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id"
-				+" inner join moh_bill_beneficiary f on f.beneficiary_id=pb.beneficiary_id"
-				+" inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=f.insurance_policy_id " );
+		.append(" SELECT pay.created_date,fs.category,(psb.unit_price*psb.quantity) "
+				+"  FROM moh_bill_facility_service_price fs "
+				 +"  inner join moh_bill_billable_service bs on bs.facility_service_price_id=fs.facility_service_price_id "
+				 +"  inner join moh_bill_patient_service_bill psb on psb.billable_service_id=bs.billable_service_id "
+				 +"  inner join moh_bill_patient_bill pb on pb.patient_bill_id=psb.patient_bill_id "
+				 +"  inner join moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id "
+				 +"  inner join moh_bill_beneficiary f on f.beneficiary_id=pb.beneficiary_id "
+				 +"  inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=f.insurance_policy_id ");
 						
 		if (patientId != null)
 			combinedSearch
@@ -865,9 +865,7 @@ public class HibernateBillingDAO implements BillingDAO {
 										// query...
 				combinedSearch.append(" AND pb.status = '" + billStatus + "'");
 
-		//combinedSearch.append(" GROUP BY bill_payment_id");
-
-		log.info("ttttttttttttttttttttttttttttttt " + combinedSearch.toString());
+		combinedSearch.append(" group by fs.category,pay.created_date order by fs.category,pay.created_date asc ");
 
 		List<Object[]> obj = session
 				.createSQLQuery(combinedSearch.toString()).list();

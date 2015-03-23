@@ -39,18 +39,23 @@
 			<a href="received.form"><spring:message code="@MODULE_ID@.billing.received"/></a>
 		</li>
 		 <li>
-			<a href="invoice.form"><spring:message code="@MODULE_ID@.billing.invoice"/></a>
+			<a href="recettes.form"><spring:message code="@MODULE_ID@.billing.revenue"/></a>
 		</li>
+		<li>
+			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
+		</li>
+		<!-- 
 		<li>
 			<a href="hmisReport.form">HMIS Reports</a>
 		</li>
+		 -->
 </ul>
 
 <b class="boxHeader">Search Form(Advanced)</b>
 <div class="box">
 
 
-	<form method="post" action="invoice.form">
+	<form method="post" action="recettes.form">
 		<input type="hidden" name="patientIdnew" value="${patientId}" />
 		<input type="hidden" name="formStatus" id="formStatusId" value="" />
 		<table>
@@ -292,54 +297,58 @@
 
 <br />
 <c:if test="${fn:length(obj)!=0}">
-	<b class="boxHeader"> FACTURE DES PRESTATIONS DES SOINS DE SANTE</b>
+	<b class="boxHeader"> FACTURE DES PRESTATIONS DES SOINS DE SANTE</b><b><a>Print</a></b>
 	<div class="box">
 		<table width="70%" border="0">
 
 			<tr>
-				<th class="columnHeader">
-				</th>
-				<th class="columnHeader">Recording Date
-				</th>
-				<th class="columnHeader">Libelle
-				</th>
-				<th class="columnHeader">Unit Cost
-				</th>
-				<th class="columnHeader">Qty
-				</th>
-				<th class="columnHeader">Cost
-				</th>
+				<th class="columnHeader">Date</th>
+				<th class="columnHeader">Consult Médec</th>
+				<th class="columnHeader">Labo</th>
+				<th class="columnHeader">Actes Admini</th>	
+				<th class="columnHeader">Radio</th>
+				<th class="columnHeader">Pédiat</th>
+				<th class="columnHeader">ECH</th>
+				<th class="columnHeader">OPHT</th>
+				<th class="columnHeader">Chir</th>
+				<th class="columnHeader">Méd I.N</th>
+				<th class="columnHeader">GYNECO</th>
+				<th class="columnHeader">kiné</th>
+				<th class="columnHeader">dentisteur</th>
+				<th class="columnHeader">Petite chir</th>
+				<th class="columnHeader">Maternité</th>
+				<th class="columnHeader">Cliniq</th>
+				<th class="columnHeader">NEONATOLOGIE</th>
+				<th class="columnHeader">Ambulance</th>
+				<th class="columnHeader">Médicts</th>
+				<th class="columnHeader">Morgue</th>
+				<th class="columnHeader">Autres</th>
+				<th>Total</th>
 			</tr>
 
-			<c:forEach var="map" items="${map}" varStatus="status">
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${map.key}</td>
-				<tr>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-					<c:forEach var="v" items="${map.value}" varStatus="status">
-					
-					<tr>
-					<td>${status.count}</td>
-					<td width="10%">${v[0]}</td>
-					<td width="50%">${v[1]}</td>
-					<td>&nbsp;&nbsp;${v[3]}</td>
-					<td>&nbsp;&nbsp;${v[4]}</td>
-					<td>&nbsp;&nbsp;${v[5]}</td>
-					</tr>
-					</c:forEach>
-					
-					<td></td><td></td><td></td><td></td><td></td><td><b>${subTotalMap[map.key]}</b></td>
-					<td></td><td></td><td></td><td></td><td></td><td><h2/></td>
-				</tr>
-				<tr><td><h2/></td></tr>
-			</c:forEach>
+			
 
 			<tr>
 				<td></td>
 				<td></td>
 				<td></td>
 				<td></td>
-				<td><h2/></td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><h3>${bigTotal}</h3></b></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
 				<td></td>
 			</tr>
 		</table>
