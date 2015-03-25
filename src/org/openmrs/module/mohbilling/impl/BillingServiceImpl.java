@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.impl;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -413,6 +414,12 @@ public class BillingServiceImpl implements BillingService {
 			Date startDate, Date endDate, Integer patientId,
 			String serviceName, String billStatus, String billCollector) {
 		return billingDAO.getRevenueOfServices(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
+	}
+
+	@Override
+	public BigDecimal getSum(String category, String datePart) {
+		// TODO Auto-generated method stub
+		return billingDAO.getSum(category, datePart);
 	}
 	
 	

@@ -13,6 +13,7 @@
  */
 package org.openmrs.module.mohbilling.db;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -430,5 +431,6 @@ public interface BillingDAO {
 			Date startDate, Date endDate, Integer patientId,
 			String serviceName, String billStatus, String billCollector);
 	
+	public BigDecimal getSum(String category,String datePart);
 
 }

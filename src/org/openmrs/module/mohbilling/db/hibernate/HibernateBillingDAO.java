@@ -876,12 +876,11 @@ public class HibernateBillingDAO implements BillingDAO {
 				+ combinedSearch.toString());
 		return obj;
 	}
-
 	@Override
-	public Double getSum(String category, String datePart) {
+	public BigDecimal  getSum(String category, String datePart) {
 		Session session = sessionFactory.getCurrentSession();
 		 String queryStr = "SELECT sum(amount_paid) FROM moh_bill_payment where created_date like '%"+datePart+"%"+"'";
-		 Double amount = (Double) session.createSQLQuery(queryStr).list().get(0);
+		 BigDecimal  amount = (BigDecimal ) session.createSQLQuery(queryStr).list().get(0);
 		 log.info("kkkkkkkkkkkkkkkkkkkkk "+queryStr);
 		 log.info("amountttttt "+amount);
 		 return amount;

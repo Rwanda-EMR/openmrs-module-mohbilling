@@ -303,7 +303,7 @@
 
 			<tr>
 				<th class="columnHeader">No</th>
-				<th class="columnHeader">Date</th>
+				<th class="columnHeader" width="80%">Date</th>
 				<th class="columnHeader">Consult</th>
 				<th class="columnHeader">Labo</th>
 				<th class="columnHeader">Forma Admini</th>	

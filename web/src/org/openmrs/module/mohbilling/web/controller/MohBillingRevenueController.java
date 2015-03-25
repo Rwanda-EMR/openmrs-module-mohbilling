@@ -5,12 +5,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.collections.MultiHashMap;
+import org.apache.commons.collections.MultiMap;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -123,7 +128,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 					startDate, endDate, patientId, serviceId, null,
 					cashCollector);
 			
-			Map<Date,Map<String,Double>> totalByCategoryMap = new HashMap<Date, Map<String,Double>>();
+		//	Map<Date,Map<String,Double>> totalByCategoryMap = new HashMap<Date, Map<String,Double>>();
 			
 
 			Double bigTotal = (double) 0;
@@ -151,6 +156,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 			Double totalAutre= (double) 0;			
 			Double totalOxygenotherapie= (double) 0;
 			Double totalSoinsInf = (double) 0;
+			
 
 			String category = "";
 			
@@ -186,9 +192,10 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 			String date = "";
 			String temp[] = null;
 			
-			List<Object[]> totalByCateg = new ArrayList<Object[]>();
+			List<Object[]> totalByCateg = null;
 			
 			for (Object[] ob : obj) {
+				totalByCateg=new ArrayList<Object[]>();
 //				BigDecimal cost = (BigDecimal) ob[1];
 //				bigTotal = cost.doubleValue()+bigTotal.doubleValue();
 				
@@ -218,18 +225,18 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 				totalAutre= 0.0;			
 				totalOxygenotherapie= 0.0;
 				totalSoinsInf = 0.0;
-
 				
-				log.info("zzzzzzzzzzzzzzzzzzzzzzzzzz "+date);
 				
-				if(category=="CONSULTATION" || category.equals("CONSULTATION")){	
-					if(ob!=null){
+				if(category=="CONSULTATION" || category.equals("CONSULTATION")){
+					
 					consultationList.add(ob);
-				    map.put(date, consultationList);
-				    temp = date.split(" ");
-				    totalConsultation = totalConsultation.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+				    map.put(dateObj[0], consultationList);
+//				    totalConsultation = totalConsultation.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//				    subTotalMap.put(category, totalConsultation);
+				    String queryStr = Context.getService(BillingService.class).getSum(category, dateObj[0]).toString();
+				    totalConsultation = Double.parseDouble(queryStr);
 				    subTotalMap.put(category, totalConsultation);
-					}
+				    
 			   }
 				if(category=="LABORATOIRE" || category.equals("LABORATOIRE")){	
 					if(ob!=null){
@@ -244,43 +251,74 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 					formaliteList.add((Object[])ob);
 					map.put(date, formaliteList);
 					totalFormalite = totalFormalite.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalFormalite);
+					subTotalMap.put(date, totalFormalite);
 					}
 			   }
 				if(category=="RADIOLOGIE" || category.equals("RADIOLOGIE")){	
 					if(ob!=null){
-					formaliteList.add((Object[])ob);
-					map.put(date, formaliteList);
-					totalFormalite = totalFormalite.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalFormalite);
+					radioList.add((Object[])ob);
+					map.put(date, radioList);
+					totalRadio = totalRadio.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalRadio);
 					}
 			   }
-				if(category=="ECHOGRAPHIE" || category.equals("ECHOGRAPHIE")){	
+				if(category=="PEDIATRIC" || category.equals("PEDIATRIC")){	
 					if(ob!=null){
-					formaliteList.add((Object[])ob);
-					map.put(date, formaliteList);
-					totalFormalite = totalFormalite.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalFormalite);
+					pediatList.add((Object[])ob);
+					map.put(date, pediatList);
+					totalPediat = totalPediat.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalPediat);
 					}
 			   }
 				
-				if(category=="MEDICAMENTS" || category.equals("CONSOMMABLES")){	
-					if(ob!=null){
-					MedicList.add((Object[])ob);
-					map.put(category, MedicList);
-					totalMedic = totalMedic.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalMedic);
-					}
-			   }
-				if(category=="OPHTALMOLOGIE" || category.equals("OPHTALMOLOGIE")){	
+				if(category=="ECHOGRAPHIE" || category.equals("ECHOGRAPHIE")){	
 					if(ob!=null){
 					echoList.add((Object[])ob);
-					map.put(category, echoList);
+					map.put(date, echoList);
 					totalEcho = totalEcho.doubleValue()+((BigDecimal)ob[2]).doubleValue();
 					subTotalMap.put(category, totalEcho);
 					}
 			   }
+				if(category=="OPHTALMOLOGIE" || category.equals("OPHTALMOLOGIE")){	
+					if(ob!=null){
+					ophtaList.add((Object[])ob);
+					map.put(category, ophtaList);
+					totalOphta = totalOphta.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalOphta);
+					}
+			   }
 				if(category=="CHIRURGIE" || category.equals("CHIRURGIE")){	
+					if(ob!=null){
+					surgeryList.add((Object[])ob);
+					map.put(category, surgeryList);
+					totalSurgery = totalSurgery.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalSurgery);
+					}
+			   }if(category=="INTERNAL MEDICINE" || category.equals("INTERNAL MEDICINE")){	
+					if(ob!=null){
+					internalMedList.add((Object[])ob);
+					map.put(category, internalMedList);
+					totalInternalMed = totalInternalMed.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalInternalMed);
+					}
+			   }
+				if(category=="GYNECOLOGY" || category.equals("GYNECOLOGY")){	
+					if(ob!=null){
+					gynecoList.add((Object[])ob);
+					map.put(category, gynecoList);
+					totalGyneco = totalGyneco.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalGyneco);
+					}
+			   }
+				if(category=="KINESITHERAPIE" || category.equals("KINESITHERAPIE")){	
+					if(ob!=null){
+					kineList.add((Object[])ob);
+					map.put(category, kineList);
+					totalKine = totalKine.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalKine);
+					}
+			   }
+				if(category=="STOMATOLOGIE" || category.equals("STOMATOLOGIE")){	
 					if(ob!=null){
 					stomatoList.add((Object[])ob);
 					map.put(category, stomatoList);
@@ -288,7 +326,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 					subTotalMap.put(category, totalStomato);
 					}
 			   }
-				if(category=="KINESITHERAPIE" || category.equals("KINESITHERAPIE")){	
+				if(category=="MATERNITE" || category.equals("MATERNITE")){	
 					if(ob!=null){
 					MaterniteList.add((Object[])ob);
 					map.put(category, MaterniteList);
@@ -296,48 +334,44 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 					subTotalMap.put(category, totalMaternite);
 					}
 			   }
-				if(category=="STOMATOLOGIE" || category.equals("STOMATOLOGIE")){	
+				if(category=="NEONATAL" || category.equals("NEONATAL")){	
 					if(ob!=null){
-					radioList.add((Object[])ob);
-					map.put(category, radioList);
-					totalRadio = totalRadio.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalRadio);
+					neoList.add((Object[])ob);
+					map.put(category, neoList);
+					totalNeo = totalNeo.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalNeo);
 					}
 			   }
-				if(category=="MATERNITE" || category.equals("MATERNITE")){	
+				if(category=="MEDICAMENTS" || category.equals("MEDICAMENTS")){	
 					if(ob!=null){
-					soinsInfList.add((Object[])ob);
-					map.put(category, soinsInfList);
-					totalSoinsInf = totalSoinsInf.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalSoinsInf);
+					MedicList.add((Object[])ob);
+					map.put(category, MedicList);
+					totalMedic = totalMedic.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalMedic);
+					}
+			   }
+				if(category=="CONSOMMABLES" || category.equals("CONSOMMABLES")){	
+					if(ob!=null){
+					consummableList.add((Object[])ob);
+					map.put(category, consummableList);
+					totalConsummable = totalConsummable.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+					subTotalMap.put(category, totalConsummable);
 					}
 			   }
 
-//				if(category=="OXYGENOTHERAPIE" || category.equals("OXYGENOTHERAPIE")){	
-//					if(ob!=null){
-//					drugsAndCons.add((Object[])ob);
-//					map.put(category, drugsAndCons);
-//					totalPharmacy = totalPharmacy.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-//					subTotalMap.put(category, totalPharmacy);
-//					}
-//			   }
-//				if(category=="LABORATOIRE" || category.equals("LABORATOIRE")){	
-//					if(ob!=null){
-//					laboList.add((Object[])ob);
-//					map.put(category, laboList);
-//					totalLabo = totalLabo.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-//					subTotalMap.put(category, totalLabo);
-//					}
-//			   }
-//				if(category=="OPHTALMOLOGIE" || category.equals("OPHTALMOLOGIE")){	
-//					if(ob!=null){
-//					ophtaList.add((Object[])ob);
-//					map.put(category, ophtaList);
-//					totalOphta = totalOphta.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-//					subTotalMap.put(category, totalOphta);
-//					}
-//			   }
-				totalByCateg.add(new Object[] {date,totalConsultation,totalLabo,totalFormalite,totalRadio,totalPediat,totalEcho,totalOphta,totalSurgery,totalGyneco,totalKine,totalStomato,totalMaternite });
+				if(category=="OXYGENOTHERAPIE" || category.equals("OXYGENOTHERAPIE")){	
+					if(ob!=null){
+					oxygenotherapieList.add((Object[])ob);
+					map.put(category, oxygenotherapieList);
+					totalOxygenotherapie = totalOxygenotherapie.doubleValue()+((BigDecimal)ob[5]).doubleValue();
+					subTotalMap.put(category,totalOxygenotherapie);
+					}
+				}
+				
+				totalByCateg.add(new Object[] {dateObj[0],totalConsultation,totalLabo,totalFormalite,
+						totalRadio,totalPediat,totalEcho,totalOphta,totalSurgery,
+						totalInternalMed,totalGyneco,totalKine,totalStomato,"",totalMaternite,"",
+						totalNeo,"",totalMedic,totalConsummable,"","" });
 			}
 			
 			
@@ -345,9 +379,6 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 			mav.addObject("bigTotal", bigTotal);
 			mav.addObject("map", map);
 			mav.addObject("subTotalMap", subTotalMap);
-			mav.addObject("totalConsultation", totalConsultation);
-			mav.addObject("totalLabo", totalLabo);
-			mav.addObject("totalFormalite", totalFormalite);
 			mav.addObject("totalByCateg", totalByCateg);
 		}
 
@@ -356,5 +387,10 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 		return mav;
 
 	}
-
+	
+	public Double getAmount(List<Object[]> dates){
+		return null;
+		
+	}
+	
 }
