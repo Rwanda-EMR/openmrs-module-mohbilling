@@ -822,9 +822,11 @@ public class HibernateBillingDAO implements BillingDAO {
 		Session session = sessionFactory.getCurrentSession();
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder combinedSearch = new StringBuilder("");
+		
+		
 
 		combinedSearch
-		.append(" SELECT pay.created_date,fs.category,(psb.unit_price*psb.quantity) "
+		.append(" SELECT pay.created_date,fs.category,pay.amount_paid "
 				+"  FROM moh_bill_facility_service_price fs "
 				 +"  inner join moh_bill_billable_service bs on bs.facility_service_price_id=fs.facility_service_price_id "
 				 +"  inner join moh_bill_patient_service_bill psb on psb.billable_service_id=bs.billable_service_id "
@@ -873,6 +875,16 @@ public class HibernateBillingDAO implements BillingDAO {
 		System.out.println("_____________________ BILL QUERY __________\n"
 				+ combinedSearch.toString());
 		return obj;
+	}
+
+	@Override
+	public Double getSum(String category, String datePart) {
+		Session session = sessionFactory.getCurrentSession();
+		 String queryStr = "SELECT sum(amount_paid) FROM moh_bill_payment where created_date like '%"+datePart+"%"+"'";
+		 Double amount = (Double) session.createSQLQuery(queryStr).list().get(0);
+		 log.info("kkkkkkkkkkkkkkkkkkkkk "+queryStr);
+		 log.info("amountttttt "+amount);
+		 return amount;
 	}
 
 }
