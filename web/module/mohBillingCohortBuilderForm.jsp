@@ -34,6 +34,11 @@
 		 <li>
 			<a href="recettes.form"><spring:message code="@MODULE_ID@.billing.revenue"/></a>
 		</li>
+		
+		 <li>
+			<a href="invoice.form"><spring:message code="@MODULE_ID@.billing.invoice"/></a>
+		</li>
+		
 		<li>
 			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
 		</li>
