@@ -42,7 +42,7 @@
 			    <prop key="module/@MODULE_ID@/received.form">mohBillingReceivedController</prop>
 			    <prop key="module/@MODULE_ID@/recettes.form">mohBillingRevenueController</prop>
 			    <prop key="module/@MODULE_ID@/facture.form">mohBillingFactureRecovery</prop>
-			
+			    <prop key="module/@MODULE_ID@/invoice.form">mohBillingFactureRecovery</prop>
 			</props>
 		</property>
 	</bean>
@@ -157,6 +157,10 @@
 	
 	<bean id="mohBillingFactureRecovery" class="org.openmrs.module.mohbilling.web.controller.MohBillingFactureRecovery">
 		<property name="viewName"><value>/module/mohbilling/mohBillingFacture</value></property>
+	</bean>
+	
+	<bean id="invoice" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceInvoiceController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInvoice</value></property>
 	</bean>
 
 	<!-- /Controllers -->
