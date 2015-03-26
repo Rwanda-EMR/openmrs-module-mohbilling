@@ -127,9 +127,7 @@ public class MohBillingInsuranceInvoiceController extends
 
 			List<Object[]> obj = Context.getService(BillingService.class).getAllServicesByPatient(insurance,
 					startDate, endDate, patientId, serviceId, null,
-					cashCollector);
-			
-			
+					cashCollector);	
 
 			Double bigTotal = (double) 0;
 			Double totalConsultation = (double) 0;

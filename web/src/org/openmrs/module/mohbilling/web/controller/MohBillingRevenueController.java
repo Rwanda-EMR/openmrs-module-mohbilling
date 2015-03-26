@@ -160,8 +160,10 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 
 			String category = "";
 			
-			List<Object[]> consultationList = new ArrayList<Object[]>();
-			List<Object[]> laboList = new ArrayList<Object[]>();
+			Map<String,Double> consultations = new HashMap<String, Double>();
+			
+			Map<String,Double> laboList = new HashMap<String,Double>();
+			
 			List<Object[]> formaliteList = new ArrayList<Object[]>();
 			List<Object[]> radioList = new ArrayList<Object[]>();
 			List<Object[]> pediatList = new ArrayList<Object[]>();
@@ -185,22 +187,25 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 			
 			List<Object[]>  soinsInfList = new ArrayList<Object[]>();
 			
-			Map<String, List<Object[]>> map = new HashMap<String, List<Object[]>>();
+			Map<String, List<Double>> map = new HashMap<String, List<Double>>();
 			Map<String,Double> subTotalMap = new HashMap<String, Double>();
 			
 			String dateObj[] = null;
 			String date = "";
 			String temp[] = null;
 			
-			List<Object[]> totalByCateg = null;
+			List<Object[]> totalByCateg = new ArrayList<Object[]>();
+			
+			Map<String, List<Object[]>> dateAndServicesMap = new HashMap<String, List<Object[]>>();
+			
+			List<Object[]> services = new ArrayList<Object[]>();
 			
 			for (Object[] ob : obj) {
-				totalByCateg=new ArrayList<Object[]>();
 //				BigDecimal cost = (BigDecimal) ob[1];
 //				bigTotal = cost.doubleValue()+bigTotal.doubleValue();
 				
 				category = ob[1].toString();
-				dateObj=ob[0].toString().split(" ");
+//				dateObj=ob[0].toString().split(" ");
 				date=ob[0].toString();
 				
 				totalConsultation =  0.0;
@@ -226,160 +231,176 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 				totalOxygenotherapie= 0.0;
 				totalSoinsInf = 0.0;
 				
-				
 				if(category=="CONSULTATION" || category.equals("CONSULTATION")){
-					
-					consultationList.add(ob);
-				    map.put(dateObj[0], consultationList);
-//				    totalConsultation = totalConsultation.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-//				    subTotalMap.put(category, totalConsultation);
-				    String queryStr = Context.getService(BillingService.class).getSum(category, dateObj[0]).toString();
-				    totalConsultation = Double.parseDouble(queryStr);
-				    subTotalMap.put(category, totalConsultation);
-				    
+				    totalConsultation = totalConsultation.doubleValue()+((Double)ob[2]);
+//				    consultations.put(date, totalConsultation);
+//				    for (String key : consultations.keySet()) {
+//				    	if(consultations.keySet().contains(key))
+//						totalConsultation=totalConsultation+consultations.get(key);
+//					}
 			   }
 				if(category=="LABORATOIRE" || category.equals("LABORATOIRE")){	
-					if(ob!=null){
-						laboList.add(ob);			
-					    map.put(date, laboList);
-					    totalLabo = totalLabo.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					    subTotalMap.put(category, totalLabo);
-						}
+					 totalLabo = totalLabo.doubleValue()+((Double)ob[2]);
+//					 laboList.put(date, totalLabo);
+//					    for (String key : laboList.keySet()) {
+//					    	if(laboList.keySet().contains(key))
+//					    		totalLabo=totalLabo+laboList.get(key);
+//						}
 			   }
-				if(category=="FORMALITES ADMINISTRATIVES" || category.equals("FORMALITES ADMINISTRATIVES")){	
-					if(ob!=null){
-					formaliteList.add((Object[])ob);
-					map.put(date, formaliteList);
-					totalFormalite = totalFormalite.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(date, totalFormalite);
-					}
-			   }
-				if(category=="RADIOLOGIE" || category.equals("RADIOLOGIE")){	
-					if(ob!=null){
-					radioList.add((Object[])ob);
-					map.put(date, radioList);
-					totalRadio = totalRadio.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalRadio);
-					}
-			   }
-				if(category=="PEDIATRIC" || category.equals("PEDIATRIC")){	
-					if(ob!=null){
-					pediatList.add((Object[])ob);
-					map.put(date, pediatList);
-					totalPediat = totalPediat.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalPediat);
-					}
-			   }
+//				if(category=="FORMALITES ADMINISTRATIVES" || category.equals("FORMALITES ADMINISTRATIVES")){	
+//					if(ob!=null){
+//					formaliteList.add((Object[])ob);
+//					map.put(date, formaliteList);
+//					totalFormalite = totalFormalite.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(date, totalFormalite);
+//					}
+//			   }
+//				if(category=="RADIOLOGIE" || category.equals("RADIOLOGIE")){	
+//					if(ob!=null){
+//					radioList.add((Object[])ob);
+//					map.put(date, radioList);
+//					totalRadio = totalRadio.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalRadio);
+//					}
+//			   }
+//				if(category=="PEDIATRIC" || category.equals("PEDIATRIC")){	
+//					if(ob!=null){
+//					pediatList.add((Object[])ob);
+//					map.put(date, pediatList);
+//					totalPediat = totalPediat.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalPediat);
+//					}
+//			   }
+//				
+//				if(category=="ECHOGRAPHIE" || category.equals("ECHOGRAPHIE")){	
+//					if(ob!=null){
+//					echoList.add((Object[])ob);
+//					map.put(date, echoList);
+//					totalEcho = totalEcho.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalEcho);
+//					}
+//			   }
+//				if(category=="OPHTALMOLOGIE" || category.equals("OPHTALMOLOGIE")){	
+//					if(ob!=null){
+//					ophtaList.add((Object[])ob);
+//					map.put(category, ophtaList);
+//					totalOphta = totalOphta.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalOphta);
+//					}
+//			   }
+//				if(category=="CHIRURGIE" || category.equals("CHIRURGIE")){	
+//					if(ob!=null){
+//					surgeryList.add((Object[])ob);
+//					map.put(category, surgeryList);
+//					totalSurgery = totalSurgery.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalSurgery);
+//					}
+//			   }if(category=="INTERNAL MEDICINE" || category.equals("INTERNAL MEDICINE")){	
+//					if(ob!=null){
+//					internalMedList.add((Object[])ob);
+//					map.put(category, internalMedList);
+//					totalInternalMed = totalInternalMed.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalInternalMed);
+//					}
+//			   }
+//				if(category=="GYNECOLOGY" || category.equals("GYNECOLOGY")){	
+//					if(ob!=null){
+//					gynecoList.add((Object[])ob);
+//					map.put(category, gynecoList);
+//					totalGyneco = totalGyneco.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalGyneco);
+//					}
+//			   }
+//				if(category=="KINESITHERAPIE" || category.equals("KINESITHERAPIE")){	
+//					if(ob!=null){
+//					kineList.add((Object[])ob);
+//					map.put(category, kineList);
+//					totalKine = totalKine.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalKine);
+//					}
+//			   }
+//				if(category=="STOMATOLOGIE" || category.equals("STOMATOLOGIE")){	
+//					if(ob!=null){
+//					stomatoList.add((Object[])ob);
+//					map.put(category, stomatoList);
+//					totalStomato = totalStomato.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalStomato);
+//					}
+//			   }
+//				if(category=="MATERNITE" || category.equals("MATERNITE")){	
+//					if(ob!=null){
+//					MaterniteList.add((Object[])ob);
+//					map.put(category, MaterniteList);
+//					totalMaternite = totalMaternite.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalMaternite);
+//					}
+//			   }
+//				if(category=="NEONATAL" || category.equals("NEONATAL")){	
+//					if(ob!=null){
+//					neoList.add((Object[])ob);
+//					map.put(category, neoList);
+//					totalNeo = totalNeo.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalNeo);
+//					}
+//			   }
+//				if(category=="MEDICAMENTS" || category.equals("MEDICAMENTS")){	
+//					if(ob!=null){
+//					MedicList.add((Object[])ob);
+//					map.put(category, MedicList);
+//					totalMedic = totalMedic.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalMedic);
+//					}
+//			   }
+//				if(category=="CONSOMMABLES" || category.equals("CONSOMMABLES")){	
+//					if(ob!=null){
+//					consummableList.add((Object[])ob);
+//					map.put(category, consummableList);
+//					totalConsummable = totalConsummable.doubleValue()+((BigDecimal)ob[2]).doubleValue();
+//					subTotalMap.put(category, totalConsummable);
+//					}
+//			   }
+//
+//				if(category=="OXYGENOTHERAPIE" || category.equals("OXYGENOTHERAPIE")){	
+//					if(ob!=null){
+//					oxygenotherapieList.add((Object[])ob);
+//					map.put(category, oxygenotherapieList);
+//					totalOxygenotherapie = totalOxygenotherapie.doubleValue()+((BigDecimal)ob[5]).doubleValue();
+//					subTotalMap.put(category,totalOxygenotherapie);
+//					}
+//				}
 				
-				if(category=="ECHOGRAPHIE" || category.equals("ECHOGRAPHIE")){	
-					if(ob!=null){
-					echoList.add((Object[])ob);
-					map.put(date, echoList);
-					totalEcho = totalEcho.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalEcho);
-					}
-			   }
-				if(category=="OPHTALMOLOGIE" || category.equals("OPHTALMOLOGIE")){	
-					if(ob!=null){
-					ophtaList.add((Object[])ob);
-					map.put(category, ophtaList);
-					totalOphta = totalOphta.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalOphta);
-					}
-			   }
-				if(category=="CHIRURGIE" || category.equals("CHIRURGIE")){	
-					if(ob!=null){
-					surgeryList.add((Object[])ob);
-					map.put(category, surgeryList);
-					totalSurgery = totalSurgery.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalSurgery);
-					}
-			   }if(category=="INTERNAL MEDICINE" || category.equals("INTERNAL MEDICINE")){	
-					if(ob!=null){
-					internalMedList.add((Object[])ob);
-					map.put(category, internalMedList);
-					totalInternalMed = totalInternalMed.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalInternalMed);
-					}
-			   }
-				if(category=="GYNECOLOGY" || category.equals("GYNECOLOGY")){	
-					if(ob!=null){
-					gynecoList.add((Object[])ob);
-					map.put(category, gynecoList);
-					totalGyneco = totalGyneco.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalGyneco);
-					}
-			   }
-				if(category=="KINESITHERAPIE" || category.equals("KINESITHERAPIE")){	
-					if(ob!=null){
-					kineList.add((Object[])ob);
-					map.put(category, kineList);
-					totalKine = totalKine.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalKine);
-					}
-			   }
-				if(category=="STOMATOLOGIE" || category.equals("STOMATOLOGIE")){	
-					if(ob!=null){
-					stomatoList.add((Object[])ob);
-					map.put(category, stomatoList);
-					totalStomato = totalStomato.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalStomato);
-					}
-			   }
-				if(category=="MATERNITE" || category.equals("MATERNITE")){	
-					if(ob!=null){
-					MaterniteList.add((Object[])ob);
-					map.put(category, MaterniteList);
-					totalMaternite = totalMaternite.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalMaternite);
-					}
-			   }
-				if(category=="NEONATAL" || category.equals("NEONATAL")){	
-					if(ob!=null){
-					neoList.add((Object[])ob);
-					map.put(category, neoList);
-					totalNeo = totalNeo.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalNeo);
-					}
-			   }
-				if(category=="MEDICAMENTS" || category.equals("MEDICAMENTS")){	
-					if(ob!=null){
-					MedicList.add((Object[])ob);
-					map.put(category, MedicList);
-					totalMedic = totalMedic.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalMedic);
-					}
-			   }
-				if(category=="CONSOMMABLES" || category.equals("CONSOMMABLES")){	
-					if(ob!=null){
-					consummableList.add((Object[])ob);
-					map.put(category, consummableList);
-					totalConsummable = totalConsummable.doubleValue()+((BigDecimal)ob[2]).doubleValue();
-					subTotalMap.put(category, totalConsummable);
-					}
-			   }
-
-				if(category=="OXYGENOTHERAPIE" || category.equals("OXYGENOTHERAPIE")){	
-					if(ob!=null){
-					oxygenotherapieList.add((Object[])ob);
-					map.put(category, oxygenotherapieList);
-					totalOxygenotherapie = totalOxygenotherapie.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category,totalOxygenotherapie);
-					}
-				}
+//				services.add(new Object[]{totalConsultation,totalLabo,totalFormalite,
+//						totalRadio,totalPediat,totalEcho,totalOphta,totalSurgery,
+//						totalInternalMed,totalGyneco,totalKine,totalStomato,"",totalMaternite,"",
+//						totalNeo,"",totalMedic,totalConsummable,"",""});
+////				
+//////				log.info("cccccccccccccccccccccc"+totalConsultation);
+//////				log.info("BBBBBBBBBBBBBBBBBBBBBBB"+totalLabo);
+////				
+////				log.info("dateeeeeeeeeeeeeeeeeeeeeeeeee "+date);
+////				
+//				dateAndServicesMap.put(date, services);
 				
-				totalByCateg.add(new Object[] {dateObj[0],totalConsultation,totalLabo,totalFormalite,
+				totalByCateg.add(new Object[] {date,totalConsultation,totalLabo,totalFormalite,
 						totalRadio,totalPediat,totalEcho,totalOphta,totalSurgery,
 						totalInternalMed,totalGyneco,totalKine,totalStomato,"",totalMaternite,"",
 						totalNeo,"",totalMedic,totalConsummable,"","" });
 			}
 			
+			for (String key : dateAndServicesMap.keySet()) {
+				log.info("kkkkkkeyyyyyyyyyyyyyyy "+key);
+				for (Object[] ob : dateAndServicesMap.get(key)) {
+					log.info("objjjjjjjjjjjjjjjjjjjjj0 DATE :"+ob[0]+"jjjjjjjjjjjjjjjjj "+ob[1]);
+					log.info("objjjjjjjjjjjjjjjjjjjjj1 "+ob[1]);
+				}
+			}
 			
 			mav.addObject("obj", obj);
 			mav.addObject("bigTotal", bigTotal);
 			mav.addObject("map", map);
 			mav.addObject("subTotalMap", subTotalMap);
 			mav.addObject("totalByCateg", totalByCateg);
+			mav.addObject("dateAndServicesMap", dateAndServicesMap);
 		}
 
 		mav.setViewName(getViewName());

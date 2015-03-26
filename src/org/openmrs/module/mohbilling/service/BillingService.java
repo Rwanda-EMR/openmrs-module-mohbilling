@@ -385,4 +385,8 @@ public interface BillingService {
 			String serviceName, String billStatus, String billCollector);
 	
 	public BigDecimal getSum(String category,String datePart);
+
+	public List<Object[]> getAllServicesByPatient(Insurance insurance,
+			Date startDate, Date endDate, Integer patientId,
+			String serviceName, String billStatus, String billCollector);
 }
