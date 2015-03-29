@@ -410,16 +410,16 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	@Override
-	public List<Object[]> getRevenueOfServices(Insurance insurance,
+	public List<Date> getRevenueDates(Insurance insurance,
 			Date startDate, Date endDate, Integer patientId,
 			String serviceName, String billStatus, String billCollector) {
-		return billingDAO.getRevenueOfServices(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
+		return billingDAO.getRevenueDates(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
 	}
 
 	@Override
-	public BigDecimal getSum(String category, String datePart) {
+	public Double getSum(String category, Date date) {
 		// TODO Auto-generated method stub
-		return billingDAO.getSum(category, datePart);
+		return billingDAO.getSum(category, date);
 	}
 
 	@Override

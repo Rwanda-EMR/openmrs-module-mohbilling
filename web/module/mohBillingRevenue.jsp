@@ -299,14 +299,13 @@
 <br />
 
 <br />
-<c:if test="${fn:length(obj)!=0}">
+<c:if test="${fn:length(map)!=0}">
 	<b class="boxHeader"> Recettes par service</b><b><a>Export</a></b>
 	<div class="box">
 		<table width="70%" border="0">
 
 			<tr>
-				<th class="columnHeader">No</th>
-				<th class="columnHeader" width="80%">Date</th>
+				<th class="columnHeader">Date          </th>
 				<th class="columnHeader">Consult</th>
 				<th class="columnHeader">Labo</th>
 				<th class="columnHeader">Forma Admini</th>	
@@ -328,13 +327,14 @@
 				<th class="columnHeader">Consommables</th>
 				<th class="columnHeader">Morgue</th>
 				<th class="columnHeader">Autres</th>
-				<th>Total</th>
+				<th class="columnHeader"><b>Total</b></th>
 			</tr>
 
 			
-        <c:forEach var="j" items="${totalByCateg}" varStatus="status">
+        <c:forEach var="map" items="${map}" varStatus="status">
         <tr>
-            <td>${status.count}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${map.key}</td>
+        	<c:forEach var="j" items="${map.value}" varStatus="status">
             <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[0]}</td>
             <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[1]}</td>
             <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[2]}</td>
@@ -356,11 +356,33 @@
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${j[18]}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${j[19]}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${j[20]}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${j[21]}</td>
-             <td></td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}"><b></b></td>
+            </c:forEach>
 		</tr>			
 		</c:forEach>
-	  	
+	  	<tr>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"><b>TOTAL</b></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}">${colCons }</td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	</tr>
 		</table>
 	</div>
 </c:if>

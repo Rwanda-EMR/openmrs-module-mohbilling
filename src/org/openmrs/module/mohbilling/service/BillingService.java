@@ -380,11 +380,11 @@ public interface BillingService {
 	 */
 	public ServiceCategory getServiceCategoryByName(String name, Insurance insurance);
 	
-	public List<Object[]> getRevenueOfServices(Insurance insurance,
+	public List<Date> getRevenueDates(Insurance insurance,
 			Date startDate, Date endDate, Integer patientId,
 			String serviceName, String billStatus, String billCollector);
 	
-	public BigDecimal getSum(String category,String datePart);
+	public Double getSum(String category,Date date);
 
 	public List<Object[]> getAllServicesByPatient(Insurance insurance,
 			Date startDate, Date endDate, Integer patientId,

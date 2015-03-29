@@ -816,7 +816,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	@Override
-	public List<Object[]> getRevenueOfServices(Insurance insurance,
+	public List<Date> getRevenueDates(Insurance insurance,
 			Date startDate, Date endDate, Integer patientId,
 			String serviceName, String billStatus, String billCollector) {
 		
@@ -824,20 +824,8 @@ public class HibernateBillingDAO implements BillingDAO {
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder combinedSearch = new StringBuilder("");
 		
-		
-
-//		combinedSearch
-//		.append(" SELECT pay.date_received,fs.category,pay.amount_paid "
-//				+"  FROM moh_bill_facility_service_price fs "
-//				 +"  inner join moh_bill_billable_service bs on bs.facility_service_price_id=fs.facility_service_price_id "
-//				 +"  inner join moh_bill_patient_service_bill psb on psb.billable_service_id=bs.billable_service_id "
-//				 +"  inner join moh_bill_patient_bill pb on pb.patient_bill_id=psb.patient_bill_id "
-//				 +"  inner join moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id "
-//				 +"  inner join moh_bill_beneficiary f on f.beneficiary_id=pb.beneficiary_id "
-//				 +"  inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=f.insurance_policy_id ");
-		
 		combinedSearch
-		.append("SELECT pay.date_received,fs.category,SUM(((psb.unit_price * psb.quantity)*(100-ir.rate)/100)) "
+		.append("SELECT pay.date_received "
 		+" FROM moh_bill_patient_service_bill psb "
 		+"  inner join moh_bill_billable_service bs on bs.billable_service_id =psb.billable_service_id "
 		+"  inner join moh_bill_facility_service_price fs on fs.facility_service_price_id =bs.facility_service_price_id "
@@ -882,7 +870,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		combinedSearch.append(" group by fs.category,pay.date_received order by fs.category,pay.date_received asc ");
 
-		List<Object[]> obj = session
+		List<Date> obj = session
 				.createSQLQuery(combinedSearch.toString()).list();
 
 		System.out.println("_____________________ BILL QUERY __________\n"
@@ -890,12 +878,25 @@ public class HibernateBillingDAO implements BillingDAO {
 		return obj;
 	}
 	@Override
-	public BigDecimal  getSum(String category, String datePart) {
+	public Double  getSum(String category, Date date) {
 		Session session = sessionFactory.getCurrentSession();
-		 String queryStr = "SELECT sum(amount_paid) FROM moh_bill_payment where created_date like '%"+datePart+"%"+"'";
-		 BigDecimal  amount = (BigDecimal ) session.createSQLQuery(queryStr).list().get(0);
-		 log.info("kkkkkkkkkkkkkkkkkkkkk "+queryStr);
-		 log.info("amountttttt "+amount);
+		DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+		 String queryStr = "SELECT SUM(((psb.unit_price * psb.quantity)*(100-ir.rate)/100))"
+							+" FROM moh_bill_patient_service_bill psb"
+							+" inner join moh_bill_billable_service bs on bs.billable_service_id =psb.billable_service_id"
+							+" inner join moh_bill_facility_service_price fs on fs.facility_service_price_id =bs.facility_service_price_id"
+							+" inner join moh_bill_patient_bill pb on pb.patient_bill_id=psb.patient_bill_id"
+							+" inner join moh_bill_insurance_rate ir on ir.insurance_id=bs.insurance_id"
+							+" inner join  moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id"
+							+" where pay.date_received='"+f.format(date)+"' and fs.category='"+category+"'";
+		 List<Object> list = session.createSQLQuery(queryStr).list();
+		 Double amount=0.0;
+		 try { 
+			 if(list!=null)
+			  amount = (Double ) list.get(0);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
 		 return amount;
 	}
 
