@@ -907,8 +907,6 @@ public class HibernateBillingDAO implements BillingDAO {
 		Session session = sessionFactory.getCurrentSession();
 		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder combinedSearch = new StringBuilder("");
-		
-		
 
 		combinedSearch
 		.append("SELECT psb.created_date,fs.name,fs.category,psb.unit_price,psb.quantity,(psb.unit_price*psb.quantity) "

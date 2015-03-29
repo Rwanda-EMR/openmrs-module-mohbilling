@@ -58,7 +58,7 @@
 <div class="box">
 
 
-	<form method="post" action="recettes.form">
+	<form method="post" action="facture.form">
 		<input type="hidden" name="patientIdnew" value="${patientId}" />
 		<input type="hidden" name="formStatus" id="formStatusId" value="" />
 		<table>
@@ -299,65 +299,6 @@
 <br />
 
 <br />
-<c:if test="${fn:length(obj)!=0}">
-	<b class="boxHeader"> FACTURE DES PRESTATIONS DES SOINS DE SANTE</b><b><a>Print</a></b>
-	<div class="box">
-		<table width="70%" border="0">
-
-			<tr>
-				<th class="columnHeader">Date</th>
-				<th class="columnHeader">Consult Médec</th>
-				<th class="columnHeader">Labo</th>
-				<th class="columnHeader">Actes Admini</th>	
-				<th class="columnHeader">Radio</th>
-				<th class="columnHeader">Pédiat</th>
-				<th class="columnHeader">ECH</th>
-				<th class="columnHeader">OPHT</th>
-				<th class="columnHeader">Chir</th>
-				<th class="columnHeader">Méd I.N</th>
-				<th class="columnHeader">GYNECO</th>
-				<th class="columnHeader">kiné</th>
-				<th class="columnHeader">dentisteur</th>
-				<th class="columnHeader">Petite chir</th>
-				<th class="columnHeader">Maternité</th>
-				<th class="columnHeader">Cliniq</th>
-				<th class="columnHeader">NEONATOLOGIE</th>
-				<th class="columnHeader">Ambulance</th>
-				<th class="columnHeader">Médicts</th>
-				<th class="columnHeader">Morgue</th>
-				<th class="columnHeader">Autres</th>
-				<th>Total</th>
-			</tr>
-
-			
-
-			<tr>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-			</tr>
-		</table>
-	</div>
-</c:if>
-
-
+AHWIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
