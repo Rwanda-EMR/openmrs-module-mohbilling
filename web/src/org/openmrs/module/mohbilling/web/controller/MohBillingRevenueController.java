@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,12 +39,8 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
-		List<String> categories = InsuranceUtil.getAllServiceCategories();
-		List<BillPayment> reportedPayments = new ArrayList<BillPayment>();
-
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("allInsurances", InsuranceUtil.getAllInsurances());
-		mav.addObject("categories", categories);
 
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// Date startDate = null;
@@ -125,88 +122,37 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
 			}
 
-			List<Date> dates = Context.getService(BillingService.class).getRevenueDates(insurance,
-					startDate, endDate, patientId, serviceId, null,
-					cashCollector);
-
-			Double bigTotal = (double) 0;
+//			List<Date> dates = Context.getService(BillingService.class).getRevenueDatesBetweenDates(startDate, endDate);
 			
-			Map<Date, List<Object[]>> map = new HashMap<Date, List<Object[]>>();
-			Map<String,Double> subTotalMap = new HashMap<String, Double>();
+			  if(startDate!=null && endDate!=null){
+				   
+				   BillingService bs= Context.getService(BillingService.class);
+				  
+				   
+				   String[] serviceCategories = {"FORMAL","CONSULT","LABO","RADIO","ECHOG","OPHTAL","CHIRUR","MEDEC","CONSOM","KINES","STOMAT","MATERN","AMBULANCE","SOINS INF","MEDICA","HOSPIT"};
+				         
+				   String pattern = "yyyy-MM-dd";
+				   SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+				   List<Date>dateList =bs.getRevenueDatesBetweenDates(startDate, endDate);
+				
+				         
+				       
+				     LinkedHashMap<String, Map<String, Double>> basedDateReport =new LinkedHashMap<String, Map<String, Double>>();          
+				          
+				   for (Date receivedDate : dateList) {
+				    Map<String, Double> mappedReport =bs.getRevenueByService(receivedDate, serviceCategories, cashCollector,insurance);
+				    basedDateReport.put(simpleDateFormat.format(receivedDate), mappedReport);   
+				   }
+				   System.out.println("the size of daily report map size"+basedDateReport.size());
+				        
+				  // Map<String, Double> mappedReport =bs.getCashierReceiptReport(startDate, endDate, serviceCategories, null);
+				   //mav.addObject("mappedReport", mappedReport);
+				   mav.addObject("serviceCategories", serviceCategories);
+				   mav.addObject("basedDateReport", basedDateReport);
+				   
+				  }
 			
-			BillingService service=Context.getService(BillingService.class);
-			
-			for (Date date : dates) {
-				
-				List<Object[]> totalByCateg = new ArrayList<Object[]>();
-				
-				Double totalConsultation = 0.0;
-				Double totalLabo= 0.0;
-				Double totalFormalite= (double) 0;
-				Double totalRadio= (double) 0;
-				Double totalPediat= (double) 0;
-				Double totalEcho= (double) 0;
-				Double totalOphta= (double) 0;
-				Double totalSurgery= (double) 0;
-				Double totalInternalMed= (double) 0;
-				Double totalGyneco= (double) 0;
-				Double totalKine = (double) 0;
-				Double totalStomato= (double) 0;
-				Double totalPetiteChir= (double) 0;
-				Double totalMaternite= (double) 0;
-				Double totalClinic= (double) 0;
-				Double totalNeo= (double) 0;
-				Double totalAmbulance= (double) 0;
-				Double totalMedic= (double) 0;
-				Double totalConsummable= (double) 0;
-				Double totalMorgue= (double) 0;
-				Double totalAutre= (double) 0;			
-				Double totalOxygenotherapie= (double) 0;
-				Double totalSoinsInf = (double) 0;
-				
-
-				totalConsultation = (Double)service.getSum("CONSULTATION", date);
-				totalLabo=(Double)service.getSum("LABORATOIRE", date);
-				totalFormalite=(Double)service.getSum("FORMALITES ADMINISTRATIVES", date);
-				totalRadio=(Double)service.getSum("RADIOLOGIE", date);
-				totalPediat=(Double)service.getSum("PEDIATRIC", date);
-				totalEcho=(Double)service.getSum("ECHOGRAPHIE", date);
-				totalOphta=(Double)service.getSum("OPHTALMOLOGIE", date);
-				totalSurgery=(Double)service.getSum("CHIRURGIE", date);
-				totalInternalMed=(Double)service.getSum("INTERNAL MEDICINE", date);
-				totalGyneco=(Double)service.getSum("GYNECOLOGY", date);
-				totalKine=(Double)service.getSum("KINESITHERAPIE", date);
-				totalStomato=(Double)service.getSum("STOMATOLOGIE", date);
-				totalMaternite=(Double)service.getSum("MATERNITE", date);
-				totalNeo=(Double)service.getSum("NEONATAL", date);
-				totalMedic=(Double)service.getSum("MEDICAMENTS", date);
-				totalConsummable=(Double)service.getSum("CONSOMMABLES", date);
-				totalOxygenotherapie=(Double)service.getSum("OXYGENOTHERAPIE", date);
-
-				
-				//list of services' revenues
-				totalByCateg.add(new Object[] {totalConsultation,totalLabo,totalFormalite,
-						totalRadio,totalPediat,totalEcho,totalOphta,totalSurgery,
-						totalInternalMed,totalGyneco,totalKine,totalStomato,"",totalMaternite,"",
-						totalNeo,"",totalMedic,totalConsummable,"","" });
-				
-				//this map help to display a date once
-				map.put(date, totalByCateg);
-			}
-			
-			// total of the columns
-			Double colCons = 0.0;
-			for (Date date : map.keySet()) {
-				for (Object[] col : map.get(date)) {
-					if(col[0]!=null)
-					colCons=colCons+(Double)col[0];
-				}
-			}
-			mav.addObject("map", map);
-			mav.addObject("subTotalMap", subTotalMap);
-			mav.addObject("bigTotal", bigTotal);
-			
-			mav.addObject("colCons", colCons);
+		
 		}
 
 		mav.setViewName(getViewName());

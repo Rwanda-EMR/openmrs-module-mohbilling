@@ -19,8 +19,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import javax.xml.stream.events.StartDocument;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,6 +34,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
+import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
@@ -45,6 +50,7 @@ import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
+
 
 /**
  * @author Kamonyo
@@ -816,88 +822,15 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	@Override
-	public List<Date> getRevenueDates(Insurance insurance,
-			Date startDate, Date endDate, Integer patientId,
-			String serviceName, String billStatus, String billCollector) {
-		
-		Session session = sessionFactory.getCurrentSession();
-		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		StringBuilder combinedSearch = new StringBuilder("");
-		
-		combinedSearch
-		.append("SELECT pay.date_received "
-		+" FROM moh_bill_patient_service_bill psb "
-		+"  inner join moh_bill_billable_service bs on bs.billable_service_id =psb.billable_service_id "
-		+"  inner join moh_bill_facility_service_price fs on fs.facility_service_price_id =bs.facility_service_price_id "
-		+"  inner join moh_bill_patient_bill pb on pb.patient_bill_id=psb.patient_bill_id "
-		+"  inner join moh_bill_insurance_rate ir on ir.insurance_id=bs.insurance_id "
-		+"  inner join  moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id  "
-		+"  inner join moh_bill_beneficiary f on f.beneficiary_id=pb.beneficiary_id "
-		+"  inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=f.insurance_policy_id ");
-	
-						
-		if (patientId != null)
-			combinedSearch
-					.append(" AND f.patient_id = " + patientId.intValue());
-
-
-		if (insurance != null)
-			combinedSearch.append(" and ip.insurance_id =  "
-					+ insurance.getInsuranceId().intValue());
-
-		if (billCollector != null && !billCollector.equals(""))
-			combinedSearch.append(" AND pay.creator =  " + billCollector);
-
-		if (startDate != null && endDate != null)
-			combinedSearch.append(" and pay.date_received >= '"
-					+ formatter.format(startDate)
-					+ "' and pay.date_received <= '" + formatter.format(endDate)
-					+ "' ");
-
-		if (startDate != null && endDate == null)
-			combinedSearch.append(" and pay.date_received >= '"
-					+ formatter.format(startDate) + "' ");
-
-		if (startDate == null && endDate != null)
-			combinedSearch.append(" and pay.date_received <= '"
-					+ formatter.format(endDate) + "' ");
-
-		// payment status
-		if (billStatus != null && !billStatus.equals(""))
-			if (!billStatus.equals("0"))// when it's "0" it does affect the
-										// query...
-				combinedSearch.append(" AND pb.status = '" + billStatus + "'");
-
-		combinedSearch.append(" group by fs.category,pay.date_received order by fs.category,pay.date_received asc ");
-
-		List<Date> obj = session
-				.createSQLQuery(combinedSearch.toString()).list();
-
-		System.out.println("_____________________ BILL QUERY __________\n"
-				+ combinedSearch.toString());
-		return obj;
-	}
-	@Override
-	public Double  getSum(String category, Date date) {
-		Session session = sessionFactory.getCurrentSession();
-		DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
-		 String queryStr = "SELECT SUM(((psb.unit_price * psb.quantity)*(100-ir.rate)/100))"
-							+" FROM moh_bill_patient_service_bill psb"
-							+" inner join moh_bill_billable_service bs on bs.billable_service_id =psb.billable_service_id"
-							+" inner join moh_bill_facility_service_price fs on fs.facility_service_price_id =bs.facility_service_price_id"
-							+" inner join moh_bill_patient_bill pb on pb.patient_bill_id=psb.patient_bill_id"
-							+" inner join moh_bill_insurance_rate ir on ir.insurance_id=bs.insurance_id"
-							+" inner join  moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id"
-							+" where pay.date_received='"+f.format(date)+"' and fs.category='"+category+"'";
-		 List<Object> list = session.createSQLQuery(queryStr).list();
-		 Double amount=0.0;
-		 try { 
-			 if(list!=null)
-			  amount = (Double ) list.get(0);
-		} catch (Exception e) {
-			System.out.println(e);
-		}
-		 return amount;
+	public List<Date> getRevenueDatesBetweenDates(Date startDate, Date endDate) {
+		// TODO Auto-generated method stub
+		  DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		  Session session = getSessionFactory().getCurrentSession();  
+		  SQLQuery query = session.createSQLQuery("SELECT date_received FROM moh_bill_payment" +
+		    " where date_received between '" +sdf.format(startDate)+"' and '" +sdf.format(endDate)+"' ");
+		  List<Date> dateList = query.list();  
+		  return dateList;
+			
 	}
 
 	@Override
@@ -959,6 +892,92 @@ public class HibernateBillingDAO implements BillingDAO {
 		System.out.println("_____________________ BILL QUERY __________\n"
 				+ combinedSearch.toString());
 		return obj;
+	}
+
+	@Override
+	public List<PatientBill> getBills(Date startDate,Date endDate) {
+		List<PatientBill> bills = new ArrayList<PatientBill>();
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Session session = sessionFactory.getCurrentSession();
+		
+		String str = "SELECT pay.patient_bill_id FROM moh_bill_patient_bill pb " +
+				" inner join moh_bill_payment pay on pb.patient_bill_id=pay.patient_bill_id " +
+				" and pay.date_received >='"+df.format(startDate)+"' and pay.date_received <='"+df.format(endDate)+"'";
+		
+		System.out.println("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm\n"
+				+ str.toString());
+		
+		List<Integer> billIds= (List<Integer>) session.createSQLQuery(str.toString()).list();
+		
+		for (Integer id : billIds) {
+			bills.add(getPatientBill(id));
+		}
+		
+		return bills;
+	}
+
+	@Override
+	public Map<String,Double> getRevenueByService(Date receivedDate,String[] serviceCategory, String collector, Insurance insurance) {
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		  Double amountSum =0.0;
+
+		   LinkedHashMap<String, Double> mappedReport= new LinkedHashMap();
+		  //Map<String, Double> mappedReport = new HashMap<String, Double>();
+		   
+		  Session session = getSessionFactory().getCurrentSession();
+		  
+		  for (String svceCatgory : serviceCategory) {
+		   StringBuilder strb = new StringBuilder("");
+		   log.info(">>>>>>>>>start >sql query "+strb.toString());
+		   
+		   strb.append("SELECT fsp.category,SUM(((m.unit_price * m.quantity)*(100-ir.rate)/100)) " 
+		     +" as total FROM moh_bill_patient_service_bill m " 
+		     +" inner join moh_bill_billable_service bs on bs.billable_service_id =m.billable_service_id " 
+		     +" inner join moh_bill_facility_service_price fsp on fsp.facility_service_price_id =bs.facility_service_price_id " 
+		     +" inner join  moh_bill_patient_bill pb on pb.patient_bill_id=m.patient_bill_id " 
+		     +" inner join moh_bill_beneficiary bn on pb.beneficiary_id =bn.beneficiary_id "
+		     +" inner join  moh_bill_insurance_rate ir on ir.insurance_id=bs.insurance_id "      
+		     +" inner join moh_bill_insurance_policy ip on ip.insurance_policy_id =bn.insurance_policy_id"
+		     +" inner  join  moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id " 
+		     +" where fsp.category like  '%" +svceCatgory+"%' and date_received = '" +formatter.format(receivedDate)+"' "); 
+		
+		   log.info(">>>>>>>>before ifs >>sql query "+strb.toString());
+		 
+		   if (insurance != null)
+				strb.append(" and ip.insurance_id =  "
+						+ insurance.getInsuranceId().intValue());
+
+			if (collector != null && !collector.equals(""))
+				strb.append(" AND pay.creator =  " + collector);
+		  
+		   log.info(">>>>>>>>>>sql query "+strb.toString());
+		   SQLQuery query = session.createSQLQuery(strb.toString());  
+		 
+		   List<Object[]> categoryReports = query.list(); 
+		  
+		   for (Object[] object : categoryReports) {
+		   
+			   String catg =(String)object[0];     
+			   Double amount =(Double )object[1];   
+		   
+		     if(catg!=null){             
+		             mappedReport.put(catg, amount);
+		             amountSum=amountSum+amount; 
+		    }
+		    
+		           if(catg==null){
+		            
+		            mappedReport.put(svceCatgory, 0.0); 
+		            amountSum=amountSum+0.0; 
+		   }
+		                
+		  }
+		  
+		  
+		  }
+		  mappedReport.put("Total", amountSum);
+		  
+		  return mappedReport;
 	}
 
 }

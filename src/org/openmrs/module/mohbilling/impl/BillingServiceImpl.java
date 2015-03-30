@@ -6,8 +6,10 @@ package org.openmrs.module.mohbilling.impl;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.openmrs.Concept;
+import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.DAOException;
@@ -410,16 +412,8 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	@Override
-	public List<Date> getRevenueDates(Insurance insurance,
-			Date startDate, Date endDate, Integer patientId,
-			String serviceName, String billStatus, String billCollector) {
-		return billingDAO.getRevenueDates(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
-	}
-
-	@Override
-	public Double getSum(String category, Date date) {
-		// TODO Auto-generated method stub
-		return billingDAO.getSum(category, date);
+	public List<Date> getRevenueDatesBetweenDates(Date startDate, Date endDate){
+		return billingDAO.getRevenueDatesBetweenDates(startDate,endDate);
 	}
 
 	@Override
@@ -428,6 +422,19 @@ public class BillingServiceImpl implements BillingService {
 			String serviceName, String billStatus, String billCollector) {
 		return billingDAO.getAllServicesByPatient(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
 	}
+
+	@Override
+	public List<PatientBill> getBills(Date startDate,Date endDate) {
+		return billingDAO.getBills(startDate,endDate);
+	}
+
+	@Override
+	public Map<String,Double> getRevenueByService(Date receivedDate,
+			String[] serviceCategory, String collector, Insurance insurance) {
+		return billingDAO.getRevenueByService(receivedDate, serviceCategory, collector, insurance);
+	}
+
+
 	
 	
 }

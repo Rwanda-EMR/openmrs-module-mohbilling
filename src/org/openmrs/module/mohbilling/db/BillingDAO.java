@@ -16,8 +16,10 @@ package org.openmrs.module.mohbilling.db;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.openmrs.Concept;
+import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.Beneficiary;
@@ -417,24 +419,18 @@ public interface BillingDAO {
 	public ServiceCategory getServiceCategoryByName(String name, Insurance insurance);
 	
 	/**
-	 * Gets all services revenue
-	 * @param insurance
+	 * 
 	 * @param startDate
 	 * @param endDate
-	 * @param patientId
-	 * @param serviceName
-	 * @param billStatus
-	 * @param billCollector
 	 * @return
 	 */
-	public List<Date> getRevenueDates(Insurance insurance,
-			Date startDate, Date endDate, Integer patientId,
-			String serviceName, String billStatus, String billCollector);
+	public List<Date> getRevenueDatesBetweenDates(Date startDate, Date endDate);
 	
-	public Double getSum(String category,Date date);
+	public Map<String,Double> getRevenueByService(Date receivedDate,String[] serviceCategory, String collector,Insurance insurance);
 	
 	public List<Object[]> getAllServicesByPatient(Insurance insurance,
 			Date startDate, Date endDate, Integer patientId,
 			String serviceName, String billStatus, String billCollector);
 
+	public List<PatientBill> getBills(Date startDate,Date endDate);
 }

@@ -298,93 +298,33 @@
 </div>
 <br />
 
-<br />
-<c:if test="${fn:length(map)!=0}">
-	<b class="boxHeader"> Recettes par service</b><b><a>Export</a></b>
-	<div class="box">
-		<table width="70%" border="0">
+<c:if test="${fn:length(basedDateReport)!=0}">
+<b class="boxHeader"> Recettes par service</b><b><a>Export</a></b>
+<div class="box">
 
-			<tr>
-				<th class="columnHeader">Date          </th>
-				<th class="columnHeader">Consult</th>
-				<th class="columnHeader">Labo</th>
-				<th class="columnHeader">Forma Admini</th>	
-				<th class="columnHeader">Radio</th>
-				<th class="columnHeader">Pédiat</th>
-				<th class="columnHeader">ECHP</th>
-				<th class="columnHeader">OPHTA</th>
-				<th class="columnHeader">Chir</th>
-				<th class="columnHeader">Méd Int</th>
-				<th class="columnHeader">GYNECO</th>
-				<th class="columnHeader">kiné</th>
-				<th class="columnHeader">Stomato</th>
-				<th class="columnHeader">Petite chir</th>
-				<th class="columnHeader">Maternité</th>
-				<th class="columnHeader">Cliniq</th>
-				<th class="columnHeader">NEONATOLOGIE</th>
-				<th class="columnHeader">Ambulance</th>
-				<th class="columnHeader">Médicts</th>
-				<th class="columnHeader">Consommables</th>
-				<th class="columnHeader">Morgue</th>
-				<th class="columnHeader">Autres</th>
-				<th class="columnHeader"><b>Total</b></th>
-			</tr>
+<c:set var="dailyReport" value="${basedDateReport}" />
 
-			
-        <c:forEach var="map" items="${map}" varStatus="status">
-        <tr>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${map.key}</td>
-        	<c:forEach var="j" items="${map.value}" varStatus="status">
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[0]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[1]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[2]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[3]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[4]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[5]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[6]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[7]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[8]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[9]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[10]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[11]}</td>           
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[12]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[13]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[14]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[15]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[16]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[17]}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${j[18]}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${j[19]}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${j[20]}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}"><b></b></td>
-            </c:forEach>
-		</tr>			
-		</c:forEach>
-	  	<tr>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"><b>TOTAL</b></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}">${colCons }</td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-	  	</tr>
-		</table>
-	</div>
+ <table>
+  <tr>
+     <th class="columnHeader">Date</th>   
+      <c:forEach items="${serviceCategories}" var="svceCateg">
+      <th class="columnHeader">${svceCateg}</th>
+      </c:forEach>
+   <th class="columnHeader"><b>Total</b></th>  
+   
+  </tr>
+  <!-- for service category display amount -->
+  <c:forEach var="dateReport" items="${dailyReport}">
+  <tr>
+    <td class="rowValue ${(status.count%2!=0)?'even':''}">${dateReport.key}</td>
+   <c:forEach var="categReport" items="${dateReport.value}">   
+    <td class="rowValue ${(status.count%2!=0)?'even':''}">${categReport.value}</td>   
+   </c:forEach> 
+ </tr>
+ </c:forEach>
+  <!--  end for each service category -->
+ </table>
+</div>
 </c:if>
 
 
