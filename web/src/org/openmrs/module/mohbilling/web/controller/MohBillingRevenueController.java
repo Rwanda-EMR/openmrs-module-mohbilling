@@ -1,31 +1,20 @@
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.math.BigDecimal;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.MultiHashMap;
-import org.apache.commons.collections.MultiMap;
-import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
-import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
-import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
@@ -45,7 +34,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// Date startDate = null;
 
-		String patientIdStr = null, insuranceStr = null, 
+		String insuranceStr = null, 
 				startDateStr = null, endDateStr = null, serviceId = null, 
 				cashCollector = null, startHourStr = null, startMinute = null, 
 				endHourStr = null, endMinuteStr = null;
@@ -73,9 +62,6 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 						+ endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0]
 						+ " " + endTimeStr);
 			}
-			
-			if(request.getParameter("patientId") != null)
-				patientIdStr = request.getParameter("patientId");
 				
 			if(request.getParameter("cashCollector") != null)
 				cashCollector = request.getParameter("cashCollector");
@@ -85,10 +71,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 				insuranceStr = request.getParameter("insurance");			
 
 			Integer insuranceIdInt = null;
-			Integer patientId = null;
-			// Date endDate = null;
 			Insurance insurance = null;
-			String patientNames = null;
 
 			User user = Context.getAuthenticatedUser();
 
@@ -101,21 +84,6 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 					+ (user.getPersonName().getGivenName() != null ? user
 							.getPersonName().getGivenName() : "");
 
-			if (!request.getParameter("patientId").equals("")) {
-
-				patientIdStr = request.getParameter("patientId");
-				patientId = Integer.parseInt(patientIdStr);
-				Patient patient = Context.getPatientService().getPatient(
-						patientId);
-				patientNames = (patient.getFamilyName() != null ? patient
-						.getFamilyName() : "")
-						+ " "
-						+ (patient.getMiddleName() != null ? patient
-								.getMiddleName() : "")
-						+ " "
-						+ (patient.getGivenName() != null ? patient
-								.getGivenName() : "");
-			}
 
 			if (!request.getParameter("insurance").equals("")) {
 				insuranceIdInt = Integer.parseInt(insuranceStr);

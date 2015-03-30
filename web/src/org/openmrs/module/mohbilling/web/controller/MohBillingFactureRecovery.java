@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +21,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -128,37 +130,32 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 
 			//List<Date> dates = service.getRevenueDates(insurance,startDate, endDate, patientId, serviceId, null,cashCollector);
 			
-			List<Object[]> obj = new ArrayList<Object[]>();
-			Map<Beneficiary, List<Object[]>> map = new HashMap<Beneficiary, List<Object[]>>();
-			
 			List<PatientBill> bills = service.getBills(startDate, endDate);
 			
 			List<Object[]> totalByCateg = new ArrayList<Object[]>();
 			
-
+			List<Object[]> obj = new ArrayList<Object[]>();
+			Map<String, Double> amaf=new HashMap<String, Double>();
+			
 			for (PatientBill bill : bills) {
-				
+				Double cost =0.0;
+//				log.info("patient bill id "+bill.getPatientBillId());
+//				log.info("patient bill benef "+bill.getBeneficiary().getBeneficiaryId());
 				Set<PatientServiceBill> billItems = bill.getBillItems();
-				String serviceName = "";
-				
-				
-				Beneficiary beneficiary = bill.getBeneficiary();
-				Patient p = beneficiary.getPatient();
-				
-				for (PatientServiceBill psb : billItems) {
-					
-					
-				}
-					
-				//list of services' revenues
-				
-//				
-//				//this map help to display a date once
-//				map.put(beneficiary, totalByCateg);
-			}
-			mav.addObject("bills", totalByCateg);
+					for (PatientServiceBill item : billItems) {
+						Integer  insuranceId=bill.getBeneficiary().getInsurancePolicy().getInsurance().getInsuranceId();
+						String svcategory =item.getService().getFacilityServicePrice().getCategory();
+						if (insuranceId==3) {
+						    if (svcategory.equals("CONSULTATION")) {
+							   double amount =	item.getUnitPrice().doubleValue()*item.getQuantity();
+							   cost=cost+amount;	
+							}				
+						}
+						amaf.put(svcategory, cost);
+					 }
+			 }
+			
 			mav.addObject("obj", obj);
-			mav.addObject("map", map);
 		}
 
 		mav.setViewName(getViewName());
@@ -166,4 +163,6 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 		return mav;
 
 	}
+	
+
 }

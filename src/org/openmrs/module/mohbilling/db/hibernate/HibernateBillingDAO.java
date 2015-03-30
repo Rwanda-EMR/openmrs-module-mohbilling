@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.stream.events.StartDocument;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
@@ -50,6 +50,7 @@ import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.service.BillingService;
 
 
 /**
@@ -896,25 +897,19 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	@Override
 	public List<PatientBill> getBills(Date startDate,Date endDate) {
+
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate", startDate, endDate));
+	
+		List<BillPayment> payments = crit.list();
+		
 		List<PatientBill> bills = new ArrayList<PatientBill>();
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Session session = sessionFactory.getCurrentSession();
 		
-		String str = "SELECT pay.patient_bill_id FROM moh_bill_patient_bill pb " +
-				" inner join moh_bill_payment pay on pb.patient_bill_id=pay.patient_bill_id " +
-				" and pay.date_received >='"+df.format(startDate)+"' and pay.date_received <='"+df.format(endDate)+"'";
-		
-		System.out.println("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm\n"
-				+ str.toString());
-		
-		List<Integer> billIds= (List<Integer>) session.createSQLQuery(str.toString()).list();
-		
-		for (Integer id : billIds) {
-			bills.add(getPatientBill(id));
+		for (BillPayment pay : payments) {
+			bills.add(pay.getPatientBill());
 		}
-		
-		return bills;
+	return bills;
 	}
+	
 
 	@Override
 	public Map<String,Double> getRevenueByService(Date receivedDate,String[] serviceCategory, String collector, Insurance insurance) {

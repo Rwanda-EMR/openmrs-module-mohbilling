@@ -297,8 +297,75 @@
 
 </div>
 <br />
-
 <br />
-AHWIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+<c:if test="${fn:length(bills)!=0}">
+	<b class="boxHeader"> Recettes par service</b><b><a>Export</a></b>
+	<div class="box">
+		<table width="70%" border="0">
 
+			<tr>
+				<th class="columnHeader">No</th>
+				<th class="columnHeader">Date</th>
+				<th class="columnHeader">No Carte</th>
+				<th class="columnHeader">Beneficiary</th>	
+				<th class="columnHeader">Service</th>
+				<th class="columnHeader">Consult</th>
+				<th class="columnHeader">Form. Admi</th>
+				<th class="columnHeader">Labo</th>
+				<th class="columnHeader">Radio</th>
+				<th class="columnHeader">Hospit</th>
+				<th class="columnHeader">Medicaments</th>
+				<th class="columnHeader">Consommables</th>
+				<th class="columnHeader">Actes Med</th>
+				<th class="columnHeader">Ambulance</th>
+				<th class="columnHeader">Montant 100%</th>
+				<th class="columnHeader">T. M 10%</th>
+				<th class="columnHeader">Montant total MS</th>
+				<th class="columnHeader">Autres</th>
+				<th class="columnHeader"><b>Total</b></th>
+			</tr>
+
+			
+        <c:forEach var="j" items="${bills}" varStatus="status">
+        <tr>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[0]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[1]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[2]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[3]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[4]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[5]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[6]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[7]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[8]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[9]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[10]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[11]}</td>           
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[12]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[13]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[14]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[15]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}">${j[15]}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}"><b></b></td>
+		</tr>			
+		</c:forEach>
+	  	<tr>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"><b>TOTAL</b></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}">${colCons }</td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+	  	</tr>
+		</table>
+	</div>
+</c:if>
+</table>
 <%@ include file="/WEB-INF/template/footer.jsp"%>

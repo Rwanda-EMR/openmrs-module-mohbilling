@@ -284,13 +284,6 @@
 
 			</tr>
 
-			<tr>
-				<td>Patient</td>
-				<td><openmrs_tag:patientField formFieldName="patientId"
-						initialValue="${patientId}" /></td>
-				
-			</tr>
-
 		</table>
 		<input type="submit" value="Search" id="submitId" />
 	</form>
