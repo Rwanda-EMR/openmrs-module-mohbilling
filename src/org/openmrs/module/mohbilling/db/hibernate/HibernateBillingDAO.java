@@ -885,7 +885,7 @@ public class HibernateBillingDAO implements BillingDAO {
 										// query...
 				combinedSearch.append(" AND pb.status = '" + billStatus + "'");
 
-		combinedSearch.append(" group by fs.category,pay.date_received order by fs.category,pay.date_received asc ");
+		combinedSearch.append(" group by fs.category,fs.name ");
 
 		List<Object[]> obj = session
 				.createSQLQuery(combinedSearch.toString()).list();
