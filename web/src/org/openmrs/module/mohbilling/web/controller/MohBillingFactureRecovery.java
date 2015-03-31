@@ -19,12 +19,10 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
-import org.openmrs.module.mohbilling.model.Beneficiary;
-import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -133,28 +131,19 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			List<PatientBill> bills = service.getBills(startDate, endDate);
 			
 			List<Object[]> totalByCateg = new ArrayList<Object[]>();
+			 String[] serviceCategories = {"CONSULTATION","LABORATOIRE","FORMALITE ADMINISTRATIVE","MEDICAMENTS","CONSOMMABLES"};
 			
 			List<Object[]> obj = new ArrayList<Object[]>();
 			Map<String, Double> amaf=new HashMap<String, Double>();
-			
-			for (PatientBill bill : bills) {
-				Double cost =0.0;
-//				log.info("patient bill id "+bill.getPatientBillId());
-//				log.info("patient bill benef "+bill.getBeneficiary().getBeneficiaryId());
-				Set<PatientServiceBill> billItems = bill.getBillItems();
-					for (PatientServiceBill item : billItems) {
-						Integer  insuranceId=bill.getBeneficiary().getInsurancePolicy().getInsurance().getInsuranceId();
-						String svcategory =item.getService().getFacilityServicePrice().getCategory();
-						if (insuranceId==3) {
-						    if (svcategory.equals("CONSULTATION")) {
-							   double amount =	item.getUnitPrice().doubleValue()*item.getQuantity();
-							   cost=cost+amount;	
-							}				
-						}
-						amaf.put(svcategory, cost);
-					 }
-			 }
-			
+			Set<PatientInvoice> invoicesList=new HashSet<PatientInvoice>();		
+				
+				for (PatientBill bill : bills) {
+					
+					PatientInvoice pi =PatientBillUtil.getPatientInvoice(bill, serviceCategories);
+					invoicesList.add(pi);			
+				 }
+				mav.addObject("invoicesList", invoicesList);
+				mav.addObject("serviceCategories", serviceCategories);
 			mav.addObject("obj", obj);
 		}
 

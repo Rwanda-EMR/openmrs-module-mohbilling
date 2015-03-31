@@ -4,15 +4,20 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
+
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillStatus;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
@@ -494,4 +499,35 @@ public class PatientBillUtil {
 		
 		getService().savePatientBill(pb);
 	}
+	
+	public static PatientInvoice getPatientInvoice(PatientBill pb, String[] serviceCategories){
+		
+		Set<PatientServiceBill> billItems =pb.getBillItems();		
+		
+		PatientInvoice invoice = new PatientInvoice();
+		LinkedHashMap<String, Double> amountByCategory =new LinkedHashMap<String, Double>();
+		Double currentRate =pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();
+		invoice.setPatientBill(pb);
+		
+		for (String svcecategory : serviceCategories) {
+			Double amount =0.0;
+			for (PatientServiceBill item : billItems) {		
+				String category =item.getService().getFacilityServicePrice().getCategory();
+				if (category.equals(svcecategory)) {
+					
+		    // Double  quantity = (Double)item.getQuantity();
+					Double unitPrice=item.getUnitPrice().doubleValue();
+					Double cost =item.getQuantity()*unitPrice*currentRate/100;
+					amount+=cost;				
+				}
+				
+			}
+			amountByCategory.put(svcecategory, amount);	
+			invoice.setCategoryAmount(amountByCategory);	
+		}	
+		
+		return  invoice;
+		
+	}
+	
 }
