@@ -297,32 +297,48 @@
 
 </div>
 <br />
+
+
+<b class="boxHeader"> Insurance Facture</b><b><a>Export</a></b>
+<<c:if test="${fn:length(patientBillMap)!=0}">
+<b class="boxHeader"> Recettes par service</b><b><a>Export</a></b>
 <div class="box">
 
-<c:set var="invoicesList" value="${invoicesList}" />
-
+<c:set var="billMap" value="${patientBillMap}" />
 
  <table>
   <tr>
-     <th class="columnHeader">Date</th>  
-      <th class="columnHeader">BillId</th>  
+     <th class="columnHeader">Billing Date</th>
+     <th class="columnHeader">Card Number</th>
+     <th class="columnHeader">Name</th>    
       <c:forEach items="${serviceCategories}" var="svceCateg">
       <th class="columnHeader">${svceCateg}</th>
-      </c:forEach>  
+      </c:forEach>
+   <th class="columnHeader"><b>Montant100%</b></th>  
+    <th class="columnHeader"><b>T.M10%</b></th>
+     <th class="columnHeader"><b> totalMS</b></th> 
    
   </tr>
   <!-- for service category display amount -->
-  <c:forEach var="invoice" items="${invoicesList}" varStatus="status">
+  <c:forEach var="bill" items="${billMap}">
+  <c:set var="createdDate" value="${bill.key.createdDate}" />
+   <c:set var="cardNumber" value="${bill.key.beneficiary.insurancePolicy.insuranceCardNo}" />
+   <c:set var="patient" value="${bill.key.beneficiary.patient}" />
+  
   <tr>
-             <td class="rowValue ${(status.count%2!=0)?'even':''}">${invoice.patientBill.createdDate}</td>
-             <td class="rowValue ${(status.count%2!=0)?'even':''}">${invoice.patientBill.patientBillId}</td>                          
-		  	<c:forEach var="categReport" items="${invoice.categoryAmount}">	   
-		    <td class="rowValue ${(status.count%2!=0)?'even':''}">${categReport.value}</td>		
-		 </c:forEach>
-  </tr>
+    <td class="rowValue ${(status.count%2!=0)?'even':''}">${createdDate}</td>
+     <td class="rowValue ${(status.count%2!=0)?'even':''}">${cardNumber}</td>
+     <td class="rowValue ${(status.count%2!=0)?'even':''}">${patient.familyName}</td>
+   <c:forEach var="invoiceMap" items="${bill.value}">   
+    <td class="rowValue ${(status.count%2!=0)?'even':''}">${invoiceMap.value}</td>   
+   </c:forEach> 
+ </tr>
  </c:forEach>
   <!--  end for each service category -->
  </table>
 </div>
+</c:if>
+
+
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

@@ -13,11 +13,11 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillStatus;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Insurance;
-import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
+import org.openmrs.module.mohbilling.model.Invoice;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
@@ -500,33 +500,56 @@ public class PatientBillUtil {
 		getService().savePatientBill(pb);
 	}
 	
-	public static PatientInvoice getPatientInvoice(PatientBill pb, String[] serviceCategories){
+	public static LinkedHashMap<String, Double> getPatientInvoice(PatientBill pb,  String[] serviceCategories ){
 		
 		Set<PatientServiceBill> billItems =pb.getBillItems();		
+		List<Invoice> invoicesList =new ArrayList<Invoice>();
 		
-		PatientInvoice invoice = new PatientInvoice();
-		LinkedHashMap<String, Double> amountByCategory =new LinkedHashMap<String, Double>();
-		Double currentRate =pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();
-		invoice.setPatientBill(pb);
+		LinkedHashMap< String, Double> invoiceMap = new LinkedHashMap<String,Double>();
+		Double currentRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();	
 		
-		for (String svcecategory : serviceCategories) {
-			Double amount =0.0;
+		Double total =0.0;
+			for (String sviceCatgory : serviceCategories) {
+			
+			Invoice invoice = new Invoice();
+			List<Consommation> consommations =new ArrayList<Consommation>();
+			Double subTotal =0.0;
 			for (PatientServiceBill item : billItems) {		
 				String category =item.getService().getFacilityServicePrice().getCategory();
-				if (category.equals(svcecategory)) {
+				if (category.equals(sviceCatgory)) {
 					
-		    // Double  quantity = (Double)item.getQuantity();
-					Double unitPrice=item.getUnitPrice().doubleValue();
-					Double cost =item.getQuantity()*unitPrice*currentRate/100;
-					amount+=cost;				
-				}
-				
+					Consommation consomm = new Consommation();
+					// Double  quantity = (Double)item.getQuantity();
+					String libelle = item.getService().getFacilityServicePrice().getName();
+					consomm.setLibelle(libelle);
+					consomm.setUnitCost(item.getUnitPrice().doubleValue());
+					consomm.setQuantity(item.getQuantity());
+					consomm.setCost(item.getQuantity()*item.getUnitPrice().doubleValue());
+					consomm.setInsuranceCost(item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100);
+					consomm.setPatientCost(item.getQuantity()*item.getUnitPrice().doubleValue()*(100-currentRate)/100);
+					
+					consommations.add(consomm);					
+					//Double unitPrice=item.getUnitPrice().doubleValue();
+					//Double cost =item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100;	
+					Double cost =item.getQuantity()*item.getUnitPrice().doubleValue();
+					subTotal+=cost;				
+				}				
 			}
-			amountByCategory.put(svcecategory, amount);	
-			invoice.setCategoryAmount(amountByCategory);	
-		}	
+			
+			invoice.setCreatedDate(pb.getCreatedDate());
+			invoice.setConsommationList(consommations);
+			invoice.setSubTotal(subTotal);	
+			total+=subTotal;
+			invoiceMap.put(sviceCatgory, invoice.getSubTotal());	
+			}		
+			//add each invoice linked to catehory service to list of invoice		
+			invoiceMap.put("Montant100%", total);
+			invoiceMap.put("T.M10%", total*(100-currentRate)/100);
+			invoiceMap.put("totalMS", total*currentRate/100);		
 		
-		return  invoice;
+			
+		
+		return  invoiceMap;
 		
 	}
 	

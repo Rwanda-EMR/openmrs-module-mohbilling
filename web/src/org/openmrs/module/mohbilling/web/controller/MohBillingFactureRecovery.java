@@ -3,11 +3,9 @@ package org.openmrs.module.mohbilling.web.controller;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,8 +19,8 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.Invoice;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -128,23 +126,27 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 
 			//List<Date> dates = service.getRevenueDates(insurance,startDate, endDate, patientId, serviceId, null,cashCollector);
 			
-			List<PatientBill> bills = service.getBills(startDate, endDate);
+			List<PatientBill>patientBills = service.getBills(startDate, endDate);
 			
 			List<Object[]> totalByCateg = new ArrayList<Object[]>();
-			 String[] serviceCategories = {"CONSULTATION","LABORATOIRE","FORMALITE ADMINISTRATIVE","MEDICAMENTS","CONSOMMABLES"};
-			
-			List<Object[]> obj = new ArrayList<Object[]>();
-			Map<String, Double> amaf=new HashMap<String, Double>();
-			Set<PatientInvoice> invoicesList=new HashSet<PatientInvoice>();		
+			 String[] serviceCategories = {"CONSULTATION","MEDICAMENTS","CONSOMMABLES"};
+			LinkedHashMap<PatientBill, Map<String,Double>> billMap = new LinkedHashMap<PatientBill, Map<String,Double>>();
+			 //PatientBill patientBill =service.getPatientBill(10);
+			 log.info("iheloooooooooooooooooooooo");
+			 for (PatientBill patientBill : patientBills) {
+				 
+				 LinkedHashMap<String, Double> invoiceMap = PatientBillUtil.getPatientInvoice(patientBill, serviceCategories);		  
+				 billMap.put(patientBill, invoiceMap);	
 				
-				for (PatientBill bill : bills) {
-					
-					PatientInvoice pi =PatientBillUtil.getPatientInvoice(bill, serviceCategories);
-					invoicesList.add(pi);			
-				 }
-				mav.addObject("invoicesList", invoicesList);
-				mav.addObject("serviceCategories", serviceCategories);
-			mav.addObject("obj", obj);
+			}
+		     				
+			
+			mav.addObject("patientBillMap", billMap);
+			mav.addObject("serviceCategories", serviceCategories);
+			//mav.addObject("obj", obj);
+			
+			
+			
 		}
 
 		mav.setViewName(getViewName());
