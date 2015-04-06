@@ -103,9 +103,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 				   SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 				   List<Date>dateList =bs.getRevenueDatesBetweenDates(startDate, endDate);
 				
-				         
-				       
-				     LinkedHashMap<String, Map<String, Double>> basedDateReport =new LinkedHashMap<String, Map<String, Double>>();          
+				   LinkedHashMap<String, Map<String, Double>> basedDateReport =new LinkedHashMap<String, Map<String, Double>>();          
 				          
 				   for (Date receivedDate : dateList) {
 				    Map<String, Double> mappedReport =bs.getRevenueByService(receivedDate, serviceCategories, cashCollector,insurance);

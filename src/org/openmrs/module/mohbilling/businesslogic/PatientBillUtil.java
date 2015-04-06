@@ -2,6 +2,7 @@ package org.openmrs.module.mohbilling.businesslogic;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -504,6 +505,7 @@ public class PatientBillUtil {
 		
 		Set<PatientServiceBill> billItems =pb.getBillItems();		
 		List<Invoice> invoicesList =new ArrayList<Invoice>();
+		SimpleDateFormat df = new SimpleDateFormat("yyyyy-mm-dd"); 
 		
 		LinkedHashMap< String, Double> invoiceMap = new LinkedHashMap<String,Double>();
 		Double currentRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();	
@@ -516,8 +518,7 @@ public class PatientBillUtil {
 			Double subTotal =0.0;
 			for (PatientServiceBill item : billItems) {		
 				String category =item.getService().getFacilityServicePrice().getCategory();
-				if (category.equals(sviceCatgory)) {
-					
+				if (category.startsWith(sviceCatgory)) {
 					Consommation consomm = new Consommation();
 					// Double  quantity = (Double)item.getQuantity();
 					String libelle = item.getService().getFacilityServicePrice().getName();
@@ -540,12 +541,12 @@ public class PatientBillUtil {
 			invoice.setConsommationList(consommations);
 			invoice.setSubTotal(subTotal);	
 			total+=subTotal;
-			invoiceMap.put(sviceCatgory, invoice.getSubTotal());	
+			invoiceMap.put(sviceCatgory, ReportsUtil.roundTwoDecimals(invoice.getSubTotal()));	
 			}		
 			//add each invoice linked to catehory service to list of invoice		
-			invoiceMap.put("Montant100%", total);
-			invoiceMap.put("T.M10%", total*(100-currentRate)/100);
-			invoiceMap.put("totalMS", total*currentRate/100);		
+			invoiceMap.put("Montant100%", ReportsUtil.roundTwoDecimals(total));
+			invoiceMap.put("T.M10%", ReportsUtil.roundTwoDecimals(total*(100-currentRate)/100));
+			invoiceMap.put("totalMS", ReportsUtil.roundTwoDecimals(total*currentRate/100));		
 		
 			
 		

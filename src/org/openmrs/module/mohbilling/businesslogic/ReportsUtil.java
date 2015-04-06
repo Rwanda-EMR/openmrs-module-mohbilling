@@ -20,6 +20,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Expression;
+import org.hibernate.criterion.Restrictions;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
@@ -835,6 +838,5 @@ public class ReportsUtil {
 
 		}
 	}
-	
 	
 }

@@ -15,6 +15,7 @@ package org.openmrs.module.mohbilling.db.hibernate;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,6 +39,7 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
@@ -834,66 +836,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			
 	}
 
-	@Override
-	public List<Object[]> getAllServicesByPatient(Insurance insurance,
-			Date startDate, Date endDate, Integer patientId,
-			String serviceName, String billStatus, String billCollector) {
-		Session session = sessionFactory.getCurrentSession();
-		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		StringBuilder combinedSearch = new StringBuilder("");
-
-		combinedSearch
-		.append("SELECT psb.created_date,fs.name,fs.category,psb.unit_price,psb.quantity,(psb.unit_price*psb.quantity) "
-				+" FROM moh_bill_facility_service_price fs  "
-				+" inner join moh_bill_billable_service bs on bs.facility_service_price_id=fs.facility_service_price_id" 
-				+" inner join moh_bill_patient_service_bill psb on psb.billable_service_id=bs.billable_service_id "
-				+" inner join moh_bill_patient_bill pb on pb.patient_bill_id=psb.patient_bill_id"
-				+" inner join moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id "
-				+" inner join moh_bill_beneficiary f on f.beneficiary_id=pb.beneficiary_id"
-				+" inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=f.insurance_policy_id");
 	
-						
-		if (patientId != null)
-			combinedSearch
-					.append(" AND f.patient_id = " + patientId.intValue());
-
-
-		if (insurance != null)
-			combinedSearch.append(" and ip.insurance_id =  "
-					+ insurance.getInsuranceId().intValue());
-
-		if (billCollector != null && !billCollector.equals(""))
-			combinedSearch.append(" AND pay.creator =  " + billCollector);
-
-		if (startDate != null && endDate != null)
-			combinedSearch.append(" and pay.date_received >= '"
-					+ formatter.format(startDate)
-					+ "' and pay.date_received <= '" + formatter.format(endDate)
-					+ "' ");
-
-		if (startDate != null && endDate == null)
-			combinedSearch.append(" and pay.date_received >= '"
-					+ formatter.format(startDate) + "' ");
-
-		if (startDate == null && endDate != null)
-			combinedSearch.append(" and pay.date_received <= '"
-					+ formatter.format(endDate) + "' ");
-
-		// payment status
-		if (billStatus != null && !billStatus.equals(""))
-			if (!billStatus.equals("0"))// when it's "0" it does affect the
-										// query...
-				combinedSearch.append(" AND pb.status = '" + billStatus + "'");
-
-		combinedSearch.append(" group by fs.category,fs.name ");
-
-		List<Object[]> obj = session
-				.createSQLQuery(combinedSearch.toString()).list();
-
-		System.out.println("_____________________ BILL QUERY __________\n"
-				+ combinedSearch.toString());
-		return obj;
-	}
 
 	@Override
 	public List<PatientBill> getBills(Date startDate,Date endDate) {
@@ -923,10 +866,10 @@ public class HibernateBillingDAO implements BillingDAO {
 		  
 		  for (String svceCatgory : serviceCategory) {
 		   StringBuilder strb = new StringBuilder("");
-		   log.info(">>>>>>>>>start >sql query "+strb.toString());
+//		   log.info(">>>>>>>>>start >sql query "+strb.toString());
 		   
 		   strb.append("SELECT fsp.category,SUM(((m.unit_price * m.quantity)*(100-ir.rate)/100)) " 
-		     +" as total FROM moh_bill_patient_service_bill m " 
+		     +" FROM moh_bill_patient_service_bill m " 
 		     +" inner join moh_bill_billable_service bs on bs.billable_service_id =m.billable_service_id " 
 		     +" inner join moh_bill_facility_service_price fsp on fsp.facility_service_price_id =bs.facility_service_price_id " 
 		     +" inner join  moh_bill_patient_bill pb on pb.patient_bill_id=m.patient_bill_id " 
@@ -936,8 +879,6 @@ public class HibernateBillingDAO implements BillingDAO {
 		     +" inner  join  moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id " 
 		     +" where fsp.category like  '%" +svceCatgory+"%' and date_received = '" +formatter.format(receivedDate)+"' "); 
 		
-		   log.info(">>>>>>>>before ifs >>sql query "+strb.toString());
-		 
 		   if (insurance != null)
 				strb.append(" and ip.insurance_id =  "
 						+ insurance.getInsuranceId().intValue());
@@ -945,10 +886,11 @@ public class HibernateBillingDAO implements BillingDAO {
 			if (collector != null && !collector.equals(""))
 				strb.append(" AND pay.creator =  " + collector);
 		  
-		   log.info(">>>>>>>>>>sql query "+strb.toString());
 		   SQLQuery query = session.createSQLQuery(strb.toString());  
 		 
 		   List<Object[]> categoryReports = query.list(); 
+		   
+//		   DecimalFormat decimalFormat = new DecimalFormat("###.##");
 		  
 		   for (Object[] object : categoryReports) {
 		   
@@ -956,10 +898,9 @@ public class HibernateBillingDAO implements BillingDAO {
 			   Double amount =(Double )object[1];   
 		   
 		     if(catg!=null){             
-		             mappedReport.put(catg, amount);
+		             mappedReport.put(catg, ReportsUtil.roundTwoDecimals(amount));
 		             amountSum=amountSum+amount; 
 		    }
-		    
 		           if(catg==null){
 		            
 		            mappedReport.put(svceCatgory, 0.0); 
@@ -967,10 +908,8 @@ public class HibernateBillingDAO implements BillingDAO {
 		   }
 		                
 		  }
-		  
-		  
 		  }
-		  mappedReport.put("Total", amountSum);
+		  mappedReport.put("Total", ReportsUtil.roundTwoDecimals(amountSum));
 		  
 		  return mappedReport;
 	}

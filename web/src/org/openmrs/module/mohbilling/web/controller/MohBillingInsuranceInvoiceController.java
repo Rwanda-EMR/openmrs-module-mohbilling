@@ -3,13 +3,14 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,6 +25,8 @@ import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -124,161 +127,40 @@ public class MohBillingInsuranceInvoiceController extends
 				insuranceIdInt = Integer.parseInt(insuranceStr);
 				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
 			}
+			
+			List<PatientBill> bills = Context.getService(BillingService.class).getBills(startDate, endDate);
+			
+			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};
+			Map<String,List<PatientServiceBill>> groupMap = new HashMap<String, List<PatientServiceBill>>();
+			
+			
+			Map<String,Double> subTotalsMap = new HashMap<String, Double>();
+			Double bigTotal = 0.0;
+			for (String str : serviceCategories) {
+				List<PatientServiceBill> sameCategList = new ArrayList<PatientServiceBill>();
+				Double subTotal = 0.0;
+				for (PatientBill pb : bills) {
+					Set<PatientServiceBill> billItems = pb.getBillItems();
 
-			List<Object[]> obj = Context.getService(BillingService.class).getAllServicesByPatient(insurance,
-					startDate, endDate, patientId, serviceId, null,
-					cashCollector);	
-
-			Double bigTotal = (double) 0;
-			Double totalConsultation = (double) 0;
-			Double totalHospitalization = (double) 0;
-			Double totalKine = (double) 0;
-			Double totalPharmacy = (double) 0;
-			Double totalEchographie = (double) 0;
-			Double totalStomatologie= (double) 0;
-			Double totalMaternite= (double) 0;
-			Double totalRadio= (double) 0;
-			Double totalSoinsInf= (double) 0;
-			Double totalFormalite= (double) 0;
-			Double totalOxygenotherapie= (double) 0;
-			Double totalLabo= (double) 0;
-			Double totalOphta= (double) 0;
-			
-			String category = "";
-			
-			Map<String, List<Object[]>> map = new HashMap<String, List<Object[]>>();
-			List<Object[]> consultations = new ArrayList<Object[]>();
-			List<Object[]> hospitalizationServices = new ArrayList<Object[]>();
-			List<Object[]> kineServices = new ArrayList<Object[]>();
-			List<Object[]> drugsAndCons = new ArrayList<Object[]>();
-			List<Object[]> echographieList = new ArrayList<Object[]>();
-			List<Object[]> stomatologieList = new ArrayList<Object[]>();
-			List<Object[]> materniteList = new ArrayList<Object[]>();
-			List<Object[]> radioList = new ArrayList<Object[]>();
-			List<Object[]> soinsInfList = new ArrayList<Object[]>();
-			List<Object[]> formaliteList = new ArrayList<Object[]>();
-			List<Object[]> oxygenotherapieList = new ArrayList<Object[]>();
-			List<Object[]> laboList= new ArrayList<Object[]>();
-			List<Object[]> ophtaList = new ArrayList<Object[]>();
-			
-			Map<String,Double> subTotalMap = new HashMap<String, Double>();
-			
-			for (Object[] ob : obj) {
-				BigDecimal cost = (BigDecimal) ob[5];
-				bigTotal = cost.doubleValue()+bigTotal.doubleValue();
-				
-				category = ob[2].toString();
-				
-				if(category=="CONSULTATION" || category.equals("CONSULTATION")){	
-					if(ob!=null){
-					consultations.add(ob);			
-				    map.put(category, consultations);
-				    totalConsultation = totalConsultation.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-				    subTotalMap.put(category, totalConsultation);
-					}
-			   }
-				if(category=="HOSPITALISATION" || category.equals("HOSPITALISATION")){	
-					if(ob!=null){
-					hospitalizationServices.add((Object[])ob);
-					totalHospitalization = totalHospitalization.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					map.put(category, hospitalizationServices);
-					subTotalMap.put(category, totalHospitalization);
-					}
-			   }
-				if(category=="KINESITHERAPIE" || category.equals("KINESITHERAPIE")){	
-					if(ob!=null){
-					kineServices.add((Object[])ob);
-					map.put(category, kineServices);
-					totalKine = totalKine.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalKine);
-					}
-			   }
-				if(category=="MEDICAMENTS" || category.equals("CONSOMMABLES")){	
-					if(ob!=null){
-					drugsAndCons.add((Object[])ob);
-					map.put(category, drugsAndCons);
-					totalPharmacy = totalPharmacy.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalPharmacy);
-					}
-			   }
-				if(category=="ECHOGRAPHIE" || category.equals("ECHOGRAPHIE")){	
-					if(ob!=null){
-					echographieList.add((Object[])ob);
-					map.put(category, echographieList);
-					totalEchographie = totalEchographie.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalEchographie);
-					}
-			   }
-				if(category=="STOMATOLOGIE" || category.equals("STOMATOLOGIE")){	
-					if(ob!=null){
-					stomatologieList.add((Object[])ob);
-					map.put(category, stomatologieList);
-					totalStomatologie = totalStomatologie.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalStomatologie);
-					}
-			   }
-				if(category=="MATERNITE" || category.equals("MATERNITE")){	
-					if(ob!=null){
-					materniteList.add((Object[])ob);
-					map.put(category, materniteList);
-					totalMaternite = totalMaternite.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalMaternite);
-					}
-			   }
-				if(category=="RADIOLOGIE" || category.equals("RADIOLOGIE")){	
-					if(ob!=null){
-					radioList.add((Object[])ob);
-					map.put(category, radioList);
-					totalRadio = totalRadio.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalRadio);
-					}
-			   }
-				if(category=="SOINS INFIRMIERS" || category.equals("SOINS INFIRMIERS")){	
-					if(ob!=null){
-					soinsInfList.add((Object[])ob);
-					map.put(category, soinsInfList);
-					totalSoinsInf = totalSoinsInf.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalSoinsInf);
-					}
-			   }
-				if(category=="FORMALITES ADMINISTRATIVES" || category.equals("FORMALITES ADMINISTRATIVES")){	
-					if(ob!=null){
-					formaliteList.add((Object[])ob);
-					map.put(category, formaliteList);
-					totalFormalite = totalFormalite.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalFormalite);
-					}
-			   }
-				if(category=="OXYGENOTHERAPIE" || category.equals("OXYGENOTHERAPIE")){	
-					if(ob!=null){
-					drugsAndCons.add((Object[])ob);
-					map.put(category, drugsAndCons);
-					totalPharmacy = totalPharmacy.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalPharmacy);
-					}
-			   }
-				if(category=="LABORATOIRE" || category.equals("LABORATOIRE")){	
-					if(ob!=null){
-					laboList.add((Object[])ob);
-					map.put(category, laboList);
-					totalLabo = totalLabo.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalLabo);
-					}
-			   }
-				if(category=="OPHTALMOLOGIE" || category.equals("OPHTALMOLOGIE")){	
-					if(ob!=null){
-					ophtaList.add((Object[])ob);
-					map.put(category, ophtaList);
-					totalOphta = totalOphta.doubleValue()+((BigDecimal)ob[5]).doubleValue();
-					subTotalMap.put(category, totalOphta);
-					}
-			   }
+						for (PatientServiceBill item : billItems) {
+								String servCateg = item.getService().getFacilityServicePrice().getCategory();
+								if(servCateg.equals(str)){
+									Double up = item.getUnitPrice().doubleValue();
+									Integer qty=item.getQuantity();
+									subTotal+=up*qty;
+									
+									subTotalsMap.put(str, subTotal);
+									sameCategList.add(item);
+								}
+						}
+						if(sameCategList.size()!=0)
+						groupMap.put(str, sameCategList);
+				}
+				bigTotal=bigTotal+subTotal;
+				mav.addObject("subTotalsMap", subTotalsMap);
+				mav.addObject("bigTotal", ReportsUtil.roundTwoDecimals(bigTotal));
 			}
-			mav.addObject("obj", obj);
-			mav.addObject("bigTotal", bigTotal);
-			mav.addObject("map", map);
-			mav.addObject("subTotalMap", subTotalMap);
-
+			mav.addObject("map", groupMap);
 
 		}
 

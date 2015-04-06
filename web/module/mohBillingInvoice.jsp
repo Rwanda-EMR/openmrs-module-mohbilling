@@ -11,6 +11,9 @@
 	uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld"%>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();
 
@@ -299,7 +302,7 @@
 <br />
 
 <br />
-<c:if test="${fn:length(obj)!=0}">
+<c:if test="${fn:length(map)!=0}">
 	<b class="boxHeader"> FACTURE DES PRESTATIONS DES SOINS DE SANTE</b><b><a>Print</a></b>
 	<div class="box">
 		<table width="70%" border="0">
@@ -324,18 +327,17 @@
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<c:forEach var="v" items="${map.value}" varStatus="status">
-					
 					<tr>
 					<td>${status.count}</td>
-					<td width="10%">${v[0]}</td>
-					<td width="50%">${v[1]}</td>
-					<td>&nbsp;&nbsp;${v[3]}</td>
-					<td>&nbsp;&nbsp;${v[4]}</td>
-					<td>&nbsp;&nbsp;${v[5]}</td>
+					<td><fmt:formatDate pattern="yyyy-MM-dd" value="${v.serviceDate}" /></td>
+					<td>${v.service.facilityServicePrice.name}</td>
+					<td>${v.unitPrice}</td>
+					<td>${v.quantity}</td>
+					<td>${v.unitPrice*v.quantity}</td>
 					</tr>
 					</c:forEach>
 					
-					<td></td><td></td><td></td><td></td><td></td><td><b>${subTotalMap[map.key]}</b></td>
+					<td></td><td></td><td></td><td></td><td></td><td><b>${subTotalsMap[map.key]}</b></td>
 					<td></td><td></td><td></td><td></td><td></td><td><h2/></td>
 				</tr>
 				<tr><td><h2/></td></tr>

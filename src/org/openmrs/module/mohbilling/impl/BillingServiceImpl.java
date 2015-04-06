@@ -416,12 +416,6 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getRevenueDatesBetweenDates(startDate,endDate);
 	}
 
-	@Override
-	public List<Object[]> getAllServicesByPatient(Insurance insurance,
-			Date startDate, Date endDate, Integer patientId,
-			String serviceName, String billStatus, String billCollector) {
-		return billingDAO.getAllServicesByPatient(insurance, startDate, endDate, patientId, serviceName, billStatus, billCollector);
-	}
 
 	@Override
 	public List<PatientBill> getBills(Date startDate,Date endDate) {

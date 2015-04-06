@@ -428,9 +428,6 @@ public interface BillingDAO {
 	
 	public Map<String,Double> getRevenueByService(Date receivedDate,String[] serviceCategory, String collector,Insurance insurance);
 	
-	public List<Object[]> getAllServicesByPatient(Insurance insurance,
-			Date startDate, Date endDate, Integer patientId,
-			String serviceName, String billStatus, String billCollector);
 
 	public List<PatientBill> getBills(Date startDate,Date endDate);
 }

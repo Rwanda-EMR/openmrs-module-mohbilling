@@ -129,10 +129,12 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			List<PatientBill>patientBills = service.getBills(startDate, endDate);
 			
 			List<Object[]> totalByCateg = new ArrayList<Object[]>();
-			 String[] serviceCategories = {"CONSULTATION","MEDICAMENTS","CONSOMMABLES"};
+			
+			String[] serviceCategories = {"FORMALITES","CONSULT","LABO","RADIO","ECHO","OPHTA","CHIR","MEDEC","CONSOM","KINE","STOMA","MATER","AMBUL","SOINS INF","MEDICA","HOSP"};
+			
 			LinkedHashMap<PatientBill, Map<String,Double>> billMap = new LinkedHashMap<PatientBill, Map<String,Double>>();
-			 //PatientBill patientBill =service.getPatientBill(10);
-			 log.info("iheloooooooooooooooooooooo");
+
+
 			 for (PatientBill patientBill : patientBills) {
 				 
 				 LinkedHashMap<String, Double> invoiceMap = PatientBillUtil.getPatientInvoice(patientBill, serviceCategories);		  
@@ -140,12 +142,8 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 				
 			}
 		     				
-			
 			mav.addObject("patientBillMap", billMap);
-			mav.addObject("serviceCategories", serviceCategories);
-			//mav.addObject("obj", obj);
-			
-			
+			mav.addObject("serviceCategories", serviceCategories);;
 			
 		}
 

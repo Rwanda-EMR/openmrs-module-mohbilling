@@ -11,6 +11,9 @@
 	uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld"%>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();
 
@@ -298,12 +301,10 @@
 </div>
 <br />
 
-
-<b class="boxHeader"> Insurance Facture</b><b><a>Export</a></b>
-<<c:if test="${fn:length(patientBillMap)!=0}">
-<b class="boxHeader"> Recettes par service</b><b><a>Export</a></b>
+<c:if test="${fn:length(patientBillMap)!=0}">
 <div class="box">
-
+<b class="boxHeader"> Insurance Facture</b>
+<b><a>Export</a></b>
 <c:set var="billMap" value="${patientBillMap}" />
 
  <table>
@@ -314,21 +315,21 @@
       <c:forEach items="${serviceCategories}" var="svceCateg">
       <th class="columnHeader">${svceCateg}</th>
       </c:forEach>
-   <th class="columnHeader"><b>Montant100%</b></th>  
-    <th class="columnHeader"><b>T.M10%</b></th>
-     <th class="columnHeader"><b> totalMS</b></th> 
+   <th class="columnHeader"><b>100%</b></th>  
+    <th class="columnHeader"><b>10%</b></th>
+     <th class="columnHeader"><b>totalMS</b></th> 
    
   </tr>
   <!-- for service category display amount -->
-  <c:forEach var="bill" items="${billMap}">
-  <c:set var="createdDate" value="${bill.key.createdDate}" />
+  <c:forEach var="bill" items="${billMap}"> 
+  <c:set var="createdDate" value="${bill.key.createdDate}"/>
    <c:set var="cardNumber" value="${bill.key.beneficiary.insurancePolicy.insuranceCardNo}" />
    <c:set var="patient" value="${bill.key.beneficiary.patient}" />
   
   <tr>
-    <td class="rowValue ${(status.count%2!=0)?'even':''}">${createdDate}</td>
+    <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd" value="${createdDate}" /></td>
      <td class="rowValue ${(status.count%2!=0)?'even':''}">${cardNumber}</td>
-     <td class="rowValue ${(status.count%2!=0)?'even':''}">${patient.familyName}</td>
+     <td class="rowValue ${(status.count%2!=0)?'even':''}">${patient.familyName} ${patient.givenName}</td>
    <c:forEach var="invoiceMap" items="${bill.value}">   
     <td class="rowValue ${(status.count%2!=0)?'even':''}">${invoiceMap.value}</td>   
    </c:forEach> 
