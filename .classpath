@@ -47,5 +47,6 @@
 	<classpathentry kind="lib" path="lib-common/xmlunit-1.2.jar"/>
 	<classpathentry kind="lib" path="lib-common/hapi-0.5.jar"/>
 	<classpathentry kind="lib" path="lib/iText-5.0.5.jar"/>
+	<classpathentry kind="lib" path="lib-common/mohtracportal-0.1.1.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

@@ -51,7 +51,8 @@ public class FileExporter {
 	 * @throws Exception
 	 */
 	public void exportToCSVFile(HttpServletRequest request,
-			HttpServletResponse response, Map<String,List<PatientServiceBill>> map, String filename,String title) throws Exception {
+			HttpServletResponse response, Map<Integer, String> testMap, String filename,String title) throws Exception {
+		log.info(" isss the >>>>>>>>>map size"+testMap.size());
 		
 		ServletOutputStream outputStream = null;
 
@@ -116,14 +117,14 @@ public class FileExporter {
 
 			log.info(">>>>>>>>>>>>>> Trying to create a CSV file...");
 			
-			for (String key : map.keySet()) {
+			//for (String key : testMap.keySet()) {
 
-				outputStream.println(key);
-				for (PatientServiceBill psb : map.get(key)) {
-					outputStream.println(psb.getServiceDate()+","+psb.getService().getFacilityServicePrice().getName());
+				//outputStream.println(key);
+				for (Integer nb : testMap.keySet()) {
+				
 				}
 
-			}
+			//}
 			outputStream.flush();
 			log.info(">>>>>>>>>>>>>> A CSV file was created successfully.");
 		
@@ -138,17 +139,20 @@ public class FileExporter {
 	 * @throws Exception
 	 */
 	public void exportToPDF(HttpServletRequest request,
-			HttpServletResponse response, Map<String,List<PatientServiceBill>> map, String filename,
+			HttpServletResponse response, Map<Integer,String> map, String filename,
 			String title) throws Exception {
 
 		SimpleDateFormat sdf = Context.getDateFormat();
 
 		Document document = new Document();
 
+		
+	
 		response.setContentType("application/pdf");
 		response.setHeader("Content-Disposition", "attachment; filename=\""
 				+ filename + "\""); // file name
-
+		
+		
 		PdfWriter writer = PdfWriter.getInstance(document, response
 				.getOutputStream());
 		writer.setBoxSize("art", new Rectangle(36, 54, 559, 788));
@@ -204,19 +208,20 @@ public class FileExporter {
 		fontEmptyCell.addFont(new Font(FontFamily.HELVETICA, 7, Font.NORMAL));
 
 		int ids = 0;
-
-		for (String key : map.keySet()) {
-			
+		System.out.println("getffffffffffbeforeeeeefffffffffvalueee"+map.get(10)+"file name:"+filename);
+		for (Integer  key : map.keySet()) {
+			System.out.println("get keyyueyyeyeyye"+key);
 			table.addCell(key+ "");
+			table.addCell(map.get(key)+ "");
 			
-			for (PatientServiceBill psb:map.get(key)) {
-				table.addCell(psb.getServiceDate()+"");
+		//	for (PatientServiceBill psb:map.get(key)) {
+				/*table.addCell(psb.getServiceDate()+"");
 				table.addCell(psb.getService().getFacilityServicePrice().getName()+"");
 				table.addCell(psb.getUnitPrice()+"");
 				table.addCell(psb.getQuantity()+"");
 				table.addCell(psb.getUnitPrice().doubleValue()*psb.getQuantity()+"");
-			}
-			
+			//}
+			*/
 		}
 
 		document.add(table);

@@ -44,6 +44,8 @@ public class MohBillingInsuranceInvoiceController extends
 
 		List<String> categories = InsuranceUtil.getAllServiceCategories();
 		List<BillPayment> reportedPayments = new ArrayList<BillPayment>();
+		
+		log.info("beginnnnnnnnnninggggg "+request.getParameter("save"));
 
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("allInsurances", InsuranceUtil.getAllInsurances());
@@ -57,6 +59,8 @@ public class MohBillingInsuranceInvoiceController extends
 				cashCollector = null, startHourStr = null, startMinute = null, 
 				endHourStr = null, endMinuteStr = null;
 
+		Map<String,List<PatientServiceBill>> groupMap = new HashMap<String, List<PatientServiceBill>>();
+		
 		if (request.getParameter("formStatus") != null && !request.getParameter("formStatus").equals("")) {
 			
 			startHourStr = request.getParameter("startHour");
@@ -136,7 +140,7 @@ public class MohBillingInsuranceInvoiceController extends
 			List<PatientBill> bills = Context.getService(BillingService.class).getBills(startDate, endDate);
 			
 			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};
-			Map<String,List<PatientServiceBill>> groupMap = new HashMap<String, List<PatientServiceBill>>();
+		
 			
 			
 			Map<String,Double> subTotalsMap = new HashMap<String, Double>();
@@ -169,16 +173,25 @@ public class MohBillingInsuranceInvoiceController extends
 			
 			String csv="csv";
 			mav.addObject("csv", csv);
-			
-			FileExporter fexp = new FileExporter();
-
-
-			if (request.getParameter("export") != null) {
-				fexp.exportToCSVFile(request, response, groupMap,"bills.csv",
-						"Details des soins recus");
-				log.info("kkkkkaaaaaaaaaaaaaaaaaaaaaaaaaaaaa "+request.getParameter("save"));
-		    }
+		
+		
 		}
+		FileExporter fexp = new FileExporter();
+		
+		
+		Map<Integer,String> testMap = new HashMap<Integer, String>();
+		testMap.put(10,"CONSULt");
+		testMap.put(11,"MED");
+		testMap.put(12,"LABO");
+		testMap.put(13,"KINES");
+		
+		if (request.getParameter("save") != null) {
+			fexp.exportToPDF(request, response, testMap,"bills.pdf","Details des soins recus");
+			
+			System.out.println("Hellloooooooo");
+			
+	    }
+		
 		mav.setViewName(getViewName());
 
 		return mav;
