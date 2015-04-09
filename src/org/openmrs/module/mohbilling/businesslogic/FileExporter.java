@@ -137,234 +137,93 @@ public class FileExporter {
 	 * @param title
 	 * @throws Exception
 	 */
-//	public void exportToPDF(HttpServletRequest request,
-//			HttpServletResponse response, List<Integer> res, String filename,
-//			String title) throws Exception {
-//
-//		SimpleDateFormat sdf = Context.getDateFormat();
-//
-//		Document document = new Document();
-//
-//		response.setContentType("application/pdf");
-//		response.setHeader("Content-Disposition", "attachment; filename=\""
-//				+ filename + "\""); // file name
-//
-//		PdfWriter writer = PdfWriter.getInstance(document, response
-//				.getOutputStream());
-//		writer.setBoxSize("art", new Rectangle(36, 54, 559, 788));
-//
-//		float[] colsWidth = { 1.6f, 2.7f, 2.7f, 8f, 10.5f, 4f, 5f, 7.5f};//, 9.3f };
-//		PdfPTable table = new PdfPTable(colsWidth); // column number
-//
-//		HeaderFooter event = new HeaderFooter(table);
-//		writer.setPageEvent(event);
-//
-//		document.setPageSize(PageSize.A4.rotate());
-//		document.open();
-//
-//		document.addAuthor(Context.getAuthenticatedUser().getPersonName()
-//						.getFamilyName()
-//						+ " "
-//						+ Context.getAuthenticatedUser().getPersonName()
-//								.getGivenName());// the name of the author
-//
-//		ObsService os = Context.getObsService();
-//		FontSelector fontTitle = new FontSelector();
-//		fontTitle.addFont(new Font(FontFamily.HELVETICA, 8.0f, Font.BOLD));
-//		document.add(fontTitle.process(MohTracUtil.getMessage(
-//				"tracpatienttransfer.report", null)
-//				+ "    : " + title));// Report title
-//		document.add(fontTitle.process("\n"
-//				+ MohTracUtil.getMessage(
-//						"tracpatienttransfer.report.createdon", null) + " : "
-//				+ sdf.format(new Date())));// Report date
-//		document.add(fontTitle.process("\n"
-//				+ MohTracUtil.getMessage(
-//						"tracpatienttransfer.report.createdby", null) + " : "
-//				+ Context.getAuthenticatedUser().getPersonName()));// Report
-//		// author
-//		document.add(new Paragraph("\n"));
-//
-//		Paragraph para = new Paragraph("" + title.toUpperCase());
-//		para.setAlignment(Element.ALIGN_CENTER);
-//		para.setFont(new Font(FontFamily.HELVETICA, 8.0f, Font.BOLD));
-//		document.add(para);
-//
-//		table.setWidthPercentage(100.0f);
-//
-//		// title row
-//		FontSelector fontTitleSelector = new FontSelector();
-//		fontTitleSelector.addFont(new Font(FontFamily.HELVETICA, 8, Font.BOLD));
-//
-//		// top line of table
-//		for (int i = 0; i < 8; i++) {
-//			PdfPCell pdfPCell = new PdfPCell(fontTitleSelector.process(" "));
-//			pdfPCell.setBorder(PdfPCell.BOTTOM);
-//			table.addCell(pdfPCell);
-//		}
-//
-//		boolean hasRoleToViewPatientsNames = Context.getAuthenticatedUser()
-//				.hasPrivilege("View Patient Names");
-//
-//		// table Header
-//		PdfPCell cell = new PdfPCell(fontTitleSelector.process(ContextProvider.getMessage("tracpatienttransfer.general.number")));
-//		cell.setBorder(Rectangle.LEFT);
-//		table.addCell(cell);
-//
-//		cell = new PdfPCell(fontTitleSelector.process(Context.getPatientService().getPatientIdentifierType(TracPatientTransferConfigurationUtil
-//				.getTracNetIdentifierTypeId()).getName()));
-//		cell.setBorder(Rectangle.NO_BORDER);
-//		table.addCell(cell);
-//
-//		cell = new PdfPCell(fontTitleSelector.process(Context.getPatientService().getPatientIdentifierType(TracPatientTransferConfigurationUtil
-//									.getLocalHealthCenterIdentifierTypeId()).getName()));
-//		cell.setBorder(Rectangle.NO_BORDER);
-//		table.addCell(cell);
-//
-//		if (hasRoleToViewPatientsNames) {
-//			cell = new PdfPCell(fontTitleSelector.process(ContextProvider.getMessage("tracpatienttransfer.general.names")));
-//			cell.setBorder(Rectangle.NO_BORDER);
-//			table.addCell(cell);
-//		}
-//
-//		cell = new PdfPCell(fontTitleSelector.process(ContextProvider.getMessage("tracpatienttransfer.general.reasonofexit")));
-//		cell.setBorder(Rectangle.NO_BORDER);
-//		table.addCell(cell);
-//
-//		cell = new PdfPCell(fontTitleSelector.process(ContextProvider.getMessage("tracpatienttransfer.general.exitwhen")));
-//		cell.setBorder(Rectangle.NO_BORDER);
-//		table.addCell(cell);
-//
-//		cell = new PdfPCell(fontTitleSelector.process(ContextProvider.getMessage("Encounter.provider")));
-//		cell.setBorder(Rectangle.NO_BORDER);
-//		table.addCell(cell);
-//
-//		cell = new PdfPCell(fontTitleSelector.process(ContextProvider.getMessage("tracpatienttransfer.report.location")));
-//		cell.setBorder(Rectangle.RIGHT);
-//		table.addCell(cell);
-//
-////		cell = new PdfPCell(fontTitleSelector
-////				.process("Resumed? (reason - by who?)"));
-////		cell.setBorder(Rectangle.RIGHT);
-////		table.addCell(cell);
-//
-//		// normal row
-//		FontSelector fontselector = new FontSelector();
-//		fontselector.addFont(new Font(FontFamily.HELVETICA, 7, Font.NORMAL));
-//
-//		// empty row
-//		FontSelector fontEmptyCell = new FontSelector();
-//		fontEmptyCell.addFont(new Font(FontFamily.HELVETICA, 7, Font.NORMAL));
-//
-//		int ids = 0;
-//
-//		for (Integer obsId : res) {
-//			Obs obs = os.getObs(obsId);
-//			Integer patientId = obs.getPersonId();
-//			ids += 1;
-//
-//			cell = new PdfPCell(fontselector.process(ids + "."));
-//			if (ids == 1)
-//				cell.setBorder(Rectangle.TOP);
-//			else
-//				cell.setBorder(Rectangle.NO_BORDER);
-//			table.addCell(cell);
-//
-//			String tracnetId = TransferOutInPatientTag
-//					.personIdentifierByPatientIdAndIdentifierTypeId(patientId,
-//							TracPatientTransferConfigurationUtil
-//									.getTracNetIdentifierTypeId());
-//			cell = new PdfPCell(fontselector.process(tracnetId + ""));
-//			if (ids == 1)
-//				cell.setBorder(Rectangle.TOP);
-//			else
-//				cell.setBorder(Rectangle.NO_BORDER);
-//			table.addCell(cell);
-//
-//			String localIdentifierTypeId = TransferOutInPatientTag
-//					.personIdentifierByPatientIdAndIdentifierTypeId(patientId,
-//							TracPatientTransferConfigurationUtil
-//									.getLocalHealthCenterIdentifierTypeId());
-//			cell = new PdfPCell(fontselector
-//					.process(localIdentifierTypeId + ""));
-//			if (ids == 1)
-//				cell.setBorder(Rectangle.TOP);
-//			else
-//				cell.setBorder(Rectangle.NO_BORDER);
-//			table.addCell(cell);
-//
-//			if (hasRoleToViewPatientsNames) {
-//				String names = TransferOutInPatientTag
-//						.getPersonNames(patientId);
-//				cell = new PdfPCell(fontselector.process(names + ""));
-//				if (ids == 1)
-//					cell.setBorder(Rectangle.TOP);
-//				else
-//					cell.setBorder(Rectangle.NO_BORDER);
-//				table.addCell(cell);
-//			}
-//
-//			String conceptValue = TransferOutInPatientTag
-//					.conceptValueByObs(obs);
-//
-//			conceptValue += ((obs.getValueCoded().getConceptId().intValue() == TransferOutInPatientConstant.PATIENT_TRANSFERED_OUT) ? " ("
-//					+ TransferOutInPatientTag
-//							.getObservationValueFromEncounter(
-//									obs,
-//									TransferOutInPatientConstant.TRANSFER_OUT_TO_A_LOCATION)
-//					+ ")"
-//					: (obs.getValueCoded().getConceptId().intValue() == TransferOutInPatientConstant.PATIENT_DEAD) ? " ("
-//							+ TransferOutInPatientTag
-//									.getObservationValueFromEncounter(
-//											obs,
-//											TransferOutInPatientConstant.CAUSE_OF_DEATH)
-//							+ ")"
-//							: "");
-//
-//			cell = new PdfPCell(fontselector.process(conceptValue));
-//			if (ids == 1)
-//				cell.setBorder(Rectangle.TOP);
-//			else
-//				cell.setBorder(Rectangle.NO_BORDER);
-//			table.addCell(cell);
-//
-//			cell = new PdfPCell(fontselector.process(sdf.format(obs
-//					.getObsDatetime())));
-//			if (ids == 1)
-//				cell.setBorder(Rectangle.TOP);
-//			else
-//				cell.setBorder(Rectangle.NO_BORDER);
-//			table.addCell(cell);
-//
-//			/*
-//			 * cell=newPdfPCell(fontselector.process(TransferOutInPatientTag.
-//			 * getProviderByObs(obs))); if(ids==1)
-//			 * cell.setBorder(Rectangle.TOP); else
-//			 * cell.setBorder(Rectangle.NO_BORDER);
-//			 */table.addCell(cell);
-//
-//			cell = new PdfPCell(fontselector.process(obs.getLocation()
-//					.getName()));
-//			if (ids == 1)
-//				cell.setBorder(Rectangle.TOP);
-//			else
-//				cell.setBorder(Rectangle.NO_BORDER);
-//			table.addCell(cell);
-//
-////			cell = new PdfPCell(fontselector.process(TransferOutInPatientTag
-////					.obsVoidedReason(obs)));
-////			if (ids == 1)
-////				cell.setBorder(Rectangle.TOP);
-////			else
-////				cell.setBorder(Rectangle.NO_BORDER);
-////			table.addCell(cell);
-//		}
-//
-//		document.add(table);
-//		document.close();
-//
-//		log.info("pdf file created");
-//	}
+	public void exportToPDF(HttpServletRequest request,
+			HttpServletResponse response, Map<String,List<PatientServiceBill>> map, String filename,
+			String title) throws Exception {
+
+		SimpleDateFormat sdf = Context.getDateFormat();
+
+		Document document = new Document();
+
+		response.setContentType("application/pdf");
+		response.setHeader("Content-Disposition", "attachment; filename=\""
+				+ filename + "\""); // file name
+
+		PdfWriter writer = PdfWriter.getInstance(document, response
+				.getOutputStream());
+		writer.setBoxSize("art", new Rectangle(36, 54, 559, 788));
+
+		float[] colsWidth = { 1.6f, 2.7f, 2.7f, 8f, 10.5f, 4f, 5f, 7.5f};//, 9.3f };
+		PdfPTable table = new PdfPTable(colsWidth); // column number
+
+		HeaderFooter event = new HeaderFooter(table);
+		writer.setPageEvent(event);
+
+		document.setPageSize(PageSize.A4.rotate());
+		document.open();
+
+		document.addAuthor(Context.getAuthenticatedUser().getPersonName()
+						.getFamilyName()
+						+ " "
+						+ Context.getAuthenticatedUser().getPersonName()
+								.getGivenName());// the name of the author
+
+		FontSelector fontTitle = new FontSelector();
+		fontTitle.addFont(new Font(FontFamily.HELVETICA, 8.0f, Font.BOLD));
+		
+		document.add(fontTitle.process(MohTracUtil.getMessage(
+				"billing report", null)
+				+ "    : " + title));// Report title
+		document.add(fontTitle.process("\n"
+				+ MohTracUtil.getMessage(
+						"created on", null) + " : "+ sdf.format(new Date())));// Report date
+		document.add(fontTitle.process("\n"+ MohTracUtil.getMessage(
+						"tracpatienttransfer.report.createdby", null) + " : "
+				+ Context.getAuthenticatedUser().getPersonName()));// Report
+		// author
+		document.add(new Paragraph("\n"));
+
+		Paragraph para = new Paragraph("" + title.toUpperCase());
+		para.setAlignment(Element.ALIGN_CENTER);
+		para.setFont(new Font(FontFamily.HELVETICA, 8.0f, Font.BOLD));
+		document.add(para);
+
+		table.setWidthPercentage(100.0f);
+
+		// title row
+		FontSelector fontTitleSelector = new FontSelector();
+		fontTitleSelector.addFont(new Font(FontFamily.HELVETICA, 8, Font.BOLD));
+
+
+		// normal row
+		FontSelector fontselector = new FontSelector();
+		fontselector.addFont(new Font(FontFamily.HELVETICA, 7, Font.NORMAL));
+
+		// empty row
+		FontSelector fontEmptyCell = new FontSelector();
+		fontEmptyCell.addFont(new Font(FontFamily.HELVETICA, 7, Font.NORMAL));
+
+		int ids = 0;
+
+		for (String key : map.keySet()) {
+			
+			table.addCell(key+ "");
+			
+			for (PatientServiceBill psb:map.get(key)) {
+				table.addCell(psb.getServiceDate()+"");
+				table.addCell(psb.getService().getFacilityServicePrice().getName()+"");
+				table.addCell(psb.getUnitPrice()+"");
+				table.addCell(psb.getQuantity()+"");
+				table.addCell(psb.getUnitPrice().doubleValue()*psb.getQuantity()+"");
+			}
+			
+		}
+
+		document.add(table);
+		document.close();
+
+		log.info("pdf file created");
+	}
 
 	static class HeaderFooter extends PdfPageEventHelper {
 		private PdfPTable table = null;
