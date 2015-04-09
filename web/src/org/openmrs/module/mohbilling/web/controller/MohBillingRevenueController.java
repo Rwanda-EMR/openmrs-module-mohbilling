@@ -126,6 +126,23 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 		return mav;
 
 	}
-	
+	/**
+	 * @param request
+	 * @param mav
+	 */
+	private void rebuildParameters(HttpServletRequest request,
+			ModelAndView mav)throws Exception {		
+		
+		String param = (request.getParameter("startDate") != null) ? "&startDate="
+				+ request.getParameter("startDate") : "";
+		param += (request.getParameter("endDate") != null) ? "&endDate="
+				+ request.getParameter("endDate") : "";
+		param += (request.getParameter("cashCollector") != null) ? "&cashCollector="
+				+ request.getParameter("cashCollector") : "";
+				param += (request.getParameter("insurance") != null) ? "&insurance="
+						+ request.getParameter("insurance") : "";
+		mav.addObject("prmtrs", param);
+	}
+
 	
 }

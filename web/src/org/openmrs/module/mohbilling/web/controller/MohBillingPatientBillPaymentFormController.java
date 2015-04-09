@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillStatus;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -136,6 +137,11 @@ public class MohBillingPatientBillPaymentFormController extends
 				bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
 						.getParameter("receivedCash"))));
 					
+				
+//				List<BillPayment> pay = ReportsUtil.getDailyPayments(bp.getDateReceived());
+//				for (BillPayment p : pay) {
+//					log.info("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr "+p.getAmountPaid());
+//				}
 
 				bp.setCollector(Context.getUserService()
 						.getUser(
@@ -143,6 +149,9 @@ public class MohBillingPatientBillPaymentFormController extends
 										.getParameter("billCollector"))));
 				bp.setDateReceived(Context.getDateFormat().parse(
 						request.getParameter("dateBillReceived")));
+				
+//				log.info("dddddddddddddddddddddddddate "+Context.getDateFormat().parse(
+//						request.getParameter("dateBillReceived")));
 				
 				bp.setPatientBill(pb);
 

@@ -130,7 +130,7 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			
 			List<Object[]> totalByCateg = new ArrayList<Object[]>();
 			
-			String[] serviceCategories = {"FORMALITES","CONSULT","LABO","RADIO","ECHO","OPHTA","CHIR","MEDEC","CONSOM","KINE","STOMA","MATER","AMBUL","SOINS INF","MEDICA","HOSP"};
+			String[] serviceCategories = {"FORMAL","CONSULT","LABO","RADIO","ECHO","OPHTA","CHIR","MEDEC","CONSOM","KINE","STOMA","MATER","AMBUL","SOINS INF","MEDICA","HOSP"};
 			
 			LinkedHashMap<PatientBill, Map<String,Double>> billMap = new LinkedHashMap<PatientBill, Map<String,Double>>();
 

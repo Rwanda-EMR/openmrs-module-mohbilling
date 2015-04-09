@@ -328,6 +328,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 		cell.setBackgroundColor(new BaseColor(255, 255, 255));
 		table.addCell(cell);
+		
 
 		// Amount Paid
 		cell = new PdfPCell(fontselector.process("Amount Paid : "));
@@ -339,6 +340,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		cell = new PdfPCell(fontTotals.process(""
 				+ MohBillingTagUtil.getTotalAmountPaidByPatientBill(pb
 						.getPatientBillId())));
+		
 		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 		cell.setBackgroundColor(new BaseColor(255, 255, 255));
 		table.addCell(cell);

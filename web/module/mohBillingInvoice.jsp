@@ -297,15 +297,26 @@
 		</table>
 		<input type="submit" value="Search" id="submitId" />
 	</form>
+	
 
 </div>
 <br />
 
 <br />
 <c:if test="${fn:length(map)!=0}">
-	<b class="boxHeader"> FACTURE DES PRESTATIONS DES SOINS DE SANTE</b><b><a>Print</a></b>
+	<b class="boxHeader"> FACTURE DES PRESTATIONS DES SOINS DE SANTE</b>
 	<div class="box">
 		<table width="70%" border="0">
+		
+		<tr>
+		<td>
+		<!-- form elements for csv exportation    -->
+			<form action="invoice.form?save=true"  method="post" style="display: inline;">
+				<input type="submit" class="list_exportBt" value="Excel" title="Excel"/>
+			</form>
+	    <!-- end hidden form -->
+		</td>
+		</tr>
 
 			<tr>
 				<th class="columnHeader">

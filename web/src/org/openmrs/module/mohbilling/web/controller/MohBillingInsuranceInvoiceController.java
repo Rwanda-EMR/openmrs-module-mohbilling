@@ -21,6 +21,7 @@ import org.hibernate.SessionFactory;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
@@ -79,6 +80,7 @@ public class MohBillingInsuranceInvoiceController extends
 						+ endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0]
 						+ " " + endTimeStr);
 			}
+			log.info("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzstartDatefinal "+startDate);
 			
 			if(request.getParameter("patientId") != null)
 				patientIdStr = request.getParameter("patientId");
@@ -88,7 +90,9 @@ public class MohBillingInsuranceInvoiceController extends
 			
 			
 			if(request.getParameter("insurance") != null)
-				insuranceStr = request.getParameter("insurance");			
+				insuranceStr = request.getParameter("insurance");		
+			
+			rebuildExistingParameters(request, mav);
 
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
@@ -128,6 +132,7 @@ public class MohBillingInsuranceInvoiceController extends
 				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
 			}
 			
+			
 			List<PatientBill> bills = Context.getService(BillingService.class).getBills(startDate, endDate);
 			
 			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};
@@ -149,7 +154,7 @@ public class MohBillingInsuranceInvoiceController extends
 									Integer qty=item.getQuantity();
 									subTotal+=up*qty;
 									
-									subTotalsMap.put(str, subTotal);
+									subTotalsMap.put(str, ReportsUtil.roundTwoDecimals(subTotal));
 									sameCategList.add(item);
 								}
 						}
@@ -161,13 +166,52 @@ public class MohBillingInsuranceInvoiceController extends
 				mav.addObject("bigTotal", ReportsUtil.roundTwoDecimals(bigTotal));
 			}
 			mav.addObject("map", groupMap);
+			
+			String csv="csv";
+			mav.addObject("csv", csv);
+			
+			FileExporter fexp = new FileExporter();
 
+
+			if (request.getParameter("export") != null) {
+				fexp.exportToCSVFile(request, response, groupMap,"bills.csv",
+						"Details des soins recus");
+				log.info("kkkkkaaaaaaaaaaaaaaaaaaaaaaaaaaaaa "+request.getParameter("save"));
+		    }
 		}
-
 		mav.setViewName(getViewName());
 
 		return mav;
 
 	}
+	
+	/**
+	 * @param request
+	 * @param mav
+	 */
+	private void rebuildExistingParameters(HttpServletRequest request,ModelAndView mav) {
+		String param = (request.getParameter("startDate") != null) ? "&startDate="
+				+ request.getParameter("startDate") : "";
+		param += (request.getParameter("startHour") != null) ? "&startHour="
+			  + request.getParameter("startHour") : "";
+		param += (request.getParameter("startMinute") != null) ? "&startMinute="
+			  + request.getParameter("startMinute") : "";
+		param += (request.getParameter("endDate") != null) ? "&endDate="
+				+ request.getParameter("endDate") : "";
+		param += (request.getParameter("endHour") != null) ? "&endHour="
+			    + request.getParameter("endHour") : "";
+		param += (request.getParameter("endMinute") != null) ? "&endMinute="
+			   + request.getParameter("endMinute") : "";
+		param += (request.getParameter("patientId") != null) ? "&patientId="
+				+ request.getParameter("patientId") : "";
+		param += (request.getParameter("cashCollector") != null) ? "&cashCollector="
+			  + request.getParameter("cashCollector") : "";
+		param += (request.getParameter("insurance") != null) ? "&insurance="
+			  + request.getParameter("insurance") : "";
+
+		log.info("paaaaaaaaaaarammmmmmmmmmmmmmmm "+param);
+		mav.addObject("prmtrs", param);
+	}
 
 }
+

@@ -14,6 +14,14 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
+<openmrs:htmlInclude file="/moduleResources/mohbilling/jquery.dataTables.js" />  
+
+<openmrs:htmlInclude file="/moduleResources/mohbilling/demo_page.css" />  
+
+<openmrs:htmlInclude file="/moduleResources/mohbilling/demo_table.css" /> 
+
+<openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery.js" />  
+
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();
 
@@ -28,6 +36,14 @@
 			$bill('.meta').hide();
 		});
 	});
+</script>
+
+<script type="text/javascript" charset="utf-8">
+		$(document).ready(function() {
+			$('#example').dataTable( {
+				"sPaginationType": "full_numbers"
+			} );
+		} );
 </script>
 
 <h2>
@@ -59,7 +75,6 @@
 
 <b class="boxHeader">Search Form(Advanced)</b>
 <div class="box">
-
 
 	<form method="post" action="facture.form">
 		<input type="hidden" name="patientIdnew" value="${patientId}" />
@@ -297,29 +312,34 @@
 		</table>
 		<input type="submit" value="Search" id="submitId" />
 	</form>
-
 </div>
-<br />
+<br/>
 
 <c:if test="${fn:length(patientBillMap)!=0}">
-<div class="box">
-<b class="boxHeader"> Insurance Facture</b>
-<b><a>Export</a></b>
+<div style="border: 1px #808080 solid; padding: 0em; margin: 0em; width: 500">
+<b class="boxHeader" style="width: 100%; padding: 0em; margin-right: 0em; margin-left: 0em"> Insurance Facture
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a>Export</a>
+</b>
 <c:set var="billMap" value="${patientBillMap}" />
-
- <table>
+<div id="dt_example">
+<div id="container">
+ <table id="example">
+  <thead>
   <tr>
      <th class="columnHeader">Billing Date</th>
      <th class="columnHeader">Card Number</th>
-     <th class="columnHeader">Name</th>    
+     <th class="columnHeader">Names</th>    
       <c:forEach items="${serviceCategories}" var="svceCateg">
       <th class="columnHeader">${svceCateg}</th>
       </c:forEach>
-   <th class="columnHeader"><b>100%</b></th>  
-    <th class="columnHeader"><b>10%</b></th>
-     <th class="columnHeader"><b>totalMS</b></th> 
-   
-  </tr>
+      <th class="columnHeader"><b>100%</b></th>  
+      <th class="columnHeader"><b>10%</b></th>
+      <th class="columnHeader"><b>totalMS</b></th>
+        </tr>
+   </thead>
+  
+  <tbody>
   <!-- for service category display amount -->
   <c:forEach var="bill" items="${billMap}"> 
   <c:set var="createdDate" value="${bill.key.createdDate}"/>
@@ -327,19 +347,20 @@
    <c:set var="patient" value="${bill.key.beneficiary.patient}" />
   
   <tr>
-    <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd" value="${createdDate}" /></td>
-     <td class="rowValue ${(status.count%2!=0)?'even':''}">${cardNumber}</td>
-     <td class="rowValue ${(status.count%2!=0)?'even':''}">${patient.familyName} ${patient.givenName}</td>
+    <td><fmt:formatDate pattern="yyyy-MM-dd" value="${createdDate}" /></td>
+     <td>${cardNumber}</td>
+     <td>${patient.familyName} ${patient.givenName}</td>
    <c:forEach var="invoiceMap" items="${bill.value}">   
-    <td class="rowValue ${(status.count%2!=0)?'even':''}">${invoiceMap.value}</td>   
+    <td>${invoiceMap.value}</td>   
    </c:forEach> 
  </tr>
  </c:forEach>
   <!--  end for each service category -->
+ </tbody>
  </table>
+ </div>
+</div>
 </div>
 </c:if>
-
-
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

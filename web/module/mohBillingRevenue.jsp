@@ -292,7 +292,11 @@
 <br />
 
 <c:if test="${fn:length(basedDateReport)!=0}">
-<b class="boxHeader"> Recettes par service</b><b><a>Export</a></b>
+<b class="boxHeader"> Recettes par service</b><b>
+<form action="recettes.form?page=1&export=csv${prmtrs}" method="post" style="display: inline;">
+	<input type="submit" class="list_exportBt" value="Excel" title="Excel"/>
+</form>
+</b>
 <div class="box">
 
 <c:set var="dailyReport" value="${basedDateReport}" />
