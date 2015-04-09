@@ -22,9 +22,11 @@ import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohtracportal.util.ContextProvider;
 import org.openmrs.module.mohtracportal.util.MohTracUtil;
 
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
@@ -138,97 +140,52 @@ public class FileExporter {
 	 * @param title
 	 * @throws Exception
 	 */
-	public void exportToPDF(HttpServletRequest request,
-			HttpServletResponse response, Map<Integer,String> map, String filename,
-			String title) throws Exception {
+	public void exportToPDF(Map<Integer,String> model, Document doc,
+            PdfWriter writer, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-		SimpleDateFormat sdf = Context.getDateFormat();
+         
+	        doc.add(new Paragraph("Recommended books for Spring framework"));
+	         
+	        PdfPTable table = new PdfPTable(5);
+	        table.setWidthPercentage(100.0f);
+	        table.setWidths(new float[] {3.0f, 2.0f, 2.0f, 2.0f, 1.0f});
+	        table.setSpacingBefore(10);
+	         
+	        // define font for table header row
+	        Font font = FontFactory.getFont(FontFactory.HELVETICA);
+	        font.setColor(BaseColor.WHITE);
+	         
+	        // define table header cell
+	        PdfPCell cell = new PdfPCell();
+	        cell.setBackgroundColor(BaseColor.BLUE);
+	        cell.setPadding(5);
+	         
+	        // write table header
+	        cell.setPhrase(new Phrase("Book Title", font));
+	        table.addCell(cell);
+	         
+	        cell.setPhrase(new Phrase("Author", font));
+	        table.addCell(cell);
+	 
+	        cell.setPhrase(new Phrase("ISBN", font));
+	        table.addCell(cell);
+	         
+	        cell.setPhrase(new Phrase("Published Date", font));
+	        table.addCell(cell);
+	         
+	        cell.setPhrase(new Phrase("Price", font));
+	        table.addCell(cell);
+	         
+//	        // write table row data
+	        for (Integer b : model.keySet()) {
+	            table.addCell(b+""+model.get(b));
+	        }
+	         
+	        doc.add(table);
+	         
+	    }
+	 
 
-		Document document = new Document();
-
-		
-	
-		response.setContentType("application/pdf");
-		response.setHeader("Content-Disposition", "attachment; filename=\""
-				+ filename + "\""); // file name
-		
-		
-		PdfWriter writer = PdfWriter.getInstance(document, response
-				.getOutputStream());
-		writer.setBoxSize("art", new Rectangle(36, 54, 559, 788));
-
-		float[] colsWidth = { 1.6f, 2.7f, 2.7f, 8f, 10.5f, 4f, 5f, 7.5f};//, 9.3f };
-		PdfPTable table = new PdfPTable(colsWidth); // column number
-
-		HeaderFooter event = new HeaderFooter(table);
-		writer.setPageEvent(event);
-
-		document.setPageSize(PageSize.A4.rotate());
-		document.open();
-
-		document.addAuthor(Context.getAuthenticatedUser().getPersonName()
-						.getFamilyName()
-						+ " "
-						+ Context.getAuthenticatedUser().getPersonName()
-								.getGivenName());// the name of the author
-
-		FontSelector fontTitle = new FontSelector();
-		fontTitle.addFont(new Font(FontFamily.HELVETICA, 8.0f, Font.BOLD));
-		
-		document.add(fontTitle.process(MohTracUtil.getMessage(
-				"billing report", null)
-				+ "    : " + title));// Report title
-		document.add(fontTitle.process("\n"
-				+ MohTracUtil.getMessage(
-						"created on", null) + " : "+ sdf.format(new Date())));// Report date
-		document.add(fontTitle.process("\n"+ MohTracUtil.getMessage(
-						"tracpatienttransfer.report.createdby", null) + " : "
-				+ Context.getAuthenticatedUser().getPersonName()));// Report
-		// author
-		document.add(new Paragraph("\n"));
-
-		Paragraph para = new Paragraph("" + title.toUpperCase());
-		para.setAlignment(Element.ALIGN_CENTER);
-		para.setFont(new Font(FontFamily.HELVETICA, 8.0f, Font.BOLD));
-		document.add(para);
-
-		table.setWidthPercentage(100.0f);
-
-		// title row
-		FontSelector fontTitleSelector = new FontSelector();
-		fontTitleSelector.addFont(new Font(FontFamily.HELVETICA, 8, Font.BOLD));
-
-
-		// normal row
-		FontSelector fontselector = new FontSelector();
-		fontselector.addFont(new Font(FontFamily.HELVETICA, 7, Font.NORMAL));
-
-		// empty row
-		FontSelector fontEmptyCell = new FontSelector();
-		fontEmptyCell.addFont(new Font(FontFamily.HELVETICA, 7, Font.NORMAL));
-
-		int ids = 0;
-		System.out.println("getffffffffffbeforeeeeefffffffffvalueee"+map.get(10)+"file name:"+filename);
-		for (Integer  key : map.keySet()) {
-			System.out.println("get keyyueyyeyeyye"+key);
-			table.addCell(key+ "");
-			table.addCell(map.get(key)+ "");
-			
-		//	for (PatientServiceBill psb:map.get(key)) {
-				/*table.addCell(psb.getServiceDate()+"");
-				table.addCell(psb.getService().getFacilityServicePrice().getName()+"");
-				table.addCell(psb.getUnitPrice()+"");
-				table.addCell(psb.getQuantity()+"");
-				table.addCell(psb.getUnitPrice().doubleValue()*psb.getQuantity()+"");
-			//}
-			*/
-		}
-
-		document.add(table);
-		document.close();
-
-		log.info("pdf file created");
-	}
 
 	static class HeaderFooter extends PdfPageEventHelper {
 		private PdfPTable table = null;
