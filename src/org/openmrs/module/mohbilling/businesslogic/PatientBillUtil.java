@@ -501,7 +501,7 @@ public class PatientBillUtil {
 		getService().savePatientBill(pb);
 	}
 	
-	public static LinkedHashMap<String, Double> getPatientInvoice(PatientBill pb,  String[] serviceCategories ){
+	public static LinkedHashMap<String, Double> getPatientInvoice(PatientBill pb,  String[] serviceCategories,Insurance insurance ){
 		
 		Set<PatientServiceBill> billItems =pb.getBillItems();		
 		List<Invoice> invoicesList =new ArrayList<Invoice>();
@@ -510,39 +510,44 @@ public class PatientBillUtil {
 		LinkedHashMap< String, Double> invoiceMap = new LinkedHashMap<String,Double>();
 		Double currentRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();	
 		
-		Double total =0.0;
+		Double total =0.0;	
+			
 			for (String sviceCatgory : serviceCategories) {
+				
+				Invoice invoice = new Invoice();
+				List<Consommation> consommations =new ArrayList<Consommation>();
+				Double subTotal =0.0;
+				for (PatientServiceBill item : billItems) {		
+					String category =item.getService().getFacilityServicePrice().getCategory();
+					if (category.startsWith(sviceCatgory)) {
+						Consommation consomm = new Consommation();
+						// Double  quantity = (Double)item.getQuantity();
+						String libelle = item.getService().getFacilityServicePrice().getName();
+						consomm.setLibelle(libelle);
+						consomm.setUnitCost(item.getUnitPrice().doubleValue());
+						consomm.setQuantity(item.getQuantity());
+						consomm.setCost(item.getQuantity()*item.getUnitPrice().doubleValue());
+						consomm.setInsuranceCost(item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100);
+						consomm.setPatientCost(item.getQuantity()*item.getUnitPrice().doubleValue()*(100-currentRate)/100);
+						
+						consommations.add(consomm);					
+						//Double unitPrice=item.getUnitPrice().doubleValue();
+						//Double cost =item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100;	
+						Double cost =item.getQuantity()*item.getUnitPrice().doubleValue();
+						subTotal+=cost;				
+					}				
+				}
+				
+				invoice.setCreatedDate(pb.getCreatedDate());
+				invoice.setConsommationList(consommations);
+				invoice.setSubTotal(subTotal);	
+				total+=subTotal;
+				invoiceMap.put(sviceCatgory, ReportsUtil.roundTwoDecimals(invoice.getSubTotal()));	
+				}
 			
-			Invoice invoice = new Invoice();
-			List<Consommation> consommations =new ArrayList<Consommation>();
-			Double subTotal =0.0;
-			for (PatientServiceBill item : billItems) {		
-				String category =item.getService().getFacilityServicePrice().getCategory();
-				if (category.startsWith(sviceCatgory)) {
-					Consommation consomm = new Consommation();
-					// Double  quantity = (Double)item.getQuantity();
-					String libelle = item.getService().getFacilityServicePrice().getName();
-					consomm.setLibelle(libelle);
-					consomm.setUnitCost(item.getUnitPrice().doubleValue());
-					consomm.setQuantity(item.getQuantity());
-					consomm.setCost(item.getQuantity()*item.getUnitPrice().doubleValue());
-					consomm.setInsuranceCost(item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100);
-					consomm.setPatientCost(item.getQuantity()*item.getUnitPrice().doubleValue()*(100-currentRate)/100);
-					
-					consommations.add(consomm);					
-					//Double unitPrice=item.getUnitPrice().doubleValue();
-					//Double cost =item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100;	
-					Double cost =item.getQuantity()*item.getUnitPrice().doubleValue();
-					subTotal+=cost;				
-				}				
-			}
 			
-			invoice.setCreatedDate(pb.getCreatedDate());
-			invoice.setConsommationList(consommations);
-			invoice.setSubTotal(subTotal);	
-			total+=subTotal;
-			invoiceMap.put(sviceCatgory, ReportsUtil.roundTwoDecimals(invoice.getSubTotal()));	
-			}		
+			
+			
 			//add each invoice linked to catehory service to list of invoice		
 			invoiceMap.put("Montant100%", ReportsUtil.roundTwoDecimals(total));
 			invoiceMap.put("T.M10%", ReportsUtil.roundTwoDecimals(total*(100-currentRate)/100));

@@ -81,7 +81,8 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			
 			
 			if(request.getParameter("insurance") != null)
-				insuranceStr = request.getParameter("insurance");			
+				insuranceStr = request.getParameter("insurance");	
+			
 
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
@@ -133,12 +134,15 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			String[] serviceCategories = {"FORMAL","CONSULT","LABO","RADIO","ECHO","OPHTA","CHIR","MEDEC","CONSOM","KINE","STOMA","MATER","AMBUL","SOINS INF","MEDICA","HOSP"};
 			
 			LinkedHashMap<PatientBill, Map<String,Double>> billMap = new LinkedHashMap<PatientBill, Map<String,Double>>();
-
+			
 
 			 for (PatientBill patientBill : patientBills) {
-				 
-				 LinkedHashMap<String, Double> invoiceMap = PatientBillUtil.getPatientInvoice(patientBill, serviceCategories);		  
-				 billMap.put(patientBill, invoiceMap);	
+				 Insurance pbinsurance =patientBill.getBeneficiary().getInsurancePolicy().getInsurance();
+				 if (pbinsurance==insurance) {
+					 LinkedHashMap<String, Double> invoiceMap = PatientBillUtil.getPatientInvoice(patientBill, serviceCategories,insurance);		  
+					 billMap.put(patientBill, invoiceMap);
+				}
+					
 				
 			}
 		     				

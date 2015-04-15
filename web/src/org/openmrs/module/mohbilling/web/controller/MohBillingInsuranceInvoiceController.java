@@ -186,7 +186,7 @@ public class MohBillingInsuranceInvoiceController extends
 		testMap.put(13,"KINES");
 		
 		if (request.getParameter("save") != null) {
-			fexp.exportToPDF(request, response, testMap,"bills.pdf","Details des soins recus");
+			fexp.exportToPDF();
 			
 			System.out.println("Hellloooooooo");
 			
