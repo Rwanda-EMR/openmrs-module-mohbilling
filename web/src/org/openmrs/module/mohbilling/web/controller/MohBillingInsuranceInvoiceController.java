@@ -3,7 +3,6 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,7 +42,7 @@ public class MohBillingInsuranceInvoiceController extends
 			HttpServletResponse response) throws Exception {
 
 		List<String> categories = InsuranceUtil.getAllServiceCategories();
-		List<BillPayment> reportedPayments = new ArrayList<BillPayment>();	
+		List<BillPayment> reportedPayments = new ArrayList<BillPayment>();
 
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("allInsurances", InsuranceUtil.getAllInsurances());
@@ -56,11 +55,10 @@ public class MohBillingInsuranceInvoiceController extends
 				startDateStr = null, endDateStr = null, serviceId = null, 
 				cashCollector = null, startHourStr = null, startMinute = null, 
 				endHourStr = null, endMinuteStr = null;
-
-		Map<String,List<PatientServiceBill>> groupMap = new HashMap<String, List<PatientServiceBill>>();
 		
-		if (request.getParameter("formStatus") != null && !request.getParameter("formStatus").equals("")) {
-			
+		rebuildExistingParameters(request,mav);
+
+		if (request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")) {	
 			startHourStr = request.getParameter("startHour");
 			startMinute = request.getParameter("startMinute"); 
 			endHourStr = request.getParameter("endHour");
@@ -82,7 +80,6 @@ public class MohBillingInsuranceInvoiceController extends
 						+ endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0]
 						+ " " + endTimeStr);
 			}
-			log.info("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzstartDatefinal "+startDate);
 			
 			if(request.getParameter("patientId") != null)
 				patientIdStr = request.getParameter("patientId");
@@ -92,9 +89,7 @@ public class MohBillingInsuranceInvoiceController extends
 			
 			
 			if(request.getParameter("insurance") != null)
-				insuranceStr = request.getParameter("insurance");		
-			
-			rebuildExistingParameters(request, mav);
+				insuranceStr = request.getParameter("insurance");			
 
 			Integer insuranceIdInt = null;
 			Integer patientId = null;
@@ -138,7 +133,7 @@ public class MohBillingInsuranceInvoiceController extends
 			List<PatientBill> bills = Context.getService(BillingService.class).getBills(startDate, endDate);
 			
 			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};
-		
+			Map<String,List<PatientServiceBill>> groupMap = new HashMap<String, List<PatientServiceBill>>();
 			
 			
 			Map<String,Double> subTotalsMap = new HashMap<String, Double>();
@@ -168,12 +163,16 @@ public class MohBillingInsuranceInvoiceController extends
 				mav.addObject("bigTotal", ReportsUtil.roundTwoDecimals(bigTotal));
 			}
 			mav.addObject("map", groupMap);
+			mav.addObject("startDate", startDate);
+			mav.addObject("endDate", endDate);
+			mav.addObject("insurance", insurance);
 			
-			String csv="csv";
-			mav.addObject("csv", csv);
-		
+			
+			FileExporter fexp = new FileExporter();
+			if (request.getParameter("print") != null) {
+				fexp.exportToPDF(request, response, bills,groupMap,"consommations.pdf","Details des soins recus");
+		    }
 		}
-		
 		mav.setViewName(getViewName());
 
 		return mav;
