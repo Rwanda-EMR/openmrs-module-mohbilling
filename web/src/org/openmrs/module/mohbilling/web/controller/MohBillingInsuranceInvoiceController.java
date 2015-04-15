@@ -43,9 +43,7 @@ public class MohBillingInsuranceInvoiceController extends
 			HttpServletResponse response) throws Exception {
 
 		List<String> categories = InsuranceUtil.getAllServiceCategories();
-		List<BillPayment> reportedPayments = new ArrayList<BillPayment>();
-		
-		log.info("beginnnnnnnnnninggggg "+request.getParameter("save"));
+		List<BillPayment> reportedPayments = new ArrayList<BillPayment>();	
 
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("allInsurances", InsuranceUtil.getAllInsurances());
@@ -174,23 +172,7 @@ public class MohBillingInsuranceInvoiceController extends
 			String csv="csv";
 			mav.addObject("csv", csv);
 		
-		
 		}
-		FileExporter fexp = new FileExporter();
-		
-		
-		Map<Integer,String> testMap = new HashMap<Integer, String>();
-		testMap.put(10,"CONSULt");
-		testMap.put(11,"MED");
-		testMap.put(12,"LABO");
-		testMap.put(13,"KINES");
-		
-		if (request.getParameter("save") != null) {
-			fexp.exportToPDF();
-			
-			System.out.println("Hellloooooooo");
-			
-	    }
 		
 		mav.setViewName(getViewName());
 
@@ -222,7 +204,6 @@ public class MohBillingInsuranceInvoiceController extends
 		param += (request.getParameter("insurance") != null) ? "&insurance="
 			  + request.getParameter("insurance") : "";
 
-		log.info("paaaaaaaaaaarammmmmmmmmmmmmmmm "+param);
 		mav.addObject("prmtrs", param);
 	}
 
