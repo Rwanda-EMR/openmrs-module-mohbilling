@@ -119,6 +119,8 @@ public class MohBillingCohortBuilderFormController extends
 
 			reportedPatientBills = ReportsUtil.billCohortBuilder(insurance,
 					startDate, endDate, patientId, null, billStatus, billCreator);
+			
+			log.info("chubbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "+reportedPatientBills.size());
 
 			mav.addObject("startDateStr", startDateStr);
 			mav.addObject("endDateStr", endDateStr);
@@ -183,7 +185,7 @@ public class MohBillingCohortBuilderFormController extends
 				totalAmountReceived += payments;
 
 			}
-			
+			log.info("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhchub "+billObj.size());
 			mav.addObject("totalAmountReceived",
 					ReportsUtil.roundTwoDecimals(totalAmountReceived));
 			mav.addObject("insuranceDueAmount",

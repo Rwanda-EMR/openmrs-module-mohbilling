@@ -428,6 +428,11 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getRevenueByService(receivedDate, serviceCategory, collector, insurance);
 	}
 
+	@Override
+	public PatientBill getBills(Patient patient, Date startDate, Date endDate) {
+		return billingDAO.getBills(patient, startDate, endDate);
+	}
+
 
 	
 	

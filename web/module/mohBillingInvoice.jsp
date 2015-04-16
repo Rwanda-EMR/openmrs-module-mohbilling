@@ -1,14 +1,10 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
-<openmrs:require privilege="Manage Billing Reports"
-	otherwise="/login.htm" redirect="/mohbilling/cohort.orm" />
-<openmrs:htmlInclude
-	file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
-<openmrs:htmlInclude
-	file="/moduleResources/@MODULE_ID@/scripts/jquery.PrintArea.js" />
+<openmrs:require privilege="Manage Billing Reports" otherwise="/login.htm" redirect="/mohbilling/cohort.orm" />
+<openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
+<openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery.PrintArea.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
-<%@ taglib prefix="billingtag"
-	uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld"%>
+<%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld"%>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
@@ -19,15 +15,14 @@
 
 	$bill(document).ready(function() {
 		$bill('.meta').hide();
-		$bill('#submitId').click(function() {
-			$bill('#formStatusId').val("clicked");
-		});
+		
 		$bill("input#print_button").click(function() {
 			$bill('.meta').show();
 			$bill("div.printarea").printArea();
 			$bill('.meta').hide();
 		});
 	});
+	
 </script>
 
 <h2>
@@ -59,11 +54,7 @@
 
 <b class="boxHeader">Search Form(Advanced)</b>
 <div class="box">
-
-
 	<form method="post" action="invoice.form">
-		<input type="hidden" name="patientIdnew" value="${patientId}" />
-		<input type="hidden" name="formStatus" id="formStatusId" value="" />
 		<table>
 			<tr>
 				<td width="10%">When?</td>
@@ -304,20 +295,23 @@
 
 <br />
 <c:if test="${fn:length(map)!=0}">
-	<b class="boxHeader"> FACTURE DES PRESTATIONS DES SOINS DE SANTE</b>
 	<div class="box">
+<b class="boxHeader">Health Cares Received
+	<!--<div style="float:right"><a href="invoice.form?print=true${prmtrs}"><b style="color: white;font-size: 14px;">PDF</b></a></div>  -->
+</b>
+	
 		<table width="70%" border="0">
 		
 		<tr>
 		<td>
-		<!-- form elements for csv exportation    -->
-			<form action="invoice.form?save=true"  method="post" style="display: inline;">
-				<input type="submit" class="list_exportBt" value="Excel" title="Excel"/>
+		<!--   form elements for csv exportation  -->  
+			<form action="invoice.form?print=true${prmtrs}"  method="post" style="display: hidden;">
+				<input type="submit" value="PDF"/>
 			</form>
-	    <!-- end hidden form -->
+	   <!-- end hidden form -->
 		</td>
 		</tr>
-
+         
 			<tr>
 				<th class="columnHeader">
 				</th>

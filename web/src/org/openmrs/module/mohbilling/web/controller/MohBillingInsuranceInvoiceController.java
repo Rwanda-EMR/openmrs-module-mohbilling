@@ -98,6 +98,8 @@ public class MohBillingInsuranceInvoiceController extends
 			String patientNames = null;
 
 			User user = Context.getAuthenticatedUser();
+			Patient patient=null;
+			
 
 			String cashierNames = (user.getPersonName().getFamilyName() != null ? user
 					.getPersonName().getFamilyName() : "")
@@ -107,12 +109,12 @@ public class MohBillingInsuranceInvoiceController extends
 					+ " "
 					+ (user.getPersonName().getGivenName() != null ? user
 							.getPersonName().getGivenName() : "");
-
+			
 			if (!request.getParameter("patientId").equals("")) {
 
 				patientIdStr = request.getParameter("patientId");
 				patientId = Integer.parseInt(patientIdStr);
-				Patient patient = Context.getPatientService().getPatient(
+				 patient = Context.getPatientService().getPatient(
 						patientId);
 				patientNames = (patient.getFamilyName() != null ? patient
 						.getFamilyName() : "")
@@ -132,6 +134,7 @@ public class MohBillingInsuranceInvoiceController extends
 			
 			List<PatientBill> bills = Context.getService(BillingService.class).getBills(startDate, endDate);
 			
+			
 			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};
 			Map<String,List<PatientServiceBill>> groupMap = new HashMap<String, List<PatientServiceBill>>();
 			
@@ -141,9 +144,14 @@ public class MohBillingInsuranceInvoiceController extends
 			for (String str : serviceCategories) {
 				List<PatientServiceBill> sameCategList = new ArrayList<PatientServiceBill>();
 				Double subTotal = 0.0;
+				Insurance pbInsurance = null;
+				User pbCreator =null;
 				for (PatientBill pb : bills) {
 					Set<PatientServiceBill> billItems = pb.getBillItems();
-
+					
+					    pbCreator=pb.getCreator();
+						pbInsurance=pb.getBeneficiary().getInsurancePolicy().getInsurance();
+					if(patient==pb.getBeneficiary().getPatient()||insurance==pbInsurance||cashCollector==pbCreator.getUsername()){	
 						for (PatientServiceBill item : billItems) {
 								String servCateg = item.getService().getFacilityServicePrice().getCategory();
 								if(servCateg.equals(str)){
@@ -157,6 +165,7 @@ public class MohBillingInsuranceInvoiceController extends
 						}
 						if(sameCategList.size()!=0)
 						groupMap.put(str, sameCategList);
+					}
 				}
 				bigTotal=bigTotal+subTotal;
 				mav.addObject("subTotalsMap", subTotalsMap);
@@ -166,11 +175,13 @@ public class MohBillingInsuranceInvoiceController extends
 			mav.addObject("startDate", startDate);
 			mav.addObject("endDate", endDate);
 			mav.addObject("insurance", insurance);
-			
+			mav.addObject("cashCollector", cashCollector);
+			mav.addObject("patientId", patientId);
+
 			
 			FileExporter fexp = new FileExporter();
 			if (request.getParameter("print") != null) {
-				fexp.exportToPDF(request, response, bills,groupMap,"consommations.pdf","Details des soins recus");
+				fexp.exportToPDF(request, response,groupMap,"consommations.pdf","Details des soins recus");
 		    }
 		}
 		mav.setViewName(getViewName());

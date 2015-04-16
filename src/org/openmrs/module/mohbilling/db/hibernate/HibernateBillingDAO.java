@@ -877,14 +877,14 @@ public class HibernateBillingDAO implements BillingDAO {
 		     +" inner join  moh_bill_insurance_rate ir on ir.insurance_id=bs.insurance_id "      
 		     +" inner join moh_bill_insurance_policy ip on ip.insurance_policy_id =bn.insurance_policy_id"
 		     +" inner  join  moh_bill_payment pay on pay.patient_bill_id=pb.patient_bill_id " 
-		     +" where fsp.category like  '%" +svceCatgory+"%' and date_received = '" +formatter.format(receivedDate)+"' "); 
+		     +" where fsp.category like  '%" +svceCatgory+"%' and pay.date_received = '" +formatter.format(receivedDate)+"' "); 
 		
 		   if (insurance != null)
 				strb.append(" and ip.insurance_id =  "
 						+ insurance.getInsuranceId().intValue());
 
 			if (collector != null && !collector.equals(""))
-				strb.append(" AND pay.creator =  " + collector);
+				strb.append(" AND pay.collector =  " + collector);
 		  
 		   SQLQuery query = session.createSQLQuery(strb.toString());  
 		 
@@ -912,6 +912,23 @@ public class HibernateBillingDAO implements BillingDAO {
 		  mappedReport.put("Total", ReportsUtil.roundTwoDecimals(amountSum));
 		  
 		  return mappedReport;
+	}
+
+	@Override
+	public PatientBill getBills(Patient patient, Date startDate, Date endDate) {
+		Session session = getSessionFactory().getCurrentSession();
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		String str = "SELECT pb.patient_bill_id FROM moh_bill_patient_bill pb " +
+				" inner join moh_bill_beneficiary b on b.beneficiary_id=pb.beneficiary_id " +
+				" and pb.created_date between '"+df.format(startDate)+" 00:00:00' and '"+df.format(endDate)+" 23:59:00' and b.patient_id="+patient.getPatientId();
+		log.info("ssssssssssssssssssssssss "+str);
+		SQLQuery query = session.createSQLQuery(str);
+		List<Object> ob = query.list();
+		PatientBill pb = null;
+		if(ob!=null)
+			pb=getPatientBill((Integer) ob.get(0));
+		
+		return pb;
 	}
 
 }

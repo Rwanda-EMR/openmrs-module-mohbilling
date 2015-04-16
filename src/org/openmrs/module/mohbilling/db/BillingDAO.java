@@ -430,4 +430,6 @@ public interface BillingDAO {
 	
 
 	public List<PatientBill> getBills(Date startDate,Date endDate);
+
+	public PatientBill getBills(Patient patient,Date startDate,Date endDate);
 }

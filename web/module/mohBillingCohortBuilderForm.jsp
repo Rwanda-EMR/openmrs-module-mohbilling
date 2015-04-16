@@ -133,7 +133,6 @@
 	<div style="float:right"><a style="" href="cohort.form?print=true&patientId=${patientId}&startDate=${startDate}&endDate=${endDate}&insurance=${insurance.insuranceId}&serviceId=${serviceId}"><b style="color: red;font-size: 14px;">Print PDF</b></a></div>
 </b>
 
-
 <div class="printarea" ">
 
 <div class="meta">

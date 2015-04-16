@@ -39,8 +39,9 @@
 </script>
 
 <script type="text/javascript" charset="utf-8">
-		$(document).ready(function() {
-			$('#example').dataTable( {
+var $t = jQuery.noConflict();
+		$t(document).ready(function() {
+			$t('#example').dataTable( {
 				"sPaginationType": "full_numbers"
 			} );
 		} );

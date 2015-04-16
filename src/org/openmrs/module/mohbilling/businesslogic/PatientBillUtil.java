@@ -458,6 +458,22 @@ public class PatientBillUtil {
 		return bills;
 	}
 	
+	public static PatientBill getPatientBill(Patient patient,Date startDate,
+			Date endDate) {
+
+		PatientBill pb = null;
+
+		if (startDate != null && endDate != null) {
+			for (PatientBill bill : getPatientBillsInDates(startDate, endDate)) {
+				if (bill.getBeneficiary().getPatient()==patient && bill.getCreatedDate().compareTo(startDate) >= 0	&& bill.getCreatedDate().compareTo(endDate) <= 0) {
+					pb=bill;
+				}
+			}
+		}
+
+		return pb;
+	}
+	
 	public static void markBillAsPaid(PatientBill bill) {
 
 		PatientBill pb = getService().getPatientBill(bill.getPatientBillId());
@@ -545,15 +561,11 @@ public class PatientBillUtil {
 				invoiceMap.put(sviceCatgory, ReportsUtil.roundTwoDecimals(invoice.getSubTotal()));	
 				}
 			
-			
-			
-			
 			//add each invoice linked to catehory service to list of invoice		
 			invoiceMap.put("Montant100%", ReportsUtil.roundTwoDecimals(total));
 			invoiceMap.put("T.M10%", ReportsUtil.roundTwoDecimals(total*(100-currentRate)/100));
 			invoiceMap.put("totalMS", ReportsUtil.roundTwoDecimals(total*currentRate/100));		
 		
-			
 		
 		return  invoiceMap;
 		
