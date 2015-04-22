@@ -397,7 +397,9 @@ public interface BillingService {
 	
 	public Map<String,Double> getRevenueByService(Date receivedDate,String[] serviceCategory, String collector,Insurance insurance);
 	
-	public List<PatientBill> getBills(Date startDate,Date endDate);
+	public List<PatientBill> getBills(Date startDate,Date endDate,User collector);
+	
+	public List<PatientBill> getPatientBillsByCollector(Date receivedDate, User collector);
 	
 	public PatientBill getBills(Patient patient,Date startDate,Date endDate);
 }

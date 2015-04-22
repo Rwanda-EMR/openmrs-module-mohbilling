@@ -418,8 +418,8 @@ public class BillingServiceImpl implements BillingService {
 
 
 	@Override
-	public List<PatientBill> getBills(Date startDate,Date endDate) {
-		return billingDAO.getBills(startDate,endDate);
+	public List<PatientBill> getBills(Date startDate,Date endDate,User collector) {
+		return billingDAO.getBills(startDate,endDate,collector);
 	}
 
 	@Override
@@ -428,10 +428,20 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getRevenueByService(receivedDate, serviceCategory, collector, insurance);
 	}
 
+
+	@Override
+	public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
+			User collector) {
+		// TODO Auto-generated method stub
+		return billingDAO.getPatientBillsByCollector(receivedDate,collector);
+		}
+
+
 	@Override
 	public PatientBill getBills(Patient patient, Date startDate, Date endDate) {
 		return billingDAO.getBills(patient, startDate, endDate);
 	}
+
 
 
 	

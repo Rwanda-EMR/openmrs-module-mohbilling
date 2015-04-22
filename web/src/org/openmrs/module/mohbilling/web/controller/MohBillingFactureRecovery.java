@@ -127,7 +127,7 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 
 			//List<Date> dates = service.getRevenueDates(insurance,startDate, endDate, patientId, serviceId, null,cashCollector);
 			
-			List<PatientBill>patientBills = service.getBills(startDate, endDate);
+			List<PatientBill>patientBills = service.getBills(startDate, endDate,null);
 			
 			List<Object[]> totalByCateg = new ArrayList<Object[]>();
 			

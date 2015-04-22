@@ -839,10 +839,17 @@ public class HibernateBillingDAO implements BillingDAO {
 	
 
 	@Override
-	public List<PatientBill> getBills(Date startDate,Date endDate) {
+	public List<PatientBill> getBills(Date startDate,Date endDate,User collector) {
 
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate", startDate, endDate));
 	
+		if (collector != null && collector.getUserId() != null) {
+			crit.add(Expression.eq("collector", collector));
+		}
+		
+		
+		
+		
 		List<BillPayment> payments = crit.list();
 		
 		List<PatientBill> bills = new ArrayList<PatientBill>();
@@ -892,8 +899,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		   
 //		   DecimalFormat decimalFormat = new DecimalFormat("###.##");
 		  
-		   for (Object[] object : categoryReports) {
-		   
+		   for (Object[] object : categoryReports) {		   
 			   String catg =(String)object[0];     
 			   Double amount =(Double )object[1];   
 		   
@@ -908,11 +914,32 @@ public class HibernateBillingDAO implements BillingDAO {
 		   }
 		                
 		  }
-		  }
+		}
 		  mappedReport.put("Total", ReportsUtil.roundTwoDecimals(amountSum));
 		  
 		  return mappedReport;
 	}
+
+
+	@Override
+	public List<PatientBill> getPatientBillsByCollector(Date dateReceived, User collector) {
+		// TODO Auto-generated method stub
+		System.out.println("date received"+dateReceived+"collector"+collector.getUserId());
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class)
+		         .add(Restrictions.eq("collector", collector))
+				 .add(Restrictions.eq("dateReceived", dateReceived));
+		
+		//Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate", startDate, endDate));
+		
+		List<BillPayment> payments = crit.list();		
+		List<PatientBill> bills = new ArrayList<PatientBill>();		
+		for (BillPayment pay : payments) {
+			bills.add(pay.getPatientBill());
+		}
+	return bills;		
+		
+	}
+
 
 	@Override
 	public PatientBill getBills(Patient patient, Date startDate, Date endDate) {
@@ -930,5 +957,6 @@ public class HibernateBillingDAO implements BillingDAO {
 		
 		return pb;
 	}
+
 
 }
