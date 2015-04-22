@@ -15,8 +15,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
+import org.openmrs.Person;
+import org.openmrs.User;
 import org.openmrs.api.ObsService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil.HeaderFooter;
@@ -207,11 +210,11 @@ public class FileExporter {
 
 		/** ------------- Report title ------------- */
 		
-		Chunk chk = new Chunk("Printed on : "+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
-		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
-		Paragraph todayDate = new Paragraph();
-		todayDate.add(chk);
-		document.add(todayDate);
+//		Chunk chk = new Chunk("Printed on : "+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
+//		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
+//		Paragraph todayDate = new Paragraph();
+//		todayDate.add(chk);
+//		document.add(todayDate);
 
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 
@@ -229,7 +232,7 @@ public class FileExporter {
 		/** ------------- End Report title ------------- */
 
 		document.add(new Paragraph("\n"));
-		chk = new Chunk("FACTURES DES PRESTATIONS DES SOINS DE SANTE");
+		Chunk chk = new Chunk("FACTURES DES PRESTATIONS DES SOINS DE SANTE");
 		chk.setFont(new Font(FontFamily.COURIER, 12.0f, Font.NORMAL));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -298,10 +301,7 @@ public class FileExporter {
 		FontSelector fontTotals = new FontSelector();
 		fontTotals.addFont(new Font(FontFamily.COURIER, 9, Font.NORMAL));
 
-		int ids = 0;
-		Double totalToBePaidOnService = 0.0;
-		Double totalToBePaidByInsurance = 0.0, totalToBePaidOnServiceByInsurance = 0.0;
-		Double totalToBePaidByPatient = 0.0, totalToBePaidOnServiceByPatient = 0.0;
+		Double totalToBePaidByPatient = 0.0;
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		
@@ -331,64 +331,100 @@ public class FileExporter {
 								cell = new PdfPCell(fontselector.process("" + ReportsUtil.roundTwoDecimals(cost)));
 								table.addCell(cell);
 							}
+						    totalToBePaidByPatient+=subTotal;
+						    
 						    cell = new PdfPCell(fontselector.process("" + ReportsUtil.roundTwoDecimals(subTotal)));
 						    cell.setColspan(5);
-//						    cell.ALIGN_RIGHT;
+							cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 							table.addCell(cell);
 					}
-		
-
+					cell = new PdfPCell(fontselector.process("" + ReportsUtil.roundTwoDecimals(totalToBePaidByPatient)));
+				    cell.setColspan(5);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					table.addCell(cell);
 		document.add(table);
 
 		document.add(new Paragraph("\n\n"));
+		
+		// Table of signatures;
+		table = new PdfPTable(3);
+		table.setWidthPercentage(70f);
+		
+		cell = new PdfPCell(fontTitleSelector.process("ASSURANCE"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("%"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("Montant"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("TOTAL FACTURE"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("100%"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+ReportsUtil.roundTwoDecimals(totalToBePaidByPatient)));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("TICKET MODERATEUR"));
+		table.addCell(cell);
+		
+		float insuranceRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+		float ticketModer = 100-insuranceRate;
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+(100-insuranceRate)));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+ReportsUtil.roundTwoDecimals(totalToBePaidByPatient*ticketModer/100)));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+pb.getBeneficiary().getInsurancePolicy().getInsurance().getName()));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+insuranceRate));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+ReportsUtil.roundTwoDecimals(totalToBePaidByPatient*insuranceRate/100)));
+		table.addCell(cell);
+		
+		document.add(table);
+		
+		document.add(new Paragraph("\n\n"));
 
 		// Table of signatures;
-		table = new PdfPTable(2);
+		table = new PdfPTable(3);
 		table.setWidthPercentage(100f);
 
 		
-		cell = new PdfPCell(
-				fontTitleSelector.process("Signature du Patient :\n"
-						+ pb.getBeneficiary().getPatient().getPersonName()));
+		cell = new PdfPCell(fontTitleSelector.process("Signature du Patient \n"+ pb.getBeneficiary().getPatient().getPersonName()));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
-
-		cell = new PdfPCell(
-				fontTitleSelector.process("Noms et Signature du Caissier\n"
-						+ Context.getAuthenticatedUser().getPersonName()));
+		
+//		List<User> clinicians = new ArrayList<User>();
+//		for (Encounter enc : Context.getEncounterService().getEncounters(patient, startDate, endDate)) {
+//			User user = Context.getUserService().getUser(enc.getProvider().getPersonId());
+//			if(user.hasRole("Clinician"))
+//				clinicians.add(user);
+//		}
+//		log.info("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww "+clinicians.get(0).getPersonName());
+		cell = new PdfPCell(fontTitleSelector.process("Signature du Dr \n"));
 		cell.setBorder(Rectangle.NO_BORDER);
-
+		table.addCell(cell);
+			
+//		if(pb.getCreator().hasRole("Cashier")){
+		cell = new PdfPCell(fontTitleSelector.process("Signature du Caissier\n"+ pb.getCreator().getPersonName()));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+//		}
 
 		document.add(table);
 
 		document.close();
+		
 	}
 
-	static class HeaderFooter extends PdfPageEventHelper {
-		public void onEndPage(PdfWriter writer, Document document) {
-			Rectangle rect = writer.getBoxSize("art");
-
-			Phrase header = new Phrase(String.format("- %d -",
-					writer.getPageNumber()));
-			header.setFont(new Font(FontFamily.COURIER, 4, Font.NORMAL));
-
-			if (document.getPageNumber() > 1) {
-				ColumnText.showTextAligned(writer.getDirectContent(),
-						Element.ALIGN_CENTER, header,
-						(rect.getLeft() + rect.getRight()) / 2,
-						rect.getTop() + 40, 0);
-			}
-
-			Phrase footer = new Phrase(String.format("- %d -",
-					writer.getPageNumber()));
-
-			ColumnText.showTextAligned(writer.getDirectContent(),
-					Element.ALIGN_CENTER, footer,
-					(rect.getLeft() + rect.getRight()) / 2,
-					rect.getBottom() - 40, 0);
-
-		}
-	}
 	  private static void addEmptyLine(Paragraph paragraph, float number) {
 	      for (int i = 0; i < number; i++) {
 	        paragraph.add(new Paragraph(" "));

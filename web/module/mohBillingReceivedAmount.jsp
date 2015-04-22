@@ -327,15 +327,17 @@
 
 			<tr>
 				<th class="columnHeader">No
-				</td>
+				</th>
 				<th class="columnHeader">Date
-				</td>
+				</th>
+				<th class="columnHeader">Patient
+				</th>
 				<th class="columnHeader">Collector
-				</td>
+				</th>
 				<th class="columnHeader">Received Amount
-				</td>
+				</th>
 				<th class="columnHeader">
-				</td>
+				</th>
 			</tr>
 
 			<c:forEach items="${reportedPayments}" var="payment"
@@ -343,7 +345,8 @@
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.dateReceived}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.collector}</td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.patientBill.beneficiary.patient.familyName}&nbsp;${payment.patientBill.beneficiary.patient.givenName}</td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.collector.person.familyName}&nbsp;${payment.collector.person.givenName}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.amountPaid}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><a
 						href="patientBillPayment.form?patientBillId=${payment.patientBill.patientBillId}&ipCardNumber=${payment.patientBill.beneficiary.insurancePolicy.insuranceCardNo}">View

@@ -305,8 +305,8 @@
 		<tr>
 		<td>
 		<!--   form elements for csv exportation  -->  
-			<form action="invoice.form?print=true${prmtrs}"  method="post" style="display: hidden;">
-				<input type="submit" value="PDF"/>
+			<form action="invoice.form?print=true${prmtrs}"  method="post">
+			<input type="submit" value="PDF"/>
 			</form>
 	   <!-- end hidden form -->
 		</td>
