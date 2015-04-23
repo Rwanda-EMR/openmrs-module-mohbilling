@@ -74,11 +74,10 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 						+ endDateStr.split("/")[0] + " " + endTimeStr);
 			}
 
-			User collector = null;
+			User collector = null;			
 
-			if (request.getParameter("cashCollector") != null) {
+			if (request.getParameter("cashCollector") != null && !request.getParameter("cashCollector").equals("")) {
 				cashCollector = request.getParameter("cashCollector");
-
 				collector = Context.getUserService().getUser(Integer.parseInt(cashCollector));
 			}
 
@@ -207,15 +206,14 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 					Double currentRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();					 
 					//scan each item  amount
 					for (PatientServiceBill item : pb.getBillItems()) {						
-						String  category = item.getService().getFacilityServicePrice().getCategory();
-						
+						String  category = item.getService().getFacilityServicePrice().getCategory();						
 						if (category.startsWith(svceCateg)) {							
 						double patientCost=	item.getQuantity()*item.getUnitPrice().doubleValue()*(100-currentRate)/100;
 						
 						subTotal =subTotal+patientCost;							
 						}			
-					}	
-				}
+					}
+					}
 				//end of all patient bills
 				invoiceMap.put(svceCateg, ReportsUtil.roundTwoDecimals(subTotal));			
 			 total=total+subTotal;
