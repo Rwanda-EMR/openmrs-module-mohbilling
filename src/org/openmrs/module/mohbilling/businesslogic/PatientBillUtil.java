@@ -591,7 +591,7 @@ public static LinkedHashMap<String,List<String>> getRecoveryCategiesMap(){
 	map.put("CONSULTATION", consult);
 	map.put("LABORATOIRE", labo);
 	map.put("IMAGERIE", imagery);
-	map.put("medicActs", medicActs);
+	map.put("ACTS", medicActs);
 	map.put("MEDICAMENTS", medic);
 	map.put("CONSOMMABLES", consommables);
 	map.put("AMBULANCE", ambul);
