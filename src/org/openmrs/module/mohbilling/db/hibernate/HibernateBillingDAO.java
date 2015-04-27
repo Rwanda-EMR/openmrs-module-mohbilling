@@ -47,6 +47,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.Recovery;
@@ -956,6 +957,12 @@ public class HibernateBillingDAO implements BillingDAO {
 			pb=getPatientBill((Integer) ob.get(0));
 		
 		return pb;
+	}
+
+	@Override
+	public InsuranceRate getInsuranceRateByInsurance(Insurance insurance) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

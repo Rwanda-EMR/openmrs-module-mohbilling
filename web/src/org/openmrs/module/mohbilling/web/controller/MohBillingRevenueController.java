@@ -112,7 +112,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 
 				BillingService bs = Context.getService(BillingService.class);
 
-				String[] serviceCategories = { "FORMAL","CONSULT", "LABO",	"RADIO", "ECHOG", "OPHTAL", "CHIRUR", "MEDEC","CONSOM", "KINES", "STOMAT", "MATERN","GYNECO", "AMBULANCE","SOINS INF", "MEDICA", "HOSPIT","PEDIAT" };
+				String[] serviceCategories = { "CHIRUR","CONSOMM", "CONSULT","DERMAT", "ECHOG", "FORMAL", "HOSPIT", "KINE","LABO","MAT","MEDECI", "MEDICAM","OPHTAL", "ORL", "OXGYNOT","PEDIAT","RADIO","SOINS INF","SOINS INT","STOMAT","GYNECO","POLYC" };
 				String pattern = "yyyy-MM-dd";
 				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);				
 				
@@ -141,14 +141,9 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 			        	
 			        	basedDateReport.put(simpleDateFormat.format(date),	mappedReport);
 						
-					}
-		        	
-		        	
+					}		
 					
-				
-					
-				}
-			        	
+				}     	
 					
 			        
 				
@@ -213,7 +208,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 						subTotal =subTotal+patientCost;							
 						}			
 					}
-					}
+				}
 				//end of all patient bills
 				invoiceMap.put(svceCateg, ReportsUtil.roundTwoDecimals(subTotal));			
 			 total=total+subTotal;

@@ -21,6 +21,7 @@ import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceCategory;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
@@ -440,6 +441,12 @@ public class BillingServiceImpl implements BillingService {
 	@Override
 	public PatientBill getBills(Patient patient, Date startDate, Date endDate) {
 		return billingDAO.getBills(patient, startDate, endDate);
+	}
+
+	@Override
+	public InsuranceRate getInsuranceRateByInsurance(Insurance insurance) {
+		// TODO Auto-generated method stub
+		return billingDAO.getInsuranceRateByInsurance(insurance);
 	}
 
 

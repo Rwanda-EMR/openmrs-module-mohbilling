@@ -28,6 +28,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
@@ -435,4 +436,6 @@ public interface BillingDAO {
 			User collector);
 
 	public PatientBill getBills(Patient patient,Date startDate,Date endDate);
+
+	public InsuranceRate getInsuranceRateByInsurance(Insurance insurance);
 }

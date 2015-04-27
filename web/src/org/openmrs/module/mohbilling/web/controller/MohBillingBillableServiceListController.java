@@ -38,15 +38,17 @@ public class MohBillingBillableServiceListController extends
 		mav.setViewName(getViewName());
 
 		try {
-			Insurance insurance = Context.getService(BillingService.class)
-					.getInsurance(
-							Integer
-									.valueOf(request
-											.getParameter("insuranceId")));
+			
+			if(request.getParameter("insuranceId") != null && !request.getParameter("insuranceId").equals("")){
+				System.out.println("insurance id "+request.getParameter("insuranceId"));
+				Insurance insurance = Context.getService(BillingService.class).getInsurance(Integer.valueOf(request	.getParameter("insuranceId")));
 
-			mav.addObject("billableServices", (FacilityServicePriceUtil
-					.getBillableServicesByInsurance(insurance, new Date())));
-			mav.addObject("insurance", insurance);
+				mav.addObject("billableServices", (FacilityServicePriceUtil
+						.getBillableServicesByInsurance(insurance, new Date())));
+				mav.addObject("insurance", insurance);
+				
+			}
+			
 
 		} catch (Exception e) {
 			request.getSession().setAttribute(
