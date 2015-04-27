@@ -4,9 +4,12 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.openmrs.Patient;
@@ -573,6 +576,27 @@ public class PatientBillUtil {
 		
 	}
 	
-
+public static LinkedHashMap<String,List<String>> getRecoveryCategiesMap(){
+	LinkedHashMap<String,List<String>> map = new LinkedHashMap<String, List<String>>();
+	List<String> consult = Arrays.asList("CONSULTATION");
+	List<String> labo = Arrays.asList("LABORATOIRE");
+	List<String> imagery = Arrays.asList("ECHOGRAPHIE", "RADIOLOGY");
+	List<String> medicActs = Arrays.asList("STOMATOLOGIE", "CHIRURGIE","GYNECOGRAPHIE","ORL","DERMATOLOGIE", "SOINS INFIRMIERS","MATERNITY","OPHTALMOLOGIE","KINESTHERAPIE","MEDECINE INTERNE");
+	List<String> medic = Arrays.asList("MEDICAMENTS");
+	List<String> consommables = Arrays.asList("CONSOMMABLES");
+	List<String> ambul = Arrays.asList("AMBULANCE");
+	List<String> autres = Arrays.asList("FORMALITES ADMINISTRATIVES","OXYGENOTHERAPIE");
+	List<String> hosp = Arrays.asList("HOSPITALISATION");
 	
+	map.put("CONSULTATION", consult);
+	map.put("LABORATOIRE", labo);
+	map.put("IMAGERIE", imagery);
+	map.put("medicActs", medicActs);
+	map.put("MEDICAMENTS", medic);
+	map.put("CONSOMMABLES", consommables);
+	map.put("AMBULANCE", ambul);
+	map.put("AUTRES", autres);
+	map.put("HOSPITALISATION", hosp);
+	return map;
+}
 }
