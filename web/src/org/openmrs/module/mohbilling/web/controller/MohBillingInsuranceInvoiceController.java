@@ -22,10 +22,13 @@ import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.Invoice;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
@@ -57,6 +60,7 @@ public class MohBillingInsuranceInvoiceController extends
 				endHourStr = null, endMinuteStr = null;
 		
 		rebuildExistingParameters(request,mav);
+
 
 		if (request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")) {	
 			startHourStr = request.getParameter("startHour");
@@ -135,55 +139,51 @@ public class MohBillingInsuranceInvoiceController extends
 			List<PatientBill> bills = Context.getService(BillingService.class).getBills(startDate, endDate,null);
 			
 			
-			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};
+			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};  
+			
 			Map<String,List<PatientServiceBill>> groupMap = new HashMap<String, List<PatientServiceBill>>();
+			List<PatientInvoice> patientInvoiceList = new ArrayList<PatientInvoice>();
 			
-			
-			Map<String,Double> subTotalsMap = new HashMap<String, Double>();
-			Double bigTotal = 0.0;
-			for (String str : serviceCategories) {
-				List<PatientServiceBill> sameCategList = new ArrayList<PatientServiceBill>();
-				Double subTotal = 0.0;
 				Insurance pbInsurance = null;
 				User pbCreator =null;
-				for (PatientBill pb : bills) {
-					Set<PatientServiceBill> billItems = pb.getBillItems();
-					
+				for (PatientBill pb : bills) {					
 					    pbCreator=pb.getCreator();
 						pbInsurance=pb.getBeneficiary().getInsurancePolicy().getInsurance();
-					if(patient==pb.getBeneficiary().getPatient()||insurance==pbInsurance||cashCollector==pbCreator.getUsername()){	
-						for (PatientServiceBill item : billItems) {
-								String servCateg = item.getService().getFacilityServicePrice().getCategory();
-								if(servCateg.equals(str)){
-									Double up = item.getUnitPrice().doubleValue();
-									Integer qty=item.getQuantity();
-									subTotal+=up*qty;
-									
-									subTotalsMap.put(str, ReportsUtil.roundTwoDecimals(subTotal));
-									sameCategList.add(item);
-								}
-						}
-						if(sameCategList.size()!=0)
-						groupMap.put(str, sameCategList);
+					if(patient==pb.getBeneficiary().getPatient()||insurance==pbInsurance||cashCollector==pbCreator.getUsername()){
+						patientInvoiceList.add(PatientBillUtil.getPatientInvoice(pb, insurance));
 					}
 				}
-				bigTotal=bigTotal+subTotal;
-				mav.addObject("subTotalsMap", subTotalsMap);
-				mav.addObject("bigTotal", ReportsUtil.roundTwoDecimals(bigTotal));
-			}
-			mav.addObject("map", groupMap);
-			mav.addObject("startDate", startDate);
-			mav.addObject("endDate", endDate);
-			mav.addObject("insurance", insurance);
-			mav.addObject("cashCollector", cashCollector);
-			mav.addObject("patientId", patientId);
-
+			mav.addObject("patientInvoiceList", patientInvoiceList);
 			
-			FileExporter fexp = new FileExporter();
-			if (request.getParameter("print") != null) {
-				fexp.exportToPDF(request, response,groupMap,"consommations.pdf","Details des soins recus");
-		    }
+//
+//			mav.addObject("startDate", startDate);
+//			mav.addObject("endDate", endDate);
+//			mav.addObject("insurance", insurance);
+//			mav.addObject("cashCollector", cashCollector);
+//			mav.addObject("patientId", patientId);
+			
 		}
+		// print.....
+					String billIdStr = null;
+					if(request.getParameter("billId")!=null){
+						billIdStr=request.getParameter("billId");
+						Integer billId = Integer.parseInt(billIdStr);
+						PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(billId); 
+						PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, null);
+						mav.addObject("patientInvoice", patientInvoice);
+					}
+					
+					
+					// export
+					String patientBillIdStr=null;
+					FileExporter fexp = new FileExporter();
+					if (request.getParameter("patientBillId") != null) {
+						patientBillIdStr=request.getParameter("patientBillId");
+						Integer patientBillId=Integer.parseInt(patientBillIdStr);
+						PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(patientBillId); 
+						PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, null);
+						fexp.exportToPDF(request, response,patientInvoice,"consommations.pdf","Details des soins recus");
+				    }
 		mav.setViewName(getViewName());
 
 		return mav;

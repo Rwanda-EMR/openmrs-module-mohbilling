@@ -294,27 +294,91 @@
 <br />
 
 <br />
-<c:if test="${fn:length(map)!=0}">
+<div id="display_bill">
+<c:if test="${fn:length(patientInvoiceList)!=0}">
 	<div class="box">
 <b class="boxHeader">Health Cares Received
 	<!--<div style="float:right"><a href="invoice.form?print=true${prmtrs}"><b style="color: white;font-size: 14px;">PDF</b></a></div>  -->
 </b>
 	
 		<table width="70%" border="0">
-		
+		<!-- 
 		<tr>
 		<td>
-		<!--   form elements for csv exportation  -->  
+		   form elements for csv exportation   
 			<form action="invoice.form?print=true${prmtrs}"  method="post">
 			<input type="submit" value="PDF"/>
 			</form>
-	   <!-- end hidden form -->
+	    end hidden form
 		</td>
 		</tr>
+		-->
          
 			<tr>
-				<th class="columnHeader">
+				<th class="columnHeader">Bill Id
 				</th>
+				<th class="columnHeader">Card No
+				</th>
+				<th class="columnHeader">Patient
+				</th>
+				<th class="columnHeader">Total 100%
+				</th>
+				<th class="columnHeader">Insurance Cost
+				</th>
+				<th class="columnHeader">Patient Due
+				</th>
+				<th class="columnHeader">View Bill
+				</th>
+			</tr>
+			
+
+			<c:forEach var="patientInvoice" items="${patientInvoiceList}"> 
+		 			 <c:set var="patientBillId" value="${patientInvoice.patientBill.patientBillId}"/>
+		             <c:set var="cardNumber" value="${patientInvoice.patientBill.beneficiary.insurancePolicy.insuranceCardNo}" />
+		             <c:set var="patient" value="${patientInvoice.patientBill.beneficiary.patient}" />
+		             <c:set var="total" value="${patientInvoice.totalAmount}" /> 
+		             <c:set var="insuranceCost" value="${patientInvoice.insuranceCost}" />
+		             <c:set var="patientCost" value="${patientInvoice.patientCost}" />
+
+				<tr>
+					<td>${patientBillId}</td>
+					<td>${cardNumber}</td>
+					<td>${patient.familyName} ${patient.givenName}</td>
+					<td>${total}</td>					
+					<td>${insuranceCost}</td>
+					<td>${patientCost}</td>
+					<td><a href="invoice.form?billId=${patientBillId}">View</a></td>
+				</tr>
+			</c:forEach>
+
+		</table>
+	</div>
+</c:if>
+</div>
+
+<c:if test="${not empty patientInvoice}">
+					<c:set var="patientBill" value="${patientInvoice.patientBill}" />
+		             <c:set var="cardNumber" value="${patientInvoice.patientBill.beneficiary.insurancePolicy.insuranceCardNo}" />
+		             <c:set var="patient" value="${patientInvoice.patientBill.beneficiary.patient}" />
+		             <c:set var="total" value="${patientInvoice.totalAmount}" /> 
+		             <c:set var="insuranceCost" value="${patientInvoice.insuranceCost}" />
+		             <c:set var="patientCost" value="${patientInvoice.patientCost}" />
+		              <c:set var="invoiceMap" value="${patientInvoice.invoiceMap}" />
+		               <c:set var="insurance" value="${patientInvoice.patientBill.beneficiary.insurancePolicy.insurance.name}" />
+
+<div>		  
+<a href="invoice.form?patientBillId=${patientInvoice.patientBill.patientBillId}">PDF</a>	              
+<div class="box">
+<table>
+<tr><td>Names:</td><td>${patient.familyName} ${patient.givenName}</td></tr>
+<tr><td>Insurance:</td><td>${insurance}</td></tr>
+<tr><td>Card No:</td><td>${cardNumber}</td></tr>
+</table>
+</div>
+<br>
+<div class="box">
+<table>
+		<tr>
 				<th class="columnHeader">Recording Date
 				</th>
 				<th class="columnHeader">Libelle
@@ -323,44 +387,43 @@
 				</th>
 				<th class="columnHeader">Qty
 				</th>
-				<th class="columnHeader">Cost
+				<th class="columnHeader">Total100%
 				</th>
 			</tr>
 
-			<c:forEach var="map" items="${map}" varStatus="status">
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${map.key}</td>
-				<tr>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
-					<c:forEach var="v" items="${map.value}" varStatus="status">
-					<tr>
-					<td>${status.count}</td>
-					<td><fmt:formatDate pattern="yyyy-MM-dd" value="${v.serviceDate}" /></td>
-					<td>${v.service.facilityServicePrice.name}</td>
-					<td>${v.unitPrice}</td>
-					<td>${v.quantity}</td>
-					<td>${v.unitPrice*v.quantity}</td>
+						
+					 <c:forEach var="invoiceMap" items="${invoiceMap}">  
+					   <c:set var="invoice" value="${invoiceMap.value}" />
+					    <c:set var="consommationList" value="${invoice.consommationList}" />
+					   <tr>
+					   <td></td>
+					   <td><b>${invoiceMap.key}</b></td>
+					   <td></td>
+					   <td></td>
+					   <td></td>
+					   </tr>
+	
+                        <c:forEach var="cons" items="${consommationList}">
+                        <tr> 
+                          <td><fmt:formatDate pattern="yyyy-MM-dd" value="${cons.recordDate}" /></td>
+                          <td>${cons.libelle }</td>
+                          <td>${cons.unitCost }</td>
+                          <td>${cons.quantity }</td>
+                          <td>${cons.cost }</td>
+                          </tr>
+                        </c:forEach>
+                     <tr>
+					   <td></td><td></td><td></td><td></td>
+                       <td><b>${invoice.subTotal }</b></td>
 					</tr>
-					</c:forEach>
-					
-					<td></td><td></td><td></td><td></td><td></td><td><b>${subTotalsMap[map.key]}</b></td>
-					<td></td><td></td><td></td><td></td><td></td><td><h2/></td>
-				</tr>
-				<tr><td><h2/></td></tr>
-			</c:forEach>
-
-			<tr>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td><h2/></td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><h3>${bigTotal}</h3></b></td>
-				<td></td>
-			</tr>
-		</table>
-	</div>
+                     </c:forEach>         
+					<tr>
+					<td></td><td><b>TOTAL FACTURE</</b></td><td></td><td></td>
+					<td><b>${patientInvoice.totalAmount }</b></td>
+					</tr>
+				
+</table>
+</div>
+</div>
 </c:if>
-
-
-
 <%@ include file="/WEB-INF/template/footer.jsp"%>

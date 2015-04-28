@@ -1,6 +1,9 @@
 package org.openmrs.module.mohbilling.model;
 
+import java.util.Date;
+
 public class Consommation {
+	Date recordDate;
 	String libelle;
 	Double unitCost;
 	Integer quantity;
@@ -80,6 +83,11 @@ public class Consommation {
 		this.insuranceCost = insuranceCost;
 	}
 	
-	
+	public Date getRecordDate() {
+		return recordDate;
+	}
+	public void setRecordDate(Date recordDate) {
+		this.recordDate = recordDate;
+	}
 
 }

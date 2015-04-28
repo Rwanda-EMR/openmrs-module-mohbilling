@@ -548,7 +548,9 @@ public class PatientBillUtil {
 					
 					Consommation consomm = new Consommation();
 					// Double  quantity = (Double)item.getQuantity();
-					String libelle = item.getService().getFacilityServicePrice().getName();
+					
+					String libelle = item.getService().getFacilityServicePrice().getName();	
+					consomm.setRecordDate(item.getServiceDate());
 					consomm.setLibelle(libelle);
 					consomm.setUnitCost(item.getUnitPrice().doubleValue());
 					consomm.setQuantity(item.getQuantity());
@@ -568,8 +570,10 @@ public class PatientBillUtil {
 			total+=subTotal;            
 			}
 		invoice.setSubTotal(total);
+		if(invoice.getSubTotal()!=0)
+		invoiceMap.put(categGrouped, invoice);
+	
 		
-		invoiceMap.put(categGrouped, invoice);		
 		
 		gdTotal+=total;		
 		
@@ -577,6 +581,7 @@ public class PatientBillUtil {
 	
 	}
 	//create patient invoice  to  be displayed on the interface
+
 	PatientInvoice patientInvoice = new PatientInvoice();
 	
 	patientInvoice.setPatientBill(pb);
@@ -599,7 +604,7 @@ public static LinkedHashMap<String,List<String>> getRecoveryCategiesMap(){
 	List<String> consult = Arrays.asList("CONSULTATION");
 	List<String> labo = Arrays.asList("LABORATOIRE");
 	List<String> imagery = Arrays.asList("ECHOGRAPHIE", "RADIOLOGIE");
-	List<String> medicActs = Arrays.asList("STOMATOLOGIE", "CHIRURGIE","GYNECOGRAPHIE","ORL","DERMATOLOGIE", "SOINS INFIRMIERS","MATERNITY","OPHTALMOLOGIE","KINESTHERAPIE","MEDECINE INTERNE");
+	List<String> medicActs = Arrays.asList("STOMATOLOGIE", "CHIRURGIE","SOINS INTENSIFS","GYNECO - OBSTETRIQUE","ORL","DERMATOLOGIE", "SOINS INFIRMIERS","MATERNITE","OPHTALMOLOGIE","KINESITHERAPIE","MEDECINE INTERNE");
 	List<String> medic = Arrays.asList("MEDICAMENTS");
 	List<String> consommables = Arrays.asList("CONSOMMABLES");
 	List<String> ambul = Arrays.asList("AMBULANCE");
