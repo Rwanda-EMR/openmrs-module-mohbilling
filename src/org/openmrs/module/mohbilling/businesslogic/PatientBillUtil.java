@@ -22,6 +22,7 @@ import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.Invoice;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
@@ -520,59 +521,76 @@ public class PatientBillUtil {
 		getService().savePatientBill(pb);
 	}
 	
-	public static LinkedHashMap<String, Double> getPatientInvoice(PatientBill pb,  String[] serviceCategories,Insurance insurance ){
+	public static PatientInvoice getPatientInvoice(PatientBill pb,Insurance insurance ){
 		
-		Set<PatientServiceBill> billItems =pb.getBillItems();		
+		Set<PatientServiceBill> billItems =pb.getBillItems(); 
 		
-		SimpleDateFormat df = new SimpleDateFormat("yyyyy-mm-dd"); 
-		
-		LinkedHashMap< String, Double> invoiceMap = new LinkedHashMap<String,Double>();
+		LinkedHashMap< String, Invoice> invoiceMap = new LinkedHashMap<String,Invoice>();
 		Double currentRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();	
+		LinkedHashMap< String, Double> categGroupedMap = new LinkedHashMap<String,Double>();
+		
+		LinkedHashMap<String,List<String>> map =getRecoveryCategiesMap();
+		Double gdTotal =0.0;	
+	for (String categGrouped : map.keySet()) {
+		List<String > serviceCategories =map.get(categGrouped);
 		
 		Double total =0.0;	
-			 
-			for (String sviceCatgory : serviceCategories) {
-				Invoice ambulanceInvoice = new Invoice();
-				Invoice invoice = new Invoice();
-				List<Consommation> consommations =new ArrayList<Consommation>();
-				Double subTotal =0.0;
-				
-				for (PatientServiceBill item : billItems) {		
-					String category =item.getService().getFacilityServicePrice().getCategory();
-					if (category.startsWith(sviceCatgory)) {					
-						
-						Consommation consomm = new Consommation();
-						// Double  quantity = (Double)item.getQuantity();
-						String libelle = item.getService().getFacilityServicePrice().getName();
-						consomm.setLibelle(libelle);
-						consomm.setUnitCost(item.getUnitPrice().doubleValue());
-						consomm.setQuantity(item.getQuantity());
-						consomm.setCost(item.getQuantity()*item.getUnitPrice().doubleValue());
-						consomm.setInsuranceCost(item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100);
-						consomm.setPatientCost(item.getQuantity()*item.getUnitPrice().doubleValue()*(100-currentRate)/100);						
-						consommations.add(consomm);					
-						//Double unitPrice=item.getUnitPrice().doubleValue();
-						//Double cost =item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100;	
-						Double cost =item.getQuantity()*item.getUnitPrice().doubleValue();
-						subTotal+=cost;				
-					}				
-				}
-				
-				invoice.setCreatedDate(pb.getCreatedDate());
-				invoice.setConsommationList(consommations);
-				invoice.setSubTotal(subTotal);	
-				total+=subTotal;
-				invoiceMap.put(sviceCatgory, ReportsUtil.roundTwoDecimals(invoice.getSubTotal()));	
-
-				}		
-
-			//add each invoice linked to catehory service to list of invoice		
-			invoiceMap.put("Montant100%", ReportsUtil.roundTwoDecimals(total));
-			invoiceMap.put("T.M10%", ReportsUtil.roundTwoDecimals(total*(100-currentRate)/100));
-			invoiceMap.put("totalMS", ReportsUtil.roundTwoDecimals(total*currentRate/100));		
+		List<Consommation> consommations =new ArrayList<Consommation>();
+		Invoice invoice = new Invoice();
+		for (String sviceCatgory : serviceCategories) {			
+			
+			
+			Double subTotal =0.0;
+			
+			for (PatientServiceBill item : billItems) {		
+				String category =item.getService().getFacilityServicePrice().getCategory();
+				if (category.startsWith(sviceCatgory)) {					
+					
+					Consommation consomm = new Consommation();
+					// Double  quantity = (Double)item.getQuantity();
+					String libelle = item.getService().getFacilityServicePrice().getName();
+					consomm.setLibelle(libelle);
+					consomm.setUnitCost(item.getUnitPrice().doubleValue());
+					consomm.setQuantity(item.getQuantity());
+					consomm.setCost(item.getQuantity()*item.getUnitPrice().doubleValue());
+					consomm.setInsuranceCost(item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100);
+					consomm.setPatientCost(item.getQuantity()*item.getUnitPrice().doubleValue()*(100-currentRate)/100);						
+					consommations.add(consomm);					
+					//Double unitPrice=item.getUnitPrice().doubleValue();
+					//Double cost =item.getQuantity()*item.getUnitPrice().doubleValue()*currentRate/100;	
+					Double cost =item.getQuantity()*item.getUnitPrice().doubleValue();
+					subTotal+=cost;				
+				}				
+			}
+			
+			invoice.setCreatedDate(pb.getCreatedDate());
+			invoice.setConsommationList(consommations);			
+			total+=subTotal;            
+			}
+		invoice.setSubTotal(total);
 		
+		invoiceMap.put(categGrouped, invoice);		
 		
-		return  invoiceMap;
+		gdTotal+=total;		
+		
+		//categGroupedMap.put(categGrouped, ReportsUtil.roundTwoDecimals(total));		
+	
+	}
+	//create patient invoice  to  be displayed on the interface
+	PatientInvoice patientInvoice = new PatientInvoice();
+	
+	patientInvoice.setPatientBill(pb);
+	patientInvoice.setInvoiceMap(invoiceMap);
+	patientInvoice.setTotalAmount( ReportsUtil.roundTwoDecimals(gdTotal));
+	patientInvoice.setPatientCost(ReportsUtil.roundTwoDecimals(gdTotal*(100-currentRate)/100));
+	patientInvoice.setInsuranceCost( ReportsUtil.roundTwoDecimals(gdTotal*currentRate/100));
+	
+	//add each invoice linked to catehory service to list of invoice		
+	/*categGroupedMap.put("Montant100%", ReportsUtil.roundTwoDecimals(gdTotal));
+	categGroupedMap.put("T.M10%", ReportsUtil.roundTwoDecimals(gdTotal*(100-currentRate)/100));
+	categGroupedMap.put("totalMS", ReportsUtil.roundTwoDecimals(gdTotal*currentRate/100));*/
+	
+	return  patientInvoice;
 		
 	}
 	
@@ -580,7 +598,7 @@ public static LinkedHashMap<String,List<String>> getRecoveryCategiesMap(){
 	LinkedHashMap<String,List<String>> map = new LinkedHashMap<String, List<String>>();
 	List<String> consult = Arrays.asList("CONSULTATION");
 	List<String> labo = Arrays.asList("LABORATOIRE");
-	List<String> imagery = Arrays.asList("ECHOGRAPHIE", "RADIOLOGY");
+	List<String> imagery = Arrays.asList("ECHOGRAPHIE", "RADIOLOGIE");
 	List<String> medicActs = Arrays.asList("STOMATOLOGIE", "CHIRURGIE","GYNECOGRAPHIE","ORL","DERMATOLOGIE", "SOINS INFIRMIERS","MATERNITY","OPHTALMOLOGIE","KINESTHERAPIE","MEDECINE INTERNE");
 	List<String> medic = Arrays.asList("MEDICAMENTS");
 	List<String> consommables = Arrays.asList("CONSOMMABLES");

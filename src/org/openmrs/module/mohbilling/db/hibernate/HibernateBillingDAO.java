@@ -35,6 +35,7 @@ import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
+import org.openmrs.EncounterType;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
@@ -925,7 +926,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public List<PatientBill> getPatientBillsByCollector(Date dateReceived, User collector) {
 		// TODO Auto-generated method stub
-		System.out.println("date received"+dateReceived+"collector"+collector.getUserId());
+		
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class)
 		         .add(Restrictions.eq("collector", collector))
 				 .add(Restrictions.eq("dateReceived", dateReceived));
@@ -962,7 +963,10 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public InsuranceRate getInsuranceRateByInsurance(Insurance insurance) {
 		// TODO Auto-generated method stub
-		return null;
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(InsuranceRate.class)
+                 .add(Restrictions.eq("insurance",insurance));
+		InsuranceRate insuranceRate = (InsuranceRate) crit.uniqueResult();		
+		return insuranceRate;
 	}
 
 

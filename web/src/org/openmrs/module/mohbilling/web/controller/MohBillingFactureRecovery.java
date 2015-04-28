@@ -19,8 +19,10 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.Invoice;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -126,31 +128,35 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 				
 				
 			}
-			
-
-			//List<Date> dates = service.getRevenueDates(insurance,startDate, endDate, patientId, serviceId, null,cashCollector);
+		
 			
 			List<PatientBill>patientBills = service.getBills(startDate, endDate,null);
+			InsuranceRate insuranceRate =service.getInsuranceRateByInsurance(insurance);			
+			Float rate =insuranceRate.getRate();
+		
+			//String[] serviceCategories = {"CHIRUR","CONSOMM", "CONSULT","DERMAT", "ECHOG", "FORMAL", "HOSPIT", "KINE","LABO","MAT","MEDECI", "MEDICAM","OPHTAL", "ORL", "OXGYNOT","PEDIAT","RADIO","SOINS INF","SOINS INT","STOMAT","GYNECO","POLYC"};
 			
-			List<Object[]> totalByCateg = new ArrayList<Object[]>();
-			
-			String[] serviceCategories = {"CHIRUR","CONSOMM", "CONSULT","DERMAT", "ECHOG", "FORMAL", "HOSPIT", "KINE","LABO","MAT","MEDECI", "MEDICAM","OPHTAL", "ORL", "OXGYNOT","PEDIAT","RADIO","SOINS INF","SOINS INT","STOMAT","GYNECO","POLYC"};
-			
-			LinkedHashMap<PatientBill, Map<String,Double>> billMap = new LinkedHashMap<PatientBill, Map<String,Double>>();
+			String[] serviceCategories ={"CONSULT","LABO","IMAGERIE","ACTS","MEDICAMENTS","CONSOMM","AMBULANCE","AUTRE","HOSPITAL"};
+			LinkedHashMap<PatientBill, PatientInvoice> billMap = new LinkedHashMap<PatientBill, PatientInvoice>();
 			
 
 			 for (PatientBill patientBill : patientBills) {
 				 Insurance pbinsurance =patientBill.getBeneficiary().getInsurancePolicy().getInsurance();
 				 if (pbinsurance==insurance) {
-					 LinkedHashMap<String, Double> invoiceMap = PatientBillUtil.getPatientInvoice(patientBill, serviceCategories,insurance);		  
-					 billMap.put(patientBill, invoiceMap);
-				}
-					
+		
+					PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, insurance);					 
+					 
+					 billMap.put(patientBill, patientInvoice);
+				}					
 				
 			}
 		     				
 			mav.addObject("patientBillMap", billMap);
 			mav.addObject("serviceCategories", serviceCategories);
+		
+			mav.addObject("rate", ""+rate+"%");
+			mav.addObject("tcketModel",""+(100-rate)+"%" );
+				
 			
 		}
 

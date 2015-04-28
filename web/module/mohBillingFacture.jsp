@@ -329,31 +329,42 @@ var $t = jQuery.noConflict();
   <thead>
   <tr>
      <th class="columnHeader">Billing Date</th>
+     <th class="columnHeader">Bill Id</th>
      <th class="columnHeader">Card Number</th>
      <th class="columnHeader">Names</th>    
       <c:forEach items="${serviceCategories}" var="svceCateg">
       <th class="columnHeader">${svceCateg}</th>
       </c:forEach>
-      <th class="columnHeader"><b>100%</b></th>  
-      <th class="columnHeader"><b>10%</b></th>
-      <th class="columnHeader"><b>totalMS</b></th>
-        </tr>
+       <th class="columnHeader"><b>100%</b></th> 
+       <th class="columnHeader"><b>${tcketModel}</b></th>       
+      <th class="columnHeader"><b>${rate}</b></th>      
+     </tr>
    </thead>
   
   <tbody>
   <!-- for service category display amount -->
   <c:forEach var="bill" items="${billMap}"> 
+  
   <c:set var="createdDate" value="${bill.key.createdDate}"/>
+   <c:set var="patientBillId" value="${bill.key.patientBillId}"/>
    <c:set var="cardNumber" value="${bill.key.beneficiary.insurancePolicy.insuranceCardNo}" />
    <c:set var="patient" value="${bill.key.beneficiary.patient}" />
+   <c:set var="patientInvoice" value="${bill.value}" />
   
   <tr>
     <td><fmt:formatDate pattern="yyyy-MM-dd" value="${createdDate}" /></td>
-     <td>${cardNumber}</td>
+     <td>${patientBillId}</td>
+    <td>${cardNumber}</td>          
      <td>${patient.familyName} ${patient.givenName}</td>
-   <c:forEach var="invoiceMap" items="${bill.value}">   
-    <td>${invoiceMap.value}</td>   
-   </c:forEach> 
+  
+     <c:set var="invoMap" value="${patientInvoice.invoiceMap}"/>
+          <c:forEach var="factMap" items="${invoMap}">  
+              <td>${factMap.value.subTotal}</td>
+           </c:forEach>         
+       <td>${patientInvoice.totalAmount}</td>
+       <td>${patientInvoice.patientCost}</td>
+        <td>${patientInvoice.insuranceCost}</td>
+   
  </tr>
  </c:forEach>
   <!--  end for each service category -->
