@@ -276,6 +276,10 @@ public class FileExporter {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		
 		for (String key : patientInvoice.getInvoiceMap().keySet()) {
+			
+			List<Consommation> consommations = patientInvoice.getInvoiceMap().get(key).getConsommationList();			
+			if(consommations.size()>0){	
+				
 			cell = new PdfPCell(fontselector.process(" "));
 			table.addCell(cell);
 			
@@ -291,9 +295,9 @@ public class FileExporter {
 			table.addCell(cell);
 
 
-			List<Consommation> consommations = patientInvoice.getInvoiceMap().get(key).getConsommationList();
+			
+			
 			Double subTotal=patientInvoice.getInvoiceMap().get(key).getSubTotal();
-		   
 			for (Consommation cons : consommations) {
 
 			cell = new PdfPCell(fontselector.process(""+df.format(cons.getRecordDate())));
@@ -321,8 +325,12 @@ public class FileExporter {
 			table.addCell(cell);
 
 		    cell = new PdfPCell(boldFont.process("" + ReportsUtil.roundTwoDecimals(subTotal)));
-			table.addCell(cell);
+			table.addCell(cell);		
+			
+			} //end if 			
+			
 		}
+		
 		
 		cell = new PdfPCell(fontselector.process(""));
 		table.addCell(cell);

@@ -395,6 +395,8 @@
 					 <c:forEach var="invoiceMap" items="${invoiceMap}">  
 					   <c:set var="invoice" value="${invoiceMap.value}" />
 					    <c:set var="consommationList" value="${invoice.consommationList}" />
+					    
+					    <c:if test="${fn:length(consommationList)!=0}">
 					   <tr>
 					   <td></td>
 					   <td><b>${invoiceMap.key}</b></td>
@@ -412,10 +414,13 @@
                           <td>${cons.cost }</td>
                           </tr>
                         </c:forEach>
+                        
+                        
                      <tr>
 					   <td></td><td></td><td></td><td></td>
                        <td><b>${invoice.subTotal }</b></td>
 					</tr>
+					</c:if>
                      </c:forEach>         
 					<tr>
 					<td></td><td><b>TOTAL FACTURE</</b></td><td></td><td></td>

@@ -964,7 +964,9 @@ public class HibernateBillingDAO implements BillingDAO {
 	public InsuranceRate getInsuranceRateByInsurance(Insurance insurance) {
 		// TODO Auto-generated method stub
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(InsuranceRate.class)
-                 .add(Restrictions.eq("insurance",insurance));
+                 .add(Restrictions.eq("insurance",insurance));		
+		        crit.add(Expression.eq("retired", false));
+		        
 		InsuranceRate insuranceRate = (InsuranceRate) crit.uniqueResult();		
 		return insuranceRate;
 	}

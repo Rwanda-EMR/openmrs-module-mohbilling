@@ -349,18 +349,17 @@ var $t = jQuery.noConflict();
    <c:set var="patientBillId" value="${bill.key.patientBillId}"/>
    <c:set var="cardNumber" value="${bill.key.beneficiary.insurancePolicy.insuranceCardNo}" />
    <c:set var="patient" value="${bill.key.beneficiary.patient}" />
-   <c:set var="patientInvoice" value="${bill.value}" />
-  
+   <c:set var="patientInvoice" value="${bill.value}" />  
   <tr>
     <td><fmt:formatDate pattern="yyyy-MM-dd" value="${createdDate}" /></td>
      <td>${patientBillId}</td>
     <td>${cardNumber}</td>          
      <td>${patient.familyName} ${patient.givenName}</td>
-  
+       
      <c:set var="invoMap" value="${patientInvoice.invoiceMap}"/>
           <c:forEach var="factMap" items="${invoMap}">  
               <td>${factMap.value.subTotal}</td>
-           </c:forEach>         
+          </c:forEach>         
        <td>${patientInvoice.totalAmount}</td>
        <td>${patientInvoice.patientCost}</td>
         <td>${patientInvoice.insuranceCost}</td>

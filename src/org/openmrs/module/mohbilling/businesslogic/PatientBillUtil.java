@@ -570,7 +570,7 @@ public class PatientBillUtil {
 			total+=subTotal;            
 			}
 		invoice.setSubTotal(total);
-		if(invoice.getSubTotal()!=0)
+		//if(invoice.getSubTotal()!=0)
 		invoiceMap.put(categGrouped, invoice);
 	
 		
