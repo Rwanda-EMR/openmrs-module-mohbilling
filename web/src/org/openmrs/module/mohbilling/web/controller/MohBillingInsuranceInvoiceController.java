@@ -173,7 +173,6 @@ public class MohBillingInsuranceInvoiceController extends
 						mav.addObject("patientInvoice", patientInvoice);
 					}
 					
-					
 					// export
 					String patientBillIdStr=null;
 					FileExporter fexp = new FileExporter();
@@ -182,7 +181,8 @@ public class MohBillingInsuranceInvoiceController extends
 						Integer patientBillId=Integer.parseInt(patientBillIdStr);
 						PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(patientBillId); 
 						PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, null);
-						fexp.exportToPDF(request, response,patientInvoice,"consommations.pdf","Details des soins recus");
+						String invoiceOwner = "facNo"+patientBill.getPatientBillId()+"On"+patientBill.getCreatedDate()+".pdf";
+						fexp.exportToPDF(request, response,patientInvoice,invoiceOwner,"Details des soins recus");
 				    }
 		mav.setViewName(getViewName());
 
