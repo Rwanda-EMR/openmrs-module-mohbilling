@@ -65,7 +65,7 @@ public class FileExporter {
 	 * @throws Exception
 	 */
 	public void exportToCSVFile(HttpServletRequest request,
-			HttpServletResponse response, Map<String,List<PatientServiceBill>> map, String filename,String title) throws Exception {
+			HttpServletResponse response, LinkedHashMap<PatientBill, PatientInvoice> billMap, String filename,String title) throws Exception {
 		
 		ServletOutputStream outputStream = null;
 
@@ -81,61 +81,15 @@ public class FileExporter {
 			outputStream.println(MohTracUtil.getMessage("Billing Report", null)
 					+ ", : " + title);
 			outputStream.println();
-//			if (request.getParameter("reason") != null
-//					&& request.getParameter("reason").trim().compareTo("") != 0) {
-//				Integer conceptId = Integer.parseInt(request.getParameter("reason"));
-//				outputStream.println(MohTracUtil.getMessage("tracpatienttransfer.report.reasonofexit", null)+ ", : "
-//						+ TransferOutInPatientTag.getConceptNameById(""
-//								+ conceptId));
-//			}
-
-//			if (request.getParameter("location") != null
-//					&& request.getParameter("location").trim().compareTo("") != 0) {
-//				Integer locationId = Integer.parseInt(request
-//						.getParameter("location"));
-//				outputStream.println(MohTracUtil.getMessage(
-//						"tracpatienttransfer.report.location", null)
-//						+ ", : "
-//						+ Context.getLocationService().getLocation(locationId)
-//								.getName());
-//				outputStream.println();
-//			}
-//			outputStream.println("\n"
-//					+ MohTracUtil.getMessage(
-//							"tracpatienttransfer.report.createdon", null)
-//					+ ", : " + sdf.format(new Date()));// Report date
-//			outputStream.println("\n"
-//					+ MohTracUtil.getMessage(
-//							"tracpatienttransfer.report.createdby", null)
-//					+ ", : " + Context.getAuthenticatedUser().getPersonName());// Report
-//
-//			outputStream.println(MohTracUtil.getMessage(
-//					"tracpatienttransfer.report.numberofpatient", null)
-//					+ ", " + res.size());
-//			outputStream.println();
-
-
-			// column header
-//			outputStream.println(MohTracUtil.getMessage("tracpatienttransfer.general.number", null)+ ", "+ TransferOutInPatientTag.getIdentifierTypeNameById(""
-//							+ TracPatientTransferConfigurationUtil.getTracNetIdentifierTypeId())
-//					+ ", "
-//					+ TransferOutInPatientTag.getIdentifierTypeNameById(""+ TracPatientTransferConfigurationUtil
-//									.getLocalHealthCenterIdentifierTypeId())+ ", "
-//					+ ((hasRoleToViewPatientsNames) ? MohTracUtil.getMessage("tracpatienttransfer.general.names", null)+ ", " : "")
-//					+ MohTracUtil.getMessage("tracpatienttransfer.general.reasonofexit", null)
-//					+ ", "+ MohTracUtil.getMessage("tracpatienttransfer.general.exitwhen", null)+ " ?(dd/MM/yyyy), "
-//					+ MohTracUtil.getMessage("Encounter.location", null) + "");
-//			outputStream.println();
-
 
 			log.info(">>>>>>>>>>>>>> Trying to create a CSV file...");
 			
-			for (String key : map.keySet()) {
+			for (PatientBill key : billMap.keySet()) {
 
-				outputStream.println(key);
-				for (PatientServiceBill psb : map.get(key)) {
-					outputStream.println(psb.getServiceDate()+","+psb.getService().getFacilityServicePrice().getName());
-				}
+				outputStream.println(key+"");
+//				for (PatientServiceBill psb : map.get(key)) {
+//					outputStream.println(psb.getServiceDate()+","+psb.getService().getFacilityServicePrice().getName());
+//				}
 
 			}
 			outputStream.flush();

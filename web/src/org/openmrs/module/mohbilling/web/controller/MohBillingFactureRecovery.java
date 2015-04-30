@@ -16,6 +16,7 @@ import org.hibernate.SessionFactory;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -50,7 +51,10 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 				startDateStr = null, endDateStr = null, serviceId = null, 
 				cashCollector = null, startHourStr = null, startMinute = null, 
 				endHourStr = null, endMinuteStr = null;
+		
 
+		LinkedHashMap<PatientBill, PatientInvoice> billMap = new LinkedHashMap<PatientBill, PatientInvoice>();
+		
 		if (request.getParameter("formStatus") != null && !request.getParameter("formStatus").equals("")) {
 			
 			startHourStr = request.getParameter("startHour");
@@ -137,7 +141,6 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			//String[] serviceCategories = {"CHIRUR","CONSOMM", "CONSULT","DERMAT", "ECHOG", "FORMAL", "HOSPIT", "KINE","LABO","MAT","MEDECI", "MEDICAM","OPHTAL", "ORL", "OXGYNOT","PEDIAT","RADIO","SOINS INF","SOINS INT","STOMAT","GYNECO","POLYC"};
 			
 			String[] serviceCategories ={"CONSULT","LABO","IMAGERIE","ACTS","MEDICAMENTS","CONSOMM","AMBULANCE","AUTRE","HOSPITAL"};
-			LinkedHashMap<PatientBill, PatientInvoice> billMap = new LinkedHashMap<PatientBill, PatientInvoice>();
 			
 
 			 for (PatientBill patientBill : patientBills) {
@@ -155,9 +158,13 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			mav.addObject("serviceCategories", serviceCategories);
 		
 			mav.addObject("rate", ""+rate+"%");
-			mav.addObject("tcketModel",""+(100-rate)+"%" );
-				
-			
+			mav.addObject("tcketModel",""+(100-rate)+"%" );	
+		}
+		
+		FileExporter fexp = new FileExporter();
+		if(request.getParameter("excel")!=null){
+			String filename = "facture"+new Date();
+			fexp.exportToCSVFile(request, response, billMap, filename, "Recovery");
 		}
 
 		mav.setViewName(getViewName());

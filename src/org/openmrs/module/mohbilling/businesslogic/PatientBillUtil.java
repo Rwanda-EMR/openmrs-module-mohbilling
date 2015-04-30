@@ -544,8 +544,8 @@ public class PatientBillUtil {
 			
 			for (PatientServiceBill item : billItems) {		
 				String category =item.getService().getFacilityServicePrice().getCategory();
+				if(category!=null)
 				if (category.startsWith(sviceCatgory)) {					
-					
 					Consommation consomm = new Consommation();
 					// Double  quantity = (Double)item.getQuantity();
 					

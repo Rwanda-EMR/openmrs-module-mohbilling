@@ -319,8 +319,8 @@ var $t = jQuery.noConflict();
 <c:if test="${fn:length(patientBillMap)!=0}">
 <div style="border: 1px #808080 solid; padding: 0em; margin: 0em; width: 500">
 <b class="boxHeader" style="width: 100%; padding: 0em; margin-right: 0em; margin-left: 0em"> Insurance Facture
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a>Export</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="facture.form?excel=true">Export</a>
 </b>
 <c:set var="billMap" value="${patientBillMap}" />
 <div id="dt_example">

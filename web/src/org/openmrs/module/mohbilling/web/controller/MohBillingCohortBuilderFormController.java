@@ -149,20 +149,24 @@ public class MohBillingCohortBuilderFormController extends
 				
 				Date serviceDate = null;
 				double patDueAmt = 0, insDueAmt = 0, totalDueAmt = 0, payments = 0;
+//				double cost = 0;
 				for (PatientServiceBill item : bill.getBillItems()) {
 					serviceDate = item.getServiceDate();
-					double maxima = item.getService().getMaximaToPay().doubleValue();
 					double qty = item.getQuantity();
 					double rate = bill.getBeneficiary().getInsurancePolicy()
 							.getInsurance().getCurrentRate().getRate();
+					
+					//act and pharmacy unit price
 					double unitPrice = item.getUnitPrice().doubleValue();
-					double insuranceDue = (rate	 * (unitPrice * qty) / 100);
+				    
+					double cost= unitPrice*qty;
 
-					patDueAmt += ReportsUtil.roundTwoDecimals((maxima * qty) - insuranceDue);
+					patDueAmt += ReportsUtil.roundTwoDecimals(cost*(100-rate)/100);
 
-					insDueAmt += ReportsUtil.roundTwoDecimals(insuranceDue);
+					insDueAmt += ReportsUtil.roundTwoDecimals(cost*rate/100);
 					
 					totalDueAmt = patDueAmt + insDueAmt;
+
 				}
 				
 				//TODO: must check this method called right here from Tag...
@@ -185,7 +189,6 @@ public class MohBillingCohortBuilderFormController extends
 				totalAmountReceived += payments;
 
 			}
-			log.info("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhchub "+billObj.size());
 			mav.addObject("totalAmountReceived",
 					ReportsUtil.roundTwoDecimals(totalAmountReceived));
 			mav.addObject("insuranceDueAmount",
