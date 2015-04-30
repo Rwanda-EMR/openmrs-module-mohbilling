@@ -112,11 +112,11 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 
 				BillingService bs = Context.getService(BillingService.class);
 
-				String[] serviceCategories = { "CHIRUR","CONSOMM", "CONSULT","DERMAT", "ECHOG", "FORMAL", "HOSPIT", "KINE","LABO","MAT","MEDECI", "MEDICAM","OPHTAL", "ORL", "OXGYNOT","PEDIAT","RADIO","SOINS INF","SOINS INT","STOMAT","GYNECO","POLYC" };
+				String[] serviceCategories = {"CONSULT","LABO","CHIRUR","CONSOMM","DERMAT", "ECHOG", "FORMAL", "HOSPIT", "KINE","MATER","MEDECI", "MEDICAM","OPHTAL", "ORL", "OXGYNOT","PEDIAT","RADIO","SOINS INF","SOINS INT","STOMAT","GYNECO","POLYC" };
 				String pattern = "yyyy-MM-dd";
 				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);				
 				
-			
+		
 				
 				System.out.println(">>>>>>>>>is this end Date end Date >"+endDate);
 				
@@ -139,22 +139,17 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 		        		
 		        		Map<String, Double> mappedReport = getAllBillsByCollector(patientBills, serviceCategories);		        	
 			        	
-			        	basedDateReport.put(simpleDateFormat.format(date),	mappedReport);
-						
+			        	basedDateReport.put(simpleDateFormat.format(date),	mappedReport);						
 					}		
 					
-				}     	
-					
-			        
-				
+				} 
 
 				//	Map<String, Double> mappedReport = getAllBillsByCollector(patientBills, serviceCategories);
 
 					//Map<String, Double> mappedReport = bs.getRevenueByService(	receivedDate, serviceCategories, cashCollector,	insurance);
 
 					//basedDateReport.put(simpleDateFormat.format(startDate),	mappedReport);
-				
-
+	
 				// Map<String, Double> mappedReport
 				// =bs.getCashierReceiptReport(startDate, endDate,
 				// serviceCategories, null);
