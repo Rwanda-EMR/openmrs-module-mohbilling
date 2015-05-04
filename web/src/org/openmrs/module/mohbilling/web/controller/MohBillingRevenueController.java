@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
+import org.openmrs.PersonName;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.advice.MohBillingUsageStatsUtils;
@@ -114,11 +115,8 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 
 				String[] serviceCategories = {"CONSULT","LABO","CHIRUR","CONSOMM","DERMAT", "ECHOG", "FORMAL", "HOSPIT", "KINE","MATER","MEDECI", "MEDICAM","OPHTAL", "ORL", "OXGYNOT","PEDIAT","RADIO","SOINS INF","SOINS INT","STOMAT","GYNECO","POLYC" };
 				String pattern = "yyyy-MM-dd";
-				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);				
-				
-		
-				
-				System.out.println(">>>>>>>>>is this end Date end Date >"+endDate);
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);		
+			
 				
 				LinkedHashMap<String, Map<String, Double>> basedDateReport = new LinkedHashMap<String, Map<String, Double>>();
 				
@@ -130,10 +128,9 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 				for (Date date : datesBetweenTwoDates) {					
 					
 					Date startOfDay =sdf.parse(MohBillingUsageStatsUtils.getStartOfDay(date)) ;
-		        	Date endOfDay =sdf.parse(MohBillingUsageStatsUtils.getEndOfDay(date));	
-		        	System.out.println("start of day:"+startOfDay+"and  end of day "+endOfDay);
+		        	Date endOfDay =sdf.parse(MohBillingUsageStatsUtils.getEndOfDay(date));		        	
 		        	
-		        	List<PatientBill>patientBills = bs.getBills(startOfDay, endOfDay,collector);
+		        	 Set<PatientBill>patientBills = bs.getBills(startOfDay, endOfDay,collector);
 		             
 		        	if (patientBills.size()>0) {
 		        		
@@ -184,7 +181,21 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 		mav.addObject("prmtrs", param);
 	}
 
-	public static LinkedHashMap<String,Double> getAllBillsByCollector(List<PatientBill> bills,String[] serviceCategories){	
+	public static LinkedHashMap<String,Double> getAllBillsByCollector( Set<PatientBill> bills,String[] serviceCategories){	
+		
+		   System.out.print("Names");
+		    System.out.print("  Due amount");
+		    System.out.print("  Received");
+		    for (PatientBill patientBill : bills) {
+		    	
+		    	PersonName personName =patientBill.getBeneficiary().getPatient().getPersonName();
+		    	Double  duePatient =patientBill.getAmount().doubleValue();
+		    	Double receivedAmount = patientBill.getAmountPaid().doubleValue();
+		    	System.out.print("  "+personName);	    	
+		    	System.out.print("  "+duePatient);
+		    	System.out.print("  "+receivedAmount);
+		    	System.out.println("");				
+			}
 		
 		
 		LinkedHashMap< String, Double> invoiceMap = new LinkedHashMap<String,Double>();	
@@ -206,10 +217,8 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 				}
 				//end of all patient bills
 				invoiceMap.put(svceCateg, ReportsUtil.roundTwoDecimals(subTotal));			
-			 total=total+subTotal;
-				
-		}
-		
+			 total=total+subTotal;				
+		}		
 		//add each invoice linked to catehory service to list of invoice		
 		invoiceMap.put("Total", ReportsUtil.roundTwoDecimals(total));		
 		return  invoiceMap;

@@ -136,7 +136,7 @@ public class MohBillingInsuranceInvoiceController extends
 			}
 			
 			
-			List<PatientBill> bills = Context.getService(BillingService.class).getBills(startDate, endDate,null);
+			 Set<PatientBill> bills = Context.getService(BillingService.class).getBills(startDate, endDate,null);
 			
 			
 			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};  

@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.openmrs.Concept;
 import org.openmrs.Patient;
@@ -398,7 +399,7 @@ public interface BillingService {
 	
 	public Map<String,Double> getRevenueByService(Date receivedDate,String[] serviceCategory, String collector,Insurance insurance);
 	
-	public List<PatientBill> getBills(Date startDate,Date endDate,User collector);
+	public Set<PatientBill> getBills(Date startDate,Date endDate,User collector);
 	
 	public List<PatientBill> getPatientBillsByCollector(Date receivedDate, User collector);
 	

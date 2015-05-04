@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -134,7 +135,7 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			}
 		
 			
-			List<PatientBill>patientBills = service.getBills(startDate, endDate,null);
+			 Set<PatientBill> patientBills = service.getBills(startDate, endDate,null);
 			InsuranceRate insuranceRate =service.getInsuranceRateByInsurance(insurance);			
 			Float rate =insuranceRate.getRate();
 		

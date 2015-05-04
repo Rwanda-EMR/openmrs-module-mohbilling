@@ -841,7 +841,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	
 
 	@Override
-	public List<PatientBill> getBills(Date startDate,Date endDate,User collector) {
+	public Set<PatientBill> getBills(Date startDate,Date endDate,User collector) {
 
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate", startDate, endDate));
 	
@@ -849,12 +849,9 @@ public class HibernateBillingDAO implements BillingDAO {
 			crit.add(Expression.eq("collector", collector));
 		}
 		
-		
-		
-		
 		List<BillPayment> payments = crit.list();
 		
-		List<PatientBill> bills = new ArrayList<PatientBill>();
+		Set<PatientBill> bills = new HashSet<PatientBill>();
 		
 		for (BillPayment pay : payments) {
 			bills.add(pay.getPatientBill());
