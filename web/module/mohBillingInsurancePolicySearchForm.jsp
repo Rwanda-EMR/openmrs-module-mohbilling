@@ -14,4 +14,5 @@
 
 <openmrs:portlet id="findPatient" url="findPatient" parameters="size=full|postURL=insurancePolicy.form|showIncludeVoided=false|viewType=shortEdit|hideAddNewPatient=true" />
 
+
 <%@ include file="/WEB-INF/template/footer.jsp"%>

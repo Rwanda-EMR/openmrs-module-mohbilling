@@ -211,11 +211,11 @@ public class FileExporter {
 		cell.setBackgroundColor(bckGroundTitle);
 		table.addCell(cell);
 
-		cell = new PdfPCell(fontTitleSelector.process("Qty"));
+		cell = new PdfPCell(fontTitleSelector.process("Cost"));
 		cell.setBackgroundColor(bckGroundTitle);
 		table.addCell(cell);
 
-		cell = new PdfPCell(fontTitleSelector.process("Cost"));
+		cell = new PdfPCell(fontTitleSelector.process("Qty"));
 		cell.setBackgroundColor(bckGroundTitle);
 		table.addCell(cell);
 
@@ -364,7 +364,7 @@ public class FileExporter {
 //				clinicians.add(user);
 //		}
 //		log.info("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww "+clinicians.get(0).getPersonName());
-		cell = new PdfPCell(fontTitleSelector.process("Signature du Dr \n"));
+		cell = new PdfPCell(fontTitleSelector.process("Signature du Prestataire \n"));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 			

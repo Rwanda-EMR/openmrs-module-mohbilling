@@ -679,6 +679,8 @@ public class InsuranceUtil {
 		categories.add(Category.SOINS_INFIRMIERS.getDescription());
 		categories.add(Category.SOINS_INTENSIFS.getDescription());
 		categories.add(Category.STOMATOLOGIE.getDescription());
+		categories.add(Category.NEUROLOGIE.getDescription());
+		
 
 		return categories;
 	}

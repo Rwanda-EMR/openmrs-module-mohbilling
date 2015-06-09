@@ -256,7 +256,7 @@
 						</tr>
 					</table>
 				</td>
-				<td>Collector :</td>
+				<td>Bill creator :</td>
 				<td><openmrs_tag:userField formFieldName="cashCollector"
 						initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
 			</tr>

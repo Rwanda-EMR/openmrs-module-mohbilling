@@ -3,8 +3,10 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,7 +17,10 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
@@ -68,15 +73,17 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 
 		/** Initializing image to be the logo if any... */
 		Image image = Image.getInstance(Context.getAdministrationService()
-				.getGlobalProperty(
-						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
-		image.scaleToFit(90, 90);
+				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
+		image.scaleToFit(40, 40);
+		
 		/** END of Initializing image */
 
 		PatientBill pb = null;
 
 		pb = Context.getService(BillingService.class).getPatientBill(
 				Integer.parseInt(request.getParameter("patientBillId")));
+		
+		PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(pb, null);
 
 		String filename = pb.getBeneficiary().getPatient().getPersonName()
 				.toString().replace(" ", "_");
@@ -103,22 +110,161 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 				.toString());// the name of the author
 
 		FontSelector fontTitle = new FontSelector();
-		fontTitle.addFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
+		fontTitle.addFont(new Font(FontFamily.COURIER, 9.0f, Font.NORMAL));
 
 		/** ------------- Report title ------------- */
+		Font catFont = new Font(Font.FontFamily.COURIER, 8,Font.NORMAL);
 		
-		Chunk chk = new Chunk("Printed on : "
-				+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
-		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
-		Paragraph todayDate = new Paragraph();
-		todayDate.setAlignment(Element.ALIGN_RIGHT);
-		todayDate.add(chk);
-		document.add(todayDate);
+		
+		String insuranceDetails =pb.getBeneficiary().getInsurancePolicy().getInsurance().getName()+
+				" Card Nbr: "+ pb.getBeneficiary().getInsurancePolicy().getInsuranceCardNo();
+
+         String patientDetails = pb.getBeneficiary().getPatient().getFamilyName()+" "
+         + pb.getBeneficiary().getPatient().getGivenName()
+         +"( DOB:"+ new SimpleDateFormat("dd-MMM-yyyy").format(pb.getBeneficiary().getPatient().getBirthdate())+")";
+		
+		
+		String topRightMsg = "Printed on : "+(new SimpleDateFormat("dd-MMM-yyyy").format(new Date()))+"\n\n"
+		+insuranceDetails+"\n"+patientDetails;	
+		
+		
+		/** logo,name and address */
+		String rwanda = "REPUBLIQUE DU RWANDA\n";
+//		document.add(image);
+
+		String fname = Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME);
+		String fPhysicAddress = Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS);
+		String email = Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL);
+		
+		String topLeftMsg =fname +"\n"+fPhysicAddress+"\n"+email;
+
+		PdfPTable table = new PdfPTable(2);
+		float[] colWidths = {30f,30f };
+		table.setWidths(colWidths);
+		table.setHorizontalAlignment(Element.ALIGN_LEFT);
+		table.setWidthPercentage(100f);
+
+        PdfPCell cell1 = new PdfPCell(new Paragraph(rwanda,catFont));       
+        cell1 = new PdfPCell(new Paragraph(topLeftMsg,catFont));
+        cell1.setBorder(Rectangle.NO_BORDER);
+         
+        PdfPCell cell2 = new PdfPCell(new Paragraph(topRightMsg,catFont));
+        cell2.setBorder(Rectangle.NO_BORDER);
+
+        
+        PdfPCell imageCell = new PdfPCell();
+        imageCell.addElement(new Chunk(image, 20, -20));
+         
+        table.addCell(cell1);
+        table.addCell(cell2);
+        table.addCell(imageCell);
+
+        document.add(table);
+		
+		// title row
+		FontSelector fontTitleSelector = new FontSelector();
+		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 9, Font.NORMAL));
+		
+		 
+		PdfPTable tableHeader = new PdfPTable(1);
+		
+		/** ------------- End Report title ------------- */
+		tableHeader = new PdfPTable(1);
+		tableHeader.setWidthPercentage(100f); 
+		document.add(tableHeader);
+
+		document.add(new Paragraph("\n"));
+
+		// Table of bill items;
+		float[] colsWidth = { 2f, 15f, 2f, 3.5f, 5f, 5f, 5f };
+		table = new PdfPTable(colsWidth);
+		table.setWidthPercentage(100f);
+		BaseColor bckGroundTitle = new BaseColor(255, 255, 255);
+
+
+		// normal row
+		FontSelector fontselector = new FontSelector();
+		fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+
+		// empty row
+		FontSelector fontTotals = new FontSelector();
+		fontTotals.addFont(new Font(FontFamily.COURIER, 9, Font.NORMAL));
+
+		Double totalToBePaidOnService = 0.0;
+		Double totalToBePaidByInsurance = 0.0, totalToBePaidOnServiceByInsurance = 0.0;
+		Double totalToBePaidByPatient = 0.0, totalToBePaidOnServiceByPatient = 0.0;
+
+		PdfPTable serviceTb = new PdfPTable(2);
+		float[] columnWidths = {50f,50f };
+		serviceTb.setWidths(columnWidths);
+		serviceTb.setHorizontalAlignment(Element.ALIGN_LEFT);
+		serviceTb.setWidthPercentage(100f);
+		
+		PdfPCell cell = new PdfPCell(fontTitleSelector.process(""));
+		for (PatientServiceBill psb : pb.getBillItems()) {
+
+			// initialize total amount to be paid on a service
+			totalToBePaidOnService = 0.0;
+			totalToBePaidOnServiceByInsurance = 0.0;
+			totalToBePaidOnServiceByPatient = 0.0;
+			
+			Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+			totalToBePaidOnService+=serviceCost;
+			
+			totalToBePaidOnServiceByInsurance = ((totalToBePaidOnService * (pb
+					.getBeneficiary().getInsurancePolicy().getInsurance()
+					.getCurrentRate().getRate())) / 100);
+			totalToBePaidByInsurance += totalToBePaidOnServiceByInsurance;
+
+			totalToBePaidOnServiceByPatient = ((totalToBePaidOnService * (100 - pb
+					.getBeneficiary().getInsurancePolicy().getInsurance()
+					.getCurrentRate().getRate())) / 100);
+			totalToBePaidByPatient += totalToBePaidOnServiceByPatient;
+			
+			float patientRate = 100 - (pb.getBeneficiary().getInsurancePolicy().getInsurance()
+					.getCurrentRate().getRate());
+		
+			cell = new PdfPCell(fontTitleSelector.process(psb.getService().getFacilityServicePrice().getName()+" "+(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
+			cell.setBorder(Rectangle.NO_BORDER);
+			serviceTb.addCell(cell);
+
+		}
+		document.add(serviceTb);
+		
+		FontSelector boldFont = new FontSelector();
+		boldFont.addFont(new Font(FontFamily.COURIER, 9, Font.BOLD));
+		
+		PdfPTable serviceTotPat = new PdfPTable(1);
+		PdfPCell c = new PdfPCell(boldFont.process("Total: "+ReportsUtil.roundTwoDecimals(totalToBePaidByPatient)));
+		c.setBorder(Rectangle.NO_BORDER); 
+		serviceTotPat.addCell(c);
+		document.add(serviceTotPat);
+		
+		
+		document.add(new Paragraph("....................................................................................................................................................."));
+		document.add(new Paragraph("\n"));
+		
+		
+		
+/** -------------  print insurance part -----------------------------------------------*/
+		
+	/** ------------- Report title ------------- */
+//		chk = new Chunk("Printed on : "
+//				+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
+//		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
+//		Paragraph todayDate1 = new Paragraph();
+//		todayDate1.setAlignment(Element.ALIGN_RIGHT);
+//		todayDate1.add(chk);
+//		document.add(todayDate1);
 
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 
 		/** I would like a LOGO here!!! */
-		document.add(image);
+		Image image1 = Image.getInstance(Context.getAdministrationService()
+				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
+		image1.scaleToFit(90, 90);
+		
+		document.add(image1);
 		document.add(fontTitle.process(Context.getAdministrationService()
 				.getGlobalProperty(
 						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)
@@ -142,234 +288,186 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		
 		/** ------------- End Report title ------------- */
 
-		document.add(new Paragraph("\n"));
-		chk = new Chunk("FACTURE");
-		chk.setFont(new Font(FontFamily.COURIER, 12.0f, Font.NORMAL));
+		Chunk chk = new Chunk("FACTURES DES PRESTATIONS DES SOINS DE SANTE");
+		chk.setFont(new Font(FontFamily.COURIER, 10, Font.NORMAL));
 		chk.setUnderline(0.2f, -2f);
-		Paragraph pa = new Paragraph();
-		pa.add(chk);
-		pa.setAlignment(Element.ALIGN_CENTER);
-		document.add(pa);
-		document.add(new Paragraph("\n"));
-
-		// title row
-		FontSelector fontTitleSelector = new FontSelector();
-//		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 9, Font.BOLD));
-		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 9, Font.NORMAL));
-
-
-		PdfPTable tableHeader = new PdfPTable(1);
-		tableHeader.setWidthPercentage(100f);
-
-		// Table of identification;
-		PdfPTable table = null;
-		table = new PdfPTable(2);
-		table.setWidthPercentage(100f);
-
-		PdfPCell cell = new PdfPCell(
-				fontTitleSelector.process("Compagnie d'Assurance : "
-						+ pb.getBeneficiary().getInsurancePolicy()
-								.getInsurance().getName()));
-		cell.setBorder(Rectangle.NO_BORDER);
-		table.addCell(cell);
-
-		cell = new PdfPCell(fontTitleSelector.process("Phone : "
-				+ pb.getBeneficiary().getInsurancePolicy().getInsurance()
-						.getPhone()));
-		cell.setBorder(Rectangle.NO_BORDER);
-		table.addCell(cell);
-
-		cell = new PdfPCell(fontTitleSelector.process("Noms du malade : "
-				+ pb.getBeneficiary().getPatient().getPersonName()));
-		cell.setBorder(Rectangle.NO_BORDER);
-		table.addCell(cell);
-
-		cell = new PdfPCell(fontTitleSelector.process("Date de Naissance : "
-				+ new SimpleDateFormat("dd-MMM-yyyy").format(pb
-						.getBeneficiary().getPatient().getBirthdate())));
-		cell.setBorder(Rectangle.NO_BORDER);
-		table.addCell(cell);
-
-		cell = new PdfPCell(
-				fontTitleSelector.process("Noms de l'assure Principal : "
-						+ pb.getBeneficiary().getInsurancePolicy().getOwner()
-								.getPersonName()));
-		cell.setBorder(Rectangle.NO_BORDER);
-		table.addCell(cell);
-
-		cell = new PdfPCell(
-				fontTitleSelector.process("Numero Carte d'assure : "
-						+ pb.getBeneficiary().getInsurancePolicy()
-								.getInsuranceCardNo()));
-		cell.setBorder(Rectangle.NO_BORDER);
-		table.addCell(cell);
-
-		tableHeader.addCell(table);
-
-		document.add(tableHeader);
-
-		document.add(new Paragraph("\n"));
-
+		Paragraph par = new Paragraph();
+		par.add(chk);
+		par.setAlignment(Element.ALIGN_CENTER);
+		document.add(par);
 		// Table of bill items;
-		float[] colsWidth = { 2f, 15f, 2f, 3.5f, 5f, 5f, 5f };
-		table = new PdfPTable(colsWidth);
+		//float[] colsWidth1 = { 6f, 10f, 2f, 2f, 2f};
+		table = new PdfPTable(5);
 		table.setWidthPercentage(100f);
-		BaseColor bckGroundTitle = new BaseColor(255, 255, 255);
-
+		
+		Paragraph header = new Paragraph();
+		header.add(new Paragraph("Patient No : "+pb.getBeneficiary().getPatient().getIdentifiers(), catFont));
+		addEmptyLine(header, 0);
+		header.add(new Paragraph("No de la carte : "+pb.getBeneficiary().getInsurancePolicy().getInsuranceCardNo(), catFont));
+		addEmptyLine(header, 0);
+		header.add(new Paragraph("Names : "+pb.getBeneficiary().getPatient().getPersonName(), catFont));
+		addEmptyLine(header, 0);
+		document.add(header);
+		
+		document.add(new Paragraph("\n"));
+		
 		// table Header
-		cell = new PdfPCell(fontTitleSelector.process("No."));
+		cell = new PdfPCell();
+		cell = new PdfPCell(fontTitleSelector.process("Recording date"));
 		cell.setBackgroundColor(bckGroundTitle);
 		table.addCell(cell);
 
-		cell = new PdfPCell(fontTitleSelector.process("Services"));
+		cell = new PdfPCell(fontTitleSelector.process("Libelle"));
+		cell.setBackgroundColor(bckGroundTitle);
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("Unit Cost"));
 		cell.setBackgroundColor(bckGroundTitle);
 		table.addCell(cell);
 
-		cell = new PdfPCell(fontTitleSelector.process("Qnty"));
+		cell = new PdfPCell(fontTitleSelector.process("Cost"));
 		cell.setBackgroundColor(bckGroundTitle);
 		table.addCell(cell);
 
-		cell = new PdfPCell(fontTitleSelector.process("Unit Price (Rwf)"));
-		cell.setBackgroundColor(bckGroundTitle);
-		table.addCell(cell);
-
-		cell = new PdfPCell(fontTitleSelector.process("Price (Rwf)"));
-		cell.setBackgroundColor(bckGroundTitle);
-		table.addCell(cell);
-
-		cell = new PdfPCell(fontTitleSelector.process("Insurance ("
-				+ pb.getBeneficiary().getInsurancePolicy().getInsurance()
-						.getCurrentRate().getRate() + "%)"));
-		cell.setBackgroundColor(bckGroundTitle);
-		table.addCell(cell);
-
-		cell = new PdfPCell(fontTitleSelector.process("Patient ("
-				+ (100 - pb.getBeneficiary().getInsurancePolicy()
-						.getInsurance().getCurrentRate().getRate()) + "%)"));
+		cell = new PdfPCell(fontTitleSelector.process("Qty"));
 		cell.setBackgroundColor(bckGroundTitle);
 		table.addCell(cell);
 
 		// normal row
-		FontSelector fontselector = new FontSelector();
-		fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		//FontSelector fontselector = new FontSelector();
+		fontselector.addFont(new Font(FontFamily.COURIER, 6, Font.NORMAL));
 
-		// empty row
-		FontSelector fontTotals = new FontSelector();
-		fontTotals.addFont(new Font(FontFamily.COURIER, 9, Font.NORMAL));
 
-		int ids = 0;
-		Double totalToBePaidOnService = 0.0;
-		Double totalToBePaidByInsurance = 0.0, totalToBePaidOnServiceByInsurance = 0.0;
-		Double totalToBePaidByPatient = 0.0, totalToBePaidOnServiceByPatient = 0.0;
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		
+		for (String key : patientInvoice.getInvoiceMap().keySet()) {
+			List<Consommation> consommations = patientInvoice.getInvoiceMap().get(key).getConsommationList();			
+			if(consommations.size()>0){	
+				
+			cell = new PdfPCell(fontselector.process(" "));
+			table.addCell(cell);
+			
+			cell = new PdfPCell(boldFont.process(key));
+//			cell.setColspan(5);;
+			table.addCell(cell);
+			
+			cell = new PdfPCell(fontselector.process(""));
+			table.addCell(cell);
+			cell = new PdfPCell(fontselector.process(""));
+			table.addCell(cell);
+			cell = new PdfPCell(fontselector.process(""));
+			table.addCell(cell);
+			
+			Double subTotal=patientInvoice.getInvoiceMap().get(key).getSubTotal();
+			for (Consommation cons : consommations) {
 
-		for (PatientServiceBill psb : pb.getBillItems()) {
-			ids += 1;
-
-			// initialize total amount to be paid on a service
-			totalToBePaidOnService = 0.0;
-			totalToBePaidOnServiceByInsurance = 0.0;
-			totalToBePaidOnServiceByPatient = 0.0;
-
-			cell = new PdfPCell(fontselector.process(ids + "."));
+			cell = new PdfPCell(fontselector.process(""+df.format(cons.getRecordDate())));
+			table.addCell(cell);
+			
+			cell = new PdfPCell(fontselector.process(cons.getLibelle()));
 			table.addCell(cell);
 
-			cell = new PdfPCell(fontselector.process(psb.getService()
-					.getFacilityServicePrice().getName()));
+			cell = new PdfPCell(fontselector.process("" + cons.getQuantity()));
 			table.addCell(cell);
 
-			cell = new PdfPCell(fontselector.process("" + psb.getQuantity()));
-			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell = new PdfPCell(fontselector.process("" + cons.getUnitCost()));
 			table.addCell(cell);
-
-			cell = new PdfPCell(fontselector.process("" + psb.getUnitPrice()));
-			cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-			table.addCell(cell);
-
-			totalToBePaidOnService = (psb.getQuantity() * psb.getUnitPrice()
-					.doubleValue());
-
-			cell = new PdfPCell(fontselector.process(""
-					+ totalToBePaidOnService));
-			cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-			table.addCell(cell);
-
-			totalToBePaidOnServiceByInsurance = ((totalToBePaidOnService * (pb
-					.getBeneficiary().getInsurancePolicy().getInsurance()
-					.getCurrentRate().getRate())) / 100);
-			totalToBePaidByInsurance += totalToBePaidOnServiceByInsurance;
-			cell = new PdfPCell(fontselector.process(""
-					+ totalToBePaidOnServiceByInsurance));
-			cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-			table.addCell(cell);
-
-			totalToBePaidOnServiceByPatient = ((totalToBePaidOnService * (100 - pb
-					.getBeneficiary().getInsurancePolicy().getInsurance()
-					.getCurrentRate().getRate())) / 100);
-			totalToBePaidByPatient += totalToBePaidOnServiceByPatient;
-			cell = new PdfPCell(fontselector.process(""
-					+ totalToBePaidOnServiceByPatient));
-			cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+			
+			cell = new PdfPCell(fontselector.process("" + ReportsUtil.roundTwoDecimals(cons.getCost())));
 			table.addCell(cell);
 		}
+			cell = new PdfPCell(fontselector.process(""));
+			table.addCell(cell);
+			cell = new PdfPCell(fontselector.process(""));
+			table.addCell(cell);
+			cell = new PdfPCell(fontselector.process(""));
+			table.addCell(cell);
+			cell = new PdfPCell(fontselector.process(""));
+			table.addCell(cell);
 
-		// Total for each part, insurance & patient
-		cell = new PdfPCell(fontselector.process("Total : "));
-		cell.setColspan(5);
-		cell.setBorder(Rectangle.NO_BORDER);
-		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+		    cell = new PdfPCell(boldFont.process("" + ReportsUtil.roundTwoDecimals(subTotal)));
+			table.addCell(cell);		
+			
+			} //end if 			
+			
+		}
+		
+		
+		cell = new PdfPCell(fontselector.process(""));
 		table.addCell(cell);
-
-		cell = new PdfPCell(fontTotals.process("" + totalToBePaidByInsurance));
-		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		cell.setBackgroundColor(new BaseColor(255, 255, 255));
+		cell = new PdfPCell(boldFont.process("TOTAL FACTURE "));
 		table.addCell(cell);
-
-		cell = new PdfPCell(fontTotals.process("" + totalToBePaidByPatient));
-		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		cell.setBackgroundColor(new BaseColor(255, 255, 255));
+		cell = new PdfPCell(fontselector.process(""));
+		table.addCell(cell);
+		cell = new PdfPCell(fontselector.process(""));
+		table.addCell(cell);
+		cell = new PdfPCell(boldFont.process("" + ReportsUtil.roundTwoDecimals(patientInvoice.getTotalAmount())));
 		table.addCell(cell);
 		
-
-		// Amount Paid
-		cell = new PdfPCell(fontselector.process("Amount Paid : "));
-		cell.setColspan(6);
-		cell.setBorder(Rectangle.NO_BORDER);
-		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		table.addCell(cell);
-
-		cell = new PdfPCell(fontTotals.process(""
-				+ MohBillingTagUtil.getTotalAmountPaidByPatientBill(pb
-						.getPatientBillId())));
-		
-		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		cell.setBackgroundColor(new BaseColor(255, 255, 255));
-		table.addCell(cell);
-
-		// Rest to be Paid
-		cell = new PdfPCell(fontselector.process("Rest : "));
-		cell.setColspan(6);
-		cell.setBorder(Rectangle.NO_BORDER);
-		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		table.addCell(cell);
-
-		cell = new PdfPCell(fontTotals.process(""
-				+ MohBillingTagUtil.getTotalAmountNotPaidByPatientBill(pb
-						.getPatientBillId())));
-		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-		cell.setBackgroundColor(new BaseColor(255, 255, 255));
-		table.addCell(cell);
-
 		document.add(table);
+
+		document.add(new Paragraph("\n"));
+		
+		// Table of signatures;
+		table = new PdfPTable(3);
+		table.setWidthPercentage(70f);
+		
+		cell = new PdfPCell(fontTitleSelector.process("ASSURANCE"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("%"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("Montant"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("TOTAL FACTURE"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("100%"));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+ReportsUtil.roundTwoDecimals(patientInvoice.getTotalAmount())));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process("TICKET MODERATEUR"));
+		table.addCell(cell);
+		
+		float insuranceRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+		float ticketModer = 100-insuranceRate;
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+(100-insuranceRate)));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+ReportsUtil.roundTwoDecimals(patientInvoice.getTotalAmount()*ticketModer/100)));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+pb.getBeneficiary().getInsurancePolicy().getInsurance().getName()));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+insuranceRate));
+		table.addCell(cell);
+		
+		cell = new PdfPCell(fontTitleSelector.process(""+ReportsUtil.roundTwoDecimals(patientInvoice.getTotalAmount()*insuranceRate/100)));
+		table.addCell(cell);
+		
+		document.add(table);
+		//end >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> print insurance part
+		
 
 		document.add(new Paragraph("\n\n"));
 
 		// Table of signatures;
-		table = new PdfPTable(2);
+		table = new PdfPTable(3);
 		table.setWidthPercentage(100f);
 
 		cell = new PdfPCell(
 				fontTitleSelector.process("Signature du Patient :\n"
 						+ pb.getBeneficiary().getPatient().getPersonName()));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell); 
+		
+		cell = new PdfPCell(fontTitleSelector.process("Signature du Prestataire \n"));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 
@@ -413,5 +511,9 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 
 		}
 	}
-
+	  private static void addEmptyLine(Paragraph paragraph, float number) {
+	      for (int i = 0; i < number; i++) {
+	        paragraph.add(new Paragraph(" "));
+	      }
+	    }
 }

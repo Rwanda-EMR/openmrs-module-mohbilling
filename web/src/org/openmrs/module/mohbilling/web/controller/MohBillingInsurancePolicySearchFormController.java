@@ -3,13 +3,26 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hsqldb.lib.HashSet;
 import org.openmrs.GlobalProperty;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -61,7 +74,8 @@ public class MohBillingInsurancePolicySearchFormController extends
 					+ "to load the GP minSearchCharacters" + e.getMessage());
 			
 			e.printStackTrace();
-		}
+		}	
+
 
 		mav.addObject("minSearchCharacters", numberOfCharacters);
 
