@@ -89,7 +89,6 @@ public class MohBillingInsurancePolicyFormController extends
 		mav.addObject("thirdParties", InsurancePolicyUtil.getAllThirdParties());
 
 		return mav;
-
 	}
 
 	/**
@@ -113,7 +112,7 @@ public class MohBillingInsurancePolicyFormController extends
 				Beneficiary b = Context
 						.getService(BillingService.class)
 						.getBeneficiaryByPolicyNumber(card.getInsuranceCardNo());
-				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> insurance card number: " + request.getParameter("insurancePolicyOwnerCardNumber"));
+			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> insurance card number: " + request.getParameter("insurancePolicyOwnerCardNumber"));
 				if(card.getOwner().getPatientId() == b.getPatient().getPatientId()) {
 					b.setPolicyIdNumber(request.getParameter("insurancePolicyOwnerCardNumber"));
 					card.addBeneficiary(b);

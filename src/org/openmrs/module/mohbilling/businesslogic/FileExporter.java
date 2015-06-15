@@ -1,5 +1,6 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -33,17 +34,20 @@ import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohtracportal.util.ContextProvider;
 import org.openmrs.module.mohtracportal.util.MohTracUtil;
 
+import com.itextpdf.text.Anchor;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.Font.FontFamily;
+import com.itextpdf.text.pdf.CMYKColor;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -105,66 +109,11 @@ public class FileExporter {
 	 * @param title
 	 * @throws Exception
 	 */
-	public void exportToPDF(HttpServletRequest request,
-			HttpServletResponse response,PatientInvoice patientInvoice, String filename,
+	public void exportToPDF(HttpServletRequest request,	HttpServletResponse response,PatientInvoice patientInvoice, String filename,
 			String title) throws Exception {
-
-		Document document = new Document();
 		
 		PatientBill pb = patientInvoice.getPatientBill();
-
-		/** Initializing image to be the logo if any... */
-		Image image = Image.getInstance(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
-		image.scaleToFit(50, 50);
-		
-		/** END of Initializing image */
-
-		response.setContentType("application/pdf");
-		response.setHeader("Content-Disposition", "attachment; filename=\""	+ filename + "\""); // file name
-
-		PdfWriter writer = PdfWriter.getInstance(document,response.getOutputStream());
-		writer.setBoxSize("art", PageSize.A4);
-
-		HeaderFooter event = new HeaderFooter();
-		writer.setPageEvent(event);
-
-		document.open();
-		document.setPageSize(PageSize.A4);
-
-		document.addAuthor(Context.getAuthenticatedUser().getPersonName().toString());// the name of the author
-
-		FontSelector fontTitle = new FontSelector();
-		fontTitle.addFont(new Font(FontFamily.COURIER, 6, Font.NORMAL));
-
-		/** ------------- Report title ------------- */
-		
-//		Chunk chk = new Chunk("Printed on : "+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
-//		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
-//		Paragraph todayDate = new Paragraph();
-//		todayDate.add(chk);
-//		document.add(todayDate);
-
-		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
-
-		/** I would like a LOGO here!!! */
-		document.add(image);		
-		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
-						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)+ "\n"));
-		document.add(fontTitle.process(Context.getAdministrationService()
-						.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)+ "\n"));
-		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
-						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)+ "\n"));
-		
-		/** ------------- End Report title ------------- */
-
-//		document.add(new Paragraph("\n"));
-		Chunk chk = new Chunk("FACTURES DES PRESTATIONS DES SOINS DE SANTE");
-		chk.setFont(new Font(FontFamily.COURIER, 6, Font.NORMAL));
-		chk.setUnderline(0.2f, -2f);
-		Paragraph pa = new Paragraph();
-		pa.add(chk);
-		pa.setAlignment(Element.ALIGN_CENTER);
-		document.add(pa);
+		Document document =creadPdfHeader(request, response, null, filename, title);
 //		document.add(new Paragraph("\n"));
 		
 		Font catFont = new Font(Font.FontFamily.COURIER, 6,Font.NORMAL);
@@ -177,14 +126,7 @@ public class FileExporter {
 		addEmptyLine(header, 0);
 		document.add(header);
 
-////		document.add(new Paragraph("\n"));
-//		chk = new Chunk("DETAILS DES SOINS RECUS");
-//		chk.setFont(new Font(FontFamily.COURIER, 6, Font.NORMAL));
-//		chk.setUnderline(0.2f, -2f);
-//		Paragraph pa1 = new Paragraph();
-//		pa1.add(chk);
-//		pa1.setAlignment(Element.ALIGN_CENTER);
-//		document.add(pa1);
+
 		document.add(new Paragraph("\n"));
 		
 		// title row
@@ -246,10 +188,7 @@ public class FileExporter {
 			cell = new PdfPCell(fontselector.process(""));
 			table.addCell(cell);
 			cell = new PdfPCell(fontselector.process(""));
-			table.addCell(cell);
-
-
-			
+			table.addCell(cell);			
 			
 			Double subTotal=patientInvoice.getInvoiceMap().get(key).getSubTotal();
 			for (Consommation cons : consommations) {
@@ -357,13 +296,7 @@ public class FileExporter {
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 		
-//		List<User> clinicians = new ArrayList<User>();
-//		for (Encounter enc : Context.getEncounterService().getEncounters(patient, startDate, endDate)) {
-//			User user = Context.getUserService().getUser(enc.getProvider().getPersonId());
-//			if(user.hasRole("Clinician"))
-//				clinicians.add(user);
-//		}
-//		log.info("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww "+clinicians.get(0).getPersonName());
+
 		cell = new PdfPCell(fontTitleSelector.process("Signature du Prestataire \n"));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
@@ -379,10 +312,155 @@ public class FileExporter {
 		document.close();
 		
 	}
+	public void printCashierReport(HttpServletRequest request,	HttpServletResponse response,LinkedHashMap<String, Map<String, Double>> basedDateReport, String filename, String title) throws Exception {
+
+		
+		Document document =creadPdfHeader(request, response, basedDateReport, filename, title);
+		// title row
+		FontSelector fontTitleSelector = new FontSelector();
+		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 7, Font.BOLD));
+
+		// Table of bill items;
+		float[] colsWidth = {9f,9f,7f,9f,9f,9f,7f,9f,10f,9f,9f,9f,9f,9f,10f,9f,9f,9f,10f,10f,9f,8f};
+		PdfPTable table = new PdfPTable(colsWidth);
+		table.setWidthPercentage(106f);
+		BaseColor bckGroundTitle = new BaseColor(255, 255, 255);
+		// normal row
+		FontSelector fontselector = new FontSelector();
+		fontselector.addFont(new Font(FontFamily.COURIER, 6, Font.NORMAL));
+
+		// empty row
+		FontSelector boldFont = new FontSelector();
+		boldFont.addFont(new Font(FontFamily.COURIER, 6, Font.BOLD));
+		
+		List<String> reportColumns = BillingGlobalProperties.getreportColumns();
+	//String[] reportColumns = {"DATE","CHIR","CONSOMM","CONSULT","ECHOG","FORMAL","HOSPITAL","KINE","LABO","MATERN","MEDICAM","OXGYENO","OPHTAL","RADIO","SOINS INF","STOMAT","AMBULAN","DOC.LEGAUX","MORGUE","DUE.TOT","RECEIVD","PART.PAID"};
+		PdfPCell cell=null;
+		for (String colName : reportColumns) {
+			
+			cell = new PdfPCell(fontTitleSelector.process(colName));
+			cell.setBackgroundColor(bckGroundTitle);
+			table.addCell(cell);
+			
+		}
+		
+		for (String dateStr : basedDateReport.keySet()) {
+			
+			cell = new PdfPCell(boldFont.process(dateStr));
+//			cell.setColspan(5);
+			table.addCell(cell);
+			
+			Map<String, Double> mappedReport =basedDateReport.get(dateStr);
+			
+			for (String categStr : mappedReport.keySet()) {
+				Double amount =mappedReport.get(categStr);
+				
+				cell = new PdfPCell(boldFont.process(""+amount));
+//				cell.setColspan(5);
+				table.addCell(cell);				
+				}			
+					
+		}
+		
+		document.add(table);
+		document.add(new Paragraph("\n"));		
+		// Table of signatures;	
+		
+		//document.add(new Paragraph("\n"));
+
+		// Table of signatures;
+		table = new PdfPTable(3);
+		table.setWidthPercentage(109f);
+				
+		cell = new PdfPCell(fontTitleSelector.process("Cashier signature \n"));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+		
+
+		cell = new PdfPCell(fontTitleSelector.process("                      "));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+	
+			
+
+		cell = new PdfPCell(fontTitleSelector.process("Chief Cashier Signature \n"));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+
+
+		document.add(table);
+
+		document.close();
+		
+		
+		
+	}
+	
+	public static Document creadPdfHeader(HttpServletRequest request,	HttpServletResponse response,LinkedHashMap<String, Map<String, Double>> basedDateReport, String filename,
+			String title)throws Exception {
+		Rectangle pagesize = new Rectangle(360f, 720f);
+		Document document = new Document(pagesize, 36f, 72f, 109f, 180f);
+	
+		//Document document = new Document();
+		
+		document.setPageSize(PageSize.A4.rotate());
+		/** Initializing image to be the logo if any... */
+		Image image = Image.getInstance(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
+		image.scaleToFit(40, 40);
+		
+		/** END of Initializing image */
+
+		response.setContentType("application/pdf");
+		response.setHeader("Content-Disposition", "attachment; filename=\""	+ filename + "\""); // file name
+
+		PdfWriter writer = PdfWriter.getInstance(document,response.getOutputStream());
+		writer.setBoxSize("art", PageSize.A4.rotate());
+
+		HeaderFooter event = new HeaderFooter();
+		writer.setPageEvent(event);
+
+		document.open();
+		document.setPageSize(PageSize.A4.rotate());
+	
+		FontSelector fontTitle = new FontSelector();
+		fontTitle.addFont(new Font(FontFamily.COURIER, 6, Font.NORMAL));
+
+		/** ------------- Report title ------------- */
+
+		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
+
+		/** I would like a LOGO here!!! */
+		document.add(image);		
+		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)+ "\n"));
+		document.add(fontTitle.process(Context.getAdministrationService()
+						.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)+ "\n"));
+		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)+ "\n"));
+		
+		/** ------------- End Report title ------------- */
+
+//		document.add(new Paragraph("\n"));
+		Chunk chk = new Chunk("Daily cashier report");
+		chk.setFont(new Font(FontFamily.COURIER, 6, Font.NORMAL));
+		chk.setUnderline(0.2f, -2f);
+		Paragraph pa = new Paragraph();
+		pa.add(chk);
+		pa.setAlignment(Element.ALIGN_CENTER);
+		document.add(pa);
+		document.add(new Paragraph("\n"));	
+		return document;	
+		
+	}	
 
 	  private static void addEmptyLine(Paragraph paragraph, float number) {
 	      for (int i = 0; i < number; i++) {
 	        paragraph.add(new Paragraph(" "));
 	      }
 	    }
+
+
+	  
+
+	  
 	}

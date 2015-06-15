@@ -281,9 +281,11 @@ var $t = jQuery.noConflict();
 						</tr>
 					</table>
 				</td>
+				<!--  
 				<td>Collector :</td>
 				<td><openmrs_tag:userField formFieldName="cashCollector"
 						initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
+				-->
 			</tr>
 
 			<tr>
@@ -302,13 +304,14 @@ var $t = jQuery.noConflict();
 				
 
 			</tr>
-
+   		 <!-- 
 			<tr>
 				<td>Patient</td>
 				<td><openmrs_tag:patientField formFieldName="patientId"
 						initialValue="${patientId}" /></td>
 				
 			</tr>
+			 -->
 
 		</table>
 		<input type="submit" value="Search" id="submitId" />

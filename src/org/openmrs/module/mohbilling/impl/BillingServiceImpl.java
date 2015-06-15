@@ -24,6 +24,7 @@ import org.openmrs.module.mohbilling.model.InsuranceCategory;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
@@ -420,7 +421,7 @@ public class BillingServiceImpl implements BillingService {
 
 
 	@Override
-	public  Set<PatientBill> getBills(Date startDate,Date endDate,User collector) {
+	public Object[] getBills(Date startDate,Date endDate,User collector) {
 		return billingDAO.getBills(startDate,endDate,collector);
 	}
 
@@ -450,8 +451,24 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getInsuranceRateByInsurance(insurance);
 	}
 
+	@Override
+	public List<Beneficiary> getBeneficiaryByCardNumber(String cardNo) {
+		// TODO Auto-generated method stub
+		return billingDAO.getBeneficiaryByCardNumber(cardNo);
+	}
 
+	@Override
+	public List<InsurancePolicy> getInsurancePoliciesBetweenTwodates(
+			Date startDate, Date endDate) {
+		// TODO Auto-generated method stub
+		return billingDAO.getInsurancePoliciesBetweenTwodates(startDate,endDate);
+	}
 
-	
-	
+	@Override
+	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary,
+			Date startDate, Date endDate) {
+		// TODO Auto-generated method stub
+		return billingDAO.getBillsByBeneficiary(beneficiary, startDate, endDate);
+	}
+
 }

@@ -47,6 +47,11 @@
 		</li>
 		<!-- 
 		<li>
+			<a href="restoreBill.form">Restore Bill</a>
+		</li>
+	-->		
+		<!-- 
+		<li>
 			<a href="hmisReport.form">HMIS Reports</a>
 		</li>
 		 -->

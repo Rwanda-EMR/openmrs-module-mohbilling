@@ -6,9 +6,7 @@ package org.openmrs.module.mohbilling.web.controller;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,13 +21,10 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
-import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Insurance;
-import org.openmrs.module.mohbilling.model.Invoice;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientInvoice;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -135,13 +130,14 @@ public class MohBillingInsuranceInvoiceController extends
 				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
 			}
 			
-			
-			 Set<PatientBill> bills = Context.getService(BillingService.class).getBills(startDate, endDate,null);
+			 Object[] allfactureCompiled =Context.getService(BillingService.class).getBills(startDate, endDate,null);
+			 Set<PatientBill> bills = (Set<PatientBill>) allfactureCompiled[0];
+			 Double receivedAmount =(Double) allfactureCompiled[1];
 			
 			
 			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};  
 			
-			Map<String,List<PatientServiceBill>> groupMap = new HashMap<String, List<PatientServiceBill>>();
+			//Map<String,List<PatientServiceBill>> groupMap = new HashMap<String, List<PatientServiceBill>>();
 			List<PatientInvoice> patientInvoiceList = new ArrayList<PatientInvoice>();
 			
 				Insurance pbInsurance = null;
@@ -170,9 +166,9 @@ public class MohBillingInsuranceInvoiceController extends
 						Integer billId = Integer.parseInt(billIdStr);
 						PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(billId); 
 						PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, null);
-						mav.addObject("patientInvoice", patientInvoice);
-					}
+						mav.addObject("patientInvoice", patientInvoice);			
 					
+					}					
 					// export
 					String patientBillIdStr=null;
 					FileExporter fexp = new FileExporter();
@@ -188,8 +184,7 @@ public class MohBillingInsuranceInvoiceController extends
 
 		return mav;
 
-	}
-	
+	}	
 	/**
 	 * @param request
 	 * @param mav

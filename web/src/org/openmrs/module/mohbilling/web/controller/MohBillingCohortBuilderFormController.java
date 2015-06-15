@@ -117,8 +117,7 @@ public class MohBillingCohortBuilderFormController extends
 				
 			}
 
-			reportedPatientBills = ReportsUtil.billCohortBuilder(insurance,
-					startDate, endDate, patientId, null, billStatus, billCreator);
+			reportedPatientBills = ReportsUtil.billCohortBuilder(insurance,	startDate, endDate, patientId, null, billStatus, billCreator);
 			
 			log.info("chubbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "+reportedPatientBills.size());
 
@@ -153,8 +152,7 @@ public class MohBillingCohortBuilderFormController extends
 				for (PatientServiceBill item : bill.getBillItems()) {
 					serviceDate = item.getServiceDate();
 					double qty = item.getQuantity();
-					double rate = bill.getBeneficiary().getInsurancePolicy()
-							.getInsurance().getCurrentRate().getRate();
+					double rate = bill.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
 					
 					//act and pharmacy unit price
 					double unitPrice = item.getUnitPrice().doubleValue();

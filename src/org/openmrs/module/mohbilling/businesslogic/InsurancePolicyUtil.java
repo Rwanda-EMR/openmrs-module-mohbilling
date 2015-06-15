@@ -110,8 +110,7 @@ public class InsurancePolicyUtil {
 			beneficiary.setCreator(Context.getAuthenticatedUser());
 
 			beneficiary.getInsurancePolicy().addBeneficiary(beneficiary);
-			getService().saveInsurancePolicy(beneficiary.getInsurancePolicy());
-
+			getService().saveInsurancePolicy(beneficiary.getInsurancePolicy());			
 			return beneficiary;
 		}
 		return null;

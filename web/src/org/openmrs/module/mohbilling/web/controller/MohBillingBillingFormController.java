@@ -105,8 +105,7 @@ public class MohBillingBillingFormController extends
 			PatientBill pb = new PatientBill();
 
 
-			Beneficiary beneficiary = InsurancePolicyUtil
-					.getBeneficiaryByPolicyIdNo(request
+			Beneficiary beneficiary = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request
 							.getParameter("ipCardNumber"));
 
 			pb.setBeneficiary(beneficiary);

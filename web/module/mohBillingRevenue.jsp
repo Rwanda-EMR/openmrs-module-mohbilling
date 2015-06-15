@@ -14,7 +14,7 @@
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();
 
-	$bill(document).ready(function() {
+	$bill(document).ready(function(){
 		$bill('.meta').hide();
 		$bill('#submitId').click(function() {
 			$bill('#formStatusId').val("clicked");
@@ -266,8 +266,8 @@
 				<td><openmrs_tag:userField formFieldName="cashCollector"
 						initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
 			</tr>
-
-			<tr>
+<!-- 
+			<tr>			
 				<td>Insurance:</td>
 				<td><select name="insurance">
 						<option selected="selected" value="${insurance.insuranceId}">
@@ -283,44 +283,47 @@
 				
 
 			</tr>
-
+ -->
 		</table>
 		<input type="submit" value="Search" id="submitId" />
 	</form>
 
 </div>
 <br />
-
+${hello}
 <c:if test="${fn:length(basedDateReport)!=0}">
-<b class="boxHeader"> Recettes par service</b><b>
+
+<c:set var="basedDateReport" value="${basedDateReport}" />
+<b class="boxHeader"> Recettes par service</b><b>    
+
 <form action="recettes.form?page=1&export=csv${prmtrs}" method="post" style="display: inline;">
-	<input type="submit" class="list_exportBt" value="Excel" title="Excel"/>
+    <input type="hidden" name="printed" value="${printed}" />
+    <input type="hidden" name="userId" value="${collector.userId}" />
+	<input type="submit" class="list_exportBt" value="Print report" title="Pdf"/>
 </form>
 </b>
 <div class="box">
-
-<c:set var="dailyReport" value="${basedDateReport}" />
-
- <table>
+<table>
   <tr>
-     <th class="columnHeader">Date</th>   
+     <th class="columnHeader">DATE</th>   
       <c:forEach items="${serviceCategories}" var="svceCateg">
       <th class="columnHeader">${svceCateg}</th>
       </c:forEach>
-   <th class="columnHeader"><b>Total</b></th>  
-   
+   <th class="columnHeader"><b>Due Tot</b></th> 
+   <th class="columnHeader"><b>Received</b></th> 
+   <th class="columnHeader"><b>Part.Paid</b></th>      
   </tr>
-  <!-- for service category display amount -->
-  <c:forEach var="dateReport" items="${dailyReport}">
-  <tr>
-    <td class="rowValue ${(status.count%2!=0)?'even':''}">${dateReport.key}</td>
-   <c:forEach var="categReport" items="${dateReport.value}">   
-    <td class="rowValue ${(status.count%2!=0)?'even':''}">${categReport.value}</td>   
-   </c:forEach> 
- </tr>
- </c:forEach>
+  <!-- for service category display amount -->   		          
+  		<c:forEach var="dateReport" items="${basedDateReport}">
+			  <tr>
+			    <td class="rowValue ${(status.count%2!=0)?'even':''}">${dateReport.key}</td>
+			 <c:forEach var="categReport" items="${dateReport.value}">   
+			    <td class="rowValue ${(status.count%2!=0)?'even':''}">${categReport.value}</td>   
+			 </c:forEach> 			 
+			 </tr>		
+	   </c:forEach>
   <!--  end for each service category -->
- </table>
+</table>
 </div>
 </c:if>
 

@@ -15,7 +15,7 @@ package org.openmrs.module.mohbilling.db.hibernate;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,6 +28,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
+
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -35,7 +36,7 @@ import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
-import org.openmrs.EncounterType;
+
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
@@ -55,6 +56,7 @@ import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.springframework.orm.hibernate3.SessionFactoryUtils;
 
 
 /**
@@ -222,7 +224,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public void saveInsurancePolicy(InsurancePolicy card) {
 
-		if (getInsurancePolicyByCardNo(card.getInsuranceCardNo()) == null)
+		//if (getInsurancePolicyByCardNo(card.getInsuranceCardNo()) == null)
 			sessionFactory.getCurrentSession().saveOrUpdate(card);
 	}
 
@@ -460,15 +462,13 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		combinedSearch.append(" GROUP BY pb.patient_bill_id;");
 
-		log.info("tttttttttttttttttttttttttttttttbills "
-				+ combinedSearch.toString());
 
 		List<PatientBill> patientBills = session
 				.createSQLQuery(combinedSearch.toString())
 				.addEntity("pb", PatientBill.class).list();
 
-		System.out.println("_____________________ BILL QUERY __________\n"
-				+ combinedSearch.toString());
+//		System.out.println("_____________________ BILL QUERY __________\n"
+//				+ combinedSearch.toString());
 		return patientBills;
 	}
 
@@ -525,14 +525,13 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		combinedSearch.append(" GROUP BY bill_payment_id");
 
-		log.info("ttttttttttttttttttttttttttttttt " + combinedSearch.toString());
 
 		List<BillPayment> billPayments = session
 				.createSQLQuery(combinedSearch.toString())
 				.addEntity("pay", BillPayment.class).list();
 
-		System.out.println("_____________________ BILL QUERY __________\n"
-				+ combinedSearch.toString());
+//		System.out.println("_____________________ BILL QUERY __________\n"
+//				+ combinedSearch.toString());
 		return billPayments;
 	}
 
@@ -628,8 +627,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary)
 			throws DAOException {
 
-		return sessionFactory.getCurrentSession()
-				.createCriteria(PatientBill.class)
+		return sessionFactory.getCurrentSession().createCriteria(PatientBill.class)				
 				.add(Restrictions.eq("beneficiary", beneficiary)).list();
 	}
 
@@ -718,7 +716,6 @@ public class HibernateBillingDAO implements BillingDAO {
 								+ " AND ins.voided = 0 AND ip.retired = 0 AND b.retired = 0;")
 				.list();
 	}
-
 	public List<BillPayment> getAllBillPayments() {
 
 		return sessionFactory.getCurrentSession()
@@ -841,7 +838,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	
 
 	@Override
-	public Set<PatientBill> getBills(Date startDate,Date endDate,User collector) {
+	public Object[] getBills(Date startDate,Date endDate,User collector) {
 
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate", startDate, endDate));
 	
@@ -850,13 +847,30 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 		
 		List<BillPayment> payments = crit.list();
-		
-		Set<PatientBill> bills = new HashSet<PatientBill>();
-		
+	
+		Set<PatientBill> patientBillsFullPaids = new HashSet<PatientBill>();
+		Double fullReceived =0.0;
+		Double allPartiallypaid=0.0;
 		for (BillPayment pay : payments) {
-			bills.add(pay.getPatientBill());
+			//full paid patient bill
+			
+			PatientBill pb = pay.getPatientBill();
+		if (pb.getStatus().equals("FULLY PAID")) {
+				patientBillsFullPaids.add(pay.getPatientBill());
+				
+				fullReceived =fullReceived+pay.getAmountPaid().doubleValue();				
 		}
-	return bills;
+			if (pb.getStatus().equals("PARTLY PAID")) {
+				allPartiallypaid =allPartiallypaid+pay.getAmountPaid().doubleValue();
+				
+			}
+					    
+		}
+		//facture object compiled for all facture and set all paid bills at
+		//index 0 and received amount .for		
+		Object[]factureCompiled =new Object[]{patientBillsFullPaids,fullReceived,allPartiallypaid};
+		
+		return factureCompiled;
 	}
 	
 
@@ -968,5 +982,34 @@ public class HibernateBillingDAO implements BillingDAO {
 		return insuranceRate;
 	}
 
+	@Override
+	public List<Beneficiary> getBeneficiaryByCardNumber(String cardNo) {
+		// TODO Auto-generated method stub
+		
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Beneficiary.class)
+        .add(Restrictions.eq("policyIdNumber",cardNo));		
+       
+		return crit.list();
+	}
 
+	@Override
+	public List<InsurancePolicy> getInsurancePoliciesBetweenTwodates(
+			Date startDate, Date endDate) {
+		// TODO Auto-generated method stub
+		
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(InsurancePolicy.class).add(Restrictions.between("createdDate", startDate, endDate));
+		
+		return  crit.list();
+		
+	}
+	
+	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary,Date startDate,Date endDate)
+	{
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientBill.class).add(Restrictions.between("createdDate", startDate, endDate));
+		
+		if (beneficiary != null) {
+			crit.add(Expression.eq("beneficiary", beneficiary));
+		}
+		return crit.list();
+    }
 }

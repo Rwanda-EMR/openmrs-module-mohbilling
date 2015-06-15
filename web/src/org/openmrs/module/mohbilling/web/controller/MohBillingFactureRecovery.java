@@ -110,7 +110,7 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 					+ (user.getPersonName().getGivenName() != null ? user
 							.getPersonName().getGivenName() : "");
 
-			if (!request.getParameter("patientId").equals("")) {
+		/*	if (!request.getParameter("patientId").equals("")) {
 
 				patientIdStr = request.getParameter("patientId");
 				patientId = Integer.parseInt(patientIdStr);
@@ -124,18 +124,19 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 						+ " "
 						+ (patient.getGivenName() != null ? patient
 								.getGivenName() : "");
-			}
+			}*/
 
 			if (!request.getParameter("insurance").equals("")) {
 				insuranceIdInt = Integer.parseInt(insuranceStr);
 				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
-				
-				
-				
+			
 			}
 		
+			 Object[] allfactureCompiled =service.getBills(startDate, endDate,null);
+				
+			 Double receivedAmount =(Double) allfactureCompiled[1];        	
+        	 Set<PatientBill>patientBills = (Set<PatientBill>) allfactureCompiled[0];
 			
-			 Set<PatientBill> patientBills = service.getBills(startDate, endDate,null);
 			InsuranceRate insuranceRate =service.getInsuranceRateByInsurance(insurance);			
 			Float rate =insuranceRate.getRate();
 		

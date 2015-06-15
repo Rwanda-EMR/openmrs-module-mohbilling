@@ -9,6 +9,8 @@ public class PatientInvoice {
 	private Double totalAmount;
 	private Double insuranceCost;
 	private Double patientCost;
+	private Double receivedAmount;
+
 
 	public PatientBill getPatientBill() {
 		return patientBill;
@@ -48,6 +50,14 @@ public class PatientInvoice {
 
 	public void setPatientCost(Double patientCost) {
 		this.patientCost = patientCost;
+	}
+
+	public Double getReceivedAmount() {
+		return receivedAmount;
+	}
+
+	public void setReceivedAmount(Double receivedAmount) {
+		this.receivedAmount = receivedAmount;
 	}
 
 }

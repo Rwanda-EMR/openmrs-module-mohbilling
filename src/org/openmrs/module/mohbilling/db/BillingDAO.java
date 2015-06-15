@@ -31,6 +31,7 @@ import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
@@ -430,8 +431,7 @@ public interface BillingDAO {
 	
 	public Map<String,Double> getRevenueByService(Date receivedDate,String[] serviceCategory, String collector,Insurance insurance);
 	
-
-	public Set<PatientBill> getBills(Date startDate,Date endDate,User collector);
+	public Object[] getBills(Date startDate,Date endDate,User collector);
 
 	public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
 			User collector);
@@ -439,4 +439,12 @@ public interface BillingDAO {
 	public PatientBill getBills(Patient patient,Date startDate,Date endDate);
 
 	public InsuranceRate getInsuranceRateByInsurance(Insurance insurance);
+
+	public List<Beneficiary> getBeneficiaryByCardNumber(String cardNo);
+
+	public List<InsurancePolicy> getInsurancePoliciesBetweenTwodates(
+			Date startDate, Date endDate);
+
+	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary,
+			Date startDate, Date endDate);
 }
