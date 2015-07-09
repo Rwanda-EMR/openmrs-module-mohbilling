@@ -201,8 +201,11 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		serviceTb.setWidthPercentage(100f);
 		
 		PdfPCell cell = new PdfPCell(fontTitleSelector.process(""));
+		int itemSize= 0;
+		PdfPTable evenItemsTable = new PdfPTable(1);
 		for (PatientServiceBill psb : pb.getBillItems()) {
-
+			itemSize++;
+			
 			// initialize total amount to be paid on a service
 			totalToBePaidOnService = 0.0;
 			totalToBePaidOnServiceByInsurance = 0.0;
@@ -224,12 +227,21 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			float patientRate = 100 - (pb.getBeneficiary().getInsurancePolicy().getInsurance()
 					.getCurrentRate().getRate());
 		
-			cell = new PdfPCell(fontTitleSelector.process(psb.getService().getFacilityServicePrice().getName()+" "+(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
+			cell = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
 			cell.setBorder(Rectangle.NO_BORDER);
 			serviceTb.addCell(cell);
+			
+			if(pb.getBillItems().size()==itemSize){
+				PdfPCell c = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
+				evenItemsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+				c.setBorder(Rectangle.NO_BORDER);
+				evenItemsTable.addCell(c);
+			}
 
 		}
 		document.add(serviceTb);
+		document.add(evenItemsTable);
+
 		
 		FontSelector boldFont = new FontSelector();
 		boldFont.addFont(new Font(FontFamily.COURIER, 9, Font.BOLD));
