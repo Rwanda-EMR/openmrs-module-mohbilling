@@ -452,6 +452,11 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	@Override
+	public void getUpdateTariff(List<FacilityServicePrice> fsp, Date startDate) {
+		billingDAO.getUpdateTariff(fsp, startDate);
+	}
+
+	@Override
 	public List<Beneficiary> getBeneficiaryByCardNumber(String cardNo) {
 		// TODO Auto-generated method stub
 		return billingDAO.getBeneficiaryByCardNumber(cardNo);

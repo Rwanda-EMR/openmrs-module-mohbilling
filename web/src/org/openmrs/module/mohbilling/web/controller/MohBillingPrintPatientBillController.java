@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -202,7 +203,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		
 		PdfPCell cell = new PdfPCell(fontTitleSelector.process(""));
 		int itemSize= 0;
-		PdfPTable evenItemsTable = new PdfPTable(1);
+		float patientRate = 0;
 		for (PatientServiceBill psb : pb.getBillItems()) {
 			itemSize++;
 			
@@ -224,22 +225,32 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 					.getCurrentRate().getRate())) / 100);
 			totalToBePaidByPatient += totalToBePaidOnServiceByPatient;
 			
-			float patientRate = 100 - (pb.getBeneficiary().getInsurancePolicy().getInsurance()
+			patientRate = 100 - (pb.getBeneficiary().getInsurancePolicy().getInsurance()
 					.getCurrentRate().getRate());
 		
 			cell = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
 			cell.setBorder(Rectangle.NO_BORDER);
 			serviceTb.addCell(cell);
 			
-			if(pb.getBillItems().size()==itemSize){
-				PdfPCell c = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
-				evenItemsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
-				c.setBorder(Rectangle.NO_BORDER);
-				evenItemsTable.addCell(c);
-			}
+		
 
 		}
 		document.add(serviceTb);
+		
+		// Fixed: if items are even/impaire the last was not viewed
+		PdfPTable evenItemsTable = new PdfPTable(1);
+		if(pb.getBillItems().size()==itemSize && itemSize%2==1){
+			Set<PatientServiceBill> services = pb.getBillItems();
+			PdfPCell c = new PdfPCell(fontTitleSelector.process(""));
+			for (PatientServiceBill psb : services) {
+				Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+				c = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
+				
+			}
+			evenItemsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+			c.setBorder(Rectangle.NO_BORDER);
+			evenItemsTable.addCell(c);
+		}
 		document.add(evenItemsTable);
 
 		
@@ -253,8 +264,8 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		document.add(serviceTotPat);
 		
 		
-		document.add(new Paragraph("....................................................................................................................................................."));
-		document.add(new Paragraph("\n"));
+		document.add(new Paragraph(".....................................................................................................................................................\n"));
+		//document.add(new Paragraph("\n"));
 		
 		
 		
@@ -269,8 +280,9 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 //		todayDate1.add(chk);
 //		document.add(todayDate1);
 
+        
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
-
+		
 		/** I would like a LOGO here!!! */
 		Image image1 = Image.getInstance(Context.getAdministrationService()
 				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
