@@ -76,13 +76,21 @@
 			<tr>
 				<td colspan="7"><hr/></td>
 			</tr>
+			
 			<tr style="font-size: 1.2em">
 				<openmrs:hasPrivilege privilege="Edit Bill">
 					<td colspan="2"><input type="button" onclick="savePatientBillPayment();" value="Confirm Bill" style="min-width: 200px;"/></td>
 				</openmrs:hasPrivilege>
 				<td colspan="3"></td>
-				<td colspan="2"><div style="text-align: right;"><a href="printPDFPatientBill.form?patientBillId=${patientBill.patientBillId}">Print Bill</a></div></td>
+			<c:if test="${billingtag:amountPaidForPatientBill(patientBill.patientBillId)>0}">	
+			<td colspan="2"><div style="text-align: right;"><a href="printPDFPatientBill.form?patientBillId=${patientBill.patientBillId}">Print Bill</a></div></td>
+				
 			</tr>
+			<tr></tr>
+			<tr>
+			<td colspan="2"><div><a href="printPDFPatientBill.form?patientBillId=${patientBill.patientBillId}&&type=epson">EPSON Printer</a></div></td>
+			</tr>
+			</c:if>
 		</table>
 	</form>
 </div>
