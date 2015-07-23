@@ -29,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 
+import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -467,8 +468,8 @@ public class HibernateBillingDAO implements BillingDAO {
 				.createSQLQuery(combinedSearch.toString())
 				.addEntity("pb", PatientBill.class).list();
 
-//		System.out.println("_____________________ BILL QUERY __________\n"
-//				+ combinedSearch.toString());
+		System.out.println("_____________________ BILL QUERY __________\n"
+				+ combinedSearch.toString());
 		return patientBills;
 	}
 
@@ -1012,4 +1013,5 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 		return crit.list();
     }
+	
 }
