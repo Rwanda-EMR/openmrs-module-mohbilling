@@ -40,6 +40,7 @@
 		<li>
 			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
 		</li>
+		
 		<!-- 
 		<li>
 			<a href="hmisReport.form">HMIS Reports</a>
