@@ -7,9 +7,12 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import medicalActTest.SaveCsv;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -17,7 +20,9 @@ import org.openmrs.Location;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
@@ -33,6 +38,9 @@ public class MohBillingFacilityServiceFormController extends
 
 	/** Logger for this class and subclasses */
 	protected final Log log = LogFactory.getLog(getClass());
+	
+//	FacilityServicePrice oldfs=new FacilityServicePrice();
+	
 
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
@@ -41,7 +49,8 @@ public class MohBillingFacilityServiceFormController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 		mav.addObject("categories", InsuranceUtil.getAllServiceCategories());
-
+		
+		
 		if (request.getParameter("save") != null) {
 			boolean saved = handleSaveFacilityService(request, mav);
 			if (saved)
@@ -57,11 +66,18 @@ public class MohBillingFacilityServiceFormController extends
 		}
 
 		if (request.getParameter("facilityServiceId") != null) {
+//			oldfs = (Context
+//					.getService(BillingService.class))
+//					.getFacilityServicePrice(Integer.valueOf(request
+//							.getParameter("facilityServiceId")));
+//			log.info("oldddddddddddddddddddddddddddddddd "+oldfs);
+			
 			try {
 				mav.addObject("facilityService", (Context
 						.getService(BillingService.class))
 						.getFacilityServicePrice(Integer.valueOf(request
 								.getParameter("facilityServiceId"))));
+				
 			} catch (Exception e) {
 				log.error(">>>MOH>>BILLING>> The Facility Service with '"
 						+ request.getParameter("facilityServiceId")
@@ -84,6 +100,10 @@ public class MohBillingFacilityServiceFormController extends
 		return mav;
 
 	}
+	
+	private static BillingService getService() {
+		return Context.getService(BillingService.class);
+	}
 
 	/**
 	 * @param request
@@ -94,6 +114,9 @@ public class MohBillingFacilityServiceFormController extends
 			ModelAndView mav) {
 
 		FacilityServicePrice fs = null;
+		FacilityServicePrice oldfs = null;
+		
+		
 
 		try {
 			// check if the facilityService is NEW or if you are trying to
@@ -104,6 +127,40 @@ public class MohBillingFacilityServiceFormController extends
 						.getFacilityServicePrice(
 								Integer.valueOf(request
 										.getParameter("facilityServiceId")));
+				oldfs = fs;
+				
+				log.info("lddddddddddddddddddddddddddddlOLDFULLPRICE "+oldfs.getFullPrice());
+				
+				FacilityServicePrice fspCopy = new FacilityServicePrice();
+				
+				// keep previews fs info before setting new price
+				fspCopy.setName(fs.getName());
+				fspCopy.setDescription(fs.getDescription());
+				fspCopy.setCategory(fs.getCategory());
+				fspCopy.setFullPrice(oldfs.getFullPrice());
+				fspCopy.setStartDate(fs.getStartDate());
+				fspCopy.setEndDate(new Date());
+				fspCopy.setLocation(fs.getLocation());
+				fspCopy.setCreatedDate(fs.getCreatedDate());
+				fspCopy.setRetired(true);
+				fspCopy.setRetiredBy(Context.getAuthenticatedUser());
+				fspCopy.setCreator(Context.getAuthenticatedUser());
+				fspCopy.setRetiredDate(new Date());
+				fspCopy.setRetireReason("price expired");
+				FacilityServicePriceUtil.createFacilityService(fspCopy);
+//				FacilityServicePriceUtil.retireFacilityServicePrice(copyOfexistingFsp, new Date(),"Price Expired");
+				
+				log.info("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv "+oldfs.getBillableServices().size());
+				
+				//retire its bs
+				Set<BillableService> billableServices = oldfs.getBillableServices();
+				for (BillableService bs : billableServices) {
+					bs.setRetired(true);
+					bs.setRetiredBy(Context.getAuthenticatedUser());
+					bs.setRetiredDate(new Date());
+				}
+
+				
 			} else
 				fs = new FacilityServicePrice();
 		} catch (Exception e) {
@@ -151,8 +208,15 @@ public class MohBillingFacilityServiceFormController extends
 				fs.setRetired(false);
 
 				FacilityServicePriceUtil.createFacilityService(fs);
-			} else
+			} else{
+				
+				
 				FacilityServicePriceUtil.editFacilityService(fs);
+				
+				// update all related billable service
+				FacilityServicePriceUtil.cascadeUpdateFacilityService(fs);
+				
+			}
 
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"The Facility Service has been saved successfully !");
@@ -198,6 +262,12 @@ public class MohBillingFacilityServiceFormController extends
 			fs.setRetiredDate(new Date());
 			fs.setRetiredBy(Context.getAuthenticatedUser());
 			fs.setRetired(true);
+			
+			
+			
+//			getService().saveFacilityServicePrice(fscopy);		
+			
+			
 
 			FacilityServicePriceUtil.retireFacilityServicePrice(fs, new Date(),
 					request.getParameter("facilityServiceRetireReason"));
