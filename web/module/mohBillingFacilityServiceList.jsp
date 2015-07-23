@@ -7,8 +7,7 @@
 
 <h2><spring:message code="@MODULE_ID@.facility.service.manage" /></h2>
 <openmrs:hasPrivilege privilege="Add Facility service">
-<a href="facilityService.form"><spring:message code="@MODULE_ID@.facility.service.add" /></a> | 
-<a style="color: red;" href="facilityService.list?addCategoryToFacility=UPDATE"><spring:message code="@MODULE_ID@.facility.service.addCategory" /></a>
+<a href="facilityService.form"><spring:message code="@MODULE_ID@.facility.service.add" /></a> 
 </openmrs:hasPrivilege>
 
 <br/><br/>
