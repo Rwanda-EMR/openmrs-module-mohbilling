@@ -414,5 +414,8 @@ public interface BillingService {
 	
 	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary,Date startDate,Date endDate);
 	
+	public void loadBillables(Insurance insurance);
+	
+	public List<Object[]> getBaseBillableServices(Insurance i);
 
 }

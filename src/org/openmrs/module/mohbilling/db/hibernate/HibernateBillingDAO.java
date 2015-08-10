@@ -42,6 +42,8 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Beneficiary;
@@ -1013,5 +1015,88 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 		return crit.list();
     }
+
+	@Override
+	public void loadBillables(Insurance insurance) {
+		Insurance rama = Context.getService(BillingService.class).getInsurance(2);
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class).add(Restrictions.eq("insurance", rama));
+
+		List<ServiceCategory> ramaSC = crit.list();
+		try{
+		// map service category to insurance
+		for (ServiceCategory sc : ramaSC) {
+			ServiceCategory scToMapToInsurance = new ServiceCategory();
+			scToMapToInsurance.setName(sc.getName());
+			scToMapToInsurance.setDescription(sc.getDescription());
+			scToMapToInsurance.setCreatedDate(new Date());
+			scToMapToInsurance.setRetired(false);
+			scToMapToInsurance.setInsurance(insurance);
+			scToMapToInsurance.setCreator(Context.getAuthenticatedUser());
+			
+			insurance.addServiceCategory(scToMapToInsurance);
+			Context.getService(BillingService.class).saveInsurance(insurance);
+		}
+		
+		//log.info("blblblblblblblblbbbbbbbbbbbbbb "+getBaseBillableServices(insurance).size());
+		List<Object[]> baseBillableServices = getBaseBillableServices(insurance);
+		
+		//retrieve billables(acts) from RAMA and add them on new insurance
+		BillableService newBS = new BillableService();
+		for (Object[] b : baseBillableServices) {
+
+			newBS.setInsurance(Context.getService(BillingService.class).getInsurance((Integer)b[0]));
+			newBS.setMaximaToPay((BigDecimal)b[1]);
+			newBS.setStartDate((Date)b[2]);
+			log.info("fsffsfsfsfsfsfsfsfsffffffffffffffffffffffff "+Context.getService(BillingService.class).getInsurance((Integer)b[0]).getRates());
+			
+			Integer fspId = (Integer)b[3];
+			FacilityServicePrice fsp = FacilityServicePriceUtil.getFacilityServicePrice(fspId);
+			newBS.setFacilityServicePrice(fsp);
+			ServiceCategory sc = getServiceCategory((Integer)b[4]);
+			newBS.setServiceCategory(sc);
+			newBS.setCreatedDate(new Date());
+			newBS.setRetired(false);
+			newBS.setCreator(Context.getAuthenticatedUser());
+			InsuranceUtil.saveBillableService(newBS);
+		}
+		//retrieve billables(acts) from RAMA and add them on new insurance
+		}
+		catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+	}
+
+	@Override
+	public List<Object[]> getBaseBillableServices(Insurance i) {
+		Session session = getSessionFactory().getCurrentSession();
+
+		StringBuilder bui = new StringBuilder();
+		bui.append("select i.insurance_id,");
+		bui.append(" CASE ");
+		bui.append("");
+		bui.append(" WHEN i.category = 'MUTUELLE' THEN (full_price/2)");
+		bui.append(" WHEN i.category = 'PRIVATE' THEN (full_price*1.25)");
+		bui.append(" WHEN i.category = 'NONE' THEN (full_price*1.5)");
+		bui.append(" ELSE full_price END as maxima_to_pay,");
+		bui.append(" fsp.start_date, fsp.facility_service_price_id, sc.service_category_id, fsp.created_date, fsp.retired, fsp.creator ");
+		bui.append(" FROM moh_bill_facility_service_price fsp ");
+		bui.append(" inner join moh_bill_service_category sc on fsp.category = sc.name ");
+		bui.append(" inner join moh_bill_insurance i on sc.insurance_id = i.insurance_id");
+		bui.append(" WHERE fsp.category not in ('MEDICAMENTS', 'CONSOMMABLES') and i.insurance_id in("+i.getInsuranceId()+")");
+
+		
+		log.info("ssssssssssssssssssssssss "+bui.toString());
+		
+		SQLQuery query = session.createSQLQuery(bui.toString());
+		List<Object[]> ob = query.list();
+		
+//		for (Object[] b : ob) {
+//			log.info("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu "+b);
+//		}
+		
+		return ob;
+	}
+
 	
 }

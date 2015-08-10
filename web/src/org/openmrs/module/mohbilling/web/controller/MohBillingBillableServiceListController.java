@@ -1,6 +1,7 @@
 package org.openmrs.module.mohbilling.web.controller;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
@@ -47,6 +49,12 @@ public class MohBillingBillableServiceListController extends
 						.getBillableServicesByInsurance(insurance, new Date())));
 				mav.addObject("insurance", insurance);
 				
+				
+				if(request.getParameter("load")!=null && !request.getParameter("load").equals("")){
+				//log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxx "+request.getParameter("load"));
+				Context.getService(BillingService.class).loadBillables(insurance);
+				log.info("Billables Loaded Successfully....");
+				}
 			}
 			
 

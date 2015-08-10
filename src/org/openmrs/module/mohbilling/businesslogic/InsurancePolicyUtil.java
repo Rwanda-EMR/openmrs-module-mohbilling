@@ -686,6 +686,7 @@ public class InsurancePolicyUtil {
 					InsurancePolicyUtil.getLocationLoggedIn()).getIdentifier();
 		}
 
+		
 		if (getService().getInsurancePolicyByCardNo(insuranceCardNo) == null)
 			return true;
 		else

@@ -10,6 +10,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,6 +21,8 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.Invoice;
@@ -55,7 +58,7 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 		
 
 		LinkedHashMap<PatientBill, PatientInvoice> billMap = new LinkedHashMap<PatientBill, PatientInvoice>();
-		
+			
 		if (request.getParameter("formStatus") != null && !request.getParameter("formStatus").equals("")) {
 			
 			startHourStr = request.getParameter("startHour");
@@ -135,7 +138,7 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			 Object[] allfactureCompiled =service.getBills(startDate, endDate,null);
 				
 			 Double receivedAmount =(Double) allfactureCompiled[1];        	
-        	 Set<PatientBill>patientBills = (Set<PatientBill>) allfactureCompiled[0];
+        	 Set<PatientBill> patientBills = (Set<PatientBill>) allfactureCompiled[0];
 			
 			InsuranceRate insuranceRate =service.getInsuranceRateByInsurance(insurance);			
 			Float rate =insuranceRate.getRate();
@@ -143,37 +146,133 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			//String[] serviceCategories = {"CHIRUR","CONSOMM", "CONSULT","DERMAT", "ECHOG", "FORMAL", "HOSPIT", "KINE","LABO","MAT","MEDECI", "MEDICAM","OPHTAL", "ORL", "OXGYNOT","PEDIAT","RADIO","SOINS INF","SOINS INT","STOMAT","GYNECO","POLYC"};
 			
 			String[] serviceCategories ={"CONSULT","LABO","IMAGERIE","ACTS","MEDICAMENTS","CONSOMM","AMBULANCE","AUTRE","HOSPITAL"};
+			Double totalConsult = 0.0;
+			Double totalLabo = 0.0;
+			Double totalImagery = 0.0;
+			Double totalActs = 0.0;
+			Double totalMedica = 0.0;
+			Double totalConsomm = 0.0;
+			Double totalAmbul = 0.0;
+			Double totalAutres = 0.0;
+			Double totalHosp = 0.0;
+			Double total100 = 0.0;
+			Double totalTickMod = 0.0;
+			Double totalRate = 0.0;
 			
-
-			 for (PatientBill patientBill : patientBills) {
+			
+			for (PatientBill patientBill : patientBills) {
 				 Insurance pbinsurance =patientBill.getBeneficiary().getInsurancePolicy().getInsurance();
 				 if (pbinsurance==insurance) {
 		
-					PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, insurance);					 
-					 
+					PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, insurance);	
+
+					for (String ip : patientInvoice.getInvoiceMap().keySet()) {
+//						log.info("ttttttttttttttttttttttttttttttttttttttttttttkey "+ip);
+//						log.info("ttttttttttttttttttttttttttttttttttttttttttttSubTotal "+patientInvoice.getInvoiceMap().get(ip).getSubTotal());
+						
+						total100+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();;
+						
+						if(ip.equals("CONSULTATION"))
+						totalConsult+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
+						if(ip.equals("LABORATOIRE"))
+						totalLabo+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
+						if(ip.equals("IMAGERIE"))
+						totalImagery+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
+						if(ip.equals("ACTS"))
+						totalActs+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
+						if(ip.equals("MEDICAMENTS"))
+						totalMedica+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
+						if(ip.equals("CONSOMMABLES"))
+						totalConsomm+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
+						if(ip.equals("AMBULANCE"))
+						totalAmbul+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
+						if(ip.equals("AUTRES"))
+						totalAutres+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
+						if(ip.equals("HOSPITALISATION"))
+						totalHosp+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
+					}
+					
 					 billMap.put(patientBill, patientInvoice);
 				}					
 				
 			}
-		     				
+			totalRate=(total100*rate)/100;
+			totalTickMod=(total100*((100-rate)/100));
+			
+			Double[] totals ={ReportsUtil.roundTwoDecimals(totalConsult),ReportsUtil.roundTwoDecimals(totalLabo),
+					ReportsUtil.roundTwoDecimals(totalImagery),ReportsUtil.roundTwoDecimals(totalActs),
+					ReportsUtil.roundTwoDecimals(totalMedica),ReportsUtil.roundTwoDecimals(totalConsomm),
+					ReportsUtil.roundTwoDecimals(totalAmbul),ReportsUtil.roundTwoDecimals(totalAutres),
+					ReportsUtil.roundTwoDecimals(totalHosp),ReportsUtil.roundTwoDecimals(total100),
+					ReportsUtil.roundTwoDecimals(totalTickMod),ReportsUtil.roundTwoDecimals(totalRate)};
+			
+
+							
 			mav.addObject("patientBillMap", billMap);
 			mav.addObject("serviceCategories", serviceCategories);
+			mav.addObject("totalByServices", totals);
 		
 			mav.addObject("rate", ""+rate+"%");
 			mav.addObject("tcketModel",""+(100-rate)+"%" );	
+			
+			LinkedHashMap<PatientBill, PatientInvoice> billMapExport = new LinkedHashMap<PatientBill, PatientInvoice>();
+				
+			if (patientBills.size() > 0) {
+
+//				Map<String, Double> mappedReport = getAllBillsByCollector(patientBills, serviceCategories,fullyreceivedAmount, partialypaids);
+//				basedDateReport.put(simpleDateFormat.format(date),	mappedReport);	
+				request.getSession().setAttribute("patientBillsInSession" , billMap);
+				request.getSession().setAttribute("serviceCategories" , serviceCategories);
+				log.info("WWWWWWWWWWWWWWWWWWWWWWWWWWW "+patientBills);
+			}	
+			
+			mav.addObject("patientBills", patientBills);
+			
 		}
 		
-		FileExporter fexp = new FileExporter();
-		if(request.getParameter("excel")!=null){
-			String filename = "facture"+new Date();
-			fexp.exportToCSVFile(request, response, billMap, filename, "Recovery");
+		
+		
+//		Set<PatientBill> patsBill = billMap.keySet();
+//		FileExporter fexp = new FileExporter();
+//		if(request.getParameter("excel")!=null && request.getParameter("excel").equals("true")){
+//			log.info("TTTTTTTTTTTTTTTTTTTTT");
+//			String filename = "facture"+new Date();
+//			fexp.exportToCSVFile(request, response, patientBills, filename, "Recovery");
+//		}
+		
+		if (request.getParameter("printed")!=null) {				
+//			LinkedHashMap<PatientBill, PatientInvoice> patientBillMap =  (LinkedHashMap<PatientBill, PatientInvoice>) request.getSession().getAttribute("patientBillMap" );
+			  
+			HttpSession session = request.getSession(true);	
+			log.info("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ "+session.getAttribute("patientBillsInSession"));
+			
+			String[] serviceCategories = (String[]) session.getAttribute("serviceCategories");
+			LinkedHashMap<PatientBill, PatientInvoice> basedDateReport =  (LinkedHashMap<PatientBill, PatientInvoice>) session.getAttribute("patientBillsInSession");
+			
+			FileExporter fexp = new FileExporter();
+			String fileName = "daily_report.pdf";
+//		    fexp.printCashierReport(request, response,basedDateReport,fileName,"Daily Cashier report");	
+			
+			fexp.exportToCSVFile(request, response, basedDateReport, fileName, "Recovery");
+			
+			for (PatientBill pb : basedDateReport.keySet()) {
+				log.info("Keyyyyyyy "+pb.getPatientBillId()+" Iddddddddddddd"+basedDateReport.get(pb).getInvoiceMap().keySet());
+				for (String st : basedDateReport.get(pb).getInvoiceMap().keySet()) {
+					log.info("fffffffffffffffffffffffffff "+basedDateReport.get(pb).getInvoiceMap().get(st).getSubTotal());
+				}
+			}
+			
 		}
+
 
 		mav.setViewName(getViewName());
 
 		return mav;
 
 	}
+	
+	
+
 	
 
 }

@@ -1,58 +1,37 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
-import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.Encounter;
-import org.openmrs.Obs;
-import org.openmrs.Patient;
-import org.openmrs.Person;
-import org.openmrs.User;
-import org.openmrs.api.ObsService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil.HeaderFooter;
-import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.Consommation;
-import org.openmrs.module.mohbilling.model.Invoice;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientInvoice;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.service.BillingService;
-import org.openmrs.module.mohtracportal.util.ContextProvider;
-import org.openmrs.module.mohtracportal.util.MohTracUtil;
 
-import com.itextpdf.text.Anchor;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
-import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.Font.FontFamily;
-import com.itextpdf.text.pdf.CMYKColor;
-import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
 
 public class FileExporter {
@@ -69,36 +48,109 @@ public class FileExporter {
 	 * @throws Exception
 	 */
 	public void exportToCSVFile(HttpServletRequest request,
-			HttpServletResponse response, LinkedHashMap<PatientBill, PatientInvoice> billMap, String filename,String title) throws Exception {
+			HttpServletResponse response, LinkedHashMap<PatientBill, PatientInvoice> map, String filename,String title) throws Exception {
 		
-		ServletOutputStream outputStream = null;
+        PrintWriter op = response.getWriter();
+		
+		response.setContentType("text/plain");
+		response.setHeader("Content-Disposition", "attachment; filename=\"releve.csv\"");
+		
+		Set<String> serviceCategories = null;
+		Double insuranceRate = null;
+		SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+		
+		
+		//display Header
+//		Image image = Image.getInstance(Context.getAdministrationService()
+//				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
+//		
+//		op.println(image);
+		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)!=null)
+		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)!=null)
+		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE)!=null)
+		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE));
+		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)!=null)
+		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
 
-		//try {
-			SimpleDateFormat sdf = Context.getDateFormat();
-			outputStream = response.getOutputStream();
-			ObsService os = Context.getObsService();
-
-			response.setContentType("text/plain");
-			response.setHeader("Content-Disposition", "attachment; filename=\""	+ filename + "\"");
-
-			// header
-			outputStream.println(MohTracUtil.getMessage("Billing Report", null)
-					+ ", : " + title);
-			outputStream.println();
-
-			log.info(">>>>>>>>>>>>>> Trying to create a CSV file...");
+		op.println();
+		
+		op.println("FACTURE DES SOINS MEDICAUX ");
+		op.println();
+		
+		// display report column names
+		op.print("Billing Date,Card Number,Names");
+		for (PatientBill pb : map.keySet()) {
+			serviceCategories=(Set<String>) map.get(pb).getInvoiceMap().keySet();
+			insuranceRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();
+	    }
+//		String totalCateg_="";
+		for (String cat : serviceCategories) {
+			op.print(","+cat);
+//			totalCateg_=totalCateg_+cat;
+//			log.info("dynamicccccccccccccccccccccccc "+totalCateg_);
+		}
+		op.print(",100%");
+		op.print(","+(100-insuranceRate)+"%");
+		op.print(","+insuranceRate+"%");
+		op.println();
+		
+		//display content
+		Double totalConsult = 0.0;
+		Double totalLabo = 0.0;
+		Double totalImagery = 0.0;
+		Double totalActs = 0.0;
+		Double totalMedica = 0.0;
+		Double totalConsomm = 0.0;
+		Double totalAmbul = 0.0;
+		Double totalAutres = 0.0;
+		Double totalHosp = 0.0;
+		Double total100 = 0.0;
+		Double totalTickMod = 0.0;
+		Double totalRate = 0.0;
+		
+		for (PatientBill pb : map.keySet()) {
+			Double totalBill=0.0;
 			
-			for (PatientBill key : billMap.keySet()) {
-
-				outputStream.println(key+"");
-//				for (PatientServiceBill psb : map.get(key)) {
-//					outputStream.println(psb.getServiceDate()+","+psb.getService().getFacilityServicePrice().getName());
-//				}
-
-			}
-			outputStream.flush();
-			log.info(">>>>>>>>>>>>>> A CSV file was created successfully.");
+			op.print(df.format(pb.getCreatedDate())+","+pb.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()+","+pb.getBeneficiary().getPatient().getFamilyName()+" "+pb.getBeneficiary().getPatient().getGivenName());
+			for (String st : map.get(pb).getInvoiceMap().keySet()) {
+			op.print(","+map.get(pb).getInvoiceMap().get(st).getSubTotal());
+			totalBill+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+//			String total="total"+"_"+st;
+//			log.info("dynamicccccccccccccccccccccccc "+total);
+			
+			total100+=map.get(pb).getInvoiceMap().get(st).getSubTotal();;
+			
+			if(st.equals("CONSULTATION"))
+			totalConsult+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+			if(st.equals("LABORATOIRE"))
+			totalLabo+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+			if(st.equals("IMAGERIE"))
+			totalImagery+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+			if(st.equals("ACTS"))
+			totalActs+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+			if(st.equals("MEDICAMENTS"))
+			totalMedica+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+			if(st.equals("CONSOMMABLES"))
+			totalConsomm+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+			if(st.equals("AMBULANCE"))
+			totalAmbul+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+			if(st.equals("AUTRES"))
+			totalAutres+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+			if(st.equals("HOSPITALISATION"))
+			totalHosp+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
+		}
+			op.print(","+ ReportsUtil.roundTwoDecimals(totalBill)+","+ ReportsUtil.roundTwoDecimals(totalBill*(100-insuranceRate)/100)+","+ ReportsUtil.roundTwoDecimals(totalBill*insuranceRate)/100);
+			op.println();
+		}
+		totalTickMod = ReportsUtil.roundTwoDecimals(total100*(100-insuranceRate)/100);
+		totalRate = ReportsUtil.roundTwoDecimals(total100*(insuranceRate/100));
 		
+		op.print(","+","+","+totalConsult+","+totalLabo+","+totalImagery+","+totalActs+","+ReportsUtil.roundTwoDecimals(totalMedica)+","+ReportsUtil.roundTwoDecimals(totalConsomm)+","+totalAmbul+","+totalAutres+","+totalHosp+","+ReportsUtil.roundTwoDecimals(total100)+","+totalTickMod+","+totalRate);
+		
+		op.flush();
+		op.close();
 	}
 
 	/**

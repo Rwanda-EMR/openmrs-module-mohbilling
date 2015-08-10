@@ -451,10 +451,6 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getInsuranceRateByInsurance(insurance);
 	}
 
-	@Override
-	public void getUpdateTariff(List<FacilityServicePrice> fsp, Date startDate) {
-		billingDAO.getUpdateTariff(fsp, startDate);
-	}
 
 	@Override
 	public List<Beneficiary> getBeneficiaryByCardNumber(String cardNo) {
@@ -475,5 +471,16 @@ public class BillingServiceImpl implements BillingService {
 		// TODO Auto-generated method stub
 		return billingDAO.getBillsByBeneficiary(beneficiary, startDate, endDate);
 	}
+
+	@Override
+	public void loadBillables(Insurance insurance) {
+		 billingDAO.loadBillables(insurance);
+	}
+
+	@Override
+	public List<Object[]> getBaseBillableServices(Insurance i) {
+		return billingDAO.getBaseBillableServices(i);
+	}
+
 
 }

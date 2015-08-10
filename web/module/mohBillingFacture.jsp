@@ -322,8 +322,16 @@ var $t = jQuery.noConflict();
 <c:if test="${fn:length(patientBillMap)!=0}">
 <div style="border: 1px #808080 solid; padding: 0em; margin: 0em; width: 500">
 <b class="boxHeader" style="width: 100%; padding: 0em; margin-right: 0em; margin-left: 0em"> Insurance Facture
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="facture.form?excel=true">Export</a>
+
+<c:set var="patientBillMap" value="${patientBillMap}" />
+
+<form action="facture.form?page=1&export=csv${prmtrs}" method="post" style="display: inline;">
+    <input type="hidden" name="printed" value="${printed}" />
+    <input type="hidden" name="userId" value="${collector.userId}" />
+	<input type="submit" class="list_exportBt" value="Excel" title="Excel"/>
+</form>
+
+
 </b>
 <c:set var="billMap" value="${patientBillMap}" />
 <div id="dt_example">
@@ -369,6 +377,18 @@ var $t = jQuery.noConflict();
    
  </tr>
  </c:forEach>
+ 
+  <!--  Display total -->
+ <tr>
+ <td style="color: red"><strong>Total</strong></td>
+ <td></td><td></td><td></td>
+  <c:forEach items="${totalByServices}" var="tot">
+   <td style="color: red"><strong>${tot}</strong></td>
+   </c:forEach>
+ </tr>
+ 
+ 
+ 
   <!--  end for each service category -->
  </tbody>
  </table>

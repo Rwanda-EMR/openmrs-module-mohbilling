@@ -82,7 +82,8 @@
 					<td colspan="2"><input type="button" onclick="savePatientBillPayment();" value="Confirm Bill" style="min-width: 200px;"/></td>
 				</openmrs:hasPrivilege>
 				<td colspan="3"></td>
-			<c:if test="${billingtag:amountPaidForPatientBill(patientBill.patientBillId)>0}">	
+
+			<c:if test="${billingtag:amountPaidForPatientBill(patientBill.patientBillId)>0 ||patientBill.beneficiary.insurancePolicy.insurance.currentRate.rate==100 || patientBill.beneficiary.insurancePolicy.thirdParty!=nil}">	
 			<td colspan="2"><div style="text-align: right;"><a href="printPDFPatientBill.form?patientBillId=${patientBill.patientBillId}">Print Bill</a></div></td>
 				
 			</tr>

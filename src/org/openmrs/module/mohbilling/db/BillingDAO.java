@@ -431,6 +431,7 @@ public interface BillingDAO {
 	
 	public Map<String,Double> getRevenueByService(Date receivedDate,String[] serviceCategory, String collector,Insurance insurance);
 	
+
 	public Object[] getBills(Date startDate,Date endDate,User collector);
 
 	public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
@@ -439,7 +440,7 @@ public interface BillingDAO {
 	public PatientBill getBills(Patient patient,Date startDate,Date endDate);
 
 	public InsuranceRate getInsuranceRateByInsurance(Insurance insurance);
-
+	
 	public List<Beneficiary> getBeneficiaryByCardNumber(String cardNo);
 
 	public List<InsurancePolicy> getInsurancePoliciesBetweenTwodates(
@@ -447,4 +448,9 @@ public interface BillingDAO {
 
 	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary,
 			Date startDate, Date endDate);
+	
+	public void loadBillables(Insurance insurance);
+	
+	public List<Object[]> getBaseBillableServices(Insurance i);
+
 }

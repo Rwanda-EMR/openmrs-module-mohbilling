@@ -167,59 +167,9 @@
 	</div>
 	<br />
 
-	<!-- Adding Beneficiaries -->
-	<b class="boxHeader">Section III >> Other Beneficiaries</b>
-	<div class="box">
-		<div id="beneficiaryDiv">
-			<table>
-				<c:forEach items="1,2,3,4,5,6,7,8,9,10" var="j">
-					<tr class="beneficiariesC" id="beneficiaryI_${j}">
-						<td>Beneficiary ${j}</td>
-						<td width="300px"><openmrs_tag:patientField
-								formFieldName="insurancePolicyBeneficiary_${j}" initialValue="" /></td>
-						<td>Policy Id No</td>
-						<td><input type="text" value=""
-							name="insurancePolicyBeneficiaryCardNumber_${j}" /></td>
-						<td><span class="redbox" id="delete_${j}"> <img
-								src="${pageContext.request.contextPath}/images/delete.gif" />
-						</span></td>
-					</tr>
-				</c:forEach>
-			</table>
-		</div>
-		<p id="addBeneficiaryId" class="greenbox">
-			<img src="${pageContext.request.contextPath}/images/add.gif" />
-		</p>
-	</div>
-	<!-- /Adding Beneficiaries -->
 
-	<!-- updating Beneficiaries -->
-	<b class="boxHeader">Section III >> Other Beneficiaries</b>
-	<div class="box">
-		<div id="beneficiaryDiv">
-			<table>
-				<c:forEach items="${insurancePolicy.beneficiaries}"
-					var="beneficiary">
-					<tr class="beneficiariesC" id="beneficiaryI_">
-						<td>Beneficiary</td>
-						<td width="300px"><openmrs_tag:patientField
-								formFieldName="insurancePolicyBeneficiary_"
-								initialValue="${beneficiary.patient.patientId}" /></td>
-						<td>Policy Id No</td>
-						<td><input type="text" value="${beneficiary.policyIdNumber}"
-							name="insurancePolicyBeneficiaryCardNumber_" /></td>
-						<td><span class="redbox" id="delete_"> <img
-								src="${pageContext.request.contextPath}/images/delete.gif" />
-						</span></td>
-					</tr>
-				</c:forEach>
-			</table>
-		</div>
-		<p id="addBeneficiaryId" class="greenbox">
-			<img src="${pageContext.request.contextPath}/images/add.gif" />
-		</p>
-	</div>
-	<!-- /updating Beneficiaries -->
+<!-- Adding Beneficiaries -->
+
 
 	<br /> <input type="submit" value="Save Insurance Policy"
 		id="submitButtonId" />
