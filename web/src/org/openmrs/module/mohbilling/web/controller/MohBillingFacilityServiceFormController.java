@@ -129,7 +129,7 @@ public class MohBillingFacilityServiceFormController extends
 										.getParameter("facilityServiceId")));
 				oldfs = fs;
 				
-				log.info("lddddddddddddddddddddddddddddlOLDFULLPRICE "+oldfs.getFullPrice());
+				//log.info("lddddddddddddddddddddddddddddlOLDFULLPRICE "+oldfs.getFullPrice());
 				
 				FacilityServicePrice fspCopy = new FacilityServicePrice();
 				
@@ -150,7 +150,7 @@ public class MohBillingFacilityServiceFormController extends
 				FacilityServicePriceUtil.createFacilityService(fspCopy);
 //				FacilityServicePriceUtil.retireFacilityServicePrice(copyOfexistingFsp, new Date(),"Price Expired");
 				
-				log.info("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv "+oldfs.getBillableServices().size());
+				//log.info("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv "+oldfs.getBillableServices().size());
 				
 				//retire its bs
 				Set<BillableService> billableServices = oldfs.getBillableServices();

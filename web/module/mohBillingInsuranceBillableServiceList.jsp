@@ -6,7 +6,8 @@
 <h2><spring:message code="@MODULE_ID@.billable.service.by.insurance" /></h2>
 
 <a href="billableService.form?insuranceId=${insurance.insuranceId}"><spring:message code="@MODULE_ID@.billable.service.add" /></a>
-<!--  |    <a href="billableService.list?insuranceId=${insurance.insuranceId}&load=true">Load BS</a> -->
+ |    <a href="billableService.list?insuranceId=${insurance.insuranceId}">Load Acts/Phcy</a> 
+
 <br/><br/>
 
 <b class="boxHeader"><spring:message code="@MODULE_ID@.insurance.company.title" /></b>

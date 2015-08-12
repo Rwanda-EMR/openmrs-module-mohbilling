@@ -1018,11 +1018,14 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	@Override
 	public void loadBillables(Insurance insurance) {
+		
+		boolean alreadyExecuted  = false;
+//		if(!alreadyExecuted){
 		Insurance rama = Context.getService(BillingService.class).getInsurance(2);
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class).add(Restrictions.eq("insurance", rama));
 
 		List<ServiceCategory> ramaSC = crit.list();
-		try{
+		
 		// map service category to insurance
 		for (ServiceCategory sc : ramaSC) {
 			ServiceCategory scToMapToInsurance = new ServiceCategory();
@@ -1039,11 +1042,13 @@ public class HibernateBillingDAO implements BillingDAO {
 		
 		//log.info("blblblblblblblblbbbbbbbbbbbbbb "+getBaseBillableServices(insurance).size());
 		List<Object[]> baseBillableServices = getBaseBillableServices(insurance);
+//		List<Object[]> basePharmacyItems = getBasePharmacyItems(insurance);
 		
 		//retrieve billables(acts) from RAMA and add them on new insurance
-		BillableService newBS = new BillableService();
+		List<BillableService> billables = new ArrayList<BillableService>();
+//		BillableService newBS = null;
 		for (Object[] b : baseBillableServices) {
-
+			BillableService newBS = new BillableService();
 			newBS.setInsurance(Context.getService(BillingService.class).getInsurance((Integer)b[0]));
 			newBS.setMaximaToPay((BigDecimal)b[1]);
 			newBS.setStartDate((Date)b[2]);
@@ -1059,11 +1064,11 @@ public class HibernateBillingDAO implements BillingDAO {
 			newBS.setCreator(Context.getAuthenticatedUser());
 			InsuranceUtil.saveBillableService(newBS);
 		}
-		//retrieve billables(acts) from RAMA and add them on new insurance
-		}
-		catch (Exception e) {
-			// TODO: handle exception
-		}
+		
+		//retrieve billables(Pharmacy items) from RAMA and add them on new insurance
+		
+		
+//		}
 		
 	}
 

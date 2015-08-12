@@ -10,6 +10,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -40,7 +42,6 @@ public class MohBillingBillableServiceListController extends
 		mav.setViewName(getViewName());
 
 		try {
-			
 			if(request.getParameter("insuranceId") != null && !request.getParameter("insuranceId").equals("")){
 				System.out.println("insurance id "+request.getParameter("insuranceId"));
 				Insurance insurance = Context.getService(BillingService.class).getInsurance(Integer.valueOf(request	.getParameter("insuranceId")));
@@ -49,11 +50,12 @@ public class MohBillingBillableServiceListController extends
 						.getBillableServicesByInsurance(insurance, new Date())));
 				mav.addObject("insurance", insurance);
 				
-				
-				if(request.getParameter("load")!=null && !request.getParameter("load").equals("")){
-				//log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxx "+request.getParameter("load"));
+				List<BillableService> currentBS = Context.getService(BillingService.class).getBillableServicesByInsurance(insurance);
+			
+				//to avoid loading billable services more than once
+				if(currentBS.size()==0){
 				Context.getService(BillingService.class).loadBillables(insurance);
-				log.info("Billables Loaded Successfully....");
+				mav.addObject("msg", "All acts,drugs and consummables loaded successfully !");
 				}
 			}
 			
