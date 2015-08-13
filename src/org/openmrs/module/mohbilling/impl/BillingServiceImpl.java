@@ -482,5 +482,10 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getBaseBillableServices(i);
 	}
 
+	@Override
+	public List<Object[]> getPharmacyBaseBillableServices(Insurance i) {
+		return billingDAO.getPharmacyBaseBillableServices(i);
+	}
+
 
 }

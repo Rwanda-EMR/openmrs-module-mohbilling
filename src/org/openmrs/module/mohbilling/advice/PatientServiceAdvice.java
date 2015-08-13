@@ -64,7 +64,7 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 			/**
 			 * This is only executed when the Patient Identifier type is PRIMARY
 			 * CARE TYPE and the insurance card does not exist
-			 */
+			 */			
 			if (InsurancePolicyUtil.insuranceDoesNotExist(patient)
 					&& InsurancePolicyUtil
 							.getPrimaryPatientIdentifierForLocation(patient,
@@ -77,10 +77,7 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 						new Date(), 20));
 				policy.setInsurance(InsuranceUtil.getInsuranceByConcept(Context
 						.getConceptService().getConcept(
-								BillingConstants.NONE_CONCEPT_ID)));// TODO: to
-																	// be
-																	// changed
-																	// to GP...
+								BillingConstants.NONE_CONCEPT_ID)));// TODO: to be changed to GP...
 //				policy.setHasThirdPart(false);// Just added the default value of
 												// THIRD PART
 				policy.setOwner(patient);

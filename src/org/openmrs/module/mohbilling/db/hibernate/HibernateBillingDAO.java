@@ -964,7 +964,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		String str = "SELECT pb.patient_bill_id FROM moh_bill_patient_bill pb " +
 				" inner join moh_bill_beneficiary b on b.beneficiary_id=pb.beneficiary_id " +
 				" and pb.created_date between '"+df.format(startDate)+" 00:00:00' and '"+df.format(endDate)+" 23:59:00' and b.patient_id="+patient.getPatientId();
-		log.info("ssssssssssssssssssssssss "+str);
+//		log.info("ssssssssssssssssssssssss "+str);
 		SQLQuery query = session.createSQLQuery(str);
 		List<Object> ob = query.list();
 		PatientBill pb = null;
@@ -1040,20 +1040,15 @@ public class HibernateBillingDAO implements BillingDAO {
 			Context.getService(BillingService.class).saveInsurance(insurance);
 		}
 		
-		//log.info("blblblblblblblblbbbbbbbbbbbbbb "+getBaseBillableServices(insurance).size());
 		List<Object[]> baseBillableServices = getBaseBillableServices(insurance);
-//		List<Object[]> basePharmacyItems = getBasePharmacyItems(insurance);
+		List<Object[]> basePharmacyItems = getPharmacyBaseBillableServices(insurance);
 		
 		//retrieve billables(acts) from RAMA and add them on new insurance
-		List<BillableService> billables = new ArrayList<BillableService>();
-//		BillableService newBS = null;
 		for (Object[] b : baseBillableServices) {
 			BillableService newBS = new BillableService();
 			newBS.setInsurance(Context.getService(BillingService.class).getInsurance((Integer)b[0]));
 			newBS.setMaximaToPay((BigDecimal)b[1]);
 			newBS.setStartDate((Date)b[2]);
-			log.info("fsffsfsfsfsfsfsfsfsffffffffffffffffffffffff "+Context.getService(BillingService.class).getInsurance((Integer)b[0]).getRates());
-			
 			Integer fspId = (Integer)b[3];
 			FacilityServicePrice fsp = FacilityServicePriceUtil.getFacilityServicePrice(fspId);
 			newBS.setFacilityServicePrice(fsp);
@@ -1066,9 +1061,21 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 		
 		//retrieve billables(Pharmacy items) from RAMA and add them on new insurance
-		
-		
-//		}
+		for (Object[] b : basePharmacyItems) {
+			BillableService newBS = new BillableService();
+			newBS.setInsurance(Context.getService(BillingService.class).getInsurance((Integer)b[0]));
+			newBS.setMaximaToPay((BigDecimal)b[1]);
+			newBS.setStartDate((Date)b[2]);
+			Integer fspId = (Integer)b[3];
+			FacilityServicePrice fsp = FacilityServicePriceUtil.getFacilityServicePrice(fspId);
+			newBS.setFacilityServicePrice(fsp);
+			ServiceCategory sc = getServiceCategory((Integer)b[4]);
+			newBS.setServiceCategory(sc);
+			newBS.setCreatedDate(new Date());
+			newBS.setRetired(false);
+			newBS.setCreator(Context.getAuthenticatedUser());
+			InsuranceUtil.saveBillableService(newBS);
+		}
 		
 	}
 
@@ -1099,6 +1106,26 @@ public class HibernateBillingDAO implements BillingDAO {
 //		for (Object[] b : ob) {
 //			log.info("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu "+b);
 //		}
+		
+		return ob;
+	}
+
+	@Override
+	public List<Object[]> getPharmacyBaseBillableServices(Insurance i) {
+		Session session = getSessionFactory().getCurrentSession();
+
+		StringBuilder bui = new StringBuilder();
+		bui.append("select i.insurance_id,full_price,");
+		bui.append(" fsp.start_date, fsp.facility_service_price_id, sc.service_category_id, fsp.created_date, fsp.retired, fsp.creator ");
+		bui.append(" FROM moh_bill_facility_service_price fsp ");
+		bui.append(" inner join moh_bill_service_category sc on fsp.category = sc.name ");
+		bui.append(" inner join moh_bill_insurance i on sc.insurance_id = i.insurance_id");
+		bui.append(" WHERE fsp.category in ('MEDICAMENTS', 'CONSOMMABLES') and i.insurance_id in("+i.getInsuranceId()+")");
+
+		log.info("ssssssssssssssssssssssss "+bui.toString());
+		
+		SQLQuery query = session.createSQLQuery(bui.toString());
+		List<Object[]> ob = query.list();
 		
 		return ob;
 	}

@@ -1,6 +1,7 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
@@ -13,8 +14,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil.HeaderFooter;
+import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientInvoice;
@@ -65,22 +68,22 @@ public class FileExporter {
 //				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
 //		
 //		op.println(image);
-		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)!=null)
+		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)!="")
 		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
-		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)!=null)
+		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)!="")
 		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
-		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE)!=null)
+		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE)!="")
 		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE));
-		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)!=null)
+		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)!="")
 		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
 
 		op.println();
 		
-		op.println("FACTURE DES SOINS MEDICAUX ");
+		op.println(","+","+","+","+","+"FACTURE DES SOINS MEDICAUX ");
 		op.println();
 		
 		// display report column names
-		op.print("Billing Date,Card Number,Names");
+		op.print("Date,Card Number,Names");
 		for (PatientBill pb : map.keySet()) {
 			serviceCategories=(Set<String>) map.get(pb).getInvoiceMap().keySet();
 			insuranceRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();
@@ -147,7 +150,7 @@ public class FileExporter {
 		totalTickMod = ReportsUtil.roundTwoDecimals(total100*(100-insuranceRate)/100);
 		totalRate = ReportsUtil.roundTwoDecimals(total100*(insuranceRate/100));
 		
-		op.print(","+","+","+totalConsult+","+totalLabo+","+totalImagery+","+totalActs+","+ReportsUtil.roundTwoDecimals(totalMedica)+","+ReportsUtil.roundTwoDecimals(totalConsomm)+","+totalAmbul+","+totalAutres+","+totalHosp+","+ReportsUtil.roundTwoDecimals(total100)+","+totalTickMod+","+totalRate);
+		op.print("TOTAL"+","+","+","+totalConsult+","+totalLabo+","+totalImagery+","+totalActs+","+ReportsUtil.roundTwoDecimals(totalMedica)+","+ReportsUtil.roundTwoDecimals(totalConsomm)+","+totalAmbul+","+totalAutres+","+totalHosp+","+ReportsUtil.roundTwoDecimals(total100)+","+totalTickMod+","+totalRate);
 		
 		op.flush();
 		op.close();
@@ -447,7 +450,177 @@ public class FileExporter {
 		
 		
 	}
+	public void pdfPrintPaymentsReport(HttpServletRequest request,	HttpServletResponse response,List<BillPayment> payments, String filename, String title) throws Exception {
+
+		Document document = new Document();
+		
+		filename = filename + ".pdf";
+
+		response.setContentType("application/pdf");
+		response.setHeader("Content-Disposition", "attachment; filename=\""
+				+ filename + "\""); // file name
+
+		PdfWriter writer = PdfWriter.getInstance(document,
+				response.getOutputStream());
+
+		writer.setBoxSize("art", PageSize.A4);
+
+		HeaderFooter event = new HeaderFooter();
+		writer.setPageEvent(event);
+
+		document.open();
+		document.setPageSize(PageSize.A4);
+		// document.setPageSize(new Rectangle(0, 0, 2382, 3369));
+
+		document.addAuthor(Context.getAuthenticatedUser().getPersonName()
+				.toString());// the name of the author
 	
+		document.setPageSize(PageSize.A4.rotate());
+		
+		// title row
+		FontSelector titleFont = new FontSelector();
+		titleFont.addFont(new Font(FontFamily.TIMES_ROMAN, 10, Font.BOLD));
+
+		// Define my Table;
+		float[] colsWidth = { 0.5f, 2f, 3f, 2f, 2f};
+		PdfPTable table = new PdfPTable(colsWidth);
+		table.setWidthPercentage(100f);
+		BaseColor bckGroundTitle = new BaseColor(255, 255, 255);
+		
+		// normal row
+		FontSelector fontselector = new FontSelector();
+		fontselector.addFont(new Font(FontFamily.COURIER, 10, Font.NORMAL));
+
+		// empty row
+		FontSelector boldFont = new FontSelector();
+		boldFont.addFont(new Font(FontFamily.COURIER, 10, Font.BOLD));
+		
+		FontSelector fontTitle = new FontSelector();
+		fontTitle.addFont(new Font(FontFamily.COURIER, 10, Font.NORMAL));
+		
+		//diplay lago and address
+		
+		Image image = Image.getInstance(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
+		image.scaleToFit(40, 40);
+		
+		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
+
+		/** I would like a LOGO here!!! */
+		document.add(image);		
+		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)+ "\n"));
+		document.add(fontTitle.process(Context.getAdministrationService()
+						.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)+ "\n"));
+		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)+ "\n"));
+		
+		//display other report details
+		Chunk chk = new Chunk("DEPOSIT REPORT");
+		chk.setFont(new Font(FontFamily.TIMES_ROMAN, 10, Font.BOLD));
+		chk.setUnderline(0.2f, -2f);
+		Paragraph pa = new Paragraph();
+		pa.add(chk);
+		pa.setAlignment(Element.ALIGN_CENTER);
+		document.add(pa);
+		document.add(new Paragraph("\n"));	
+
+		// table Header
+		PdfPCell cell = new PdfPCell(boldFont.process("No"));
+		cell.setBackgroundColor(bckGroundTitle);
+		table.addCell(cell);
+
+		cell = new PdfPCell(boldFont.process("Date"));
+		cell.setBackgroundColor(bckGroundTitle);
+		table.addCell(cell);
+		
+		cell = new PdfPCell(boldFont.process("Patient Names"));
+		cell.setBackgroundColor(bckGroundTitle);
+		table.addCell(cell);
+
+		cell = new PdfPCell(boldFont.process("Collector"));
+		cell.setBackgroundColor(bckGroundTitle);
+		table.addCell(cell);
+
+		cell = new PdfPCell(boldFont.process("Received Amount"));
+		cell.setBackgroundColor(bckGroundTitle);
+		table.addCell(cell);
+
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		
+		int number=0;
+		Double total = 0.0;
+		for (BillPayment pay: payments) {	
+			number++;
+			total+=pay.getAmountPaid().doubleValue();
+			cell = new PdfPCell(fontselector.process(""+number));
+			table.addCell(cell);
+
+			cell = new PdfPCell(fontselector.process(""+df.format(pay.getDateReceived())));
+			table.addCell(cell);
+			
+			Patient patient = pay.getPatientBill().getBeneficiary().getPatient();
+			
+			cell = new PdfPCell(fontselector.process(""+patient.getFamilyName()+" "+patient.getGivenName()));
+			table.addCell(cell);
+
+			cell = new PdfPCell(fontselector.process("" + pay.getCollector()));
+			table.addCell(cell);
+
+			cell = new PdfPCell(fontselector.process("" + pay.getAmountPaid()));
+			table.addCell(cell);	
+			
+			} 			
+//		document.add(table);
+		
+//		PdfPTable table1 = new PdfPTable(1);
+//		table1.setWidthPercentage(109f);
+		
+		cell = new PdfPCell(boldFont.process(""));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+		
+		cell = new PdfPCell(boldFont.process(""));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+		
+		cell = new PdfPCell(boldFont.process(""));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+		
+		cell = new PdfPCell(boldFont.process(""));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+		
+		cell = new PdfPCell(boldFont.process(""+ total));
+		table.addCell(cell);
+		document.add(table);
+		
+		document.add(new Paragraph("\n\n"));	
+		
+		// Table of signatures;
+		PdfPTable table1 = new PdfPTable(3);
+		table1.setWidthPercentage(100f);
+		
+		cell = new PdfPCell(fontselector.process("Signature du Caissier\n"+ Context.getAuthenticatedUser()+"\n\n........................."));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table1.addCell(cell);
+				
+
+		cell = new PdfPCell(fontselector.process("                      "));
+		cell.setBorder(Rectangle.NO_BORDER);
+				table1.addCell(cell);
+
+		cell = new PdfPCell(fontselector.process("Chief Cashier Signature \n\n........................."));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table1.addCell(cell);
+
+
+
+		document.add(table1);
+
+		document.close();
+		
+	}
 	public static Document creadPdfHeader(HttpServletRequest request,	HttpServletResponse response,LinkedHashMap<String, Map<String, Double>> basedDateReport, String filename,
 			String title)throws Exception {
 		Rectangle pagesize = new Rectangle(360f, 720f);
@@ -481,14 +654,6 @@ public class FileExporter {
 
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 
-		/** I would like a LOGO here!!! */
-		document.add(image);		
-		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
-						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)+ "\n"));
-		document.add(fontTitle.process(Context.getAdministrationService()
-						.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)+ "\n"));
-		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
-						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)+ "\n"));
 		
 		/** ------------- End Report title ------------- */
 
@@ -510,7 +675,6 @@ public class FileExporter {
 	        paragraph.add(new Paragraph(" "));
 	      }
 	    }
-
 
 	  
 

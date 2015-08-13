@@ -452,5 +452,6 @@ public interface BillingDAO {
 	public void loadBillables(Insurance insurance);
 	
 	public List<Object[]> getBaseBillableServices(Insurance i);
-
+	
+	public List<Object[]> getPharmacyBaseBillableServices(Insurance i);
 }

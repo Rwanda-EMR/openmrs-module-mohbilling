@@ -321,7 +321,15 @@
 
 <br />
 <c:if test="${fn:length(reportedPayments)!=0}">
-	<b class="boxHeader"> RECEIVED AMOUNT REPORT</b>
+	<b class="boxHeader"> RECEIVED AMOUNT REPORT &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<b>
+	
+<form action="received.form" method="post" style="display: inline;">
+    <input type="hidden" name="printed" value="${printed}" />
+	<input type="submit" class="list_exportBt" value="PDF" title="Export to PDF"/>
+</form>
+    
+	</b></b>
 	<div class="box">
 		<table width="40%">
 
@@ -354,6 +362,7 @@
 				</tr>
 			</c:forEach>
 			<tr>
+				<td></td>
 				<td></td>
 				<td></td>
 				<td></h2></td>

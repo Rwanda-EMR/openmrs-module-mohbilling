@@ -223,7 +223,7 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 //				basedDateReport.put(simpleDateFormat.format(date),	mappedReport);	
 				request.getSession().setAttribute("patientBillsInSession" , billMap);
 				request.getSession().setAttribute("serviceCategories" , serviceCategories);
-				log.info("WWWWWWWWWWWWWWWWWWWWWWWWWWW "+patientBills);
+			//	log.info("WWWWWWWWWWWWWWWWWWWWWWWWWWW "+patientBills);
 			}	
 			
 			mav.addObject("patientBills", patientBills);
@@ -244,7 +244,7 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 //			LinkedHashMap<PatientBill, PatientInvoice> patientBillMap =  (LinkedHashMap<PatientBill, PatientInvoice>) request.getSession().getAttribute("patientBillMap" );
 			  
 			HttpSession session = request.getSession(true);	
-			log.info("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ "+session.getAttribute("patientBillsInSession"));
+			//log.info("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ "+session.getAttribute("patientBillsInSession"));
 			
 			String[] serviceCategories = (String[]) session.getAttribute("serviceCategories");
 			LinkedHashMap<PatientBill, PatientInvoice> basedDateReport =  (LinkedHashMap<PatientBill, PatientInvoice>) session.getAttribute("patientBillsInSession");
@@ -255,12 +255,12 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			
 			fexp.exportToCSVFile(request, response, basedDateReport, fileName, "Recovery");
 			
-			for (PatientBill pb : basedDateReport.keySet()) {
-				log.info("Keyyyyyyy "+pb.getPatientBillId()+" Iddddddddddddd"+basedDateReport.get(pb).getInvoiceMap().keySet());
-				for (String st : basedDateReport.get(pb).getInvoiceMap().keySet()) {
-					log.info("fffffffffffffffffffffffffff "+basedDateReport.get(pb).getInvoiceMap().get(st).getSubTotal());
-				}
-			}
+//			for (PatientBill pb : basedDateReport.keySet()) {
+//				log.info("Keyyyyyyy "+pb.getPatientBillId()+" Iddddddddddddd"+basedDateReport.get(pb).getInvoiceMap().keySet());
+//				for (String st : basedDateReport.get(pb).getInvoiceMap().keySet()) {
+//					log.info("fffffffffffffffffffffffffff "+basedDateReport.get(pb).getInvoiceMap().get(st).getSubTotal());
+//				}
+//			}
 			
 		}
 

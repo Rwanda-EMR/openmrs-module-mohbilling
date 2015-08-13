@@ -418,4 +418,5 @@ public interface BillingService {
 	
 	public List<Object[]> getBaseBillableServices(Insurance i);
 
+	public List<Object[]> getPharmacyBaseBillableServices(Insurance i);
 }
