@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.2.21</version>
+	<version>0.0.3</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -65,7 +65,7 @@
 	
 	<globalProperty>
 		<property>billing.defaultLocation</property>
-		<defaultValue>1006</defaultValue>
+		<defaultValue>137</defaultValue>
 		<description>
 			Must be the ID of the location (Health Facility) where Billing is being used.
 		</description>
