@@ -50,40 +50,40 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 	public void afterReturning(Object returnVal, Method method, Object[] args,
 			Object target) throws Throwable {
 
-		if (method.getName().equals("savePatient")) {
-			String[] splits = returnVal.toString().split("#");
-
-			Integer patientId = Integer.parseInt(splits[1]);
-			Patient patient = Context.getPatientService().getPatient(patientId);
-
-			/** Getting the Patient Identifier from the system **/
-			PatientIdentifier pi = InsurancePolicyUtil
-					.getPrimaryPatientIdentifierForLocation(patient,
-							InsurancePolicyUtil.getLocationLoggedIn());
-
-			/**
-			 * This is only executed when the Patient Identifier type is PRIMARY
-			 * CARE TYPE and the insurance card does not exist
-			 */			
-			if (InsurancePolicyUtil.insuranceDoesNotExist(patient)
-					&& InsurancePolicyUtil
-							.getPrimaryPatientIdentifierForLocation(patient,
-									InsurancePolicyUtil.getLocationLoggedIn()) != null) {
-
-				InsurancePolicy policy = new InsurancePolicy();
-
-				policy.setCoverageStartDate(new Date());
-				policy.setExpirationDate(InsurancePolicyUtil.addYears(
-						new Date(), 20));
-				policy.setInsurance(InsuranceUtil.getInsuranceByConcept(Context
-						.getConceptService().getConcept(
-								BillingConstants.NONE_CONCEPT_ID)));// TODO: to be changed to GP...
-//				policy.setHasThirdPart(false);// Just added the default value of
-												// THIRD PART
-				policy.setOwner(patient);
-
-				InsurancePolicyUtil.createInsurancePolicy(policy);
-			}
-		}
+//		if (method.getName().equals("savePatient")) {
+//			String[] splits = returnVal.toString().split("#");
+//
+//			Integer patientId = Integer.parseInt(splits[1]);
+//			Patient patient = Context.getPatientService().getPatient(patientId);
+//
+//			/** Getting the Patient Identifier from the system **/
+//			PatientIdentifier pi = InsurancePolicyUtil
+//					.getPrimaryPatientIdentifierForLocation(patient,
+//							InsurancePolicyUtil.getLocationLoggedIn());
+//
+//			/**
+//			 * This is only executed when the Patient Identifier type is PRIMARY
+//			 * CARE TYPE and the insurance card does not exist
+//			 */			
+//			if (InsurancePolicyUtil.insuranceDoesNotExist(patient)
+//					&& InsurancePolicyUtil
+//							.getPrimaryPatientIdentifierForLocation(patient,
+//									InsurancePolicyUtil.getLocationLoggedIn()) != null) {
+//
+//				InsurancePolicy policy = new InsurancePolicy();
+//
+//				policy.setCoverageStartDate(new Date());
+//				policy.setExpirationDate(InsurancePolicyUtil.addYears(
+//						new Date(), 20));
+//				policy.setInsurance(InsuranceUtil.getInsuranceByConcept(Context
+//						.getConceptService().getConcept(
+//								BillingConstants.NONE_CONCEPT_ID)));// TODO: to be changed to GP...
+////				policy.setHasThirdPart(false);// Just added the default value of
+//												// THIRD PART
+//				policy.setOwner(patient);
+//
+//				InsurancePolicyUtil.createInsurancePolicy(policy);
+//			}
+//		}
 	}
 }

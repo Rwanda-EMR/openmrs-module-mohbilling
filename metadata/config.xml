@@ -20,8 +20,8 @@
 	-->
 	<!-- /Base Module Properties -->
 
-	<!-- <require_version>1.6.2.12911</require_version>  -->
-	<require_version>1.6.1.12909</require_version>
+	 <require_version>1.6.2.12911</require_version>  
+	 <!-- <require_version>1.6.1.12909</require_version> -->
 
 	<!-- Extensions -->
 	<extension>

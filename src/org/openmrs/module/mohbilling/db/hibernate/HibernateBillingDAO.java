@@ -1044,8 +1044,9 @@ public class HibernateBillingDAO implements BillingDAO {
 		List<Object[]> basePharmacyItems = getPharmacyBaseBillableServices(insurance);
 		
 		//retrieve billables(acts) from RAMA and add them on new insurance
+		BillableService newBS = null;
 		for (Object[] b : baseBillableServices) {
-			BillableService newBS = new BillableService();
+			newBS = new BillableService();
 			newBS.setInsurance(Context.getService(BillingService.class).getInsurance((Integer)b[0]));
 			newBS.setMaximaToPay((BigDecimal)b[1]);
 			newBS.setStartDate((Date)b[2]);
@@ -1061,8 +1062,9 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 		
 		//retrieve billables(Pharmacy items) from RAMA and add them on new insurance
+		//BillableService newBS = null;
 		for (Object[] b : basePharmacyItems) {
-			BillableService newBS = new BillableService();
+			newBS = new BillableService();
 			newBS.setInsurance(Context.getService(BillingService.class).getInsurance((Integer)b[0]));
 			newBS.setMaximaToPay((BigDecimal)b[1]);
 			newBS.setStartDate((Date)b[2]);
@@ -1102,10 +1104,6 @@ public class HibernateBillingDAO implements BillingDAO {
 		
 		SQLQuery query = session.createSQLQuery(bui.toString());
 		List<Object[]> ob = query.list();
-		
-//		for (Object[] b : ob) {
-//			log.info("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu "+b);
-//		}
 		
 		return ob;
 	}
