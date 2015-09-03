@@ -20,7 +20,7 @@
 
 <openmrs:htmlInclude file="/moduleResources/mohbilling/demo_table.css" /> 
 
-<openmrs:htmlInclude file="/moduleResources/drugorderexport/jquery.js" />  
+<openmrs:htmlInclude file="/moduleResources/mohbilling/jquery.js" />  
 
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();
@@ -52,21 +52,36 @@ var $t = jQuery.noConflict();
 </h2>
 
 <ul id="menu">
+        <openmrs:hasPrivilege privilege="Billing Reports - View Find Bills">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
 			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort"/></a>
 		</li>
+		</openmrs:hasPrivilege>
+		
+		<openmrs:hasPrivilege privilege="Billing Reports - View Payments">
 	    <li>
 			<a href="received.form"><spring:message code="@MODULE_ID@.billing.received"/></a>
 		</li>
+		</openmrs:hasPrivilege>
+		
+		 <openmrs:hasPrivilege privilege="Billing Reports - View Revenue">
 		 <li>
 			<a href="recettes.form"><spring:message code="@MODULE_ID@.billing.revenue"/></a>
 		</li>
+		</openmrs:hasPrivilege>
+		
+		 <openmrs:hasPrivilege privilege="Billing Reports - View Invoice">
 		<li>
 			<a href="invoice.form"><spring:message code="@MODULE_ID@.billing.invoice"/></a>
 		</li>
-		<li>
+		</openmrs:hasPrivilege>
+		
+		 <openmrs:hasPrivilege privilege="Billing Reports - View Releve">
+		<li class="<c:if test='<%= request.getRequestURI().contains("Facture")%>'>active</c:if>">
 			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
 		</li>
+		</openmrs:hasPrivilege>
+		
 		<!-- 
 		<li>
 			<a href="hmisReport.form">HMIS Reports</a>
