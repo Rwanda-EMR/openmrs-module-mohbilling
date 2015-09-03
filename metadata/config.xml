@@ -261,7 +261,27 @@
         <name>Patient Dashboard - View Billing Section</name>
         <description>Allows users to view Billing Section on Patient Dashboard</description>
     </privilege>
-    
+
+    <privilege>
+        <name>Billing Reports - View Find Bills</name>
+        <description>Allows users to view Find Bills Report</description>
+    </privilege>
+    <privilege>
+        <name>Billing Reports - View Payments</name>
+        <description>Allows users to view Payments Report</description>
+    </privilege>
+    <privilege>
+        <name>Billing Reports - View Revenue</name>
+        <description>Allows users to view Revenue Report</description>
+    </privilege>
+    <privilege>
+        <name>Billing Reports - View Invoice</name>
+        <description>Allows users to view Invoice Report</description>
+    </privilege>
+    <privilege>
+        <name>Billing Reports - View Releve</name>
+        <description>Allows users to view Releve Report</description>
+    </privilege>
   
 	<!-- Internationalization -->
 	<!-- All message codes should start with @MODULE_ID@.* -->

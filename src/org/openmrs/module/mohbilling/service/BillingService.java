@@ -419,4 +419,10 @@ public interface BillingService {
 	public List<Object[]> getBaseBillableServices(Insurance i);
 
 	public List<Object[]> getPharmacyBaseBillableServices(Insurance i);
+	
+	/**
+	 * get bills with problems
+	 * @return
+	 */
+	public List<PatientBill> getPendingBill();
 }

@@ -1100,7 +1100,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		bui.append(" WHERE fsp.category not in ('MEDICAMENTS', 'CONSOMMABLES') and i.insurance_id in("+i.getInsuranceId()+")");
 
 		
-		log.info("ssssssssssssssssssssssss "+bui.toString());
+//		log.info("ssssssssssssssssssssssss "+bui.toString());
 		
 		SQLQuery query = session.createSQLQuery(bui.toString());
 		List<Object[]> ob = query.list();
@@ -1120,12 +1120,19 @@ public class HibernateBillingDAO implements BillingDAO {
 		bui.append(" inner join moh_bill_insurance i on sc.insurance_id = i.insurance_id");
 		bui.append(" WHERE fsp.category in ('MEDICAMENTS', 'CONSOMMABLES') and i.insurance_id in("+i.getInsuranceId()+")");
 
-		log.info("ssssssssssssssssssssssss "+bui.toString());
+//		log.info("ssssssssssssssssssssssss "+bui.toString());
 		
 		SQLQuery query = session.createSQLQuery(bui.toString());
 		List<Object[]> ob = query.list();
 		
 		return ob;
+	}
+
+	@Override
+	public List<PatientBill> getPendingBill() {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientBill.class).add(Restrictions.in("status", new String[]{"UNPAID","PARTLY PAID"}));
+//		Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientBill.class).add(Restrictions.eq("status", "UNPAID"));
+		return crit.list();
 	}
 
 	

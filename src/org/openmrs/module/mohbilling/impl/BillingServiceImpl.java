@@ -487,5 +487,10 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getPharmacyBaseBillableServices(i);
 	}
 
+	@Override
+	public List<PatientBill> getPendingBill() {
+		return billingDAO.getPendingBill();
+	}
+
 
 }

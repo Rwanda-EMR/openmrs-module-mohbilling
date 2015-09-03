@@ -26,6 +26,7 @@ import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -119,7 +120,7 @@ public class MohBillingCohortBuilderFormController extends
 
 			reportedPatientBills = ReportsUtil.billCohortBuilder(insurance,	startDate, endDate, patientId, null, billStatus, billCreator);
 			
-			log.info("chubbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "+reportedPatientBills.size());
+//			log.info("chubbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb "+reportedPatientBills.size());
 
 			mav.addObject("startDateStr", startDateStr);
 			mav.addObject("endDateStr", endDateStr);
@@ -214,7 +215,7 @@ public class MohBillingCohortBuilderFormController extends
 			if (request.getParameter("print") != null)
 				if (request.getParameter("print").equals("true")) {
 
-					log.info("00000000000000000000 Reaching there!!");
+//					log.info("00000000000000000000 Reaching there!!");
 					if (request.getParameter("reportedPatientBills") != null) {
 						// reportedPatientBills =
 						// request.getParameter("reportedPatientBills");
@@ -225,7 +226,21 @@ public class MohBillingCohortBuilderFormController extends
 				}
 
 		}
-
+		
+		// display all bills to think about on
+		List<PatientBill> pendingBills = null;
+		pendingBills = Context.getService(BillingService.class).getPendingBill();
+		int alertSize  = (pendingBills == null) ? 0 : pendingBills.size();
+		
+//		if(request.getParameter("clicked").equals("true")){
+//		log.info("hllllllllllllllllllllllllll "+request.getParameter("clicked"));
+//		}
+		
+		mav.addObject("pendingBills", pendingBills);
+		mav.addObject("alertSize", alertSize);
+		
+		
+		
 		mav.setViewName(getViewName());
 
 		return mav;

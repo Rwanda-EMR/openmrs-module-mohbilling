@@ -181,6 +181,7 @@ public class MohBillingInsuranceInvoiceController extends
 						fexp.exportToPDF(request, response,patientInvoice,invoiceOwner,"Details des soins recus");
 				    }
 		mav.setViewName(getViewName());
+		mav.addObject("msg", "Warning:Dates and Patients are required!!!! ");
 
 		return mav;
 

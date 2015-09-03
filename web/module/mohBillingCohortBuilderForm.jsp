@@ -4,7 +4,14 @@
 <openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 <openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery.PrintArea.js" />	
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
+
+<openmrs:htmlInclude file="/moduleResources/mohbilling/pop_style.css" /> 
+
+<openmrs:htmlInclude file="/moduleResources/mohbilling/pop_script.js" />  
+
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <script type="text/javascript" language="JavaScript">
@@ -22,24 +29,57 @@
 	
 </script>
 
+<script type="text/javascript">
+var $t = jQuery.noConflict();
+function toggleDiv(divId) {
+	   $t("#"+divId).toggle();
+	}
+</script>
+
+<link media="screen" rel="stylesheet" href="colorbox.css" />
+<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+<script src="jquery.colorbox-min.js" type="text/javascript"></script>
+ 
+<script type="text/javascript">
+    $(function()
+    {
+        $('#link_content').colorbox({opacity:0.3});
+    });
+</script>
+
+
 <h2><spring:message code="@MODULE_ID@.billing.report"/></h2>
 
 <ul id="menu">
+        <openmrs:hasPrivilege privilege="Billing Reports - View Find Bills">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
 			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort"/></a>
 		</li>
+		</openmrs:hasPrivilege>
+		
+		<openmrs:hasPrivilege privilege="Billing Reports - View Payments">
 	    <li>
 			<a href="received.form"><spring:message code="@MODULE_ID@.billing.received"/></a>
 		</li>
+		</openmrs:hasPrivilege>
+		
+		 <openmrs:hasPrivilege privilege="Billing Reports - View Revenue">
 		 <li>
 			<a href="recettes.form"><spring:message code="@MODULE_ID@.billing.revenue"/></a>
 		</li>
+		</openmrs:hasPrivilege>
+		
+		 <openmrs:hasPrivilege privilege="Billing Reports - View Invoice">
 		<li>
 			<a href="invoice.form"><spring:message code="@MODULE_ID@.billing.invoice"/></a>
 		</li>
+		</openmrs:hasPrivilege>
+		
+		 <openmrs:hasPrivilege privilege="Billing Reports - View Releve">
 		<li>
 			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
 		</li>
+		</openmrs:hasPrivilege>
 		
 		<!-- 
 		<li>
@@ -71,6 +111,10 @@
 		</td>
 		<td>Bill Creator :</td>
 		<td><openmrs_tag:userField formFieldName="billCreator" initialValue="${billCreator}"/></td>
+		
+		<td></td><td></td><td></td><td></td><td><td></td></td><td></td>
+		<td><a class="topopup" id="alert" style="color: red" href="javascript:toggleDiv('myContent');" style="background-color: #ccc; padding: 5px 10px;"><strong>Alert(${alertSize})</strong></a></td>
+
 	</tr>
 
 	<tr>
@@ -118,6 +162,7 @@
 				</c:forEach>
 			</select>
 		</td-->
+		
 	</tr>
 
 </table>
@@ -240,6 +285,35 @@
 
 </div> 
 </c:if>
+
+
+<div id="toPopup">
+    <div class="close"></div>
+        <span class="ecs_tooltip">Press Esc to close <span class="arrow"></span></span>
+<div id="popup_content">
+<h3>Alert:UNPAID and PARTLY PAID bills</h3>
+ <table>
+ <tr>
+ <td>No</td>
+ <td>Date</td>
+ <td>Beneficiary</td>
+ <td>View</td>
+ </tr>
+  <c:forEach items="${pendingBills}" var="bill" varStatus="status">
+   <c:set var="patient" value="${bill.beneficiary.patient}" />
+  <tr>
+   <td>${status.count}</td>
+   <td><fmt:formatDate pattern="yyyy-MM-dd" value="${bill.createdDate}" /></td>
+   <td>${patient.familyName} ${patient.givenName}</td>
+   <td><a>View</a></td>
+  </tr>
+   </c:forEach>
+   </table>
+</div>
+</div> <!--toPopup end-->
+    
+    <div class="loader"></div>
+    <div id="backgroundPopup"></div>
 
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
