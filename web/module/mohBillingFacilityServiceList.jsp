@@ -17,14 +17,14 @@
 	<table width="99%">
 		<tr>
 			<th class="columnHeader"></th>
-			<th class="columnHeader">Name</td>
-			<th class="columnHeader">Category</td>
-			<th class="columnHeader">Description</td>
-			<th class="columnHeader">Related Concept</td>
-			<th class="columnHeader">Full Price</td>
+			<th class="columnHeader">Name</th>
+			<th class="columnHeader">Category</th>
+			<th class="columnHeader">Description</th>
+			<th class="columnHeader">Related Concept</th>
+			<th class="columnHeader">Full Price</th>
 			<!-- <th class="columnHeader">Start Date</td>-->
 			<!-- <th class="columnHeader">Location</td>-->
-			<th class="columnHeader"></td>
+			<th class="columnHeader"></th>
 		</tr>
 		<c:if test="${empty facilityServices}"><tr><td colspan="9"><center>No Facility Services found !</center></td></tr></c:if>
 		<c:forEach items="${facilityServices}" var="facilityService" varStatus="status">

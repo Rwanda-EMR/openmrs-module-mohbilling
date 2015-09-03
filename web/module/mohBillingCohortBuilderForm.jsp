@@ -5,13 +5,19 @@
 <openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery.PrintArea.js" />	
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 
-<openmrs:htmlInclude file="/moduleResources/mohbilling/pop_style.css" /> 
-
-<openmrs:htmlInclude file="/moduleResources/mohbilling/pop_script.js" />  
-
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<openmrs:htmlInclude file="/moduleResources/mohbilling/jquery.dataTables.js" />  
+
+<openmrs:htmlInclude file="/moduleResources/mohbilling/demo_page.css" />  
+
+<openmrs:htmlInclude file="/moduleResources/mohbilling/demo_table.css" /> 
+
+<!-- script to create a pop up windows for unpaid bills -->
+<openmrs:htmlInclude file="/moduleResources/mohbilling/pop_style.css" /> 
+<openmrs:htmlInclude file="/moduleResources/mohbilling/pop_script.js" />  
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <script type="text/javascript" language="JavaScript">
@@ -29,23 +35,6 @@
 	
 </script>
 
-<script type="text/javascript">
-var $t = jQuery.noConflict();
-function toggleDiv(divId) {
-	   $t("#"+divId).toggle();
-	}
-</script>
-
-<link media="screen" rel="stylesheet" href="colorbox.css" />
-<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
-<script src="jquery.colorbox-min.js" type="text/javascript"></script>
- 
-<script type="text/javascript">
-    $(function()
-    {
-        $('#link_content').colorbox({opacity:0.3});
-    });
-</script>
 
 
 <h2><spring:message code="@MODULE_ID@.billing.report"/></h2>
@@ -112,8 +101,8 @@ function toggleDiv(divId) {
 		<td>Bill Creator :</td>
 		<td><openmrs_tag:userField formFieldName="billCreator" initialValue="${billCreator}"/></td>
 		
-		<td></td><td></td><td></td><td></td><td><td></td></td><td></td>
-		<td><a class="topopup" id="alert" style="color: red" href="javascript:toggleDiv('myContent');" style="background-color: #ccc; padding: 5px 10px;"><strong>Alert(${alertSize})</strong></a></td>
+		<td></td><td></td><td></td><td></td><td><td></td><td></td>
+		<td><a class="topopup" id="alert" style="color: red" href="javascript:toggleDiv('myContent');" style="background-color: #ccc; padding: 5px 10px;"><strong>Alerts(${alertSize})</strong></a></td>
 
 	</tr>
 
@@ -287,33 +276,33 @@ function toggleDiv(divId) {
 </c:if>
 
 
-<div id="toPopup">
-    <div class="close"></div>
-        <span class="ecs_tooltip">Press Esc to close <span class="arrow"></span></span>
+
+<div id="toPopup" style="background-color: #aabbcc">
+<div class="close"></div>
+<span class="ecs_tooltip">Press Esc to close <span class="arrow"></span></span>
 <div id="popup_content">
-<h3>Alert:UNPAID and PARTLY PAID bills</h3>
+<h4 style="color: red">UNPAID and PARTLY PAID bills</h4>
  <table>
  <tr>
- <td>No</td>
- <td>Date</td>
- <td>Beneficiary</td>
- <td>View</td>
+ <th>No</th>
+ <th>Date</th>
+ <th>Beneficiary</th>
+ <th></th>
  </tr>
   <c:forEach items="${pendingBills}" var="bill" varStatus="status">
    <c:set var="patient" value="${bill.beneficiary.patient}" />
   <tr>
-   <td>${status.count}</td>
-   <td><fmt:formatDate pattern="yyyy-MM-dd" value="${bill.createdDate}" /></td>
-   <td>${patient.familyName} ${patient.givenName}</td>
-   <td><a>View</a></td>
+   <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
+   <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd" value="${bill.createdDate}" /></td>
+   <td class="rowValue ${(status.count%2!=0)?'even':''}">${patient.familyName} ${patient.givenName}</td>
+   <td class="rowValue ${(status.count%2!=0)?'even':''}"><a>View</a></td>
   </tr>
    </c:forEach>
    </table>
 </div>
 </div> <!--toPopup end-->
-    
-    <div class="loader"></div>
-    <div id="backgroundPopup"></div>
+<div class="loader"></div>
+<div id="backgroundPopup"></div>
 
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
