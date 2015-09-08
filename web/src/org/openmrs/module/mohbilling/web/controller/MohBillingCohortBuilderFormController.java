@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,6 +24,7 @@ import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
+import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -231,16 +233,32 @@ public class MohBillingCohortBuilderFormController extends
 		List<PatientBill> pendingBills = null;
 		pendingBills = Context.getService(BillingService.class).getPendingBill();
 		int alertSize  = (pendingBills == null) ? 0 : pendingBills.size();
-		
-//		if(request.getParameter("clicked").equals("true")){
-//		log.info("hllllllllllllllllllllllllll "+request.getParameter("clicked"));
-//		}
-		
+
 		mav.addObject("pendingBills", pendingBills);
 		mav.addObject("alertSize", alertSize);
 		
-		
-		
+		//calculate the due
+	    // minus the paid amount
+		// the rest will the total unpaid
+
+		Double totalUnpaid = 0.0;
+		Double totalDueAmount = 0.0;
+		Double totalPaid = 0.0;
+		for (PatientBill pb : pendingBills) {
+			double patRate = 100-(pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate());
+			
+			totalDueAmount+=(pb.getAmount().doubleValue())*patRate;
+//			for (BillPayment pay : pb.getPayments()) {
+//				totalPaid+=pay.getAmountPaid().doubleValue();
+//			}
+			totalPaid = pb.getAmountPaid().doubleValue();
+			log.info("patidddddddddddiiiiiiiiiiiiiiiii "+pb.getPatientBillId()+"due---"+pb.getAmount()+"paid----"+pb.getAmountPaid());
+			totalUnpaid+=totalDueAmount-pb.getAmountPaid().doubleValue();
+		}
+		log.info("totalDueeeeeeeeeeeeeeeeee "+totalDueAmount);
+		log.info("totalPaiddddddddddddddddddd "+totalPaid);
+//		totalUnpaid = totalDueAmount - totalPaid;
+		mav.addObject("totalUnpaid", totalUnpaid);
 		mav.setViewName(getViewName());
 
 		return mav;

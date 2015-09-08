@@ -9,11 +9,6 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
-<openmrs:htmlInclude file="/moduleResources/mohbilling/jquery.dataTables.js" />  
-
-<openmrs:htmlInclude file="/moduleResources/mohbilling/demo_page.css" />  
-
-<openmrs:htmlInclude file="/moduleResources/mohbilling/demo_table.css" /> 
 
 <!-- script to create a pop up windows for unpaid bills -->
 <openmrs:htmlInclude file="/moduleResources/mohbilling/pop_style.css" /> 
@@ -281,13 +276,13 @@
 <div class="close"></div>
 <span class="ecs_tooltip">Press Esc to close <span class="arrow"></span></span>
 <div id="popup_content">
-<h4 style="color: red">UNPAID and PARTLY PAID bills</h4>
+<h4 style="color: red">Total:${totalUnpaid}</h4>
  <table>
  <tr>
- <th>No</th>
- <th>Date</th>
- <th>Beneficiary</th>
- <th></th>
+ <td>No</td>
+ <td>Date</td>
+ <td>Beneficiary</td>
+ <td></td>
  </tr>
   <c:forEach items="${pendingBills}" var="bill" varStatus="status">
    <c:set var="patient" value="${bill.beneficiary.patient}" />
@@ -295,7 +290,7 @@
    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
    <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd" value="${bill.createdDate}" /></td>
    <td class="rowValue ${(status.count%2!=0)?'even':''}">${patient.familyName} ${patient.givenName}</td>
-   <td class="rowValue ${(status.count%2!=0)?'even':''}"><a>View</a></td>
+   <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="cohort.form?id=${bill.patientBillId }">View</a></td>
   </tr>
    </c:forEach>
    </table>
