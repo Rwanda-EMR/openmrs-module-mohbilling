@@ -31,6 +31,7 @@ import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
+import com.itextpdf.text.ExceptionConverter;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
@@ -40,11 +41,14 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.FontSelector;
+import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPCellEvent;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.RadioCheckField;
 
 /**
  * @author Yves GAKUBA
@@ -225,7 +229,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			patientRate = 100 - (pb.getBeneficiary().getInsurancePolicy().getInsurance()
 					.getCurrentRate().getRate());
 		
-			cell = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
+			cell = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+ReportsUtil.roundTwoDecimals(serviceCost*patientRate/100)+"\n"));
 			cell.setBorder(Rectangle.NO_BORDER);
 			serviceTb.addCell(cell);
 
@@ -248,7 +252,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			PdfPCell c = new PdfPCell(fontTitleSelector.process(""));
 			for (PatientServiceBill psb : services) {
 				Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
-				c = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
+				c = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+serviceCost*patientRate/100+"\n"));
 				
 			}
 			evenItemsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
@@ -290,6 +294,13 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			
 			document.add(serviceTotPat);
 		
+			PdfPTable cashierTab = new PdfPTable(1);
+			cashierTab.setWidthPercentage(100f); 
+			c1 = new PdfPCell(fontTitleSelector.process("Name and Signature of Cashier\n"
+					+ Context.getAuthenticatedUser().getPersonName()));
+			c1.setBorder(Rectangle.NO_BORDER);
+			cashierTab.addCell(c1);
+			document.add(cashierTab);
 		
 		document.add(new Paragraph(".....................................................................................................................................................\n"));
 		//document.add(new Paragraph("\n"));
@@ -298,7 +309,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		
 /** -------------  print insurance part -----------------------------------------------*/
 		
-	/** ------------- Report title ------------- */
+/** ------------- Report title ------------- */
 //		chk = new Chunk("Printed on : "
 //				+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
 //		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
@@ -307,62 +318,172 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 //		todayDate1.add(chk);
 //		document.add(todayDate1);
 
-        
-		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
-		
-		/** I would like a LOGO here!!! */
-		Image image1 = Image.getInstance(Context.getAdministrationService()
-				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
-		image1.scaleToFit(90, 90);
-		
-		document.add(image1);
-		document.add(fontTitle.process(Context.getAdministrationService()
+		float[] colsWidt2 = { 70f, 30f};
+		PdfPTable headingsTab = new PdfPTable(colsWidt2);
+		headingsTab.setWidthPercentage(100);
+		PdfPCell head = new PdfPCell(fontTitleSelector.process("RWANDA SOCIAL SECURITY BOARD(RSSB)\n"));
+		head.setBorder(Rectangle.NO_BORDER);
+		headingsTab.addCell(head);
+		head = new PdfPCell(fontTitleSelector.process(Context.getAdministrationService()
 				.getGlobalProperty(
 						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)
 				+ "\n"));
-		document.add(fontTitle
-				.process(Context
-						.getAdministrationService()
-						.getGlobalProperty(
-								BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)
-						+ "\n"));
-		document.add(fontTitle
-				.process(Context
-						.getAdministrationService()
-						.getGlobalProperty(
-								BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE)
-						+ "\n"));
-		document.add(fontTitle.process(Context.getAdministrationService()
+		head.setBorder(Rectangle.NO_BORDER);
+		headingsTab.addCell(head);
+		head = new PdfPCell(fontTitleSelector.process("Community Based Health Insurance(CBHI)\n"));
+		head.setBorder(Rectangle.NO_BORDER);
+		headingsTab.addCell(head);
+		head = new PdfPCell(fontTitleSelector.process(Context
+				.getAdministrationService()
+				.getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)
+				+ "\n"));
+		head.setBorder(Rectangle.NO_BORDER);
+		headingsTab.addCell(head);
+		head = new PdfPCell(fontTitleSelector.process("Tel:+250 252 598 400\n"));
+		head.setBorder(Rectangle.NO_BORDER);
+		headingsTab.addCell(head);
+		head = new PdfPCell(fontTitleSelector.process(Context
+				.getAdministrationService()
+				.getGlobalProperty(
+						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE)
+				+ "\n"));
+		head.setBorder(Rectangle.NO_BORDER);
+		headingsTab.addCell(head);
+		head = new PdfPCell(fontTitleSelector.process("Fax:+250 252 584 225\n"));
+		head.setBorder(Rectangle.NO_BORDER);
+		headingsTab.addCell(head);
+		head = new PdfPCell(fontTitleSelector.process(Context.getAdministrationService()
 				.getGlobalProperty(
 						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)
 				+ "\n"));
+		head.setBorder(Rectangle.NO_BORDER);
+		headingsTab.addCell(head);
+		document.add(headingsTab);
+        
+
 		
 		/** ------------- End Report title ------------- */
 
-		Chunk chk = new Chunk("FACTURES DES PRESTATIONS DES SOINS DE SANTE");
+		Chunk chk = new Chunk("HEALTH CARE'S INVOICE/FACTURE POUR SOINS DE SANTE No..."+pb.getPatientBillId()+"\n\n");
 		chk.setFont(new Font(FontFamily.COURIER, 10, Font.NORMAL));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph par = new Paragraph();
 		par.add(chk);
 		par.setAlignment(Element.ALIGN_CENTER);
 		document.add(par);
-		// Table of bill items;
+		
+		float[] colsWidt3 = { 45f, 45f,4f};
+		PdfPTable heading2Tab = new PdfPTable(colsWidt3);
+		heading2Tab.setWidthPercentage(100f);
+		PdfPCell head2 = new PdfPCell(fontTitleSelector.process("PROVINCE:......................\n\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("NATURAL DESEASE/MALADIE NATURELLE\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("\n"));
+		//head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("ADMINISTRATIVE DISTRICT/DISTRICT ADMINISTRATIF:.................\n\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("PROFESSIONAL DISEASE/MALADIE PROFESSIONNELLE:\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("\n"));
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("SECTOR/SECTEUR.................\n\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("WORK ACCIDENT/ACCIDENT DE TRAVAIL\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("\n"));
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("ROAD TRAFIC ACCIDENT/ACCIDENT DE CIRCULATION\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("\n"));
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("OTHER/AUTRE\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+		
+		head2 = new PdfPCell(fontTitleSelector.process("\n"));
+		heading2Tab.addCell(head2);
+		
+		document.add(heading2Tab);
+		
+		Paragraph header = new Paragraph();
+		header.add(new Paragraph("Name(s) of Head of Household/Nom(s) du Chef de menage...............................", catFont));
+		addEmptyLine(header, 0);
+		header.add(new Paragraph("ID Card/Carte ID No.......................", catFont));
+		addEmptyLine(header, 0);
+		header.add(new Paragraph("Category/Categorie: ", catFont));
+		addEmptyLine(header, 0);
+		document.add(header);
+
+		 // We create a table of ubudehe categories
+        PdfPTable tableCateg = new PdfPTable(6);
+        PdfPCell cellCateg;
+        // We add 5 cells
+        for (int i = 1; i < 7; i++) {
+        	cellCateg = new PdfPCell(fontTitleSelector.process(""+i));
+        	cellCateg.setBorder(Rectangle.NO_BORDER);
+        	cellCateg.setCellEvent(new CheckboxCellEvent("cb" + i));
+            // We create cell with height 50
+        	cellCateg.setMinimumHeight(30);
+        	tableCateg.addCell(cellCateg);
+        }
+        document.add(tableCateg);
+		
+		
+		Paragraph header1 = new Paragraph();
+		header1.add(new Paragraph("Beneficiary's Affiliation No/Numero d'Affiliation du Beneficiaire:.... "+pb.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()+"...", catFont));
+		addEmptyLine(header1, 0);
+		
+		header1.add(new Paragraph("Beneficiary Name/Nom du Beneficiaire des soins:... "+pb.getBeneficiary().getPatient().getPersonName()+"...", catFont));
+		addEmptyLine(header1, 0);
+
+		document.add(header1);
+		
+		document.add(new Paragraph("\n"));
+
+		chk = new Chunk("DETAILS OF MEDICAL CARE RECEIVED/DETAILS DE SOINS RECUS\n\n");
+		chk.setFont(new Font(FontFamily.COURIER, 10, Font.NORMAL));
+		chk.setUnderline(0.2f, -2f);
+		Paragraph par1 = new Paragraph();
+		par1.add(chk);
+		par1.setAlignment(Element.ALIGN_CENTER);
+		document.add(par1);
+		
 		float[] colsWidth1 = { 3f, 14f, 2f, 2f, 2f};
 		table = new PdfPTable(colsWidth1);
 		table.setWidthPercentage(100f);
 		
-		Paragraph header = new Paragraph();
-		header.add(new Paragraph("Patient No : "+pb.getBeneficiary().getPatient().getIdentifiers(), catFont));
-		addEmptyLine(header, 0);
-		header.add(new Paragraph("No de la carte : "+pb.getBeneficiary().getInsurancePolicy().getInsuranceCardNo(), catFont));
-		addEmptyLine(header, 0);
-		header.add(new Paragraph("Names : "+pb.getBeneficiary().getPatient().getPersonName(), catFont));
-		addEmptyLine(header, 0);
-		document.add(header);
-		
-		document.add(new Paragraph("\n"));
-		
-		// table Header
+//		cell = new PdfPCell(fontTitleSelector.process(""));
+//		table.addCell(cell);
+//		// table Header
 		cell = new PdfPCell();
 		cell = new PdfPCell(fontTitleSelector.process("Recording date"));
 		cell.setBackgroundColor(bckGroundTitle);
@@ -503,28 +624,47 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		table.addCell(cell);
 		
 		document.add(table);
+		
+		//[[]]
 		//end >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> print insurance part
 		
 
 		document.add(new Paragraph("\n\n"));
+		chk = new Chunk("Date : "	+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
+		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
+		Paragraph todayDate1 = new Paragraph();
+		todayDate1.setAlignment(Element.ALIGN_RIGHT);
+		todayDate1.add(chk);
+		document.add(todayDate1);
 
 		// Table of signatures;
-		table = new PdfPTable(3);
+		table = new PdfPTable(2);
 		table.setWidthPercentage(100f);
-
-		cell = new PdfPCell(
-				fontTitleSelector.process("Signature du Patient :\n"
-						+ pb.getBeneficiary().getPatient().getPersonName()));
-		cell.setBorder(Rectangle.NO_BORDER);
-		table.addCell(cell); 
 		
-		cell = new PdfPCell(fontTitleSelector.process("Signature du Prestataire \n"));
+		cell = new PdfPCell(fontTitleSelector.process("Doctor's or Nurse's Name(s) & Signature \n\n............."));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 
 		cell = new PdfPCell(
-				fontTitleSelector.process("Noms et Signature du Caissier\n"
-						+ Context.getAuthenticatedUser().getPersonName()));
+				fontTitleSelector.process("Beneficiary Name :"
+						+ pb.getBeneficiary().getPatient().getPersonName()+"\n\n.............\n"));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell); 
+		
+
+//		cell = new PdfPCell(
+//				fontTitleSelector.process("Name et Signature of Cashier\n"
+//						+ Context.getAuthenticatedUser().getPersonName()));
+//		cell.setBorder(Rectangle.NO_BORDER);
+//		table.addCell(cell);
+		
+		cell = new PdfPCell(
+				fontTitleSelector.process("Approval Head of HF + Stamp\n\n................"));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+		
+		cell = new PdfPCell(
+				fontTitleSelector.process("District's Approval\n\n............."));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 
@@ -790,4 +930,38 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 	        paragraph.add(new Paragraph(" "));
 	      }
 	    }
+	  private static void invoiceHeadings() {
+	      
+	    }
+}
+
+
+class CheckboxCellEvent implements PdfPCellEvent {
+    // The name of the check box field
+    protected String name;
+    // We create a cell event
+    public CheckboxCellEvent(String name) {
+        this.name = name;
+    }
+    // We create and add the check box field
+    @Override
+    public void cellLayout(PdfPCell cell, Rectangle position,
+        PdfContentByte[] canvases) {
+        PdfWriter writer = canvases[0].getPdfWriter(); 
+        // define the coordinates of the middle
+        float x = (position.getLeft() + position.getRight()) / 2;
+        float y = (position.getTop() + position.getBottom()) / 2;
+        // define the position of a check box that measures 20 by 20
+        Rectangle rect = new Rectangle(x - 10, y - 10, x + 10, y + 10);
+        // define the check box
+        RadioCheckField checkbox = new RadioCheckField(
+                writer, rect, name, "Yes");
+        // add the check box as a field
+        try {
+            writer.addAnnotation(checkbox.getCheckField());
+        } catch (Exception e) {
+            throw new ExceptionConverter(e);
+        }
+    }
+	
 }
