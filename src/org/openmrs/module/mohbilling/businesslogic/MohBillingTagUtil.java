@@ -7,10 +7,12 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 /**
@@ -69,8 +71,16 @@ public class MohBillingTagUtil {
 				Float insuranceRate = pb.getBeneficiary().getInsurancePolicy()
 						.getInsurance().getCurrentRate().getRate();
 				Float patientRate = (100f - insuranceRate) / 100f;
-				double amountDueByPatient = (pb.getAmount().doubleValue() * patientRate
-						.doubleValue());
+				
+				// mariam codes to make one print out (one bill with 1.Ticket Moderateur applied on services and 2.private things)
+				// in order to reduce number of papers and users switching pages
+				double amountDueByPatient = 0.0;
+				for (PatientServiceBill psb : pb.getBillItems()) {
+					Double cost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+					amountDueByPatient+=psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")?cost:cost*patientRate.doubleValue();
+				}
+//				double amountDueByPatient = (pb.getAmount().doubleValue() * patientRate
+//						.doubleValue());
 
 				for (BillPayment bp : pb.getPayments()) {
 					amountPaid = amountPaid + bp.getAmountPaid().doubleValue();
