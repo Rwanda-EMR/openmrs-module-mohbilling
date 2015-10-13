@@ -97,7 +97,7 @@
 		<td><openmrs_tag:userField formFieldName="billCreator" initialValue="${billCreator}"/></td>
 		
 		<td></td><td></td><td></td><td></td><td><td></td><td></td>
-		<td><a class="topopup" id="alert" style="color: red" href="javascript:toggleDiv('myContent');" style="background-color: #ccc; padding: 5px 10px;"><strong>Alerts(${alertSize})</strong></a></td>
+		<!-- <td><a class="topopup" id="alert" style="color: red" href="javascript:toggleDiv('myContent');" style="background-color: #ccc; padding: 5px 10px;"><strong>Alerts(${alertSize})</strong></a></td> -->
 
 	</tr>
 
