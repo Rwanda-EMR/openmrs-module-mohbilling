@@ -680,7 +680,7 @@ public class InsuranceUtil {
 		categories.add(Category.SOINS_INTENSIFS.getDescription());
 		categories.add(Category.STOMATOLOGIE.getDescription());
 		categories.add(Category.NEUROLOGIE.getDescription());
-		
+		categories.add(Category.AUTRES.getDescription());
 
 		return categories;
 	}
