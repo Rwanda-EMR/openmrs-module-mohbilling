@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.3</version>
+	<version>0.0.3.1</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -309,6 +309,7 @@
 		FacilityServicePrice.hbm.xml
 		Recovery.hbm.xml
 		ThirdParty.hbm.xml
+		Refund.hbm.xml
 	</mappingFiles>
 
 
