@@ -11,6 +11,9 @@
 	uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld"%>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();
 
@@ -346,12 +349,12 @@
     
 	</b></b>
 	<div class="box">
-		<table width="40%">
+		<table width="60%">
 
 			<tr>
 				<th class="columnHeader">No
 				</th>
-				<th class="columnHeader">Date
+				<th class="columnHeader">Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 				</th>
 				<th class="columnHeader">Patient
 				</th>
@@ -367,7 +370,7 @@
 				varStatus="status">
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.dateReceived}</td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd hh:mm" value="${payment.createdDate}" /></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.patientBill.beneficiary.patient.familyName}&nbsp;${payment.patientBill.beneficiary.patient.givenName}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.collector.person.familyName}&nbsp;${payment.collector.person.givenName}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.amountPaid}</td>
@@ -380,7 +383,7 @@
 				<td></td>
 				<td></td>
 				<td></td>
-				<td></h2></td>
+				<td></td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><h3>${TotalReceivedAmount}</h3></b></td>
 			</tr>
 		</table>
