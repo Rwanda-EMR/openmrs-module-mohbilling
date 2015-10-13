@@ -5,6 +5,7 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hsqldb.lib.HashSet;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
@@ -30,6 +32,7 @@ import org.springframework.web.servlet.mvc.AbstractController;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.ExceptionConverter;
 import com.itextpdf.text.Font;
@@ -57,6 +60,7 @@ import com.itextpdf.text.pdf.RadioCheckField;
 public class MohBillingPrintPatientBillController extends AbstractController {
 
 	private Log log = LogFactory.getLog(this.getClass());
+	
 	
 	/**
 	 * (non-Javadoc)
@@ -222,14 +226,16 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 //			totalToBePaidOnServiceByInsurance = 0.0;
 //			totalToBePaidOnServiceByPatient = 0.0;
 			
-			Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+			patientRate = 100 - (pb.getBeneficiary().getInsurancePolicy().getInsurance()
+					.getCurrentRate().getRate());
+			
+			Double serviceCost = !psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")?psb.getUnitPrice().doubleValue()*psb.getQuantity()*patientRate/100:psb.getUnitPrice().doubleValue()*psb.getQuantity();
 			totalToBePaidOnService+=serviceCost;
 
 			
-			patientRate = 100 - (pb.getBeneficiary().getInsurancePolicy().getInsurance()
-					.getCurrentRate().getRate());
-		
-			cell = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+psb.getQuantity()+" = "+ReportsUtil.roundTwoDecimals(serviceCost*patientRate/100)+"\n"));
+			Double unitPrice = !psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")?psb.getUnitPrice().doubleValue()*patientRate/100:psb.getUnitPrice().doubleValue();
+			
+			cell = new PdfPCell(fontTitleSelector.process(itemSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(unitPrice)+" x "+psb.getQuantity()+" = "+ReportsUtil.roundTwoDecimals(serviceCost)+"\n"));
 			cell.setBorder(Rectangle.NO_BORDER);
 			serviceTb.addCell(cell);
 
@@ -274,7 +280,8 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		}
 		
 			PdfPTable serviceTotPat = new PdfPTable(4);
-			PdfPCell c1 = new PdfPCell(boldFont.process("Due Amount: "+ReportsUtil.roundTwoDecimals(totalToBePaidByPatient)));
+//			PdfPCell c1 = new PdfPCell(boldFont.process("Due Amount: "+ReportsUtil.roundTwoDecimals(totalToBePaidByPatient)));
+			PdfPCell c1 = new PdfPCell(boldFont.process("Due Amount: "+ReportsUtil.roundTwoDecimals(totalToBePaidOnService)));
 			c1.setBorder(Rectangle.NO_BORDER); 
 			serviceTotPat.addCell(c1);
 			
@@ -283,9 +290,8 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			c1.setBorder(Rectangle.NO_BORDER); 
 			serviceTotPat.addCell(c1);
 			
-//			c1 = new PdfPCell(boldFont.process("Insurance: "+ReportsUtil.roundTwoDecimals(totalToBePaidByInsurance)));
 			c1 = new PdfPCell(boldFont.process(""));
-			c1.setBorder(Rectangle.NO_BORDER); 
+			c1.setBorder(Rectangle.NO_BORDER);
 			serviceTotPat.addCell(c1);
 			
 			c1 = new PdfPCell(boldFont.process("Rest: "+MohBillingTagUtil.getTotalAmountNotPaidByPatientBill(pb.getPatientBillId())));
@@ -303,21 +309,92 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			document.add(cashierTab);
 		
 		document.add(new Paragraph(".....................................................................................................................................................\n"));
-		//document.add(new Paragraph("\n"));
-		
-		
-		
-/** -------------  print insurance part -----------------------------------------------*/
-		
-/** ------------- Report title ------------- */
-//		chk = new Chunk("Printed on : "
-//				+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
-//		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
-//		Paragraph todayDate1 = new Paragraph();
-//		todayDate1.setAlignment(Element.ALIGN_RIGHT);
-//		todayDate1.add(chk);
-//		document.add(todayDate1);
 
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>print services to be paid at 100% >>>>>>>>>>>>>>>>>>>>>>>>>>
+		PdfPTable privateServicesTable = new PdfPTable(2);
+		float[] privColWidths = {30f,30f };
+		privateServicesTable.setWidths(privColWidths);
+		privateServicesTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+		privateServicesTable.setWidthPercentage(100f);
+
+		PdfPCell privCell = new PdfPCell(new Paragraph(rwanda,catFont));       
+		privCell = new PdfPCell(new Paragraph(topLeftMsg,catFont));
+		privCell.setBorder(Rectangle.NO_BORDER);
+		privateServicesTable.addCell(privCell);
+		         
+		String topRightMsgPrivServices = "Printed on : "+(new SimpleDateFormat("dd-MMM-yyyy").format(new Date()))+"\n\n"
+				+"Facture No:"+pb.getPatientBillId()+"\n"+patientDetails;	
+		privCell = new PdfPCell(new Paragraph(topRightMsgPrivServices,catFont)); 
+	    privCell.setBorder(Rectangle.NO_BORDER);
+		privateServicesTable.addCell(privCell);
+
+		privCell = new PdfPCell();
+	    privCell.addElement(new Chunk(image, 20, -20));
+		privateServicesTable.addCell(privCell);      
+
+//		document.add(privateServicesTable);
+
+		PdfPTable privateItemsTable = new PdfPTable(2);
+		float[] width = {30f,30f };
+		privateItemsTable.setWidths(width);
+		privateItemsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+		privateItemsTable.setWidthPercentage(100f);
+				
+		Double totalPrivServices = 0.0;
+		
+		//display private to be paid 100%, items with odd indexes
+		int privItemsSize = 0;
+		List<PatientServiceBill> privItems = new ArrayList<PatientServiceBill>();
+		PdfPCell c = new PdfPCell(fontTitleSelector.process(""));
+		for (PatientServiceBill psb : pb.getBillItems()) {
+			  if(psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")){
+				privItems.add(psb);
+				privItemsSize++;
+				
+				 Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+				 c = new PdfPCell(fontTitleSelector.process(privItemsSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue())+" x "+psb.getQuantity()+" = "+serviceCost+"\n"));
+				 c.setBorder(Rectangle.NO_BORDER);
+				 privateItemsTable.addCell(c);
+				
+				 totalPrivServices+=serviceCost;
+			  }
+	    }
+		 if(privItems.size()!=0)
+		 document.add(privateServicesTable);
+		 document.add(privateItemsTable);
+		 
+		//THESE CODES TO FIX: if items are even/impaire the last was not viewed
+		 PdfPTable evenItemsTable1 = new PdfPTable(1);
+			if(privItems.size()==privItemsSize && privItemsSize%2==1){
+				PdfPCell c11 = new PdfPCell(fontTitleSelector.process(""));
+				for (PatientServiceBill psb : privItems) {
+					Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+					c11 = new PdfPCell(fontTitleSelector.process(privItemsSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue())+" x "+psb.getQuantity()+" = "+serviceCost+"\n"));
+				}
+				evenItemsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+				c11.setBorder(Rectangle.NO_BORDER);
+				evenItemsTable1.addCell(c11);
+			}
+			document.add(evenItemsTable1);
+				
+		PdfPTable patientSignTable = new PdfPTable(2);
+		patientSignTable.setWidthPercentage(100f); 
+		cell = new PdfPCell(
+					boldFont.process("Total Services @100%:"
+								+totalPrivServices ));
+				cell.setBorder(Rectangle.NO_BORDER);
+				patientSignTable.addCell(cell); 
+				cell = new PdfPCell(
+						boldFont.process("Client Name/Sign.:"
+								+ pb.getBeneficiary().getPatient().getPersonName()+"............."));
+				cell.setBorder(Rectangle.NO_BORDER);
+				patientSignTable.addCell(cell); 
+				if(privItems.size()!=0){
+				document.add(patientSignTable);
+		// >>>>>>>>>>>>>>>>>>>>>>>>>end printing services to be paid at 100% >>>>>>>>>>>>>>>>>>>>>>>>>>>
+				document.add(new Paragraph(".....................................................................................................................................................\n"));
+				}
+	/** -------------  print insurance part -----------------------------------------------*/
 		float[] colsWidt2 = { 70f, 30f};
 		PdfPTable headingsTab = new PdfPTable(colsWidt2);
 		headingsTab.setWidthPercentage(100);
@@ -481,8 +558,6 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		table = new PdfPTable(colsWidth1);
 		table.setWidthPercentage(100f);
 		
-//		cell = new PdfPCell(fontTitleSelector.process(""));
-//		table.addCell(cell);
 //		// table Header
 		cell = new PdfPCell();
 		cell = new PdfPCell(fontTitleSelector.process("Recording date"));
@@ -564,7 +639,6 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			
 		}
 		
-		
 		cell = new PdfPCell(fontselector.process(""));
 		table.addCell(cell);
 		cell = new PdfPCell(boldFont.process("TOTAL FACTURE "));
@@ -624,11 +698,9 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		table.addCell(cell);
 		
 		document.add(table);
-		
-		//[[]]
 		//end >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> print insurance part
-		
 
+		
 		document.add(new Paragraph("\n\n"));
 		chk = new Chunk("Date : "	+ (new SimpleDateFormat("dd-MMM-yyyy").format(new Date())));
 		chk.setFont(new Font(FontFamily.COURIER, 10.0f, Font.NORMAL));
@@ -650,13 +722,6 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 						+ pb.getBeneficiary().getPatient().getPersonName()+"\n\n.............\n"));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell); 
-		
-
-//		cell = new PdfPCell(
-//				fontTitleSelector.process("Name et Signature of Cashier\n"
-//						+ Context.getAuthenticatedUser().getPersonName()));
-//		cell.setBorder(Rectangle.NO_BORDER);
-//		table.addCell(cell);
 		
 		cell = new PdfPCell(
 				fontTitleSelector.process("Approval Head of HF + Stamp\n\n................"));
@@ -930,9 +995,6 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 	        paragraph.add(new Paragraph(" "));
 	      }
 	    }
-	  private static void invoiceHeadings() {
-	      
-	    }
 }
 
 
@@ -963,5 +1025,41 @@ class CheckboxCellEvent implements PdfPCellEvent {
             throw new ExceptionConverter(e);
         }
     }
+
+	public PdfPTable displayAtableOfItems(Document document,PatientBill pb) throws DocumentException{
+		FontSelector fontTitleSelector = new FontSelector();
+		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		//display private to be paid 100%, items with odd indexes
+				int index = 0;
+				PdfPCell c = new PdfPCell(fontTitleSelector.process(""));
+				float patientRate = 100 - (pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate());
+				PdfPTable table = new PdfPTable(2);
+				Double total = 0.0;
+				for (PatientServiceBill psb :pb.getBillItems()) {
+					index++;
+						 Double serviceCost = psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")?psb.getUnitPrice().doubleValue()*psb.getQuantity():psb.getUnitPrice().doubleValue()*patientRate*psb.getQuantity();
+						 c = new PdfPCell(fontTitleSelector.process(index+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue())+" x "+psb.getQuantity()+" = "+serviceCost+"\n"));
+						 c.setBorder(Rectangle.NO_BORDER);
+						 table.addCell(c);
+						
+						 total+=serviceCost;
+				}
+				document.add(table);
+				 
+				//THESE CODES TO FIX: if items are even/impaire the last was not viewed
+				 PdfPTable evenItemsTable = new PdfPTable(1);
+					if(pb.getBillItems().size()==index && index%2==1){
+						PdfPCell c11 = new PdfPCell(fontTitleSelector.process(""));
+						for (PatientServiceBill psb : pb.getBillItems()) {
+							Double serviceCost = psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")?psb.getUnitPrice().doubleValue()*psb.getQuantity():psb.getUnitPrice().doubleValue()*patientRate*psb.getQuantity();
+							c11 = new PdfPCell(fontTitleSelector.process(index+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue())+" x "+psb.getQuantity()+" = "+serviceCost+"\n"));
+						}
+						evenItemsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+						c11.setBorder(Rectangle.NO_BORDER);
+						evenItemsTable.addCell(c11);
+					}
+					table.addCell(evenItemsTable);
+					return table;
+	}
 	
 }
