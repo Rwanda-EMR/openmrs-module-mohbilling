@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 
@@ -43,6 +44,10 @@ public class BillPaymentUtil {
 		return payments;
 		
 	}
+	
+//	public static List<BillPayment> getPaymentsByPatientBill(PatientBill pb){
+//		return pb.get
+//	}
 	
 
 }
