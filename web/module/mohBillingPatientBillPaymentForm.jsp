@@ -27,19 +27,30 @@
 			<c:set var="totalBillInsurance" value="0"/>
 			<c:set var="totalBillPatient" value="0"/>
 			<c:forEach items="${patientBill.billItems}" var="billItem" varStatus="status">
+			  <c:set var="service" value="${billItem.service.facilityServicePrice}"/>
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${billItem.service.facilityServicePrice.name}</td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice*billItem.quantity}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">
+					   <c:if test="${service.category!='AUTRES'}">
 						${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}
 						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}"/>
+					    </c:if>
 					</td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">
-						${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}
-						<c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">						
+						<c:choose>
+						 <c:when test="${service.category=='AUTRES'}">
+						  ${(billItem.unitPrice*billItem.quantity)}
+						  <c:set var="totalBillPatient" value="${totalBillPatient+(billItem.unitPrice*billItem.quantity)}"/>
+						 </c:when>
+						 <c:otherwise>
+						 ${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}
+						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
+						 </c:otherwise>
+						</c:choose>
 					</td>
 				</tr>
 			</c:forEach>
