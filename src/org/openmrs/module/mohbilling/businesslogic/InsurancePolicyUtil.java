@@ -800,4 +800,18 @@ public class InsurancePolicyUtil {
 
 		return getService().getPolicyIdByPatient(patientId);
 	}
+	/**
+	 * Checks whether there is an insurance policy associated insurance card number
+	 * @param insuranceCardNo
+	 * @return true if the insurance exists,
+	 * else return false if the insurance policy does not exist
+	 */
+	public  static boolean isInsurancePolicyExists(String insuranceCardNo){
+		
+		InsurancePolicy insurancePolicy = getService().getInsurancePolicyByCardNo(insuranceCardNo);
+		if (insurancePolicy !=null) {
+			return true;			
+		}
+		else return false;		
+	}
 }
