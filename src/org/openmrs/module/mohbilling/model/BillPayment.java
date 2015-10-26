@@ -26,6 +26,7 @@ public class BillPayment implements Comparable<BillPayment> {
 	private User voidedBy;
 	private Date voidedDate;
 	private String voidReason;
+	
 
 	/**
 	 * @return the billPaymentId
