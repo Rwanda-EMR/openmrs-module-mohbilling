@@ -267,9 +267,8 @@ public class PatientBill {
 	public boolean removeBillItem(PatientServiceBill psb) {
 		if (billItems != null) {
 			this.amount = this.amount.subtract(psb.getAmount());
-//			System.out
-//					.println("***************** New Amount after SUBTRACTING ******** : "
-//							+ this.amount);
+			System.out.println("***************** New Amount after SUBTRACTING ******** : "	+ this.amount);
+			System.out.println("***************** Amount removed ******** : "	+ psb.getAmount());
 			return billItems.remove(psb);
 		}
 		return false;
