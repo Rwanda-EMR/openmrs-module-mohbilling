@@ -100,6 +100,7 @@ public class MohBillingInsurancePolicyFormController extends
 			ModelAndView mav) {
 
 		InsurancePolicy card = null;
+		
 		try {
 			// insurancePolicy
 			if (request.getParameter("cardId") != null
@@ -202,13 +203,20 @@ public class MohBillingInsurancePolicyFormController extends
 
 			card.setCreatedDate(new Date());
 			card.setCreator(Context.getAuthenticatedUser());
-			card.setRetired(false);
-
-			InsurancePolicyUtil.createInsurancePolicy(card);
-
-			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
-					"The insurance policy has been saved successfully !");
+			card.setRetired(false);			
+            //if the insurance policy already  exist,display the  message
+			if (InsurancePolicyUtil.isInsurancePolicyExists(request	.getParameter("insurancePolicyOwnerCardNumber"))==true) {
+				
+				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+				"The insurance policy already with card no: "+request.getParameter("insurancePolicyOwnerCardNumber")+"  already exists!");				
+			}
+			else {
+				InsurancePolicyUtil.createInsurancePolicy(card);
+				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+				"The insurance policy has been saved successfully !");		
+			}
 			
+						
 		} catch(ConstraintViolationException cve){
 			
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
