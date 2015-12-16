@@ -135,14 +135,15 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			
 			}
 		
-			 //Object[] allfactureCompiled =service.getBills(startDate, endDate,null);
-				
+
 			// Double receivedAmount =(Double) allfactureCompiled[1];        	
         	// Set<PatientBill> patientBills = (Set<PatientBill>) allfactureCompiled[0];
 			 List<PatientBill> patientBills = service.billCohortBuilder(null, startDate, endDate, null, null, null, null);
 			
 			InsuranceRate insuranceRate =service.getInsuranceRateByInsurance(insurance);			
-			Float rate =insuranceRate.getRate();
+			Float rate =0f;
+			if(insuranceRate!=null)
+				rate=insuranceRate.getRate();
 		
 			//String[] serviceCategories = {"CHIRUR","CONSOMM", "CONSULT","DERMAT", "ECHOG", "FORMAL", "HOSPIT", "KINE","LABO","MAT","MEDECI", "MEDICAM","OPHTAL", "ORL", "OXGYNOT","PEDIAT","RADIO","SOINS INF","SOINS INT","STOMAT","GYNECO","POLYC"};
 			

@@ -844,16 +844,19 @@ public class HibernateBillingDAO implements BillingDAO {
 	public Object[] getBills(Date startDate,Date endDate,User collector) {
 
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate", startDate, endDate));
-	
+		//Criteria crit1 = sessionFactory.getCurrentSession().createCriteria(PatientBill.class).add(Restrictions.between("createdDate", startDate, endDate));
+		
 		if (collector != null && collector.getUserId() != null) {
 			crit.add(Expression.eq("collector", collector));
 		}
 		
 		List<BillPayment> payments = crit.list();
+		List<PatientBill> bills = crit.list();
 	
 		Set<PatientBill> patientBillsFullPaids = new HashSet<PatientBill>();
 		Double fullReceived =0.0;
 		Double allPartiallypaid=0.0;
+		
 		for (BillPayment pay : payments) {
 			//full paid patient bill
 			
@@ -869,9 +872,11 @@ public class HibernateBillingDAO implements BillingDAO {
 			}
 					    
 		}
+	 
+		
 		//facture object compiled for all facture and set all paid bills at
 		//index 0 and received amount .for		
-		Object[]factureCompiled =new Object[]{patientBillsFullPaids,fullReceived,allPartiallypaid};
+		Object[] factureCompiled =new Object[]{patientBillsFullPaids,fullReceived,allPartiallypaid};
 		
 		return factureCompiled;
 	}

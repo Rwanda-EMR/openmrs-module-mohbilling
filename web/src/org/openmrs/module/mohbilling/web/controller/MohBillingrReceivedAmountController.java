@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -159,12 +160,13 @@ public class MohBillingrReceivedAmountController extends
 			mav.addObject("patientNames", patientNames);
 			mav.addObject("cashierNames", cashierNames);
 
-			Double TotalReceivedAmount = (double) 0;
+//			Double TotalReceivedAmount = (double) 0;
+			BigDecimal TotalReceivedAmount = new BigDecimal(0);
 
 			for (BillPayment billPayment : reportedPayments) {
-				TotalReceivedAmount = TotalReceivedAmount
-						+ billPayment.getAmountPaid().doubleValue();
-
+//				TotalReceivedAmount = TotalReceivedAmount
+//						+ billPayment.getAmountPaid().doubleValue();
+				TotalReceivedAmount = TotalReceivedAmount.add(billPayment.getAmountPaid());
 			}
 			request.getSession().setAttribute("payments" , reportedPayments);
 			
