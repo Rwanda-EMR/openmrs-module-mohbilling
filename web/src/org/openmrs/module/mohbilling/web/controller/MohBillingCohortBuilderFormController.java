@@ -230,35 +230,35 @@ public class MohBillingCohortBuilderFormController extends
 		}
 		
 		// display all bills to think about on
-		List<PatientBill> pendingBills = null;
-		pendingBills = Context.getService(BillingService.class).getPendingBill();
-		int alertSize  = (pendingBills == null) ? 0 : pendingBills.size();
-
-		mav.addObject("pendingBills", pendingBills);
-		mav.addObject("alertSize", alertSize);
-		
-		//calculate the due
-	    // minus the paid amount
-		// the rest will the total unpaid
-
-		Double totalUnpaid = 0.0;
-		Double totalDueAmount = 0.0;
-		Double totalPaid = 0.0;
-		for (PatientBill pb : pendingBills) {
-			double patRate = 100-(pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate());
-			
-			totalDueAmount+=(pb.getAmount().doubleValue())*patRate;
-//			for (BillPayment pay : pb.getPayments()) {
-//				totalPaid+=pay.getAmountPaid().doubleValue();
-//			}
-			totalPaid = pb.getAmountPaid().doubleValue();
-			log.info("patidddddddddddiiiiiiiiiiiiiiiii "+pb.getPatientBillId()+"due---"+pb.getAmount()+"paid----"+pb.getAmountPaid());
-			totalUnpaid+=totalDueAmount-pb.getAmountPaid().doubleValue();
-		}
-		log.info("totalDueeeeeeeeeeeeeeeeee "+totalDueAmount);
-		log.info("totalPaiddddddddddddddddddd "+totalPaid);
-//		totalUnpaid = totalDueAmount - totalPaid;
-		mav.addObject("totalUnpaid", totalUnpaid);
+//		List<PatientBill> pendingBills = null;
+//		pendingBills = Context.getService(BillingService.class).getPendingBill();
+//		int alertSize  = (pendingBills == null) ? 0 : pendingBills.size();
+//
+//		mav.addObject("pendingBills", pendingBills);
+//		mav.addObject("alertSize", alertSize);
+//		
+//		//calculate the due
+//	    // minus the paid amount
+//		// the rest will the total unpaid
+//
+//		Double totalUnpaid = 0.0;
+//		Double totalDueAmount = 0.0;
+//		Double totalPaid = 0.0;
+//		for (PatientBill pb : pendingBills) {
+//			double patRate = 100-(pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate());
+//			
+//			totalDueAmount+=(pb.getAmount().doubleValue())*patRate;
+////			for (BillPayment pay : pb.getPayments()) {
+////				totalPaid+=pay.getAmountPaid().doubleValue();
+////			}
+//			totalPaid = pb.getAmountPaid().doubleValue();
+//			log.info("patidddddddddddiiiiiiiiiiiiiiiii "+pb.getPatientBillId()+"due---"+pb.getAmount()+"paid----"+pb.getAmountPaid());
+//			totalUnpaid+=totalDueAmount-pb.getAmountPaid().doubleValue();
+//		}
+//		log.info("totalDueeeeeeeeeeeeeeeeee "+totalDueAmount);
+//		log.info("totalPaiddddddddddddddddddd "+totalPaid);
+////		totalUnpaid = totalDueAmount - totalPaid;
+//		mav.addObject("totalUnpaid", totalUnpaid);
 		mav.setViewName(getViewName());
 
 		return mav;
