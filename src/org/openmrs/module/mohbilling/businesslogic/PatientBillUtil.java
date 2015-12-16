@@ -26,6 +26,8 @@ import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
+import com.sun.tools.javac.util.Log;
+
 /**
  * Helper class to support the Patient Bill domain
  * 
@@ -505,20 +507,23 @@ public class PatientBillUtil {
 
 		}
 
-		/** Marking the BILL as FULLY PAID */
 		double rest = amountPaid-amountDueByPatient;
+		System.out.println("mmmmmmmmmmmmmmmmmmmmmmmmmmmmrest "+rest);
+		/** Marking the BILL as FULLY PAID */
 		if (amountPaid >= amountDueByPatient || rest <=1) {
 			pb.setIsPaid(true);
 			pb.setStatus(BillStatus.FULLY_PAID.getDescription());
 		}
+
 		/** Marking the BILL as NOT PAID at all */
-		if (amountNotPaid == amountDueByPatient){
+		if ( amountNotPaid == amountDueByPatient){
 			pb.setStatus(BillStatus.UNPAID.getDescription());
 		}
 		/** Marking the BILL as PARTLY PAID */
 		if (amountNotPaid > 1d && amountNotPaid < amountDueByPatient)
 			pb.setStatus(BillStatus.PARTLY_PAID.getDescription());
 		
+		System.out.println("llllllllllllllllllllllllllllllllllllRest "+amountNotPaid+"statussssssssss "+pb.getStatus());
 		getService().savePatientBill(pb);
 	}
 	
