@@ -309,9 +309,7 @@
 		FacilityServicePrice.hbm.xml
 		Recovery.hbm.xml
 		ThirdParty.hbm.xml
-		Refund.hbm.xml
 	</mappingFiles>
-
 
 </module>
 

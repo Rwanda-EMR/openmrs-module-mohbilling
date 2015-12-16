@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="web/src"/>
-	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="lib" path="metadata"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib-common/activation.jar"/>
@@ -48,5 +47,6 @@
 	<classpathentry kind="lib" path="lib-common/hapi-0.5.jar"/>
 	<classpathentry kind="lib" path="lib/iText-5.0.5.jar"/>
 	<classpathentry kind="lib" path="lib-common/mohtracportal-0.1.1.jar"/>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
