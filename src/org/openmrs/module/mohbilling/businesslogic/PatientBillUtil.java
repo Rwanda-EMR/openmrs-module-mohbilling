@@ -506,7 +506,8 @@ public class PatientBillUtil {
 		}
 
 		/** Marking the BILL as FULLY PAID */
-		if (amountPaid >= amountDueByPatient) {
+		double rest = amountPaid-amountDueByPatient;
+		if (amountPaid >= amountDueByPatient || rest <=1) {
 			pb.setIsPaid(true);
 			pb.setStatus(BillStatus.FULLY_PAID.getDescription());
 		}
@@ -515,7 +516,7 @@ public class PatientBillUtil {
 			pb.setStatus(BillStatus.UNPAID.getDescription());
 		}
 		/** Marking the BILL as PARTLY PAID */
-		if (amountNotPaid > 0d && amountNotPaid < amountDueByPatient)
+		if (amountNotPaid > 1d && amountNotPaid < amountDueByPatient)
 			pb.setStatus(BillStatus.PARTLY_PAID.getDescription());
 		
 		getService().savePatientBill(pb);

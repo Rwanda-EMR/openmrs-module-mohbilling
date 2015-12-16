@@ -376,7 +376,7 @@ public class FileExporter {
 		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 7, Font.BOLD));
 
 		// Table of bill items;
-		float[] colsWidth = {9f,9f,7f,9f,9f,9f,7f,9f,10f,9f,9f,9f,9f,9f,10f,9f,9f,9f,10f,10f,9f,8f};
+		float[] colsWidth = {9f,9f,7f,9f,9f,9f,7f,9f,10f,9f,9f,9f,9f,9f,10f,9f,9f,9f,10f,10f,10f,9f,8f};
 		PdfPTable table = new PdfPTable(colsWidth);
 		table.setWidthPercentage(106f);
 		BaseColor bckGroundTitle = new BaseColor(255, 255, 255);
