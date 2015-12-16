@@ -3,7 +3,6 @@ package org.openmrs.module.mohbilling.web.controller;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,12 +20,10 @@ import org.openmrs.module.mohbilling.advice.MohBillingUsageStatsUtils;
 import org.openmrs.module.mohbilling.businesslogic.BillingGlobalProperties;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
-import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
@@ -209,12 +206,9 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 	}
 
 	public static LinkedHashMap<String, Double> getAllBillsByCollector(Set<PatientBill> bills,List<String> serviceCategories,	Double receivedAmount, Double partiallyPaids) {
-		String ambulanceCateg = "AMBULANCE";
-		String docMedLeg ="DOC.LEGAUX";
-		String morgue="MORGUE";
 		//int []docuLegIds ={300,81,5002};
 		List<Integer> docuLegIds = Arrays.asList(300,81,5002);
-		int actAmbulanceId =96;
+	
 		List<Integer> actMorgueIds = Arrays.asList(5011,5046,107,106,105,101,109);
 	
 		List<Integer> notTonsiderIds = Arrays.asList(5011,5046,107,106,105,101,109,300,81,5002,96);
@@ -240,10 +234,21 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 					Integer fspId = fsp.getFacilityServicePriceId();
 					
 					if (category.startsWith(svceCateg)) {
+						
+						
 						if(notTonsiderIds.contains(fspId)==false){
-							double patientCost = item.getQuantity()* item.getUnitPrice().doubleValue()* (100 - currentRate) / 100;							
-							patDueAmt=patDueAmt+patientCost;
 							
+							if (category.equals("AUTRES")) {
+								
+								double patientCost = item.getQuantity()* item.getUnitPrice().doubleValue();							
+								patDueAmt=patDueAmt+patientCost;
+								
+							} else {
+								double patientCost = item.getQuantity()* item.getUnitPrice().doubleValue()* (100 - currentRate) / 100;							
+								patDueAmt=patDueAmt+patientCost;
+
+							}
+	
 						}
 												
 					}
@@ -261,7 +266,6 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 												
 						if (docuLegIds.contains(fspId)) {
 							
-
 		                       double patientCost = item.getQuantity()* item.getUnitPrice().doubleValue()* (100 - currentRate) / 100;							
 								
 								patDueAmt=patDueAmt+patientCost;
@@ -280,7 +284,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 								patDueAmt=patDueAmt+patientCost;
 							}
 						
-					}
+					}					
 					
 					
 				}
