@@ -605,12 +605,12 @@ public class PatientBillUtil {
 		
 	}
 	
-public static LinkedHashMap<String,List<String>> getRecoveryCategiesMap(){
+ public static LinkedHashMap<String,List<String>> getRecoveryCategiesMap(){
 	LinkedHashMap<String,List<String>> map = new LinkedHashMap<String, List<String>>();
 	List<String> consult = Arrays.asList("CONSULTATION");
 	List<String> labo = Arrays.asList("LABORATOIRE");
 	List<String> imagery = Arrays.asList("ECHOGRAPHIE", "RADIOLOGIE");
-	List<String> medicActs = Arrays.asList("STOMATOLOGIE", "CHIRURGIE","SOINS INTENSIFS","GYNECO - OBSTETRIQUE","ORL","DERMATOLOGIE", "SOINS INFIRMIERS","MATERNITE","OPHTALMOLOGIE","KINESITHERAPIE","MEDECINE INTERNE");
+	List<String> medicActs = Arrays.asList("STOMATOLOGIE", "CHIRURGIE","SOINS INTENSIFS","GYNECO - OBSTETRIQUE","ORL","DERMATOLOGIE", "SOINS INFIRMIERS","MATERNITE","OPHTALMOLOGIE","KINESITHERAPIE","MEDECINE INTERNE","NEUROLOGIE");
 	List<String> medic = Arrays.asList("MEDICAMENTS");
 	List<String> consommables = Arrays.asList("CONSOMMABLES");
 	List<String> ambul = Arrays.asList("AMBULANCE");
