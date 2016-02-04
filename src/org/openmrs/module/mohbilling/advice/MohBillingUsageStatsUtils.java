@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TreeSet;
 
 public class MohBillingUsageStatsUtils {
 	
@@ -51,25 +52,23 @@ public class MohBillingUsageStatsUtils {
 		    return simpleDateFormat.format( cal.getTime());
 		}
 		
-		public static List<Date> getDaysBetweenDates(Date startdate, Date endDate)
+		public static TreeSet<Date> getDaysBetweenDates(Date startdate, Date endDate)
 		{	
 			 Calendar cal = new GregorianCalendar();
-			
+			 
 			    cal.setTime(endDate);
 		        cal.add(Calendar.DATE, 1); //minus number would decrement the days
 		        Date nextEndDate =cal.getTime();
 			
-			
-			
 			//==============================
 			
-			 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");	       
-		    List<Date> dates = new ArrayList<Date>();	   
+			 //SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");	       
+		    TreeSet<Date> dates = new TreeSet<Date>();	   
 		    cal.setTime(startdate);
 
 		    while (cal.getTime().before(endDate))
 		    {
-		    	    	
+		     	
 		        Date result = cal.getTime();	     	        
 		      
 		        dates.add(result);
