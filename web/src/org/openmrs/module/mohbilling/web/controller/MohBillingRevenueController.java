@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,8 +45,8 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 		// Date startDate = null;
 
 		String insuranceStr = null, startDateStr = null, endDateStr = null, serviceId = null, cashCollector = null, startHourStr = null, startMinute = null, endHourStr = null, endMinuteStr = null;
-		if(request.getParameter("printed")==null){
-			
+		if (request.getParameter("printed") == null) {
+
 			if (request.getParameter("formStatus") != null
 					&& !request.getParameter("formStatus").equals("")) {
 
@@ -78,7 +79,8 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 				if (request.getParameter("cashCollector") != null
 						&& !request.getParameter("cashCollector").equals("")) {
 					cashCollector = request.getParameter("cashCollector");
-					collector = Context.getUserService().getUser(Integer.parseInt(cashCollector));
+					collector = Context.getUserService().getUser(
+							Integer.parseInt(cashCollector));
 				}
 
 				if (request.getParameter("insurance") != null)
@@ -107,78 +109,112 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 
 				if (startDate != null && endDate != null) {
 
-					BillingService bs = Context.getService(BillingService.class);
-					
-					
+					BillingService bs = Context
+							.getService(BillingService.class);
+
 					String pattern = "yyyy-MM-dd";
-					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+							pattern);
 
 					LinkedHashMap<String, Map<String, Double>> basedDateReport = new LinkedHashMap<String, Map<String, Double>>();
 
 					LinkedHashMap<Double, LinkedHashMap<String, Map<String, Double>>> compiledFactures = new LinkedHashMap<Double, LinkedHashMap<String, Map<String, Double>>>();
-					// List<PatientBill> bills =
-					// bs.getPatientBillsByCollector(receivedDate, collector);
 
-					List<Date> datesBetweenTwoDates = MohBillingUsageStatsUtils
+					TreeSet<Date> datesBetweenTwoDates = MohBillingUsageStatsUtils
 							.getDaysBetweenDates(startDate, endDate);
 					// Map for partially paid
 					LinkedHashMap<String, Double> partiallPaidMap = new LinkedHashMap<String, Double>();
 					// Map for both partially paid and full paid bills
+
+					/*
+					 * String[] serviceCategories = {"CHIR", "CONSOMM",
+					 * "CONSULT","ECHOG", "FORMAL", "HOSPITAL","KINE", "LABO",
+					 * "MATERN","MEDICAM","OXGYENO", "OPHTAL","RADIO",
+					 * "SOINS INF", "STOMAT", "AMBULAN","DOC.LEGAUX","MORGUE"};
+					 */
+					List<String> serviceCategories = BillingGlobalProperties
+							.getListofServiceCategory();
 					
-				/*	String[] serviceCategories = {"CHIR", "CONSOMM", "CONSULT","ECHOG", "FORMAL", "HOSPITAL","KINE", "LABO", "MATERN","MEDICAM","OXGYENO", "OPHTAL","RADIO",
-							"SOINS INF", "STOMAT", "AMBULAN","DOC.LEGAUX","MORGUE"};*/
-					List<String> serviceCategories =BillingGlobalProperties.getListofServiceCategory();
-					for (Date date : datesBetweenTwoDates) {
+				//	for (Date date : datesBetweenTwoDates) {
 
-						Date startOfDay = sdf.parse(MohBillingUsageStatsUtils.getStartOfDay(date));
-						Date endOfDay = sdf.parse(MohBillingUsageStatsUtils.getEndOfDay(date));
+						/*Date startOfDay = null;
+						Date endOfDay = null;
+						
 
-						Object[] allfactureCompiled = bs.getBills(startOfDay,	endOfDay, collector);
+							if (date == datesBetweenTwoDates.first()) {
+
+								// startOfDay =
+								// sdf.parse(MohBillingUsageStatsUtils.getStartOfDay(date));
+								startOfDay = startDate;
+								endOfDay = sdf.parse(MohBillingUsageStatsUtils
+										.getEndOfDay(date));
+							}
+							else if (date == datesBetweenTwoDates.last()) {
+								startOfDay = sdf.parse(MohBillingUsageStatsUtils.getStartOfDay(date));
+								// endOfDay =
+								// sdf.parse(MohBillingUsageStatsUtils.getEndOfDay(date));
+								endOfDay = endDate;
+							}
+
+							else {
+
+								startOfDay = sdf.parse(MohBillingUsageStatsUtils.getStartOfDay(date));
+								endOfDay = sdf.parse(MohBillingUsageStatsUtils.getEndOfDay(date));
+							}
+													
+						*/
+					Object[] allfactureCompiled = bs.getBills(startDate,
+							endDate, collector);
+						//Object[] allfactureCompiled = bs.getBills(startOfDay,endOfDay, collector);
 						Double fullyreceivedAmount = (Double) allfactureCompiled[1];
 						Double partialypaids = (Double) allfactureCompiled[2];
-
-						partiallPaidMap.put("Amount Partially Paid", partialypaids);
+						partiallPaidMap.put("Amount Partially Paid",
+								partialypaids);
 						Set<PatientBill> patientBills = (Set<PatientBill>) allfactureCompiled[0];
-
-						// All partially paid map where key is
-						// "Amount Partiall paid " and value is "Amount" in double
 
 						if (patientBills.size() > 0) {
 
-							Map<String, Double> mappedReport = getAllBillsByCollector(patientBills, serviceCategories,fullyreceivedAmount, partialypaids);
-							basedDateReport.put(simpleDateFormat.format(date),	mappedReport);	
-							request.getSession().setAttribute("basedDateReport" , basedDateReport);
-							
-						}					
-					}
-					
-					
-					
-					
+							Map<String, Double> mappedReport = getAllBillsByCollector(
+									patientBills, serviceCategories,
+									fullyreceivedAmount, partialypaids);
+							basedDateReport.put(simpleDateFormat.format(startDate),
+									mappedReport);
+							request.getSession().setAttribute(
+									"basedDateReport", basedDateReport);
+
+						}
+
+						// All partially paid map where key is
+						// "Amount Partiall paid " and value is "Amount" in
+						// double
+
+					//}
+
 					mav.addObject("collector", collector);
 					mav.addObject("serviceCategories", serviceCategories);
 					mav.addObject("basedDateReport", basedDateReport);
 					mav.addObject("compiledfacture", compiledFactures);
 					mav.addObject("printed", "printed");
-					
-			
-		}
-		
+
+				}
 
 			}
 
 		}
-		
-		if (request.getParameter("printed")!=null) {
-			String userStr = request.getParameter("userId");			
-			
-			//User collector =Context.getUserService().getUser(Integer.parseInt(userStr));
-					
-			LinkedHashMap<String, Map<String, Double>> basedDateReport =  (LinkedHashMap<String, Map<String, Double>>) request.getSession().getAttribute("basedDateReport" );
+
+		if (request.getParameter("printed") != null) {
+			String userStr = request.getParameter("userId");
+
+			// User collector
+			// =Context.getUserService().getUser(Integer.parseInt(userStr));
+
+			LinkedHashMap<String, Map<String, Double>> basedDateReport = (LinkedHashMap<String, Map<String, Double>>) request
+					.getSession().getAttribute("basedDateReport");
 			FileExporter fexp = new FileExporter();
 			String fileName = "daily_report.pdf";
-		    fexp.printCashierReport(request, response,basedDateReport,fileName,"Daily Cashier report");			
-			
+			fexp.printCashierReport(request, response, basedDateReport,
+					fileName, "Daily Cashier report");
+
 		}
 		mav.setViewName(getViewName());
 
@@ -205,104 +241,122 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 		mav.addObject("prmtrs", param);
 	}
 
-	public static LinkedHashMap<String, Double> getAllBillsByCollector(Set<PatientBill> bills,List<String> serviceCategories,	Double receivedAmount, Double partiallyPaids) {
-		//int []docuLegIds ={300,81,5002};
-		List<Integer> docuLegIds = Arrays.asList(300,81,5002);
-	
-		List<Integer> actMorgueIds = Arrays.asList(5011,5046,107,106,105,101,109);
-	
-		List<Integer> notTonsiderIds = Arrays.asList(5011,5046,107,106,105,101,109,300,81,5002,96);
+	public static LinkedHashMap<String, Double> getAllBillsByCollector(
+			Set<PatientBill> bills, List<String> serviceCategories,
+			Double receivedAmount, Double partiallyPaids) {
+		// int []docuLegIds ={300,81,5002};
+		List<Integer> docuLegIds = Arrays.asList(300, 81, 5002);
+
+		List<Integer> actMorgueIds = Arrays.asList(5011, 5046, 107, 106, 105,
+				101, 109);
+
+		List<Integer> notTonsiderIds = Arrays.asList(5011, 5046, 107, 106, 105,
+				101, 109, 300, 81, 5002, 96);
 
 		LinkedHashMap<String, Double> invoiceMap = new LinkedHashMap<String, Double>();
 		Double total = 0.0;
-		Double ambulanceCost =0.0;
-		//run through all services category and group amount by service category
+		Double ambulanceCost = 0.0;
+		// run through all services category and group amount by service
+		// category
 
-		for (String svceCateg : serviceCategories) {			
+		for (String svceCateg : serviceCategories) {
 
 			Double subTotal = 0.0;
 
-			// run through all patient bills  and group amount  by category
-			
+			// run through all patient bills and group amount by category
+
 			for (PatientBill pb : bills) {
-				Double currentRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();
+				Double currentRate = pb.getBeneficiary().getInsurancePolicy()
+						.getInsurance().getCurrentRate().getRate()
+						.doubleValue();
 				// scan each item amount
 				double patDueAmt = 0.0;
 				for (PatientServiceBill item : pb.getBillItems()) {
-					String category = item.getService().getFacilityServicePrice().getCategory();
-					FacilityServicePrice fsp =item.getService().getFacilityServicePrice();
+					String category = item.getService()
+							.getFacilityServicePrice().getCategory();
+					FacilityServicePrice fsp = item.getService()
+							.getFacilityServicePrice();
 					Integer fspId = fsp.getFacilityServicePriceId();
-					
+
 					if (category.startsWith(svceCateg)) {
-						
-						
-						if(notTonsiderIds.contains(fspId)==false){
-							
+
+						if (notTonsiderIds.contains(fspId) == false) {
+
 							if (category.equals("AUTRES")) {
-								
-								double patientCost = item.getQuantity()* item.getUnitPrice().doubleValue();							
-								patDueAmt=patDueAmt+patientCost;
-								
+
+								double patientCost = item.getQuantity()
+										* item.getUnitPrice().doubleValue();
+								patDueAmt = patDueAmt + patientCost;
+
 							} else {
-								double patientCost = item.getQuantity()* item.getUnitPrice().doubleValue()* (100 - currentRate) / 100;							
-								patDueAmt=patDueAmt+patientCost;
+								double patientCost = item.getQuantity()
+										* item.getUnitPrice().doubleValue()
+										* (100 - currentRate) / 100;
+								patDueAmt = patDueAmt + patientCost;
 
 							}
-	
+
 						}
-												
+
 					}
-					//if facilicity service name equal ambulance ,take it away
+					// if facilicity service name equal ambulance ,take it away
 					if (svceCateg.startsWith("AMBULAN")) {
-						if (fspId==96) {
-							
-		                       double patientCost = item.getQuantity()* item.getUnitPrice().doubleValue()* (100 - currentRate) / 100;							
-								
-								patDueAmt=patDueAmt+patientCost;
-							}						
-					}
-					//group amount for all  considered  medicaux documents
-					if (svceCateg.startsWith("DOC.LEGAUX")) {
-												
-						if (docuLegIds.contains(fspId)) {
-							
-		                       double patientCost = item.getQuantity()* item.getUnitPrice().doubleValue()* (100 - currentRate) / 100;							
-								
-								patDueAmt=patDueAmt+patientCost;
-							
-						}
-						
-					}
-					//morgue grouping
-					
-					if (svceCateg.startsWith("MORGUE")) {
-						
-						if (actMorgueIds.contains(fspId)) {							
+						if (fspId == 96) {
 
-		                       double patientCost = item.getQuantity()* item.getUnitPrice().doubleValue()* (100 - currentRate) / 100;							
-								
-								patDueAmt=patDueAmt+patientCost;
-							}
-						
-					}					
-					
-					
+							double patientCost = item.getQuantity()
+									* item.getUnitPrice().doubleValue()
+									* (100 - currentRate) / 100;
+
+							patDueAmt = patDueAmt + patientCost;
+						}
+					}
+					// group amount for all considered medicaux documents
+					if (svceCateg.startsWith("DOC.LEGAUX")) {
+
+						if (docuLegIds.contains(fspId)) {
+
+							double patientCost = item.getQuantity()
+									* item.getUnitPrice().doubleValue()
+									* (100 - currentRate) / 100;
+
+							patDueAmt = patDueAmt + patientCost;
+
+						}
+
+					}
+					// morgue grouping
+
+					if (svceCateg.startsWith("MORGUE")) {
+
+						if (actMorgueIds.contains(fspId)) {
+
+							double patientCost = item.getQuantity()
+									* item.getUnitPrice().doubleValue()
+									* (100 - currentRate) / 100;
+
+							patDueAmt = patDueAmt + patientCost;
+						}
+
+					}
+
 				}
 				subTotal = subTotal + patDueAmt;
 			}
-		
+
 			// end of all patient bills
-			
+
 			invoiceMap.put(svceCateg, ReportsUtil.roundTwoDecimals(subTotal));
 			total = total + subTotal;
 		}
 
 		// add each invoice linked to catehory service to list of invoice
-   
+
 		invoiceMap.put("Total", ReportsUtil.roundTwoDecimals(total));
-		invoiceMap.put("receivedAmount", ReportsUtil.roundTwoDecimals(receivedAmount));
-		invoiceMap.put("partiallyPaid", ReportsUtil.roundTwoDecimals(partiallyPaids));
-		
+		invoiceMap.put("receivedAmount", ReportsUtil
+				.roundTwoDecimals(receivedAmount));
+		invoiceMap.put("partiallyPaid", ReportsUtil
+				.roundTwoDecimals(partiallyPaids));
+
 		return invoiceMap;
 	}
 }
