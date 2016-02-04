@@ -2,14 +2,11 @@ package org.openmrs.module.mohbilling.businesslogic;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.openmrs.Patient;
@@ -26,7 +23,7 @@ import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
-import com.sun.tools.javac.util.Log;
+
 
 /**
  * Helper class to support the Patient Bill domain
