@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.openmrs.Patient;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
@@ -625,4 +626,8 @@ public class PatientBillUtil {
 	map.put("HOSPITALISATION", hosp);
 	return map;
 }
+ public static Set<PatientBill> getRefundedBill(Date startDate, Date endDate, User collector){
+	
+	return  getService().getRefundedBills(startDate, endDate, collector);
+	}
 }

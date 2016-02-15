@@ -460,4 +460,6 @@ public interface BillingDAO {
 	 * @return
 	 */
 	public List<PatientBill> getPendingBill();
+
+	public Set<PatientBill> getRefundedBills(Date startDate, Date endDate, User collector);
 }

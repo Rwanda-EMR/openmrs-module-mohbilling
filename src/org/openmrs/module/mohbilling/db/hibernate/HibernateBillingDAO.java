@@ -1140,5 +1140,29 @@ public class HibernateBillingDAO implements BillingDAO {
 		return crit.list();
 	}
 
+	@Override
+	public Set<PatientBill> getRefundedBills(Date startDate, Date endDate, User collector) {
+		
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate", startDate, endDate));
+		//Criteria crit1 = sessionFactory.getCurrentSession().createCriteria(PatientBill.class).add(Restrictions.between("createdDate", startDate, endDate));
+		
+		if (collector != null && collector.getUserId() != null) {
+			crit.add(Expression.eq("collector", collector));
+		}
+		
+		List<BillPayment> payments = crit.list();		
 	
+		Set<PatientBill> refundedBills = new HashSet<PatientBill>();
+		
+		
+		for (BillPayment pay : payments) {			
+			
+			PatientBill pb = pay.getPatientBill();
+			if(pb.getBillItems().size()==0)
+			  refundedBills.add(pb);
+					    
+		}	
+		
+		return refundedBills;
+	}	
 }

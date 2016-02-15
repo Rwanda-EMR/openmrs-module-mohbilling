@@ -492,5 +492,15 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getPendingBill();
 	}
 
+	/**
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getRefundedBills(java.util.Date, java.util.Date, org.openmrs.User)
+	 */
+	@Override
+	public Set<PatientBill> getRefundedBills(Date startDate, Date endDate,
+			User collector) {
+		// TODO Auto-generated method stub
+		return billingDAO.getRefundedBills(startDate,endDate,collector);
+	}
+
 
 }

@@ -64,6 +64,9 @@
 			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
 		</li>
 		</openmrs:hasPrivilege>
+		<li>
+			<a href="refundBillReport.form">Refunding report</a>
+		</li>
 		
 		<!-- 
 		<li>

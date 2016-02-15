@@ -425,4 +425,14 @@ public interface BillingService {
 	 * @return
 	 */
 	public List<PatientBill> getPendingBill();
+	
+	/**
+	 * gets refunded bills 
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param collector
+	 * @return
+	 */
+	public Set<PatientBill> getRefundedBills(Date startDate,Date endDate,User collector);
 }
