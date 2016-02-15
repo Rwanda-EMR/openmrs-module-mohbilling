@@ -838,5 +838,15 @@ public class ReportsUtil {
 
 		}
 	}
-	
+	public static Double getTotalRefundedAmount(Set<PatientBill> pb){
+		 Double total = 0.0;
+		 for (PatientBill b : pb) {
+			for (BillPayment pay : b.getPayments()) {
+				if(pay.getAmountPaid().doubleValue()<0)
+				total+=pay.getAmountPaid().doubleValue();
+			}
+		}
+		return total;
+		 
+	 }
 }

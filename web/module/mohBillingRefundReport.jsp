@@ -291,19 +291,24 @@
 <c:if test="${fn:length(refundedBills)!=0}">
 
 <c:set var="refundedBills" value="${refundedBills}" />
-<b class="boxHeader"> Refund report</b> 
-   
+<b class="boxHeader"> Total Amount Refunded:&nbsp;&nbsp; ${totalRefundedAmount} FRW&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ <b>
+<form action="refundBillReport.form" method="post" style="display: inline;">
+    <input type="hidden" name="printed" value="${printed}" />
+	<input type="submit" class="list_exportBt" value="PDF" title="Export to PDF"/>
+</form>
+</b></b>
 <div class="box">
 
 
-<table width="99%">
+<table width="90%">
 	<tr>
-		<th>No</th>
-		<th>BillId</th>
-		<th>Beneficiary</th>
-		<th>Creator</th>
-		<th>Created Date</th>	
-		<th>Payment status </th>
+		<th class="columnHeader center">No</th>
+		<th class="columnHeader center">Bill Id</th>
+		<th class="columnHeader center">Beneficiary</th>
+		<th class="columnHeader center">Creator</th>
+		<th class="columnHeader center">Created Date</th>	
+		<th class="columnHeader center">Payment status </th>
 				
 		
 	</tr>
@@ -312,27 +317,27 @@
 		<tr>
 			<td class="rowValue">${status.count}</td>
 			<td class="rowValue">${refundedBill.patientBillId}</td>
-			<td class="rowValue"><b>${refundedBill.beneficiary.patient.familyName}</b></td>
+			<td class="rowValue"><b>${refundedBill.beneficiary.patient.familyName}&nbsp;${refundedBill.beneficiary.patient.givenName}</b></td>
 			<td class="rowValue">${refundedBill.creator}</td>
 			<td class="rowValue">${refundedBill.createdDate}</td>
 						
 			<td class="rowValue">				
 
-			<table width="50%">
+			<table>
 
 			   <tr>
 				    <th></th>				   
 					<th><b>Paid Amount</b></th>					
-					<th colspan="10"><b>Collector</b></th>
-					<th colspan="10"><b>Payment Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></th>
+					<th><b>Collector</b></th>
+					<th><b>Payment Date</b></th>
 				</tr>
 				<c:forEach items="${refundedBill.payments}" var="payment" varStatus="status">
 
 					<tr>
-					    <td class="rowValue even"><b>${status.count})</b></td>					 
-						<td class="rowValue even">${payment.amountPaid}</td>
-						<td class="rowValue even">${payment.collector }</td>
-						<td class="rowValue even">${payment.createdDate}</td>						
+					    <td class="rowValue"><b>${status.count})</b></td>					 
+						<td class="rowValue">${payment.amountPaid}</td>
+						<td class="rowValue">${payment.collector }</td>
+						<td class="rowValue">${payment.createdDate}</td>						
 
 					</tr>
 			</c:forEach>
