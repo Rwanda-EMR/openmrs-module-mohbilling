@@ -784,6 +784,93 @@ public class FileExporter {
 			return 100 - (pb.getBeneficiary().getInsurancePolicy().getInsurance()
 					.getCurrentRate().getRate());
 		}
+		public void pdfPrintRefundReport(HttpServletRequest request, HttpServletResponse response,Set<PatientBill> patientBill, String filename, String title) throws Exception {
+			FileExporter fexp = new FileExporter();
+			Rectangle pagesize = new Rectangle(360f, 720f);
+			Document document = new Document(pagesize, 36f, 72f, 109f, 180f);
+		
+			//Document document = new Document();
+			
+			document.setPageSize(PageSize.A4.rotate());
+			/** Initializing image to be the logo if any... */
+			Image image = Image.getInstance(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
+			image.scaleToFit(40, 40);
+			
+			/** END of Initializing image */
 
+			response.setContentType("application/pdf");
+			response.setHeader("Content-Disposition", "attachment; filename=\""	+ filename + "\""); // file name
+
+			PdfWriter writer = PdfWriter.getInstance(document,response.getOutputStream());
+			writer.setBoxSize("art", PageSize.A4.rotate());
+
+			HeaderFooter event = new HeaderFooter();
+			writer.setPageEvent(event);
+
+			document.open();
+			FontSelector fontSelector = (FontSelector) getFonts().get("NORMAL");
+			document.add(fontSelector.process("REPUBLIQUE OF RWANDA\n"));
+			document.add(getImage());
+			document.add(fontSelector.process(getAddress()));
+			
+			Chunk chk = new Chunk("Refund Report");
+			chk.setFont(new Font(FontFamily.COURIER, 10, Font.NORMAL));
+			chk.setUnderline(0.2f, -2f);
+			Paragraph pa = new Paragraph();
+			pa.add(chk);
+			pa.setAlignment(Element.ALIGN_CENTER);
+			document.add(pa);
+			document.add(new Paragraph("\n"));	
+			PdfPTable table = new PdfPTable(6);
+			
+			FontSelector font = (FontSelector) getFonts().get("NORMAL");
+			PdfPCell cell = new PdfPCell(font.process("ASSURANCE"));
+			table.addCell(cell);
+			
+			cell = new PdfPCell(font.process("#"));
+			table.addCell(cell);
+			
+			cell = new PdfPCell(font.process("Bill No"));
+			table.addCell(cell);
+			
+			cell = new PdfPCell(font.process("Beneficiary"));
+			table.addCell(cell);
+			
+			cell = new PdfPCell(font.process("Creator"));
+			table.addCell(cell);
+			
+			cell = new PdfPCell(font.process("Created Date"));
+			table.addCell(cell);
+			
+			cell = new PdfPCell(font.process("Payments Status"));
+			table.addCell(cell);
+			
+			int number=0;
+			for (PatientBill pb: patientBill) {	
+				number++;
+				//total+=pay.getAmountPaid().doubleValue();
+				cell = new PdfPCell(font.process(""+number));
+				table.addCell(cell);
+
+				cell = new PdfPCell(font.process(""+pb.getPatientBillId()));
+				table.addCell(cell);
+				
+				Patient patient = pb.getBeneficiary().getPatient();
+				
+				cell = new PdfPCell(font.process(""+patient.getFamilyName()+" "+patient.getGivenName()));
+				table.addCell(cell);
+
+				cell = new PdfPCell(font.process("" + pb.getCreator()));
+				table.addCell(cell);
+
+				cell = new PdfPCell(font.process("" +pb.getCreatedDate()));
+				table.addCell(cell);	
+				
+			} 			
+			
+			document.add(table);
+			document.close();
+			
+		}
 	  
 	}
