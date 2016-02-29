@@ -27,11 +27,11 @@ import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -221,25 +221,8 @@ public class MohBillingReportRecovery extends ParameterizableViewController {
 
 		Document document = new Document();
 
-		// List<PatientBill> patientBills =
-		// (List<PatientBill>)request.getAttribute("reportedPatientBillsPrint");
-
-		/*
-		 * PatientBill pb = null;
-		 * 
-		 * pb = Context.getService(BillingService.class).getPatientBill(
-		 * Integer.parseInt(request.getParameter("patientBills")));
-		 * 
-		 * String filename = pb.getBeneficiary().getPatient().getPersonName()
-		 * .toString().replace(" ", "_"); filename =
-		 * pb.getBeneficiary().getPolicyIdNumber().replace(" ", "_") + "_" +
-		 * filename + ".pdf";
-		 */
-
 		response.setContentType("application/pdf");
-		response.setHeader("Content-Disposition", "Recovery Report"); // file name
-
-		
+		response.setHeader("Content-Disposition", "Recovery Report"); 
 		
 		PdfWriter writer = PdfWriter.getInstance(document, response
 				.getOutputStream());
@@ -373,10 +356,7 @@ public class MohBillingReportRecovery extends ParameterizableViewController {
 
 			cell = new PdfPCell(fontselector.process(recoveryReport
 					.getInsuranceName()));
-		  	table.addCell(cell);
-			
-			
-			
+		  	table.addCell(cell);			
 			  
 			 cell = new PdfPCell(fontselector.process(""
 					 +recoveryReport.getMonth()));
