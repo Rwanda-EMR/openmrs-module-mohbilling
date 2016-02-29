@@ -129,10 +129,11 @@ public class MohBillingInsuranceInvoiceController extends
 				insuranceIdInt = Integer.parseInt(insuranceStr);
 				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
 			}
-			
-			 Object[] allfactureCompiled =Context.getService(BillingService.class).getBills(startDate, endDate,null);
-			 Set<PatientBill> bills = (Set<PatientBill>) allfactureCompiled[0];
-			 Double receivedAmount =(Double) allfactureCompiled[1];
+			BillingService service=Context.getService(BillingService.class);
+//			 Object[] allfactureCompiled =Context.getService(BillingService.class).getBills(startDate, endDate,null);
+//			 Set<PatientBill> bills = (Set<PatientBill>) allfactureCompiled[0];
+			 List<PatientBill> patientBills = service.billCohortBuilder(null, startDate, endDate, null, null, null, null);
+		//	 Double receivedAmount =(Double) allfactureCompiled[1];
 			
 			
 			String[] serviceCategories = {"FORMALITES ADMINISTRATIVES","CONSULTATION","LABORATOIRE","RADIOLOGIE","ECHOGRAPHIE","OPHTALMOLOGIE","CHIRURGIE","MEDEC","CONSOMMABLES","KINESITHERAPIE","STOMATOLOGIE","MATERNITE","AMBULANCE","SOINS INFIRMIERS","MEDICAMENTS","HOSPITALISATION"};  
@@ -142,7 +143,7 @@ public class MohBillingInsuranceInvoiceController extends
 			
 				Insurance pbInsurance = null;
 				User pbCreator =null;
-				for (PatientBill pb : bills) {					
+				for (PatientBill pb : patientBills) {					
 					    pbCreator=pb.getCreator();
 						pbInsurance=pb.getBeneficiary().getInsurancePolicy().getInsurance();
 					if(patient==pb.getBeneficiary().getPatient()||insurance==pbInsurance||cashCollector==pbCreator.getUsername()){
@@ -178,7 +179,7 @@ public class MohBillingInsuranceInvoiceController extends
 						PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(patientBillId); 
 						PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, null);
 						String invoiceOwner = "facNo"+patientBill.getPatientBillId()+"On"+patientBill.getCreatedDate()+".pdf";
-						fexp.exportToPDF(request, response,patientInvoice,invoiceOwner,"Details des soins recus");
+						fexp.exportPatientBillToPDF(request, response,patientInvoice,invoiceOwner,"Details des soins recus");
 				    }
 		mav.setViewName(getViewName());
 		mav.addObject("msg", "Warning:Dates and Patients are required!!!! ");
