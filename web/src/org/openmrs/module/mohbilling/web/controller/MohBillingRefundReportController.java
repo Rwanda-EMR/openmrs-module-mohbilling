@@ -89,7 +89,7 @@ public class MohBillingRefundReportController extends 	ParameterizableViewContro
 					FileExporter fexp = new FileExporter();
 					String fileName = "Refund Report.pdf";
 
-					System.out.println("ttttttttttttttttttttttttttttttttt "+billsWithRefunds.size());
+					//System.out.println("ttttttttttttttttttttttttttttttttt "+billsWithRefunds.size());
 					fexp.pdfPrintRefundReport(request, response, billsWithRefunds, fileName, fileName);	
 				}
 	
