@@ -8,13 +8,14 @@
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 
 <!-- script to create a pop up windows for unpaid bills -->
 <openmrs:htmlInclude file="/moduleResources/mohbilling/pop_style.css" /> 
 <openmrs:htmlInclude file="/moduleResources/mohbilling/pop_script.js" />  
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
+<!-- 
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();
 
@@ -28,6 +29,31 @@
 		});
 	});
 	
+</script>
+ -->
+<script type="text/javascript">
+var $b = jQuery.noConflict();
+$(document).ready(function(){
+    $b('#select_all').on('click',function(){
+        if(this.checked){
+            $b('.checkbox').each(function(){
+                this.checked = true;
+            });
+        }else{
+             $b('.checkbox').each(function(){
+                this.checked = false;
+            });
+        }
+    });
+    
+    $b('.checkbox').on('click',function(){
+        if($('.checkbox:checked').length == $('.checkbox').length){
+            $b('#select_all').prop('checked',true);
+        }else{
+            $b('#select_all').prop('checked',false);
+        }
+    });
+});
 </script>
 
 
@@ -166,26 +192,8 @@
 	<div style="float:right"><a style="" href="cohort.form?print=true&patientId=${patientId}&startDate=${startDate}&endDate=${endDate}&insurance=${insurance.insuranceId}&serviceId=${serviceId}"><b style="color: red;font-size: 14px;">Print PDF</b></a></div>
 </b>
 
-<div class="printarea" ">
+<div class="printarea">
 
-<div class="meta">
-<span style="float: left"><b>REPUBLIQUE DU RWANDA</b></span><span style="float: right;">Printed on: <openmrs:formatDate date="${today}" type="short" /></span><br />
-<img src="${healthFacilityLogo}" height="90" width="90"><br />
-<b>${healthFacilityName}</b><br />
-
-<c:if test="${not empty address}">
-	<b>${address}</b><br />
-</c:if>
-
-<c:if test="${not empty healthFacilityShortCode}">
-	<b>Short code: ${healthFacilityShortCode}</b><br />
-</c:if>
-
-<c:if test="${not empty healthFacilityEmail}">
-	<b>Email: ${healthFacilityEmail}</b><br />
-</c:if>
-
-</div>
 <br />
 <br />
 <table width="99%">
@@ -203,6 +211,16 @@
 		<td>Received Amount</td>
 		<td>Amount</td>
 		<td>Status</td>
+		<td></td>
+		<!--
+		<td>
+		<table>
+		<tr><td><a href="cohort.form?print_checked=true">Print</a></td></tr>
+		<tr><td><input type="checkbox" id="select_all"/></td></tr>
+		</table>
+		</td>
+		  -->
+		
 	</tr>
 
 	<c:forEach items="${billObj}" var="obj" varStatus="status">
@@ -245,6 +263,8 @@
 			<td class="rowAmountValue">${obj[7]}</td>
 			<td class="rowAmountValue"><b style="color: blue;">${obj[8]}</b></td>
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">${obj[9]}</td>
+			<td class="rowTotalValue"><a href="patientBillPayment.form?patientBillId=${obj[10]}">View/</a></td>
+			<!--<td class="rowTotalValue"><input type="checkbox" class="checkbox" name="checked_bill" value="1"/></td>  -->
 			
 		</tr>
 
@@ -255,52 +275,14 @@
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${patientDueAmount}</b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${totalAmountReceived}</b></td>		
 		<td class="rowTotalValue"><b style="color: red;font-size: 14px;"><u>${totalAmount}</u></b></td>
-		<td class="rowTotalValue"></td>
 	</tr>
 </table>
 <br />
 <br />
-
-<div class="meta">
-	<c:if test="${not empty patientNames}">
-		<span style="float: left;"><b>Signature du patient: <br />${patientNames}</b></span>
-	</c:if>
-	<span style="float: right;"><b>Noms et Signature du Caissier: <br />${cashierNames}</b></span>
-</div>
-
 </div>
 
 </div> 
 </c:if>
-
-
-
-<div id="toPopup" style="background-color: #aabbcc">
-<div class="close"></div>
-<span class="ecs_tooltip">Press Esc to close <span class="arrow"></span></span>
-<div id="popup_content">
-<h4 style="color: red">Total:${totalUnpaid}</h4>
- <table>
- <tr>
- <td>No</td>
- <td>Date</td>
- <td>Beneficiary</td>
- <td></td>
- </tr>
-  <c:forEach items="${pendingBills}" var="bill" varStatus="status">
-   <c:set var="patient" value="${bill.beneficiary.patient}" />
-  <tr>
-   <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
-   <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd" value="${bill.createdDate}" /></td>
-   <td class="rowValue ${(status.count%2!=0)?'even':''}">${patient.familyName} ${patient.givenName}</td>
-   <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="cohort.form?id=${bill.patientBillId }">View</a></td>
-  </tr>
-   </c:forEach>
-   </table>
-</div>
-</div> <!--toPopup end-->
-<div class="loader"></div>
-<div id="backgroundPopup"></div>
 
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
