@@ -43,6 +43,7 @@ import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.sun.mail.imap.Rights.Right;
 
 public class FileExporter {
 	private Log log = LogFactory.getLog(this.getClass());
@@ -806,49 +807,51 @@ public class FileExporter {
 
 			HeaderFooter event = new HeaderFooter();
 			writer.setPageEvent(event);
+			
+			FontSelector font = (FontSelector) getFonts().get("NORMAL");
+			FontSelector boldFont = (FontSelector) getFonts().get("BOLD");
 
 			document.open();
 			FontSelector fontSelector = (FontSelector) getFonts().get("NORMAL");
-			document.add(fontSelector.process("REPUBLIQUE OF RWANDA\n"));
+			document.add(fontSelector.process("REPUBLIQUE OF RWANDA                                                    Printed on: "+new Date()+"\n"));
 			document.add(getImage());
 			document.add(fontSelector.process(getAddress()));
 			
 			Chunk chk = new Chunk("Refund Report");
-			chk.setFont(new Font(FontFamily.COURIER, 10, Font.NORMAL));
+			chk.setFont(new Font(FontFamily.COURIER, 12, Font.BOLD));
 			chk.setUnderline(0.2f, -2f);
 			Paragraph pa = new Paragraph();
 			pa.add(chk);
 			pa.setAlignment(Element.ALIGN_CENTER);
 			document.add(pa);
 			document.add(new Paragraph("\n"));	
-			PdfPTable table = new PdfPTable(6);
+			float[] colsWidth = { 5f,5f, 10f, 10f, 10f, 60f};
+			PdfPTable table = new PdfPTable(colsWidth);
+			table.setWidthPercentage(100f);
 			
-			FontSelector font = (FontSelector) getFonts().get("NORMAL");
-			PdfPCell cell = new PdfPCell(font.process("ASSURANCE"));
+			
+			PdfPCell cell = new PdfPCell(font.process("#"));
 			table.addCell(cell);
 			
-			cell = new PdfPCell(font.process("#"));
+			cell = new PdfPCell(boldFont.process("Bill No"));
 			table.addCell(cell);
 			
-			cell = new PdfPCell(font.process("Bill No"));
+			cell = new PdfPCell(boldFont.process("Beneficiary"));
 			table.addCell(cell);
 			
-			cell = new PdfPCell(font.process("Beneficiary"));
+			cell = new PdfPCell(boldFont.process("Creator"));
 			table.addCell(cell);
 			
-			cell = new PdfPCell(font.process("Creator"));
+			cell = new PdfPCell(boldFont.process("Created Date"));
 			table.addCell(cell);
 			
-			cell = new PdfPCell(font.process("Created Date"));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process("Payments Status"));
+			cell = new PdfPCell(boldFont.process("Payments Status"));
 			table.addCell(cell);
 			
 			int number=0;
+			Double total = 0.0;
 			for (PatientBill pb: patientBill) {	
 				number++;
-				//total+=pay.getAmountPaid().doubleValue();
 				cell = new PdfPCell(font.process(""+number));
 				table.addCell(cell);
 
@@ -860,15 +863,77 @@ public class FileExporter {
 				cell = new PdfPCell(font.process(""+patient.getFamilyName()+" "+patient.getGivenName()));
 				table.addCell(cell);
 
-				cell = new PdfPCell(font.process("" + pb.getCreator()));
+				cell = new PdfPCell(font.process("" + pb.getCreator().getFamilyName()+" "+pb.getCreator().getGivenName()));
 				table.addCell(cell);
 
 				cell = new PdfPCell(font.process("" +pb.getCreatedDate()));
-				table.addCell(cell);	
+				table.addCell(cell);
 				
+				int paymentNbr=0;
+				float[] colsWidth2 = { 5f, 10f, 20f, 20f}; 
+				PdfPTable payTable = new PdfPTable(colsWidth2);
+				PdfPCell c = new PdfPCell(boldFont.process("No"));
+				c.setBorder(Rectangle.NO_BORDER);
+				payTable.addCell(c);
+				c = new PdfPCell(boldFont.process("Paid Amount"));
+				c.setBorder(Rectangle.NO_BORDER);
+				payTable.addCell(c);
+				c = new PdfPCell(boldFont.process("Collector"));
+				c.setBorder(Rectangle.NO_BORDER);
+				payTable.addCell(c);
+				c = new PdfPCell(boldFont.process("Payment Date"));
+				c.setBorder(Rectangle.NO_BORDER);
+				payTable.addCell(c);
+				for (BillPayment pay : pb.getPayments()) {
+
+					if(pay.getAmountPaid().doubleValue()<1)
+					total+=pay.getAmountPaid().doubleValue();
+					
+					paymentNbr++;
+					c = new PdfPCell(font.process(paymentNbr+")"));
+					c.setBorder(Rectangle.NO_BORDER);
+					payTable.addCell(c);
+					
+					c = new PdfPCell(font.process(""+pay.getAmountPaid()));
+					c.setBorder(Rectangle.NO_BORDER);
+					payTable.addCell(c);
+					
+					c = new PdfPCell(font.process(""+pay.getCollector().getFamilyName()+" "+pay.getCollector().getGivenName()));
+					c.setBorder(Rectangle.NO_BORDER);
+					payTable.addCell(c);
+					
+					c = new PdfPCell(font.process(""+pay.getCreatedDate()));
+					c.setBorder(Rectangle.NO_BORDER);
+					payTable.addCell(c);
+				}
+				table.addCell(payTable);
 			} 			
 			
+//			float[] colsWidth2 = { 6}; 
+			PdfPTable tableTotal = new PdfPTable(6);
+			PdfPCell c = new PdfPCell(boldFont.process(""));
+			c.setBorder(Rectangle.NO_BORDER);
+			tableTotal.addCell(c);
+			 c = new PdfPCell(boldFont.process(""));
+			c.setBorder(Rectangle.NO_BORDER);
+			tableTotal.addCell(c);
+			 c = new PdfPCell(boldFont.process(""));
+			c.setBorder(Rectangle.NO_BORDER);
+			tableTotal.addCell(c);
+			 c = new PdfPCell(boldFont.process(""));
+			c.setBorder(Rectangle.NO_BORDER);
+			tableTotal.addCell(c);
+			 c = new PdfPCell(boldFont.process(""));
+			c.setBorder(Rectangle.NO_BORDER);
+			tableTotal.addCell(c);
+			
+			c = new PdfPCell(boldFont.process(""+Math.abs(total)+" FRW"));
+			tableTotal.addCell(c);
+//			tableTotal.setHorizontalAlignment(Element.ALIGN_RIGHT);
+			
+			
 			document.add(table);
+			document.add(tableTotal);
 			document.close();
 			
 		}
