@@ -20,6 +20,7 @@ import org.hibernate.SessionFactory;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
@@ -27,6 +28,7 @@ import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
@@ -182,7 +184,8 @@ public class MohBillingCohortBuilderFormController extends
 						ReportsUtil.roundTwoDecimals(patDueAmt),
 						ReportsUtil.roundTwoDecimals(payments),
 						ReportsUtil.roundTwoDecimals(totalDueAmt),
-						bill.getStatus()});
+						bill.getStatus(),
+						bill.getPatientBillId()});
 
 				totalAmount += totalDueAmt;
 				totalPatientDueAmount += patDueAmt;
@@ -226,7 +229,20 @@ public class MohBillingCohortBuilderFormController extends
 					}
 
 				}
-
+			String patientBillIdStr=null;
+			FileExporter fexp = new FileExporter();
+			log.info("dededeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"+request.getParameter("patientBillId"));
+			if (request.getParameter("patientBillId") != null) {
+				patientBillIdStr=request.getParameter("patientBillId");
+//				Integer patientBillId=Integer.parseInt(patientBillIdStr);
+//				PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(patientBillId); 
+//				PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, null);
+//				String invoiceOwner = "facNo"+patientBill.getPatientBillId()+"On"+patientBill.getCreatedDate()+".pdf";
+//				fexp.exportPatientBillToPDF(request, response,patientInvoice,invoiceOwner,"Details des soins recus");
+				
+				log.info("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"+patientBillIdStr );
+		    }
+			
 		}
 		
 		// display all bills to think about on
@@ -260,6 +276,13 @@ public class MohBillingCohortBuilderFormController extends
 ////		totalUnpaid = totalDueAmount - totalPaid;
 //		mav.addObject("totalUnpaid", totalUnpaid);
 		mav.setViewName(getViewName());
+		
+		String s[];
+		if(request.getParameterValues("print_checked")!=null){
+			s = request.getParameterValues("checked_bill");
+			if(request.getParameterValues("checked_bill")!=null)
+			log.info("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk "+s);
+		}
 
 		return mav;
 
