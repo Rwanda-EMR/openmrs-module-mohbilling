@@ -8,7 +8,9 @@
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<!--  
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+-->
 
 <!-- script to create a pop up windows for unpaid bills -->
 <openmrs:htmlInclude file="/moduleResources/mohbilling/pop_style.css" /> 
@@ -31,9 +33,9 @@
 	
 </script>
  -->
-<script type="text/javascript">
+<script type="text/javascript" language="JavaScript">
 var $b = jQuery.noConflict();
-$(document).ready(function(){
+$b(document).ready(function(){
     $b('#select_all').on('click',function(){
         if(this.checked){
             $b('.checkbox').each(function(){
@@ -47,7 +49,7 @@ $(document).ready(function(){
     });
     
     $b('.checkbox').on('click',function(){
-        if($('.checkbox:checked').length == $('.checkbox').length){
+        if($b('.checkbox:checked').length == $b('.checkbox').length){
             $b('#select_all').prop('checked',true);
         }else{
             $b('#select_all').prop('checked',false);
@@ -188,11 +190,11 @@ $(document).ready(function(){
 <br/>
 <c:if test="${fn:length(billObj)!=0}">
 <div class="box">
-<b class="boxHeader">Search results  <input id="print_button" type="submit" value="PRINT" onclick=""/>
-	<div style="float:right"><a style="" href="cohort.form?print=true&patientId=${patientId}&startDate=${startDate}&endDate=${endDate}&insurance=${insurance.insuranceId}&serviceId=${serviceId}"><b style="color: red;font-size: 14px;">Print PDF</b></a></div>
-</b>
+<b class="boxHeader">Search results </b>
 
-<div class="printarea">
+<form action="cohort.form?print=true" method="post" style="display: inline;">
+	<!-- <input type="submit" class="list_exportBt" value="PDF" title="Export to PDF"/>
+	 -->
 
 <br />
 <br />
@@ -212,14 +214,6 @@ $(document).ready(function(){
 		<td>Amount</td>
 		<td>Status</td>
 		<td></td>
-		<!--
-		<td>
-		<table>
-		<tr><td><a href="cohort.form?print_checked=true">Print</a></td></tr>
-		<tr><td><input type="checkbox" id="select_all"/></td></tr>
-		</table>
-		</td>
-		  -->
 		
 	</tr>
 
@@ -264,8 +258,9 @@ $(document).ready(function(){
 			<td class="rowAmountValue"><b style="color: blue;">${obj[8]}</b></td>
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">${obj[9]}</td>
 			<td class="rowTotalValue"><a href="patientBillPayment.form?patientBillId=${obj[10]}">View/</a></td>
-			<!--<td class="rowTotalValue"><input type="checkbox" class="checkbox" name="checked_bill" value="1"/></td>  -->
-			
+			<!--  
+			<td class="rowTotalValue"><input type="checkbox" class="checkbox" name="checked_bill" value="${obj[10]}"/></td>
+			-->
 		</tr>
 
 	</c:forEach>
@@ -279,8 +274,7 @@ $(document).ready(function(){
 </table>
 <br />
 <br />
-</div>
-
+</form>
 </div> 
 </c:if>
 
