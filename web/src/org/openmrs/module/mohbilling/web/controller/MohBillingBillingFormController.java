@@ -125,8 +125,9 @@ public class MohBillingBillingFormController extends
 							.getValidBillableService(Integer.valueOf(request
 									.getParameter("billableServiceId_" + i)));
 					psb.setService(bs);
-					psb.setQuantity(Integer.valueOf(request
-							.getParameter("quantity_" + i)));
+					if(request.getParameter("quantity_" + i)!=null&&!request.getParameter("quantity_" + i).equals(""))
+					psb.setQuantity(BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i))));
+
 					psb.setServiceDate(new Date());
 					psb.setUnitPrice(BigDecimal.valueOf(Double.valueOf(request
 							.getParameter("servicePrice_" + i))));
@@ -159,4 +160,5 @@ public class MohBillingBillingFormController extends
 
 		// return true;
 	}
+	
 }
