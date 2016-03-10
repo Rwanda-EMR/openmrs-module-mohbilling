@@ -13,6 +13,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -156,7 +157,7 @@ public class MohBillingCohortBuilderFormController extends
 //				double cost = 0;
 				for (PatientServiceBill item : bill.getBillItems()) {
 					serviceDate = item.getServiceDate();
-					double qty = item.getQuantity();
+					double qty = item.getQuantity().doubleValue();
 					double rate = bill.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
 					
 					//act and pharmacy unit price
@@ -216,6 +217,7 @@ public class MohBillingCohortBuilderFormController extends
 			}
 
 			mav.addObject("serviceNames", serviceNames);
+			request.getSession().setAttribute("mariam" , reportedPatientBills);
 
 			if (request.getParameter("print") != null)
 				if (request.getParameter("print").equals("true")) {
@@ -229,19 +231,26 @@ public class MohBillingCohortBuilderFormController extends
 					}
 
 				}
-			String patientBillIdStr=null;
-			FileExporter fexp = new FileExporter();
-			log.info("dededeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"+request.getParameter("patientBillId"));
-			if (request.getParameter("patientBillId") != null) {
-				patientBillIdStr=request.getParameter("patientBillId");
-//				Integer patientBillId=Integer.parseInt(patientBillIdStr);
-//				PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(patientBillId); 
-//				PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, null);
-//				String invoiceOwner = "facNo"+patientBill.getPatientBillId()+"On"+patientBill.getCreatedDate()+".pdf";
-//				fexp.exportPatientBillToPDF(request, response,patientInvoice,invoiceOwner,"Details des soins recus");
-				
-				log.info("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"+patientBillIdStr );
-		    }
+		}
+		
+		String patientBillIdStr=null;
+		
+		if (request.getParameter("print")!=null) {
+			//HttpSession session = request.getSession(true);
+			String checked_bill[] = null;
+			if(request.getParameterValues("checked_bill")!=null){
+				checked_bill=request.getParameterValues("checked_bill");
+				log.info("mamakakakakakaaaaaaaaaaaaaaaaaaaaa "+checked_bill.length);
+			}
+			for (int i = 0; i < checked_bill.length; i++) {
+				FileExporter fexp = new FileExporter();
+				log.info("myarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrray "+checked_bill[i]);
+				//print all these bills
+				PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(Integer.parseInt(checked_bill[i])); 
+				PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, null);
+				String invoiceOwner = "facNo"+patientBill.getPatientBillId()+"_"+patientBill.getBeneficiary().getPatient().getFamilyName()+" "+patientBill.getBeneficiary().getPatient().getGivenName()+"On"+patientBill.getCreatedDate()+".pdf";
+				fexp.exportPatientBillToPDF(request, response,patientInvoice,invoiceOwner,"Details des soins recus");
+			}
 			
 		}
 		
@@ -277,12 +286,6 @@ public class MohBillingCohortBuilderFormController extends
 //		mav.addObject("totalUnpaid", totalUnpaid);
 		mav.setViewName(getViewName());
 		
-		String s[];
-		if(request.getParameterValues("print_checked")!=null){
-			s = request.getParameterValues("checked_bill");
-			if(request.getParameterValues("checked_bill")!=null)
-			log.info("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk "+s);
-		}
 
 		return mav;
 
