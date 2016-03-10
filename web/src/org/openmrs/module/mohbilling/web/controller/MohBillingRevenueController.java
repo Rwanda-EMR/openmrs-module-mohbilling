@@ -284,12 +284,12 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 
 							if (category.equals("AUTRES")) {
 
-								double patientCost = item.getQuantity()
+								double patientCost = item.getQuantity().doubleValue()
 										* item.getUnitPrice().doubleValue();
 								patDueAmt = patDueAmt + patientCost;
 
 							} else {
-								double patientCost = item.getQuantity()
+								double patientCost = item.getQuantity().doubleValue()
 										* item.getUnitPrice().doubleValue()
 										* (100 - currentRate) / 100;
 								patDueAmt = patDueAmt + patientCost;
@@ -303,7 +303,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 					if (svceCateg.startsWith("AMBULAN")) {
 						if (fspId == 96) {
 
-							double patientCost = item.getQuantity()
+							double patientCost = item.getQuantity().doubleValue()
 									* item.getUnitPrice().doubleValue()
 									* (100 - currentRate) / 100;
 
@@ -315,7 +315,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 
 						if (docuLegIds.contains(fspId)) {
 
-							double patientCost = item.getQuantity()
+							double patientCost = item.getQuantity().doubleValue()
 									* item.getUnitPrice().doubleValue()
 									* (100 - currentRate) / 100;
 
@@ -330,7 +330,7 @@ public class MohBillingRevenueController extends ParameterizableViewController {
 
 						if (actMorgueIds.contains(fspId)) {
 
-							double patientCost = item.getQuantity()
+							double patientCost = item.getQuantity().doubleValue()
 									* item.getUnitPrice().doubleValue()
 									* (100 - currentRate) / 100;
 
