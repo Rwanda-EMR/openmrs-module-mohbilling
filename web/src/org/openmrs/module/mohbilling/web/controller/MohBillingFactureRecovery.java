@@ -3,6 +3,7 @@ package org.openmrs.module.mohbilling.web.controller;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,11 +24,13 @@ import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.Invoice;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientInvoice;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -132,7 +135,6 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			if (!request.getParameter("insurance").equals("")) {
 				insuranceIdInt = Integer.parseInt(insuranceStr);
 				insurance = InsuranceUtil.getInsurance(insuranceIdInt);
-			
 			}
 		
 
@@ -160,20 +162,24 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			Double total100 = 0.0;
 			Double totalTickMod = 0.0;
 			Double totalRate = 0.0;
-			
-			
+	
 			for (PatientBill patientBill : patientBills) {
 				 Insurance pbinsurance =patientBill.getBeneficiary().getInsurancePolicy().getInsurance();
+				
 				 if (pbinsurance==insurance) {
 		
-					PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, insurance);	
-
+					PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, insurance);
+	    
+				    billMap.put(patientBill, patientInvoice);	
+								
+								
 					for (String ip : patientInvoice.getInvoiceMap().keySet()) {
 //						log.info("ttttttttttttttttttttttttttttttttttttttttttttkey "+ip);
 //						log.info("ttttttttttttttttttttttttttttttttttttttttttttSubTotal "+patientInvoice.getInvoiceMap().get(ip).getSubTotal());
 						
 						total100+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();;
 						
+						log.info("totaaaaaaaaaaaaAmbu "+totalAmbul);
 						if(ip.equals("CONSULTATION"))
 						totalConsult+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
 						if(ip.equals("LABORATOIRE"))
@@ -186,20 +192,19 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 						totalMedica+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
 						if(ip.equals("CONSOMMABLES"))
 						totalConsomm+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
-						if(ip.equals("AMBULANCE"))
+						if(ip.startsWith("AMBULANCE"))
 						totalAmbul+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
 						if(ip.equals("AUTRES"))
 						totalAutres+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
 						if(ip.equals("HOSPITALISATION"))
 						totalHosp+=patientInvoice.getInvoiceMap().get(ip).getSubTotal();
 					}
+					 totalTickMod=total100*(100-rate)/100;
+					 totalRate=total100*rate/100;
 					
-					 billMap.put(patientBill, patientInvoice);
-				}					
-				
+				}	
 			}
-			totalRate=(total100*rate)/100;
-			totalTickMod=(total100*((100-rate)/100));
+
 			
 			Double[] totals ={ReportsUtil.roundTwoDecimals(totalConsult),ReportsUtil.roundTwoDecimals(totalLabo),
 					ReportsUtil.roundTwoDecimals(totalImagery),ReportsUtil.roundTwoDecimals(totalActs),
@@ -210,6 +215,7 @@ public class MohBillingFactureRecovery extends ParameterizableViewController {
 			
 
 							
+//			mav.addObject("patientBillMap", billMap);
 			mav.addObject("patientBillMap", billMap);
 			mav.addObject("serviceCategories", serviceCategories);
 			mav.addObject("totalByServices", totals);
