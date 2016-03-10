@@ -15,7 +15,7 @@
 
 		<property name="serviceDate" column="service_date" type="java.util.Date" />
 		<property name="unitPrice" column="unit_price" type="big_decimal" />
-		<property name="quantity" column="quantity" type="int" />		
+		<property name="quantity" column="quantity" type="big_decimal" />		
 		<property name="serviceOther" column="service_other" type="java.lang.String" />
 		<property name="serviceOtherDescription" column="service_other_description" type="java.lang.String" />		
 		<property name="createdDate" column="created_date" type="java.util.Date" />
