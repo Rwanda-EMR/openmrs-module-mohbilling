@@ -20,7 +20,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private BillableService service;
 	private PatientBill patientBill;
 	private BigDecimal unitPrice;
-	private Integer quantity;
+	private BigDecimal quantity;
 	// These following 2 attr. are alternative to have
 	// another billableService Object and using
 	// those fields should have special privileges
@@ -121,13 +121,13 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 			throw new RuntimeException(
 					"Unable to calculate Bill Amount, because quantity is null");
 		MathContext mc = new MathContext(BigDecimal.ROUND_HALF_DOWN);
-		return unitPrice.multiply(BigDecimal.valueOf(quantity), mc);
+		return unitPrice.multiply(quantity, mc);
 	}
 
 	/**
 	 * @return the quantity
 	 */
-	public int getQuantity() {
+	public BigDecimal getQuantity() {
 		return quantity;
 	}
 
@@ -135,7 +135,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 * @param quantity
 	 *            the quantity to set
 	 */
-	public void setQuantity(int quantity) {
+	public void setQuantity(BigDecimal quantity) {
 		this.quantity = quantity;
 	}
 
