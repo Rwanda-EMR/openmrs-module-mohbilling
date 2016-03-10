@@ -3,13 +3,9 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -18,15 +14,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -36,16 +29,14 @@ import org.springframework.web.servlet.mvc.AbstractController;
 
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.ExceptionConverter;
 import com.itextpdf.text.Font;
-import com.itextpdf.text.Image;
+import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfContentByte;
@@ -77,10 +68,15 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
-		if(request.getParameter("type")!=null && !request.getParameter("type").equals(""))
-			epsonPrinter(request, response);
-		else
-			printPatientBillToPDF(request, response);
+		try {
+			if(request.getParameter("type")!=null && !request.getParameter("type").equals(""))
+				epsonPrinter(request, response);
+			else
+				printPatientBillToPDF(request, response);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
 
 		return null;
 	}
@@ -177,7 +173,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 		for (PatientServiceBill psb : pb.getBillItems()) {
 			itemSize++;
 			
-			Double serviceCost = !psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")?psb.getUnitPrice().doubleValue()*psb.getQuantity()*patientRate/100:psb.getUnitPrice().doubleValue()*psb.getQuantity();
+			Double serviceCost = !psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")?psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue()*patientRate/100:psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
 			totalToBePaidOnService+=serviceCost;
 
 			Double unitPrice = !psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")?psb.getUnitPrice().doubleValue()*patientRate/100:psb.getUnitPrice().doubleValue();
@@ -282,7 +278,7 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 				privItems.add(psb);
 				privItemsSize++;
 				
-				 Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+				 Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
 				 c = new PdfPCell(fontTitleSelector.process(privItemsSize+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue())+" x "+psb.getQuantity()+" = "+serviceCost+"\n"));
 				 c.setBorder(Rectangle.NO_BORDER);
 				 privateItemsTable.addCell(c);
@@ -480,17 +476,17 @@ public class MohBillingPrintPatientBillController extends AbstractController {
 			ids += 1;
 
 			// calculate the total amount 			
-			totalToBePaidOnService +=  (psb.getQuantity() * psb.getUnitPrice()
+			totalToBePaidOnService +=  (psb.getQuantity().doubleValue() * psb.getUnitPrice()
 						.doubleValue());
 
 			// single service cost
-			Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+			Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
 
 			
 			float patientRate = fexp.getPatientRate(pb);
 			
 			
-			c = new PdfPCell(normalFont.process(ids+") "+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+ReportsUtil.roundTwoDecimals(psb.getQuantity())+" = "+ReportsUtil.roundTwoDecimals(serviceCost*patientRate/100)+"\n"));
+			c = new PdfPCell(normalFont.process(ids+") "+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue()*patientRate/100)+" x "+ReportsUtil.roundTwoDecimals(psb.getQuantity().doubleValue())+" = "+ReportsUtil.roundTwoDecimals(serviceCost*patientRate/100)+"\n"));
 			c.setBorder(Rectangle.NO_BORDER);
 			serviceTb.addCell(c);
 
