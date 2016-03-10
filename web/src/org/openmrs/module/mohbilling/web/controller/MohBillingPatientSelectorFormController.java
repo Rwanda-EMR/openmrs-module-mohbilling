@@ -12,7 +12,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 /**
- * @author Yves GAKUBA
+ * @author MOH
  * 
  *         This controller backs the
  *         /web/module/mohBillingPatientSelectorForm.jsp page. This controller
