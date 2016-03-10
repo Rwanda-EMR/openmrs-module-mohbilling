@@ -22,7 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 /**
- * @author Yves GAKUBA
+ * @author MOH
  * 
  */
 public class MohBillingCheckPatientBillPaymentFormController extends
