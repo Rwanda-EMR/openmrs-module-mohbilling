@@ -76,7 +76,7 @@ public class MohBillingTagUtil {
 				// in order to reduce number of papers and users switching pages
 				double amountDueByPatient = 0.0;
 				for (PatientServiceBill psb : pb.getBillItems()) {
-					Double cost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+					Double cost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
 					amountDueByPatient+=psb.getService().getFacilityServicePrice().getCategory().equals("AUTRES")?cost:cost*patientRate.doubleValue();
 				}
 //				double amountDueByPatient = (pb.getAmount().doubleValue() * patientRate
