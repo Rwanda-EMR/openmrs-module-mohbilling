@@ -772,7 +772,7 @@ public class FileExporter {
 			PdfPTable table = new PdfPTable(1);
 			 for (PatientServiceBill psb : pb.getBillItems()) {
 				 number++;
-				 Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity();
+				 Double serviceCost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
 			     c = new PdfPCell(font.process(number+")"+psb.getService().getFacilityServicePrice().getName()+" "+ReportsUtil.roundTwoDecimals(psb.getUnitPrice().doubleValue()*getPatientRate(pb)/100)+" x "+psb.getQuantity()+" = "+serviceCost*getPatientRate(pb)/100+"\n"));
 					
 			}
