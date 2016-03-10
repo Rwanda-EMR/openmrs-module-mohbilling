@@ -146,7 +146,7 @@
 		    while(j<index){
 			   	if(document.getElementById("servicePrice_"+j)!=null && document.getElementById("servicePrice_"+j)!="undefined"){
 					var price=parseFloat(document.getElementById("servicePrice_"+j).value);
-					bill+=(price*parseInt(document.getElementById("quantity_"+j).value));
+					bill+=(price*parseFloat(document.getElementById("quantity_"+j).value));
 			   	}
 				
 				j++;
