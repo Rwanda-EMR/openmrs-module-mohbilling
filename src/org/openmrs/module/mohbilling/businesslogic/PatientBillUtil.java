@@ -666,53 +666,53 @@ public class PatientBillUtil {
 	return  getService().getRefundedBills(startDate, endDate, collector);
 }
  
- public static PatientInvoice getRevenueFromOtherService(PatientBill pb,String other){
-	 List<Consommation> consommations = new ArrayList<Consommation>();
-	 Consommation conso = new Consommation();
-	 Double currentRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();	
-	 Invoice invoice = new Invoice();
-	 Double subTotal=0.0,total = 0.0,gdTotal=0.0;
-	 PatientInvoice patientInvoice = new PatientInvoice();
-		for (PatientServiceBill item : pb.getBillItems()) {
-			if(item.getService().getFacilityServicePrice().getName().startsWith(other)){
-			//set new consommation
-			String libelle = item.getService().getFacilityServicePrice().getName();	
-			conso.setRecordDate(item.getServiceDate());
-			conso.setLibelle(libelle);
-			conso.setUnitCost(item.getUnitPrice().doubleValue());
-			conso.setQuantity(item.getQuantity());
-			conso.setCost(item.getQuantity().doubleValue()*item.getUnitPrice().doubleValue());
-			conso.setInsuranceCost(item.getQuantity().doubleValue()*item.getUnitPrice().doubleValue()*currentRate/100);
-			conso.setPatientCost(item.getQuantity().doubleValue()*item.getUnitPrice().doubleValue()*(100-currentRate)/100);						
-								
-			//add to cons list
-			consommations.add(conso);
-			Double cost =item.getQuantity().doubleValue()*item.getUnitPrice().doubleValue();
-			//set the subtotal
-			subTotal+=cost;	
-
-		}
-	   }
-		//Invoice,set the created date
-		invoice.setCreatedDate(new Date());
-		invoice.setConsommationList(consommations);		
-		total+=subTotal;   
-		//cons list
-		
-		invoice.setSubTotal(total);
-		//if(invoice.getSubTotal()!=0)
-		LinkedHashMap< String, Invoice> invoiceMap = new LinkedHashMap<String,Invoice>();
-		invoiceMap.put("Amb", invoice);
-		
-		gdTotal+=total;
-
-		//create patient invoice
-		patientInvoice.setPatientBill(pb);
-		patientInvoice.setInvoiceMap(invoiceMap);
-		patientInvoice.setTotalAmount( ReportsUtil.roundTwoDecimals(gdTotal));
-		patientInvoice.setPatientCost(ReportsUtil.roundTwoDecimals(gdTotal*(100-30)/100));
-		patientInvoice.setInsuranceCost( ReportsUtil.roundTwoDecimals(gdTotal*30/100));
-		
-	 return patientInvoice;
- }
+// public static PatientInvoice getRevenueFromOtherService(PatientBill pb,String other){
+//	 List<Consommation> consommations = new ArrayList<Consommation>();
+//	 Consommation conso = new Consommation();
+//	 Double currentRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();	
+//	 Invoice invoice = new Invoice();
+//	 Double subTotal=0.0,total = 0.0,gdTotal=0.0;
+//	 PatientInvoice patientInvoice = new PatientInvoice();
+//		for (PatientServiceBill item : pb.getBillItems()) {
+//			if(item.getService().getFacilityServicePrice().getName().startsWith(other)){
+//			//set new consommation
+//			String libelle = item.getService().getFacilityServicePrice().getName();	
+//			conso.setRecordDate(item.getServiceDate());
+//			conso.setLibelle(libelle);
+//			conso.setUnitCost(item.getUnitPrice().doubleValue());
+//			conso.setQuantity(item.getQuantity());
+//			conso.setCost(item.getQuantity().doubleValue()*item.getUnitPrice().doubleValue());
+//			conso.setInsuranceCost(item.getQuantity().doubleValue()*item.getUnitPrice().doubleValue()*currentRate/100);
+//			conso.setPatientCost(item.getQuantity().doubleValue()*item.getUnitPrice().doubleValue()*(100-currentRate)/100);						
+//								
+//			//add to cons list
+//			consommations.add(conso);
+//			Double cost =item.getQuantity().doubleValue()*item.getUnitPrice().doubleValue();
+//			//set the subtotal
+//			subTotal+=cost;	
+//
+//		}
+//	   }
+//		//Invoice,set the created date
+//		invoice.setCreatedDate(new Date());
+//		invoice.setConsommationList(consommations);		
+//		total+=subTotal;   
+//		//cons list
+//		
+//		invoice.setSubTotal(total);
+//		//if(invoice.getSubTotal()!=0)
+//		LinkedHashMap< String, Invoice> invoiceMap = new LinkedHashMap<String,Invoice>();
+//		invoiceMap.put("Amb", invoice);
+//		
+//		gdTotal+=total;
+//
+//		//create patient invoice
+//		patientInvoice.setPatientBill(pb);
+//		patientInvoice.setInvoiceMap(invoiceMap);
+//		patientInvoice.setTotalAmount( ReportsUtil.roundTwoDecimals(gdTotal));
+//		patientInvoice.setPatientCost(ReportsUtil.roundTwoDecimals(gdTotal*(100-30)/100));
+//		patientInvoice.setInsuranceCost( ReportsUtil.roundTwoDecimals(gdTotal*30/100));
+//		
+//	 return patientInvoice;
+// }
 }
