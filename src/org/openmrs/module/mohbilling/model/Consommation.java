@@ -1,12 +1,13 @@
 package org.openmrs.module.mohbilling.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 public class Consommation {
 	Date recordDate;
 	String libelle;
 	Double unitCost;
-	Integer quantity;
+	BigDecimal quantity;
 	Double cost;
 	Double patientCost;
 	Double insuranceCost;
@@ -37,13 +38,13 @@ public class Consommation {
 	/**
 	 * @return the quantity
 	 */
-	public Integer getQuantity() {
+	public BigDecimal getQuantity() {
 		return quantity;
 	}
 	/**
 	 * @param quantity the quantity to set
 	 */
-	public void setQuantity(Integer quantity) {
+	public void setQuantity(BigDecimal quantity) {
 		this.quantity = quantity;
 	}
 	/**
