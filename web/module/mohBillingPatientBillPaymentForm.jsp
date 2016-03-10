@@ -8,6 +8,8 @@
 <h2>Patient Bill Payment</h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <br/>
 
 <b class="boxHeader">${patientBill.beneficiary.patient.personName}'s Bill as on ${patientBill.createdDate}</b>
@@ -33,21 +35,21 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice}</td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice*billItem.quantity}</td>
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/></td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">
 					   <c:if test="${service.category!='AUTRES'}">
-						${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}
+						<fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" type="number" pattern="#.##"/>
 						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}"/>
 					    </c:if>
 					</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">						
 						<c:choose>
 						 <c:when test="${service.category=='AUTRES'}">
-						  ${(billItem.unitPrice*billItem.quantity)}
+						  <fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/>
 						  <c:set var="totalBillPatient" value="${totalBillPatient+(billItem.unitPrice*billItem.quantity)}"/>
 						 </c:when>
 						 <c:otherwise>
-						 ${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}
+						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 						 </c:otherwise>
 						</c:choose>
@@ -57,8 +59,8 @@
 			<tr>
 				<td colspan="4"></td>
 				<td><div style="text-align: right;"><b>Total : </b></div></td>
-				<td><div class="amount">${totalBillInsurance}</div></td>
-				<td><div class="amount">${totalBillPatient}</div></td>
+				<td><div class="amount"><fmt:formatNumber value="${totalBillInsurance}" type="number" pattern="#.##"/></div></td>
+				<td><div class="amount"><fmt:formatNumber value="${totalBillPatient}" type="number" pattern="#.##"/></div></td>
 			</tr>
 			<tr>
 				<td colspan="7"><hr/></td>
