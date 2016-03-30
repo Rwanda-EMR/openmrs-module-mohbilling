@@ -15,7 +15,6 @@ package org.openmrs.module.mohbilling.db.hibernate;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,8 +27,6 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-
-import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -37,7 +34,6 @@ import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
-
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
@@ -59,7 +55,6 @@ import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
-import org.springframework.orm.hibernate3.SessionFactoryUtils;
 
 
 /**
@@ -583,7 +578,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			psBill.setPatientServiceBillId((Integer) obj[0]);
 			psBill.setServiceDate((Date) obj[1]);
 			psBill.setUnitPrice((BigDecimal) obj[2]);
-			psBill.setQuantity((Integer) obj[3]);
+			psBill.setQuantity((BigDecimal) obj[3]);
 			psBill.setServiceOther((String) obj[4]);
 			psBill.setServiceOtherDescription((String) obj[5]);
 			psBill.setCreatedDate((Date) obj[6]);
