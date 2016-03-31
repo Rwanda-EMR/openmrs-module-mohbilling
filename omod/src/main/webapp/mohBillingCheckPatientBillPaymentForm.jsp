@@ -1,7 +1,7 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
-<%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
+<%@ taglib prefix="billingtag" uri="taglibs/billingtag.tld" %>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
