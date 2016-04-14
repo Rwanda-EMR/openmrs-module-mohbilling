@@ -3,7 +3,7 @@
 <openmrs:require privilege="Manage Billing Reports"
 	otherwise="/login.htm" redirect="/mohbilling/cohort.orm" />
 <openmrs:htmlInclude
-	file="/moduleResources/@MODULE_ID@/scripts/jquery.PrintArea.js" />
+	file="/moduleResources/mohbilling/scripts/jquery.PrintArea.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ taglib prefix="billingtag"
 	uri="taglibs/billingtag.tld"%>
@@ -17,8 +17,6 @@
 <openmrs:htmlInclude file="/moduleResources/mohbilling/demo_page.css" />  
 
 <openmrs:htmlInclude file="/moduleResources/mohbilling/demo_table.css" /> 
-
-<openmrs:htmlInclude file="/moduleResources/mohbilling/jquery.js" />  
 
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();

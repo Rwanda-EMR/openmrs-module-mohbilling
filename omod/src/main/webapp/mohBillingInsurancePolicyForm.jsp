@@ -3,7 +3,7 @@
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <openmrs:require privilege="Create Insurance Policy"
 	otherwise="/login.htm"
-	redirect="/module/@MODULE_ID@/insurancePolicy.form" />
+	redirect="/module/mohbilling/insurancePolicy.form" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
 <style type="text/css">

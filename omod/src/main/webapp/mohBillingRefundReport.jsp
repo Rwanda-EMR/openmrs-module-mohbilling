@@ -3,7 +3,7 @@
 <openmrs:require privilege="Manage Billing Reports"
 	otherwise="/login.htm" redirect="/mohbilling/cohort.orm" />
 <openmrs:htmlInclude
-	file="/moduleResources/@MODULE_ID@/scripts/jquery.PrintArea.js" />
+	file="/moduleResources/mohbilling/scripts/jquery.PrintArea.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ taglib prefix="billingtag"
 	uri="taglibs/billingtag.tld"%>
