@@ -1,0 +1,71 @@
+9
+
+dir
+3130
+http://emr.moh.gov.rw/svn/modules/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling
+http://emr.moh.gov.rw/svn/modules
+
+
+
+2013-08-12T20:05:00.904469Z
+2727
+kamonyo
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+6101c9c6-cf70-4d46-9f71-e9b75042c301
+
+AdminListExtensionTest.java
+file
+
+
+
+
+2015-08-18T16:34:58.510000Z
+060ed6780d8f7210da7efcc5650d6a61
+2011-09-20T16:04:56.587179Z
+613
+kamonyo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1499
+
+include
+dir
+
+testcases
+dir
+
+testsuite
+dir
+

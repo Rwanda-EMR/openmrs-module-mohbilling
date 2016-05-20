@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/modules/!svn/ver/2727/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases
+END
+BillingAPIInsurancePolicyTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/svn/modules/!svn/ver/2201/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/BillingAPIInsurancePolicyTest.java
+END
+BillingAPIPatientBillTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/svn/modules/!svn/ver/2201/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/BillingAPIPatientBillTest.java
+END
+BillingAPIAdministrationTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/svn/modules/!svn/ver/2201/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/BillingAPIAdministrationTest.java
+END
+BillingAPIInsuranceUtilTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/svn/modules/!svn/ver/2201/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/BillingAPIInsuranceUtilTest.java
+END
+BillingAPIFacilityPriceUtilTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/svn/modules/!svn/ver/2201/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/BillingAPIFacilityPriceUtilTest.java
+END
+BillingAPIFacilityServicePriceTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/svn/modules/!svn/ver/2201/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/BillingAPIFacilityServicePriceTest.java
+END
+BillingAPIReportUtilTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/svn/modules/!svn/ver/2343/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/BillingAPIReportUtilTest.java
+END
+TestClasses.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svn/modules/!svn/ver/2345/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/TestClasses.java
+END
+BillingAPIInsurancePolicyUtilTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/svn/modules/!svn/ver/2345/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/BillingAPIInsurancePolicyUtilTest.java
+END
+BillingAPIPatientBillUtilTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/svn/modules/!svn/ver/2727/moh-billing/branches/1.6.x/test/org/openmrs/module/mohbilling/testcases/BillingAPIPatientBillUtilTest.java
+END
