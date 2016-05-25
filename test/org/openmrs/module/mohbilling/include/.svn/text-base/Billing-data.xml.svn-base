@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+  
+  	<!-- Insurance table -->
+  	
+	  <moh_bill_insurance insurance_id="1" name="Mutuelle" address="100 Rue De Akagera" phone="0832-88238" category="Mutuelle"  creator="1" created_date="2005-01-01 00:00:00.0" voided="0" />
+	  <moh_bill_insurance insurance_id="2" name="RAMA" address="Boulevard de l'Umuganda" phone="0908-88354" category="Base" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" />
+	  
+	<!-- Insurance rate table -->
+	  <moh_bill_insurance_rate insurance_rate_id="2" insurance_id="1" rate=".85" flatFee="4000" start_date="2011-01-01 00:00:00.0" end_date="2005-05-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" />
+	  <moh_bill_insurance_rate insurance_rate_id="3" insurance_id="1" rate=".87" flatFee="4000" start_date="2011-01-01 00:00:00.0" end_date="2005-05-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" />
+	  <moh_bill_insurance_rate insurance_rate_id="1" insurance_id="2" rate=".83" flatFee="4000" start_date="2011-05-01 00:00:00.0" end_date="2005-12-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" />
+	 
+	<!-- Service category table -->
+	  <moh_bill_service_category service_category_id="1" name="CONSULTATION"  creator="1" created_date="2005-01-01 00:00:00" retired="0" insurance_id="1"/>
+	  <moh_bill_service_category service_category_id="2" name="PHARMACY"  creator="1" created_date="2005-01-01 00:00:00" retired="0" insurance_id="1"/>
+	  <moh_bill_service_category service_category_id="3" name="HOSPITALIZATION"  creator="1" created_date="2005-01-01 00:00:00" retired="0" insurance_id="2"/>
+	  
+	<!-- Facility Service price table -->  
+	  <moh_bill_facility_service_price facility_service_price_id="1" name="consultation" full_price="5000" start_date="2005-12-01 00:00:00.0" end_date="2011-05-01 00:00:00.0"  retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" location_id="1"/>
+	  <moh_bill_facility_service_price facility_service_price_id="2" name="Hospitalization" full_price="10000" start_date="2005-12-01 00:00:00.0" end_date="2011-05-01 00:00:00.0"  retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" location_id="1"/>
+	  
+	<!-- Billable service table -->  
+	  <moh_bill_billable_service billable_service_id="1" insurance_id="1" maxima_to_pay="200" start_date="2005-05-01 00:00:00.0" end_date="2011-01-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" facility_service_price_id="1"/>
+	  <moh_bill_billable_service billable_service_id="2" insurance_id="2" maxima_to_pay="300" start_date="2005-12-01 00:00:00.0" end_date="2011-05-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" facility_service_price_id="1"/>
+	  <moh_bill_billable_service billable_service_id="3" insurance_id="1" maxima_to_pay="200" start_date="2011-01-01 00:00:00.0" end_date="2005-05-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" facility_service_price_id="2"/>
+	  <moh_bill_billable_service billable_service_id="4" insurance_id="2" maxima_to_pay="300" start_date="2011-05-01 00:00:00.0" end_date="2005-12-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" facility_service_price_id="2"/>
+	 
+	<!-- Insurance policy table -->	  
+	  <moh_bill_insurance_policy insurance_policy_id="1" owner="2" insurance_card_no="F28329487" coverage_start_date="2011-01-01 00:00:00.0"  expiration_date="2011-05-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" insurance_id="1"/>
+	  <moh_bill_insurance_policy insurance_policy_id="2" owner="6" insurance_card_no="Fbbbbbbbb" coverage_start_date="2011-01-01 00:00:00.0"  expiration_date="2011-05-01 00:00:00.0" retired="0"  creator="1" created_date="2005-01-01 00:00:00.0" insurance_id="2"/>
+	  
+	<!-- Beneficiary table -->  
+	  <moh_bill_beneficiary beneficiary_id="1" policy_id_number="F28329487" patient_id="2" retired="0"  creator="501" created_date="2005-01-01 00:00:00.0" insurance_policy_id="1"/>
+	  <moh_bill_beneficiary beneficiary_id="2" policy_id_number="F28329487-02" patient_id="7" retired="0"  creator="501" created_date="2005-01-01 00:00:00.0" insurance_policy_id="1"/>
+	  <moh_bill_beneficiary beneficiary_id="3" policy_id_number="Fbbbbbbbb-01" patient_id="6" retired="0"  creator="501" created_date="2005-01-01 00:00:00.0"  insurance_policy_id="2"/>
+	  <moh_bill_beneficiary beneficiary_id="4" policy_id_number="Fbbbbbbbb" patient_id="8" retired="0"  creator="501" created_date="2005-01-01 00:00:00.0"  insurance_policy_id="2"/>
+	  
+	<!-- Patient bill table -->  
+	  <moh_bill_patient_bill patient_bill_id="1" amount="4800" printed="0" is_paid="1" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="1"/>
+	  <moh_bill_patient_bill patient_bill_id="2" amount="5000" printed="0" is_paid="1" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="2"/>
+	  <moh_bill_patient_bill patient_bill_id="3" amount="1000" printed="0" is_paid="0" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="3"/>
+	  <moh_bill_patient_bill patient_bill_id="4" amount="3000" printed="0" is_paid="0" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="4"/>
+	  <moh_bill_patient_bill patient_bill_id="5" amount="4900" printed="0" is_paid="1" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="1"/>
+	  
+	<!-- Bill payment table -->  
+	  <moh_bill_payment bill_payment_id="12" patient_bill_id="1" amount_paid="4700" date_received="2011-05-01 00:00:00.0" created_date="2005-01-01 00:00:00.0" voided="0" creator="1" collector="1"/>	  
+	  <moh_bill_payment bill_payment_id="11" patient_bill_id="1" amount_paid="100" date_received="2011-05-01 00:00:00.0" created_date="2005-01-01 00:00:00.0" voided="0" creator="1" collector="1"/>
+	  <moh_bill_payment bill_payment_id="13" patient_bill_id="2" amount_paid="5000" date_received="2011-05-02 00:00:00.0" created_date="2005-01-01 00:00:00.0" voided="0" creator="1" collector="1"/>
+	  
+	<!-- Patient service bill table -->  
+	  <moh_bill_patient_service_bill patient_service_bill_id="2" service_date="2011-05-02 00:00:00.0" unit_price="387" quantity="2" created_date="2005-01-01 00:00:00.0" voided="0" billable_service_id="1" patient_bill_id="1" creator="1"/>
+	  <moh_bill_patient_service_bill patient_service_bill_id="1" service_date="2011-05-02 00:00:00.0" unit_price="3898" quantity="2" created_date="2005-06-01 00:00:00.0" voided="0" billable_service_id="2" patient_bill_id="1" creator="1"/>
+
+</dataset>
