@@ -27,23 +27,18 @@
 				<prop key="module/@MODULE_ID@/billing.form">mohBillingBillingFormController</prop>
 				<prop key="module/@MODULE_ID@/patientSearchBill.form">mohBillingBillingPatientSearchFormController</prop>
 				<prop key="module/@MODULE_ID@/patientBillPayment.form">mohBillingPatientBillPaymentFormController</prop>				
-				<prop key="module/@MODULE_ID@/checkPatientBillPayment.form">mohBillingCheckPatientBillPaymentFormController</prop>
 				<prop key="module/@MODULE_ID@/insurancePolicySearch.form">mohBillingInsurancePolicySearchFormController</prop>
 				<prop key="module/@MODULE_ID@/insurancePolicy.form">mohBillingInsurancePolicyFormController</prop>
 				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortController</prop>
 				<prop key="module/@MODULE_ID@/printPDFPatientBill.form">mohBillingPrintPDFPatientBillController</prop>
-			    <prop key="module/@MODULE_ID@/manageRecovery.form">manageRecovery</prop>
-			    <prop key="module/@MODULE_ID@/recovery.list">mohBillingRecoveryListController</prop>
-			    <prop key="module/@MODULE_ID@/processRecovery.form">mohBillingProcessRecoveryController</prop>	
-			    <prop key="module/@MODULE_ID@/ReportRecovery.form">ReportRecovery</prop>
-			    <prop key="module/@MODULE_ID@/hmisReport.form">mohBillingHMISReportController</prop>
 			    <prop key="module/@MODULE_ID@/refundBill.form">mohBillingRefundBillFormController</prop>
 			    <prop key="module/@MODULE_ID@/thirdParty.form">mohBillingThirdPatryFormController</prop>
 			    <prop key="module/@MODULE_ID@/received.form">mohBillingReceivedController</prop>
 			    <prop key="module/@MODULE_ID@/recettes.form">mohBillingRevenueController</prop>
-			    <prop key="module/@MODULE_ID@/facture.form">mohBillingFactureRecovery</prop>
 			    <prop key="module/@MODULE_ID@/invoice.form">mohBillingInvoice</prop>
-			    <prop key="module/@MODULE_ID@/refundBillReport.form">mohBillingRefundReportController</prop>			    
+			    <prop key="module/@MODULE_ID@/refundBillReport.form">mohBillingRefundReportController</prop>
+			    <prop key="module/@MODULE_ID@/deposit.form">mohBillingDepositFormController</prop>
+			    <prop key="module/@MODULE_ID@/billingAdmin.form">mohBillingAdminFormController</prop>			  		    
 			</props>
 		</property>
 	</bean>
@@ -52,14 +47,6 @@
 	
     <bean id="billingPortletController" class="@MODULE_PACKAGE@.web.controller.BillingDashboardPortletController" />
 	
-	<bean id="mohBillingProcessRecoveryController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProcessRecoveryController">
-		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingManageRecovery</value></property>
-	</bean>
-	
-	<bean id="mohBillingRecoveryListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRecoveryListController">
-		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingRecoveryList</value></property>
-	</bean>
-	
 	<bean id="mohBillingThirdPatryFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingThirdPatryFormController">
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingThirdPartyForm</value></property>
 	</bean>
@@ -67,14 +54,7 @@
 	<bean id="mohBillingRefundBillFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundBillFormController">
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingRefundBillingForm</value></property>
 	</bean>
-	
-	<bean id="manageRecovery" class="org.openmrs.module.mohbilling.web.controller.MohBillingManageRecoveryController">
-		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingManageRecovery</value></property>
-	</bean>
-	
-	<bean id="ReportRecovery" class="org.openmrs.module.mohbilling.web.controller.MohBillingReportRecovery">
-		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingReportRecoveryForm</value></property>
-	</bean>
+
       
 	<bean id="mohBillingInsuranceListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceListController">
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsuranceList</value></property>
@@ -128,10 +108,6 @@
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingPatientBillPaymentForm</value></property>
 	</bean>
 
-	<bean id="mohBillingCheckPatientBillPaymentFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCheckPatientBillPaymentFormController">
-		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingCheckPatientBillPaymentForm</value></property>
-	</bean>
-
 	<bean id="mohBillingInsurancePolicySearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsurancePolicySearchFormController">
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsurancePolicySearchForm</value></property>
 	</bean>
@@ -144,9 +120,6 @@
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingCohortBuilderForm</value></property>
 	</bean>
 
-	<bean id="mohBillingHMISReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingHMISReportController">
-		<property name="viewName"><value>/module/mohbilling/mohBillingHMISReport</value></property>
-	</bean>
 	<bean id="mohBillingReceivedController" class="org.openmrs.module.mohbilling.web.controller.MohBillingrReceivedAmountController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingReceivedAmount</value></property>
 	</bean>
@@ -155,16 +128,20 @@
 	</bean>
 	
 	<bean id="mohBillingPrintPDFPatientBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingPrintPatientBillController"/>
-	
-	<bean id="mohBillingFactureRecovery" class="org.openmrs.module.mohbilling.web.controller.MohBillingFactureRecovery">
-		<property name="viewName"><value>/module/mohbilling/mohBillingFacture</value></property>
-	</bean>	
+
 	<bean id="mohBillingInvoice" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceInvoiceController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingInvoice</value></property>
 	</bean>
 	<bean id="mohBillingRefundReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundReportController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingRefundReport</value></property>
 	</bean>
+	<bean id="mohBillingDepositFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepositFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingDepositForm</value></property>
+	</bean>
+	<bean id="mohBillingAdminFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdminFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingAdminForm</value></property>
+	</bean>
+
 
 	<!-- /Controllers -->
 

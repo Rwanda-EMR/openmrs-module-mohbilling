@@ -54,16 +54,12 @@ public class AdminList extends AdministrationSectionExt {
 
 		Map<String, String> map = new HashMap<String, String>();
 
-		if (Context.getAuthenticatedUser().hasPrivilege("Add Facility service"))
-			map.put("module/mohbilling/facilityService.list", "mohbilling.facility.service.manage");
-		if (Context.getAuthenticatedUser().hasPrivilege("Add Insurance"))
-			map.put("module/mohbilling/insurance.list", "mohbilling.insurance.manage");
-		if (Context.getAuthenticatedUser().hasPrivilege("Create Insurance Policy"))
-			map.put("module/mohbilling/insurancePolicySearch.form", "mohbilling.insurance.policy.manage");
-		if (Context.getAuthenticatedUser().hasPrivilege("Manage Patient Bill Calculations"))
-			map.put("module/mohbilling/patientSearchBill.form", "mohbilling.billing.manage");
-		if (Context.getAuthenticatedUser().hasPrivilege("Manage Billing Reports"))
-			map.put("module/mohbilling/cohort.form", "mohbilling.billing.report");
+			map.put("module/mohbilling/admission.form", "Admission");
+			map.put("module/mohbilling/insurancePolicySearch.form", "Insurance Policy");
+			map.put("module/mohbilling/patientSearchBill.form", "Bill");
+			map.put("module/mohbilling/deposit.form", "Deposit");
+			map.put("module/mohbilling/cohort.form", "Report");
+			map.put("module/mohbilling/billAdmin.form", "Billing Admin");
 
 		return map;
 	}

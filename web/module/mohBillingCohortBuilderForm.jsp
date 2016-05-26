@@ -87,11 +87,6 @@ $b(document).ready(function(){
 		</li>
 		</openmrs:hasPrivilege>
 		
-		 <openmrs:hasPrivilege privilege="Billing Reports - View Releve">
-		<li>
-			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
-		</li>
-		</openmrs:hasPrivilege>
 		<li>
 			<a href="refundBillReport.form">Refunding report</a>
 		</li>

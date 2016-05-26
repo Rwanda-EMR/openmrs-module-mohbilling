@@ -1,23 +1,23 @@
 <ul id="menu">
 
-		<openmrs:hasPrivilege privilege="Search Insurance Policy"><li class="<c:if test='<%= request.getRequestURI().contains("mohBillingInsurancePolicy")%>'> active</c:if>">
-			<a href="insurancePolicySearch.form"><spring:message code="@MODULE_ID@.insurance.policy.manage"/></a>
+		
+		<li>
+			<a href="patientSearchBill.form">Create Bill</a>
 		</li>
-		</openmrs:hasPrivilege>
-		<li><a href="#">Admission</a></li>
+		<li>
+			<a href="#">Create Payment</a>
+		</li>
 		
-		<openmrs:hasPrivilege privilege="Manage Patient Bill Calculations">
-		<li class="<c:if test='<%= request.getRequestURI().contains("mohBillingBilling")%>'> active</c:if>">
-			<a href="patientSearchBill.form"><spring:message code="@MODULE_ID@.billing.manage"/></a>
-		</li></openmrs:hasPrivilege>
+		<li>
+			<a href="#">Make Deposit</a>
+		</li>
+		<li>
+			<a href="#">Make Refund</a>
+		</li>
 		
-		<li><a href="deposit.form">Deposit</a></li>
-		
-		<openmrs:hasPrivilege privilege="Manage Billing Reports"><li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
-			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.report"/></a>
-		</li>	</openmrs:hasPrivilege>
-	
-	<li><a href="billingAdmin.form">Billing Admin</a></li>
+		<li>
+			<a href="#">Approve Refund</a>
+		</li>
 		
 </ul>
 

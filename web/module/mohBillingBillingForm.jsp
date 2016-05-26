@@ -195,6 +195,7 @@
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
+
 <h2><spring:message code="@MODULE_ID@.billing.calculation"/></h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
