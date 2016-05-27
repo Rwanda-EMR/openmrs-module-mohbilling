@@ -25,7 +25,7 @@ import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.model.Recovery;
+
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -212,10 +212,6 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getAllBillableServices();
 	}
 
-	@Override
-	public void saveRecovery(Recovery recovery) {
-		billingDAO.saveRecovery(recovery);
-	}
 
 	public Float getPaidAmountPerInsuranceAndPeriod(Insurance insurance,
 			Date startDate, Date endDate) {
@@ -223,11 +219,6 @@ public class BillingServiceImpl implements BillingService {
 				startDate, endDate);
 	}
 
-	public List<Recovery> getAllPaidAmountPerInsuranceAndPeriod(
-			Insurance insurance, Date startDate, Date endDate) {
-		return billingDAO.getAllPaidAmountPerInsuranceAndPeriod(insurance,
-				startDate, endDate);
-	}
 
 	/**
 	 * @see org.openmrs.module.mohbilling.service.BillingService#getInsurancePolicyByCardNo(java.lang.String)
@@ -276,24 +267,6 @@ public class BillingServiceImpl implements BillingService {
 	public void saveThirdParty(ThirdParty thirdParty) throws DAOException {
 
 		billingDAO.saveThirdParty(thirdParty);
-	}
-
-	/**
-	 * @see org.openmrs.module.mohbilling.service.BillingService#getAllRecoveries()
-	 */
-	@Override
-	public List<Recovery> getAllRecoveries() throws DAOException {
-
-		return billingDAO.getAllRecoveries();
-	}
-
-	/**
-	 * @see org.openmrs.module.mohbilling.service.BillingService#getRecovery(java.lang.Integer)
-	 */
-	@Override
-	public Recovery getRecovery(Integer recoveryId) throws DAOException {
-
-		return billingDAO.getRecovery(recoveryId);
 	}
 
 	/**
@@ -487,10 +460,6 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getPharmacyBaseBillableServices(i);
 	}
 
-	@Override
-	public List<PatientBill> getPendingBill() {
-		return billingDAO.getPendingBill();
-	}
 
 	/**
 	 * @see org.openmrs.module.mohbilling.service.BillingService#getRefundedBills(java.util.Date, java.util.Date, org.openmrs.User)

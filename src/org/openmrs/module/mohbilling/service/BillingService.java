@@ -3,7 +3,6 @@
  */
 package org.openmrs.module.mohbilling.service;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -21,13 +20,11 @@ import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  * 
  */
 public interface BillingService {
@@ -115,7 +112,7 @@ public interface BillingService {
 	 */
 	public void savePatientBill(PatientBill bill) throws DAOException;
 
-	public void saveRecovery(Recovery recovery);
+
 
 	/**
 	 * Saves the Insurance to the DB by passing the Object to be saved
@@ -183,8 +180,6 @@ public interface BillingService {
 	public Float getPaidAmountPerInsuranceAndPeriod(Insurance insurance,
 			Date startDate, Date endDate);
 
-	public List<Recovery> getAllPaidAmountPerInsuranceAndPeriod(
-			Insurance insurance, Date startDate, Date endDate);
 
 	/**
 	 * Gets the InsurancePolicyCard by unique InsuranceCardNo
@@ -254,23 +249,6 @@ public interface BillingService {
 	 * @throws DAOException
 	 */
 	public void saveThirdParty(ThirdParty thirdParty) throws DAOException;
-
-	/**
-	 * Gets all Recovery History
-	 * 
-	 * @return
-	 */
-	public List<Recovery> getAllRecoveries() throws DAOException;
-
-	/**
-	 * Gets a Recovery from the DB by recoveryId
-	 * 
-	 * @param recoveryId
-	 *            , the Recovery to retrieve
-	 * 
-	 * @throws DAOException
-	 */
-	public Recovery getRecovery(Integer recoveryId) throws DAOException;
 
 	/**
 	 * Gets a Beneficiary by passing its PolicyNumber
@@ -420,11 +398,6 @@ public interface BillingService {
 
 	public List<Object[]> getPharmacyBaseBillableServices(Insurance i);
 	
-	/**
-	 * get bills with problems
-	 * @return
-	 */
-	public List<PatientBill> getPendingBill();
 	
 	/**
 	 * gets refunded bills 

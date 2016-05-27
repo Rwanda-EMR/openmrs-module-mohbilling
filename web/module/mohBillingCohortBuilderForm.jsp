@@ -59,9 +59,6 @@ $b(document).ready(function(){
 </script>
 
 
-
-<h2><spring:message code="@MODULE_ID@.billing.report"/></h2>
-
 <ul id="menu">
         <openmrs:hasPrivilege privilege="Billing Reports - View Find Bills">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">

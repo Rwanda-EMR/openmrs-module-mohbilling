@@ -321,32 +321,8 @@ public class HibernateBillingDAO implements BillingDAO {
 				.add(Restrictions.eq("voided", false)).list();
 	}
 
-	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveRecovery(org.openmrs.module.mohbilling.model.Recovery)
-	 */
-	@Override
-	public void saveRecovery(Recovery recovery) {
-		sessionFactory.getCurrentSession().saveOrUpdate(recovery);
-	}
 
-	@Override
-	public Recovery getRecovery(Integer recoveryId) {
 
-		return (Recovery) sessionFactory.getCurrentSession().get(
-				Recovery.class, recoveryId);
-	}
-
-	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllRecoveries()
-	 */
-	@Override
-	public List<Recovery> getAllRecoveries() {
-
-		return sessionFactory.getCurrentSession()
-				.createCriteria(Recovery.class)
-				.add(Restrictions.eq("retired", false))
-				.addOrder(Order.asc("startPeriod")).list();
-	}
 
 	@Override
 	public Float getPaidAmountPerInsuranceAndPeriod(Insurance insurance,
@@ -528,8 +504,7 @@ public class HibernateBillingDAO implements BillingDAO {
 				.createSQLQuery(combinedSearch.toString())
 				.addEntity("pay", BillPayment.class).list();
 
-//		System.out.println("_____________________ BILL QUERY __________\n"
-//				+ combinedSearch.toString());
+
 		return billPayments;
 	}
 
@@ -964,7 +939,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		String str = "SELECT pb.patient_bill_id FROM moh_bill_patient_bill pb " +
 				" inner join moh_bill_beneficiary b on b.beneficiary_id=pb.beneficiary_id " +
 				" and pb.created_date between '"+df.format(startDate)+" 00:00:00' and '"+df.format(endDate)+" 23:59:00' and b.patient_id="+patient.getPatientId();
-//		log.info("ssssssssssssssssssssssss "+str);
+
 		SQLQuery query = session.createSQLQuery(str);
 		List<Object> ob = query.list();
 		PatientBill pb = null;
@@ -1128,12 +1103,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		return ob;
 	}
 
-	@Override
-	public List<PatientBill> getPendingBill() {
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientBill.class).add(Restrictions.in("status", new String[]{"UNPAID","PARTLY PAID"}));
-//		Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientBill.class).add(Restrictions.eq("status", "UNPAID"));
-		return crit.list();
-	}
+
 
 	@Override
 	public Set<PatientBill> getRefundedBills(Date startDate, Date endDate, User collector) {

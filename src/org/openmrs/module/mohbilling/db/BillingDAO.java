@@ -32,7 +32,7 @@ import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.model.Recovery;
+
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.springframework.transaction.annotation.Transactional;
@@ -187,8 +187,6 @@ public interface BillingDAO {
 
 	public List<BillableService> getAllBillableServices();
 
-	public void saveRecovery(Recovery recovery);
-
 	/**
 	 * get all billable services
 	 * 
@@ -197,8 +195,7 @@ public interface BillingDAO {
 	public Float getPaidAmountPerInsuranceAndPeriod(Insurance insurance,
 			Date startDate, Date endDate);
 
-	public List<Recovery> getAllPaidAmountPerInsuranceAndPeriod(
-			Insurance insurance, Date startDate, Date endDate);
+
 
 	/**
 	 * Gets the InsurancePolicyCard by unique InsuranceCardNo
@@ -278,22 +275,6 @@ public interface BillingDAO {
 	 */
 	public List<ThirdParty> getAllThirdParties() throws DAOException;
 
-	/**
-	 * get all Recovery History
-	 * 
-	 * @return
-	 */
-	public List<Recovery> getAllRecoveries() throws DAOException;
-
-	/**
-	 * Gets a Recovery from the DB by recoveryId
-	 * 
-	 * @param recoveryId
-	 *            , the Recovery to retrieve
-	 * 
-	 * @throws DAOException
-	 */
-	public Recovery getRecovery(Integer recoveryId) throws DAOException;
 
 	/**
 	 * Gets a Beneficiary by passing its PolicyNumber
@@ -453,13 +434,12 @@ public interface BillingDAO {
 	
 	public List<Object[]> getBaseBillableServices(Insurance i);
 	
-	public List<Object[]> getPharmacyBaseBillableServices(Insurance i);
-	
 	/**
-	 * get bills with problems
+	 * @param i
 	 * @return
 	 */
-	public List<PatientBill> getPendingBill();
+	public List<Object[]> getPharmacyBaseBillableServices(Insurance i);
+	
 
 	public Set<PatientBill> getRefundedBills(Date startDate, Date endDate, User collector);
 }
