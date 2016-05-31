@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- ServiceCategory -->
+	
+	<class name="ServiceCategory" table="moh_bill_service_category">
+
+		<id name="serviceCategoryId" type="int" column="service_category_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<discriminator column="service_category_id" insert="false" />
+
+		<property name="name" column="name" type="text" />
+		<property name="description" column="description" type="text" />
+		<property name="price" column="price" type="big_decimal" />
+		<property name="createdDate" column="created_date" type="date" />
+		<property name="retired" column="retired" type="boolean" />
+		<property name="retiredDate" column="retire_date" type="date" />
+		<property name="retireReason" column="retire_reason" type="text" />
+
+		<many-to-one name="insurance" class="org.openmrs.module.mohbilling.model.Insurance" column="insurance_id" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
+		
+	</class>
+
+</hibernate-mapping>

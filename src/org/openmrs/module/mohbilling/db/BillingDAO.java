@@ -38,7 +38,7 @@ import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  * 
  */
 @Transactional

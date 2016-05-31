@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- Beneficiary -->
+	
+	<class name="Beneficiary" table="moh_bill_beneficiary">
+
+		<id name="beneficiaryId" type="int" column="beneficiary_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+		
+		<discriminator column="beneficiary_id" insert="false" />
+
+		<property name="policyIdNumber" column="policy_id_number" type="text" />
+		<property name="retired" column="retired" type="boolean" />
+		<property name="retiredDate" column="retire_date" type="date" />
+		<property name="retireReason" column="retire_reason" type="text" />		
+		<property name="createdDate" column="created_date" type="date" />
+		
+		<many-to-one name="patient" class="org.openmrs.Patient" column="patient_id" />
+		<many-to-one name="insurancePolicy" class="org.openmrs.module.mohbilling.model.InsurancePolicy" column="insurance_policy_id" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
+
+	</class>
+
+</hibernate-mapping>

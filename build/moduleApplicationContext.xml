@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+	<!-- Beans to add to the current Application context definition -->
+
+<beans>
+
+	<bean id="mohbillingUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		
+		<property name="order">
+			<value>2</value>
+		</property>
+                                            
+		<property name="mappings">
+			<props>
+            	<prop key="**/billingPortlet.portlet">billingPortletController</prop>
+				<prop key="module/mohbilling/insurance.list">mohBillingInsuranceListController</prop>
+				<prop key="module/mohbilling/insurance.form">mohBillingInsuranceFormController</prop>
+				<prop key="module/mohbilling/insuranceServiceCategory.list">mohBillingInsuranceServiceCategoryListController</prop>
+				<prop key="module/mohbilling/insuranceServiceCategory.form">mohBillingInsuranceServiceCategoryFormController</prop>
+				<prop key="module/mohbilling/facilityService.form">mohBillingFacilityServiceFormController</prop>
+				<prop key="module/mohbilling/facilityService.list">mohBillingFacilityServiceListController</prop>
+				<prop key="module/mohbilling/facilityServiceByInsuranceCompany.list">mohBillingFacilityServiceByInsuranceCompanyListController</prop>
+				<prop key="module/mohbilling/billableService.form">mohBillingBillableServiceFormController</prop>
+				<prop key="module/mohbilling/billableService.list">mohBillingBillableServiceListController</prop>
+				<prop key="module/mohbilling/billableServiceByServiceCategory.list">mohBillingBillableServiceByServiceCategoryListController</prop>
+				<prop key="module/mohbilling/billing.form">mohBillingBillingFormController</prop>
+				<prop key="module/mohbilling/patientSearchBill.form">mohBillingBillingPatientSearchFormController</prop>
+				<prop key="module/mohbilling/patientBillPayment.form">mohBillingPatientBillPaymentFormController</prop>				
+				<prop key="module/mohbilling/insurancePolicySearch.form">mohBillingInsurancePolicySearchFormController</prop>
+				<prop key="module/mohbilling/insurancePolicy.form">mohBillingInsurancePolicyFormController</prop>
+				<prop key="module/mohbilling/cohort.form">mohBillingCohortController</prop>
+				<prop key="module/mohbilling/printPDFPatientBill.form">mohBillingPrintPDFPatientBillController</prop>
+			    <prop key="module/mohbilling/refundBill.form">mohBillingRefundBillFormController</prop>
+			    <prop key="module/mohbilling/thirdParty.form">mohBillingThirdPatryFormController</prop>
+			    <prop key="module/mohbilling/received.form">mohBillingReceivedController</prop>
+			    <prop key="module/mohbilling/recettes.form">mohBillingRevenueController</prop>
+			    <prop key="module/mohbilling/invoice.form">mohBillingInvoice</prop>
+			    <prop key="module/mohbilling/refundBillReport.form">mohBillingRefundReportController</prop>
+			    <prop key="module/mohbilling/deposit.form">mohBillingDepositFormController</prop>
+			    <prop key="module/mohbilling/billingAdmin.form">mohBillingAdminFormController</prop>	
+			    <prop key="module/mohbilling/department.form">mohBillingDepartmentFormController</prop>	
+			     <prop key="module/mohbilling/admission.form">mohBillingAdmissionFormController</prop>		  		    
+			</props>
+		</property>
+	</bean>
+
+	<!-- Controllers -->
+	
+    <bean id="billingPortletController" class="org.openmrs.module.mohbilling.web.controller.BillingDashboardPortletController" />
+	
+	<bean id="mohBillingThirdPatryFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingThirdPatryFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingThirdPartyForm</value></property>
+	</bean>
+	
+	<bean id="mohBillingRefundBillFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundBillFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingRefundBillingForm</value></property>
+	</bean>
+
+      
+	<bean id="mohBillingInsuranceListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceListController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceList</value></property>
+	</bean>
+
+	<bean id="mohBillingInsuranceFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceForm</value></property>
+	</bean>
+
+	<bean id="mohBillingInsuranceServiceCategoryListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceServiceCategoryListController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceServiceCategoryList</value></property>
+	</bean>
+
+	<bean id="mohBillingInsuranceServiceCategoryFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceServiceCategoryFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceServiceCategoryForm</value></property>
+	</bean>
+
+	<bean id="mohBillingFacilityServiceFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingFacilityServiceFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingFacilityServiceForm</value></property>
+	</bean>
+
+	<bean id="mohBillingFacilityServiceListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingFacilityServiceListController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingFacilityServiceList</value></property>
+	</bean>
+
+	<bean id="mohBillingFacilityServiceByInsuranceCompanyListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingFacilityServiceByInsuranceCompanyListController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingFacilityServiceByInsuranceCompanyList</value></property>
+	</bean>
+
+	<bean id="mohBillingBillableServiceFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillableServiceFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceBillableServiceForm</value></property>
+	</bean>
+
+	<bean id="mohBillingBillableServiceListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillableServiceListController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceBillableServiceList</value></property>
+	</bean>
+
+	<bean id="mohBillingBillableServiceByServiceCategoryListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillableServiceByServiceCategoryListController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceBillableServiceByServiceCategoryList</value></property>
+	</bean>
+
+	<bean id="mohBillingBillingFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillingFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingBillingForm</value></property>
+	</bean>
+
+	<bean id="mohBillingBillingPatientSearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillingPatientSearchFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingBillingPatientSearchForm</value></property>
+	</bean>	
+
+	<bean id="mohBillingPatientBillPaymentFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingPatientBillPaymentFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingPatientBillPaymentForm</value></property>
+	</bean>
+
+	<bean id="mohBillingInsurancePolicySearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsurancePolicySearchFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInsurancePolicySearchForm</value></property>
+	</bean>
+
+	<bean id="mohBillingInsurancePolicyFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsurancePolicyFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInsurancePolicyForm</value></property>
+	</bean>
+	
+	<bean id="mohBillingCohortController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCohortBuilderFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingCohortBuilderForm</value></property>
+	</bean>
+
+	<bean id="mohBillingReceivedController" class="org.openmrs.module.mohbilling.web.controller.MohBillingrReceivedAmountController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingReceivedAmount</value></property>
+	</bean>
+	<bean id="mohBillingRevenueController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRevenueController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingRevenue</value></property>
+	</bean>
+	
+	<bean id="mohBillingPrintPDFPatientBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingPrintPatientBillController"/>
+
+	<bean id="mohBillingInvoice" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceInvoiceController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingInvoice</value></property>
+	</bean>
+	<bean id="mohBillingRefundReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundReportController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingRefundReport</value></property>
+	</bean>
+	<bean id="mohBillingDepositFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepositFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingDepositForm</value></property>
+	</bean>
+	<bean id="mohBillingAdminFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdminFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingAdminForm</value></property>
+	</bean> 
+
+	<bean id="mohBillingDepartmentFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingDepartmentForm</value></property>
+	</bean> 
+	
+	<bean id="mohBillingAdmissionFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdmissionFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingAdmissionForm</value></property>
+	</bean>
+	
+	<!-- /Controllers -->
+
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list>
+				<value>org.openmrs.module.mohbilling.service.BillingService</value>
+				<bean
+					class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+					<property name="transactionManager">
+						<ref bean="transactionManager" />
+					</property>
+					<property name="target">
+						<bean class="org.openmrs.module.mohbilling.impl.BillingServiceImpl">
+							<property name="billingDAO">
+								<bean
+									class="org.openmrs.module.mohbilling.db.hibernate.HibernateBillingDAO">
+									<property name="sessionFactory">
+										<ref bean="sessionFactory" />
+									</property>
+								</bean>
+							</property>
+						</bean>
+					</property>
+					<property name="preInterceptors">
+						<list>
+							<ref bean="authorizationInterceptor" />
+						</list>
+					</property>
+					<property name="transactionAttributeSource">
+						<bean
+							class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>

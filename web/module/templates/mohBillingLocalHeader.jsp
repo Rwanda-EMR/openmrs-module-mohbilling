@@ -4,7 +4,7 @@
 			<a href="insurancePolicySearch.form"><spring:message code="@MODULE_ID@.insurance.policy.manage"/></a>
 		</li>
 		</openmrs:hasPrivilege>
-		<li><a href="#">Admission</a></li>
+		<li><a href="admission.form">Admission</a></li>
 		
 		<openmrs:hasPrivilege privilege="Manage Patient Bill Calculations">
 		<li class="<c:if test='<%= request.getRequestURI().contains("mohBillingBilling")%>'> active</c:if>">
