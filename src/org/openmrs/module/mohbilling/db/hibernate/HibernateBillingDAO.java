@@ -34,10 +34,12 @@ import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
+import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
@@ -45,6 +47,7 @@ import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -58,7 +61,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
 
 
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  * 
  */
 @SuppressWarnings("unchecked")
@@ -1129,5 +1132,29 @@ public class HibernateBillingDAO implements BillingDAO {
 		}	
 		
 		return refundedBills;
+	}
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#savesaveDepartement(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public Department savesaveDepartement(Department departement) {
+		
+		sessionFactory.getCurrentSession().saveOrUpdate(departement);
+		return departement;		
+	}
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getDepartement(java.lang.Integer)
+	 */
+	@Override
+	public Department getDepartement(Integer departementId) {
+		return (Department) sessionFactory.getCurrentSession().get(Department.class, departementId);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllDepartements()
+	 */
+	@Override
+	public List<Department> getAllDepartements() {
+		return sessionFactory.getCurrentSession().createCriteria(Department.class).list();
 	}	
 }

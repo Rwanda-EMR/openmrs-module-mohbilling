@@ -18,6 +18,7 @@ import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceCategory;
@@ -471,5 +472,31 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getRefundedBills(startDate,endDate,collector);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#saveDepartement(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public Department saveDepartement(Department departement) {
+	    return 	billingDAO.savesaveDepartement(departement);
+		// TODO Auto-generated method stub
+		
+	}
 
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getDepartement(java.lang.Integer)
+	 */
+	@Override
+	public Department getDepartement(Integer departementId) {
+		// TODO Auto-generated method stub
+		return billingDAO.getDepartement(departementId);
 }
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getAllDepartements()
+	 */
+	@Override
+	public List<Department> getAllDepartements() {
+		// TODO Auto-generated method stub
+		return billingDAO.getAllDepartements();
+	}
+	}
