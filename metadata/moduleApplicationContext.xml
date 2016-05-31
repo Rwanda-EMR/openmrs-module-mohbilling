@@ -38,7 +38,9 @@
 			    <prop key="module/@MODULE_ID@/invoice.form">mohBillingInvoice</prop>
 			    <prop key="module/@MODULE_ID@/refundBillReport.form">mohBillingRefundReportController</prop>
 			    <prop key="module/@MODULE_ID@/deposit.form">mohBillingDepositFormController</prop>
-			    <prop key="module/@MODULE_ID@/billingAdmin.form">mohBillingAdminFormController</prop>			  		    
+			    <prop key="module/@MODULE_ID@/billingAdmin.form">mohBillingAdminFormController</prop>	
+			    <prop key="module/@MODULE_ID@/department.form">mohBillingDepartmentFormController</prop>	
+			     <prop key="module/@MODULE_ID@/admission.form">mohBillingAdmissionFormController</prop>		  		    
 			</props>
 		</property>
 	</bean>
@@ -140,9 +142,16 @@
 	</bean>
 	<bean id="mohBillingAdminFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdminFormController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingAdminForm</value></property>
+	</bean> 
+
+	<bean id="mohBillingDepartmentFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingDepartmentForm</value></property>
+	</bean> 
+	
+	<bean id="mohBillingAdmissionFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdmissionFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingAdmissionForm</value></property>
 	</bean>
-
-
+	
 	<!-- /Controllers -->
 
 	<bean parent="serviceContext">

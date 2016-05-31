@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+ 
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- ThirdParty -->
+	
+	<class name="ThirdParty" table="moh_bill_third_party">
+
+		<id name="thirdPartyId" type="int" column="third_party_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="name" column="name" type="text" />
+		<property name="rate" column="rate" type="float" />
+		
+		<property name="createdDate" column="created_date" type="date" />
+		<property name="voided" column="voided" type="java.lang.Boolean" />
+		<property name="voidedDate" column="voided_date" type="date" />
+		<property name="voidReason" column="void_reason" type="text" />
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+
+	</class>
+
+</hibernate-mapping>
