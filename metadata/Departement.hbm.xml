@@ -7,9 +7,9 @@
 
 	<!-- Departement -->
 	
-	<class name="Department" table="moh_bill_departement">
+	<class name="Department" table="moh_bill_department">
 
-		<id name="departementId" type="int" column="departement_id" unsaved-value="0">
+		<id name="departmentId" type="int" column="department_id" unsaved-value="0">
 			<generator class="native" />
 		</id>
 		<property name="name" column="name" type="text" />
@@ -22,14 +22,6 @@
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />		
 
-		 <set name="hopServices" table="moh_bill_hop_service" 
-				inverse="true" lazy="true" fetch="select">
-            <key>
-                <column name="departement_id" not-null="true" />
-            </key>
-            <one-to-many class="HopService" />
-        </set>
-		
 	</class>
 	
 </hibernate-mapping>

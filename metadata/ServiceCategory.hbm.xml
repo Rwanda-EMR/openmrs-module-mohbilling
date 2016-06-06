@@ -24,6 +24,8 @@
 		<property name="retireReason" column="retire_reason" type="text" />
 
 		<many-to-one name="insurance" class="org.openmrs.module.mohbilling.model.Insurance" column="insurance_id" />
+		<many-to-one name="department" class="org.openmrs.module.mohbilling.model.Department" column="department_id" />
+		<many-to-one name="hopService" class="org.openmrs.module.mohbilling.model.HopService" column="service_id" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
 		

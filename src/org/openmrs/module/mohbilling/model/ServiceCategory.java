@@ -17,15 +17,29 @@ import org.openmrs.util.OpenmrsUtil;
 public class ServiceCategory implements Comparable<ServiceCategory> {
 
 	private Integer serviceCategoryId;
+	
 	private String name;
+	
+	private Department department;
+	
+	private HopService hopService ;
+	
 	private String description;
+	
 	private BigDecimal price; // the capitation price for this service
+	
 	private Date createdDate;
+	
 	private Boolean retired = false;
+	
 	private Date retiredDate;
+	
 	private String retireReason;
+	
 	private Insurance insurance;
+	
 	private User creator;
+	
 	private User retiredBy;
 
 	public ServiceCategory() {
@@ -112,6 +126,20 @@ public class ServiceCategory implements Comparable<ServiceCategory> {
 	 */
 	public Boolean getRetired() {
 		return retired;
+	}
+
+	/**
+	 * @return the hopService
+	 */
+	public HopService getHopService() {
+		return hopService;
+	}
+
+	/**
+	 * @param hopService the hopService to set
+	 */
+	public void setHopService(HopService hopService) {
+		this.hopService = hopService;
 	}
 
 	/**
@@ -272,5 +300,19 @@ public class ServiceCategory implements Comparable<ServiceCategory> {
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other
 					.hashCode());
 		return ret;
+	}
+
+	/**
+	 * @return the department
+	 */
+	public Department getDepartment() {
+		return department;
+	}
+
+	/**
+	 * @param department the department to set
+	 */
+	public void setDepartment(Department department) {
+		this.department = department;
 	}
 }

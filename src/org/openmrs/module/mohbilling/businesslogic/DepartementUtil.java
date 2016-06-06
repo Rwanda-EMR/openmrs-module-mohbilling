@@ -3,6 +3,8 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
+import java.util.List;
+
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -29,11 +31,27 @@ public class DepartementUtil {
 	 */
 	public static Department saveDepartement(Department departement){
 		if(departement!=null){
-			getService().saveDepartement(departement);
-			
+			getService().saveDepartement(departement);			
 			return departement;
 		}
 		return null;
+	}
+	/**
+	 * Gets departement that matches the identifier departementId
+	 * @param departmentId
+	 * @return the departement
+	 */
+	public static Department getDepartement(Integer departmentId){
+		 return getService().getDepartement(departmentId);
+	}
+	/**
+	 * Gets the list of departements in the Hospital
+	 * 
+	 * @return List<Department> departments
+	 */
+	public static List<Department> getAllHospitalDepartements(){		
+	    return	getService().getAllDepartements();	
+		
 	}
 	
 

@@ -16,7 +16,6 @@ package org.openmrs.module.mohbilling.extension.html;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.openmrs.api.context.Context;
 import org.openmrs.module.Extension;
 import org.openmrs.module.web.extension.AdministrationSectionExt;
 

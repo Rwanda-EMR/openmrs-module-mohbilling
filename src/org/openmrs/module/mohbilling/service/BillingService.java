@@ -11,13 +11,13 @@ import java.util.Set;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
-import org.openmrs.api.APIException;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
@@ -430,5 +430,21 @@ public interface BillingService {
 	 * @return List<Department> departements including the voided ones
 	 */
 	public List<Department> getAllDepartements();
+	
+	/**
+	 * Saves the the hop services to the DB
+	 * @param service  the  hopital services to be saved
+	 * @return hopService
+	 */
+	public HopService saveHopService(HopService service);
+	
+	/**
+	 * Gets all Hospital services(LABO,Pharmacy) that can be served by any Departement
+	 * If Departement is null,it returns  all service
+	 * @return List<HopServices> services
+	 */
+	public List<HopService>getAllHopService();
+
+	public  HopService getHopService(Integer serviceId);
 	
 }

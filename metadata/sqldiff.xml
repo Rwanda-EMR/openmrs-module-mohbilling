@@ -430,8 +430,8 @@
 		   departement and HopService tables are  created,moh_bill_service Category altered
 		</description>
 		<sql>
-			CREATE TABLE IF NOT EXISTS `moh_bill_departement` (
-			`departement_id` int(11) NOT NULL AUTO_INCREMENT,
+			CREATE TABLE IF NOT EXISTS `moh_bill_department` (
+			`department_id` int(11) NOT NULL AUTO_INCREMENT,
 			`name` VARCHAR(50) NOT NULL,
 			`description` VARCHAR(150) default NULL,
 			`creator` int(11) NOT NULL,
@@ -440,7 +440,7 @@
 			`voided_date` DATE default NULL,
 			`void_reason` VARCHAR(250) default NULL,
 			`voided_by` int(11) default NULL,			
-			PRIMARY KEY (`departement_id`),	
+			PRIMARY KEY (`department_id`),	
 			
 			CONSTRAINT `departement_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
 			CONSTRAINT `departement_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
@@ -450,7 +450,6 @@
 
 CREATE TABLE IF NOT EXISTS `moh_bill_hop_service` (
 			`service_id` int(11) NOT NULL AUTO_INCREMENT,
-			`departement_id` INT(11) NOT NULL,
 			`name` VARCHAR(50) NOT NULL,
 			`description` VARCHAR(150) default NULL,
 			`creator` int(11) NOT NULL,
@@ -461,17 +460,13 @@ CREATE TABLE IF NOT EXISTS `moh_bill_hop_service` (
 			`voided_by` int(11) default NULL,			
 			PRIMARY KEY (`service_id`),
 	
-			CONSTRAINT `hop_service_departement` FOREIGN KEY (`departement_id`) REFERENCES `moh_bill_departement`(`departement_id`),
 			CONSTRAINT `hop_service_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
 			CONSTRAINT `hop_service_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
 
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-ALTER TABLE `moh_bill_service_category`  ADD COLUMN `service_id` INT(11) default NULL AFTER `insurance_id`;
-
-
-
-
+ALTER TABLE `moh_bill_service_category`  ADD COLUMN `department_id` INT(11) default NULL AFTER `insurance_id`;
+ALTER TABLE `moh_bill_service_category`  ADD COLUMN `service_id` INT(11) default NULL AFTER `department_id`;
+			
 		</sql>
 	</diff>
 		

@@ -34,12 +34,10 @@ import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
-import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
-import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
@@ -49,6 +47,7 @@ import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
@@ -1156,5 +1155,26 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public List<Department> getAllDepartements() {
 		return sessionFactory.getCurrentSession().createCriteria(Department.class).list();
+	}
+
+	@Override
+	public HopService saveHopService(HopService service) {
+		// TODO Auto-generated method stub
+		sessionFactory.getCurrentSession().saveOrUpdate(service);
+		return service;		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllHopServicesByDepartement(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public List<HopService> getAllHopService() {
+          Criteria criteria = sessionFactory.getCurrentSession().createCriteria(HopService.class);		
+         return criteria.list();
+	}
+
+	@Override
+	public HopService getHopService(Integer serviceId) {
+		return (HopService) sessionFactory.getCurrentSession().get(HopService.class, serviceId);
 	}	
 }

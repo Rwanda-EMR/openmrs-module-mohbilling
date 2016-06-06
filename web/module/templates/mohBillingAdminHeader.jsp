@@ -1,8 +1,8 @@
 <ul id="menu">
 
-	<li><a href="department.form">Department</a></li>
+	<li><a href="departments.list">Department</a></li>
+	<li><a href="services.list">Service</a></li>
 	<li><a href="facilityService.list">Facility Service Price</a></li>
-	<li><a href="#">Service Category</a></li>
 	<li><a href="insurance.list">Insurance</a></li>
 	<li><a href="thirdParty.form">Third Party</a></li>
 
