@@ -6,6 +6,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
@@ -21,6 +23,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 public class MohBillServiceCategoryController extends
 		ParameterizableViewController {
+	protected final Log log = LogFactory.getLog(getClass());
 
 	/*
 	 * (non-Javadoc)
@@ -32,25 +35,28 @@ public class MohBillServiceCategoryController extends
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
-				
+		
 		ModelAndView mav = new ModelAndView();
 		List<HopService> services = HopServiceUtil.getAllHospitalServices();
-		
 		String departmentId=request.getParameter("departmentId");
-		if(request.getParameter("save")!=null){
-			
-		List<Insurance> insurances = InsuranceUtil.getAllInsurances();			
+		HopService service =new HopService();
+		if((request.getParameter("save")!=null)&& !request.getParameter("save").equals("")){	
+		     
+	 
 			String serviceIdStr = request.getParameter("serviceId");
+			System.out.println("parameters++ serviceIdstr"+serviceIdStr+"departement Id"+departmentId);
 			Department department = DepartementUtil.getDepartement(Integer.valueOf(departmentId));
-			HopService service = HopServiceUtil.getHopServiceById(Integer.valueOf(serviceIdStr));
+			 service = HopServiceUtil.getHopServiceById(Integer.valueOf(serviceIdStr));
+		    System.out.println("is this service Hop services>>>>>>"+service);
+		    //Iterate over each insurance  and create service category
 			
-			for (Insurance insurance : insurances) {
-				
-				if(insurance !=null){
+			for (Insurance insurance : InsuranceUtil.getAllInsurances()) {
 				ServiceCategory sc = new ServiceCategory();
-
-				sc.setName(service.getName());
-				sc.setDescription(service.getDescription());
+				
+				sc.setName(service.getName());	
+				
+		
+		    	sc.setDescription(service.getDescription());
 
 				sc.setRetired(false);
 				sc.setCreatedDate(new Date());
@@ -60,17 +66,17 @@ public class MohBillServiceCategoryController extends
 				
 				insurance.addServiceCategory(sc);
 				Context.getService(BillingService.class).saveInsurance(insurance);
-								
-				}
 			}
-						
 			
 			return new ModelAndView(new RedirectView("departments.list"));	
 			
 			
 		}
 		
+		
 		mav.addObject("services", services);
+		mav.addObject("departmentId", departmentId);
+	
 		
 		mav.setViewName(getViewName());
 		return mav;
