@@ -45,7 +45,9 @@ import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
@@ -58,7 +60,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
 
 
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  * 
  */
 @SuppressWarnings("unchecked")
@@ -1129,5 +1131,50 @@ public class HibernateBillingDAO implements BillingDAO {
 		}	
 		
 		return refundedBills;
+	}
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#savesaveDepartement(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public Department savesaveDepartement(Department departement) {
+		
+		sessionFactory.getCurrentSession().saveOrUpdate(departement);
+		return departement;		
+	}
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getDepartement(java.lang.Integer)
+	 */
+	@Override
+	public Department getDepartement(Integer departementId) {
+		return (Department) sessionFactory.getCurrentSession().get(Department.class, departementId);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllDepartements()
+	 */
+	@Override
+	public List<Department> getAllDepartements() {
+		return sessionFactory.getCurrentSession().createCriteria(Department.class).list();
+	}
+
+	@Override
+	public HopService saveHopService(HopService service) {
+		// TODO Auto-generated method stub
+		sessionFactory.getCurrentSession().saveOrUpdate(service);
+		return service;		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllHopServicesByDepartement(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public List<HopService> getAllHopService() {
+          Criteria criteria = sessionFactory.getCurrentSession().createCriteria(HopService.class);		
+         return criteria.list();
+	}
+
+	@Override
+	public HopService getHopService(Integer serviceId) {
+		return (HopService) sessionFactory.getCurrentSession().get(HopService.class, serviceId);
 	}	
 }

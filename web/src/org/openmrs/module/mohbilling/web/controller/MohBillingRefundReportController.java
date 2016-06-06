@@ -2,7 +2,6 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,11 +10,9 @@ import javax.servlet.http.HttpSession;
 
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
-
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
-import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;

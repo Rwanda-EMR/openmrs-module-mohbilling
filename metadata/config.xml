@@ -309,6 +309,9 @@
 		FacilityServicePrice.hbm.xml
 		Recovery.hbm.xml
 		ThirdParty.hbm.xml
+		Departement.hbm.xml
+		HopService.hbm.xml
+		
 	</mappingFiles>
 
 </module>

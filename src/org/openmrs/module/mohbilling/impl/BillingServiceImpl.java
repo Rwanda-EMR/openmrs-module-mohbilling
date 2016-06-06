@@ -3,7 +3,6 @@
  */
 package org.openmrs.module.mohbilling.impl;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -18,14 +17,14 @@ import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceCategory;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
-
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -471,5 +470,54 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getRefundedBills(startDate,endDate,collector);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#saveDepartement(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public Department saveDepartement(Department departement) {
+	    return 	billingDAO.savesaveDepartement(departement);
+		// TODO Auto-generated method stub
+		
+	}
 
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getDepartement(java.lang.Integer)
+	 */
+	@Override
+	public Department getDepartement(Integer departementId) {
+		// TODO Auto-generated method stub
+		return billingDAO.getDepartement(departementId);
 }
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getAllDepartements()
+	 */
+	@Override
+	public List<Department> getAllDepartements() {
+		// TODO Auto-generated method stub
+		return billingDAO.getAllDepartements();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#saveHopService(org.openmrs.module.mohbilling.model.HopService)
+	 */
+	@Override
+	public HopService saveHopService(HopService service) {
+		// TODO Auto-generated method stub
+		return billingDAO.saveHopService(service);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getAllHopServicesByDepartement(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public List<HopService> getAllHopService() {
+		return billingDAO.getAllHopService();
+	}
+
+	@Override
+	public  HopService getHopService(Integer serviceId) {
+		// TODO Auto-generated method stub
+		return billingDAO.getHopService(serviceId);
+	}
+	}

@@ -13,7 +13,6 @@
  */
 package org.openmrs.module.mohbilling.db;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -26,13 +25,13 @@ import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
-
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author EMR@RBC
  * 
+ */
+/**
+ * @author emr
+ *
  */
 @Transactional
 public interface BillingDAO {
@@ -435,11 +438,47 @@ public interface BillingDAO {
 	public List<Object[]> getBaseBillableServices(Insurance i);
 	
 	/**
-	 * @param i
+	 * @param 
 	 * @return
 	 */
 	public List<Object[]> getPharmacyBaseBillableServices(Insurance i);
 	
 
 	public Set<PatientBill> getRefundedBills(Date startDate, Date endDate, User collector);
+
+	/**
+	 * saves Departement object in the DB
+	 * @param departement to be saved
+	 */
+	public Department  savesaveDepartement(Department departement);
+	
+	/**
+	 * Get encounter by idententifier departementid
+	 * @param departementId
+	 * @return departement with given identifier departementId
+	 */
+	public Department getDepartement(Integer departementId);
+
+	/**
+	 * Get all departements in the Hospital
+	 * @return List<Department> departements including the voided ones
+	 */
+	public List<Department> getAllDepartements();	
+
+	/**
+	 * Saves the the hop services to the DB
+	 * @param service  the  hopital services to be saved
+	 * @return hopService
+	 */
+
+	public HopService saveHopService(HopService service);
+	/**
+	 * Gets all Hospital services(LABO,Pharmacy) that can be served by Departement
+	 * If Departement is null,it returns  all service
+	 * if departement is not null,it retuns list of services served by this department
+	 * @return List<HopServices> services
+	 */
+	public List<HopService> getAllHopService();
+
+	public HopService getHopService(Integer serviceId);
 }

@@ -20,9 +20,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Expression;
-import org.hibernate.criterion.Restrictions;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
@@ -34,19 +31,17 @@ import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
-
-
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfContentByte;
@@ -163,15 +158,14 @@ public class ReportsUtil {
 											.compareTo(startDate) >= 0
 									&& psb.getServiceDate().compareTo(endDate) <= 0)
 								services.add(psb.getService());
-					} else if (pb != null) {
+					} else {
 						for (PatientServiceBill psb : pb.getBillItems())
 							if (!psb.isVoided()
 									&& psb.getServiceDate()
 											.compareTo(startDate) >= 0
 									&& psb.getServiceDate().compareTo(endDate) <= 0)
 								services.add(psb.getService());
-					} else
-						services = null;
+					}
 
 		return services;
 	}

@@ -3,6 +3,7 @@
 <openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
+<%@ include file="templates/mohBillingAdminHeader.jsp"%>
 
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -34,7 +35,7 @@
 			</tr>
 			<tr>
 				<td></td>
-				<td><input type="submit" value="Save Insurance Service Category"/></td>
+				<td><input type="submit" value="Save Department"/></td>
 			</tr>
 		</table>
 	</form>
@@ -43,7 +44,7 @@
 <br/><br/>
 <!-- div: list current departiemts -->
 <div class="list_section">
-<b class="boxHeader">Current Department</b>
+<b class="boxHeader">Current Departments</b>
 <div class="box">
 	<table width="99%">
 		<tr>

@@ -3,23 +3,22 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.util.Date;
+
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.model.Department;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
-import org.springframework.web.servlet.view.RedirectView;
 
 /**
- * @author mariam
+ * @author emr
  *
  */
-public class MohBillingDepartmentFormController extends
+public class MohBillingDepartmentListController extends
 		ParameterizableViewController {
 
 	/* (non-Javadoc)
@@ -30,24 +29,11 @@ public class MohBillingDepartmentFormController extends
 			HttpServletResponse response) throws Exception {
 		
 		ModelAndView mav = new ModelAndView();
+		List<Department> departments =DepartementUtil.getAllHospitalDepartements();
 		
-	if(request.getParameter("save")!=null){
-		String name =request.getParameter("departmentName");
-		String description = request.getParameter("departmentDescription");
+		mav.addObject("departments", departments);
+		mav.setViewName(getViewName());		
 		
-		//new Departement
-		Department dpt = new Department();
-		dpt.setName(name);
-		dpt.setDescription(description);
-		dpt.setCreatedDate(new Date());
-		dpt.setCreator(Context.getAuthenticatedUser());			
-		//save Departement		
-		DepartementUtil.saveDepartement(dpt);
-		
-		return new ModelAndView(new RedirectView("departments.list"));	
-		
-	}
-	mav.setViewName(getViewName());
 		return mav;
 	}
 
