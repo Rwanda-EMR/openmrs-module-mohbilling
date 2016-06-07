@@ -249,6 +249,15 @@
 			
 		</div>
 	</div>
+	<div>
+	 <table>
+	 <tr>
+	 <c:forEach items="${departments}" var="dep" varStatus="status">
+			<td><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="department_${dep.departmentId}Tab" class="${(status.count==1)?'current':''} ">${dep.name}</a></td>
+	</c:forEach>
+	 </tr>
+	 </table>
+	</div>
 	<div style="float: right; width: 70%">
 		<b class="boxHeader">Services</b>
 		<div class="box">

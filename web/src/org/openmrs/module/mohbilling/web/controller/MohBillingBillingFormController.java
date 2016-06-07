@@ -12,11 +12,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -77,6 +79,12 @@ public class MohBillingBillingFormController extends
 							((ip.getCoverageStartDate().getTime() <= today
 									.getTime()) && (today.getTime() <= ip
 									.getExpirationDate().getTime())));
+			
+			mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
+//			
+//			for (Department dep : DepartementUtil.getAllHospitalDepartements()) {
+//				log.info("dddddddddddddddddddddddddddddddddddddddddddddd"+dep.get);
+//			}
 
 		} catch (Exception e) {
 		//	log.error(">>>>MOH>>BILLING>> " + e.getMessage());
