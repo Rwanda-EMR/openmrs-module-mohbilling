@@ -7,7 +7,7 @@
 <b class="boxHeader">Add Service Category</b>
 <div class="box">
 	<form
-		action="insuranceServiceCategory.form?departmentId=${departmentId}&save=true"
+		action="serviceCategory.form?departmentId=${departmentId}&save=true"
 		method="post">
 		<table>
 			<tr>
@@ -27,5 +27,5 @@
 		</table>
 	</form>
 </div>
-
+Service name :${service.name}
 <%@ include file="/WEB-INF/template/footer.jsp"%>

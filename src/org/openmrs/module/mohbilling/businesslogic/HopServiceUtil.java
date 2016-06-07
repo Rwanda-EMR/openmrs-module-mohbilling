@@ -31,9 +31,9 @@ public class HopServiceUtil {
 		
 	}
 	public static HopService getHopServiceById(Integer serviceId){
-		getService().getHopService(serviceId);
+	return	getService().getHopService(serviceId);
 		
-		return null;
+		
 		
 	}
 	/**
