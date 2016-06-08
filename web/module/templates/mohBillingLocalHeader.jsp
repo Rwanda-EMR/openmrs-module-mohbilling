@@ -7,7 +7,7 @@
 					code="@MODULE_ID@.insurance.policy.manage" /></a>
 		</li>
 	</openmrs:hasPrivilege>
-	<li><a href="admission.form">Admission</a></li>
+	<li><a href="admissionSearch.form">Admission</a></li>
 
 	<openmrs:hasPrivilege privilege="Manage Patient Bill Calculations">
 		<li

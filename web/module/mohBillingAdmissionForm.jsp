@@ -1,15 +1,73 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
-<%@ taglib prefix="mohbilling_tag" tagdir="/WEB-INF/tags/module/mohbilling" %>
+<%@ taglib prefix="mohbilling_tag"
+	tagdir="/WEB-INF/tags/module/mohbilling"%>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/checkPatientBillPayment.form" />
-<h2><spring:message code="@MODULE_ID@.billing" /></h2>
 
-<div id="search_policy">
-	<mohbilling_tag:insurancePolicySearchByInsuranceCardNumber redirectUrl="admission.form" />
+<b>Admission Form</b>
+
+<form action="admission.form?save=true" method="post">
+
+	<div class="box">
+		<table>
+			<tr>
+				<td>Name</td>
+				<td><input type="text" name="patientName"
+					value="${insurancePolicy.beneficiary.name}" size="30" /></td>
+			</tr>
+			<tr>
+				<td>Insurance Name</td>
+				<td><input type="text" name="insuranceName"
+					value="${insurancePolicy.insurance.name}" size="30" /></td>
+			</tr>
+			<tr>
+				<td>Insurance Card Number</td>
+				<td><input type="text" name="ipCardNumber"
+					value="${insurancePolicy.insuranceCardNo}" size="30" /></td>
+			</tr>
+			<tr>
+				<td>Admission type</td>
+				<td><input type="text" name="admissionType" value="" size="30" /></td>
+			</tr>
+
+			<tr>
+				<td>admission Date</td>
+				<td><input
+					value="<openmrs:formatDate date='${insurancePolicy.expirationDate}' type="string"/>"
+					type="text" name="insurancePolicyExpirationDate" size="11"
+					onclick="showCalendar(this);" autocomplete="off" /></td>
+			</tr>
+
+		</table>
+	</div>
+	<br /> <br /> <input type="submit" value="Save Admission "
+		id="submitButtonId" />
+</form>
+
+<b>Observations</b>
+
+<div class="box">
+	<table cellspacing="0" cellpadding="2" width="98%" id="obs">
+		<tr>
+			<th>Name</th>
+			<th>Insurance name</th>
+			<th>Card Number</th>
+			<th>Admission type</th>
+			<th>admission date</th>
+		</tr>
+		<tr>
+			<td>NYIRABYATSI</td>
+			<td>RAMA</td>
+			<td>19788</td>
+			<td>OPD</td>
+			<td>22/12/2015</td>
+		</tr>
+
+
+	</table>
 </div>
-Hello Admission Page
-
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
+
+
