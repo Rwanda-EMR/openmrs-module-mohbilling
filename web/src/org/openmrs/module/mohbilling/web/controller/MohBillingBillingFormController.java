@@ -12,11 +12,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -55,6 +57,20 @@ public class MohBillingBillingFormController extends
 								+ pb.getPatientBillId() + "&ipCardNumber="
 								+ pb.getBeneficiary().getPolicyIdNumber()));
 		}
+		if (request.getParameter("searchDpt") != null) {
+		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+			if (department !=null)
+				return new ModelAndView(new RedirectView(
+						"billing.form?insurancePolicyId="
+								+ request.getParameter("insurancePolicyId")
+								+ "&ipCardNumber="
+								+ request.getParameter("ipCardNumber")
+								+ "&departmentId="+department.getDepartmentId()	));
+				               
+				
+				
+			
+		}
 
 		try {
 			if (request.getParameter("ipCardNumber") == null)
@@ -77,6 +93,8 @@ public class MohBillingBillingFormController extends
 							((ip.getCoverageStartDate().getTime() <= today
 									.getTime()) && (today.getTime() <= ip
 									.getExpirationDate().getTime())));
+			
+			mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
 
 		} catch (Exception e) {
 		//	log.error(">>>>MOH>>BILLING>> " + e.getMessage());
