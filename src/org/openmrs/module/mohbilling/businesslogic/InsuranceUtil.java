@@ -704,5 +704,10 @@ public class InsuranceUtil {
 		
 		return getService().getAllInsurances();
 	}
+	
+	public static ServiceCategory getServiceCategoryById(Integer id) {
+
+		return getService().getServiceCategory(id);
+	}
 
 }

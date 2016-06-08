@@ -57,6 +57,20 @@ public class MohBillingBillingFormController extends
 								+ pb.getPatientBillId() + "&ipCardNumber="
 								+ pb.getBeneficiary().getPolicyIdNumber()));
 		}
+		if (request.getParameter("searchDpt") != null) {
+		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+			if (department !=null)
+				return new ModelAndView(new RedirectView(
+						"billing.form?insurancePolicyId="
+								+ request.getParameter("insurancePolicyId")
+								+ "&ipCardNumber="
+								+ request.getParameter("ipCardNumber")
+								+ "&departmentId="+department.getDepartmentId()	));
+				               
+				
+				
+			
+		}
 
 		try {
 			if (request.getParameter("ipCardNumber") == null)
@@ -81,10 +95,6 @@ public class MohBillingBillingFormController extends
 									.getExpirationDate().getTime())));
 			
 			mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
-//			
-//			for (Department dep : DepartementUtil.getAllHospitalDepartements()) {
-//				log.info("dddddddddddddddddddddddddddddddddddddddddddddd"+dep.get);
-//			}
 
 		} catch (Exception e) {
 		//	log.error(">>>>MOH>>BILLING>> " + e.getMessage());
