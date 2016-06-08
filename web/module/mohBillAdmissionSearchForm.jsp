@@ -2,14 +2,23 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <%@ taglib prefix="mohbilling_tag" tagdir="/WEB-INF/tags/module/mohbilling" %>
 
+
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/checkPatientBillPayment.form" />
+
+
+<%@ include file="templates/mohBillingAdminHeader.jsp"%>
+
+
+
+<%@ include file="/WEB-INF/template/footer.jsp"%>
+
+
 <h2><spring:message code="@MODULE_ID@.billing" /></h2>
 
 <div id="search_policy">
 	<mohbilling_tag:insurancePolicySearchByInsuranceCardNumber redirectUrl="admission.form" />
 </div>
-Hello Admission Page
+
 
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
