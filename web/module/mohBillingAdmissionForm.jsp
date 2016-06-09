@@ -27,16 +27,14 @@
 					value="${insurancePolicy.insuranceCardNo}" size="30" /></td>
 			</tr>
 			<tr>
-				<td>Admission type</td>
-				<td><input type="text" name="admissionType" value="" size="30" /></td>
+				<td>Is admitted ?</td>
+				<td><input 	type="checkbox" name="hasThirdPart" id="hasThirdPart" /><td>
+
 			</tr>
 
 			<tr>
 				<td>admission Date</td>
-				<td><input
-					value="<openmrs:formatDate date='${insurancePolicy.expirationDate}' type="string"/>"
-					type="text" name="insurancePolicyExpirationDate" size="11"
-					onclick="showCalendar(this);" autocomplete="off" /></td>
+				<td><openmrs_tag:dateField formFieldName="admissionDate" 	startValue="${startdate}" /></td>
 			</tr>
 
 		</table>
