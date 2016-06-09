@@ -14,7 +14,7 @@
 			<tr>
 				<td>Name</td>
 				<td><input type="text" name="patientName"
-					value="${insurancePolicy.beneficiary.name}" size="30" /></td>
+					value="${insurancePolicy.owner.familyName}" size="30" /></td>
 			</tr>
 			<tr>
 				<td>Insurance Name</td>
@@ -28,7 +28,7 @@
 			</tr>
 			<tr>
 				<td>Is admitted ?</td>
-				<td><input 	type="checkbox" name="hasThirdPart" id="hasThirdPart" /><td>
+				<td><input 	type="checkbox" name="isAdmitted" value="" /><td>
 
 			</tr>
 
@@ -39,11 +39,11 @@
 
 		</table>
 	</div>
-	<br /> <br /> <input type="submit" value="Save Admission "
-		id="submitButtonId" />
+	<br /> <br /> <input type="submit" value="Save Admission " 	id="submitButtonId" />
 </form>
+<br><br>
 
-<b>Observations</b>
+<b>Admission </b>
 
 <div class="box">
 	<table cellspacing="0" cellpadding="2" width="98%" id="obs">
@@ -55,9 +55,9 @@
 			<th>admission date</th>
 		</tr>
 		<tr>
-			<td>NYIRABYATSI</td>
-			<td>RAMA</td>
-			<td>19788</td>
+			<td>${insurancePolicy.owner.familyName}</td>
+			<td>${insurancePolicy.insurance.name}</td>
+			<td>${insurancePolicy.insuranceCardNo}</td>
 			<td>OPD</td>
 			<td>22/12/2015</td>
 		</tr>
