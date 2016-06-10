@@ -6,6 +6,7 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
 <b>Admission Form</b>
+${pram.insurancePolicyId}
 
 <form action="admission.form?save=true" method="post">
 
@@ -14,7 +15,7 @@
 			<tr>
 				<td>Name</td>
 				<td><input type="text" name="patientName"
-					value="${insurancePolicy.beneficiary.name}" size="30" /></td>
+					value="${insurancePolicy.owner.familyName}" size="30" /></td>
 			</tr>
 			<tr>
 				<td>Insurance Name</td>
@@ -27,25 +28,22 @@
 					value="${insurancePolicy.insuranceCardNo}" size="30" /></td>
 			</tr>
 			<tr>
-				<td>Admission type</td>
-				<td><input type="text" name="admissionType" value="" size="30" /></td>
+				<td>Is admitted ?</td>
+				<td><input 	type="checkbox" name="isAdmitted" value="" /><td>
+
 			</tr>
 
 			<tr>
 				<td>admission Date</td>
-				<td><input
-					value="<openmrs:formatDate date='${insurancePolicy.expirationDate}' type="string"/>"
-					type="text" name="insurancePolicyExpirationDate" size="11"
-					onclick="showCalendar(this);" autocomplete="off" /></td>
+				<td><openmrs_tag:dateField formFieldName="admissionDate" 	startValue="${startdate}" /></td>
 			</tr>
 
 		</table>
 	</div>
-	<br /> <br /> <input type="submit" value="Save Admission "
-		id="submitButtonId" />
+	<br /> <br /> <input type="submit" value="Save Admission " 	id="submitButtonId" />
 </form>
-
-<b>Observations</b>
+<br>
+<b>Admission </b>
 
 <div class="box">
 	<table cellspacing="0" cellpadding="2" width="98%" id="obs">
@@ -55,15 +53,16 @@
 			<th>Card Number</th>
 			<th>Admission type</th>
 			<th>admission date</th>
+			<th>Action</th>
 		</tr>
 		<tr>
-			<td>NYIRABYATSI</td>
-			<td>RAMA</td>
-			<td>19788</td>
+			<td>${insurancePolicy.owner.familyName}</td>
+			<td>${insurancePolicy.insurance.name}</td>
+			<td>${insurancePolicy.insuranceCardNo}</td>
 			<td>OPD</td>
 			<td>22/12/2015</td>
+			<td><a href="billing.form?admissionId=${admission.admissionId}">Make Bill<a></a></td>
 		</tr>
-
 
 	</table>
 </div>
