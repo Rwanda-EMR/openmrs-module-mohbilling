@@ -33,6 +33,7 @@ public class InsurancePolicy {
 	private Date retiredDate;
 	private String retireReason;
 	private Set<Beneficiary> beneficiaries;
+	private Set<Admission> admissions;
 
 	/**
 	 * @return the insurancePolicyId
@@ -99,6 +100,20 @@ public class InsurancePolicy {
 	 */
 	public Date getCoverageStartDate() {
 		return coverageStartDate;
+	}
+
+	/**
+	 * @return the admissions
+	 */
+	public Set<Admission> getAdmissions() {
+		return admissions;
+	}
+
+	/**
+	 * @param admissions the admissions to set
+	 */
+	public void setAdmissions(Set<Admission> admissions) {
+		this.admissions = admissions;
 	}
 
 	/**

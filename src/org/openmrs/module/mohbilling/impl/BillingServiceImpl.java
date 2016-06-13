@@ -14,6 +14,7 @@ import org.openmrs.User;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.db.BillingDAO;
+import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
@@ -519,5 +520,15 @@ public class BillingServiceImpl implements BillingService {
 	public  HopService getHopService(Integer serviceId) {
 		// TODO Auto-generated method stub
 		return billingDAO.getHopService(serviceId);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#saveAdmission(org.openmrs.module.mohbilling.model.Admission)
+	 */
+	@Override
+	public Admission saveAdmission(Admission admission) {
+		
+		// TODO Auto-generated method stub
+		return billingDAO.saveAdmission(admission);
 	}
 	}

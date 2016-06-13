@@ -311,6 +311,7 @@
 		ThirdParty.hbm.xml
 		Departement.hbm.xml
 		HopService.hbm.xml
+		Admission.hbm.xml
 		
 	</mappingFiles>
 
