@@ -42,6 +42,7 @@ import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.db.BillingDAO;
+import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
@@ -1176,5 +1177,15 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public HopService getHopService(Integer serviceId) {
 		return (HopService) sessionFactory.getCurrentSession().get(HopService.class, serviceId);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveAdmission(org.openmrs.module.mohbilling.model.Admission)
+	 */
+	@Override
+	public Admission saveAdmission(Admission admission) {
+		
+		sessionFactory.getCurrentSession().saveOrUpdate(admission);
+		return admission;
 	}	
 }

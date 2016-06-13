@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- Admission -->
+	
+	<class name="Admission" table="moh_bill_admission">
+
+		<id name="admissionId" type="int" column="admission_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+		<property name="isAdmitted" column="is_admitted" type="boolean" />
+		<property name="admissionDate" column="admission_date" />
+		<property name="dischargingDate" column="discharging_date" />
+		<property name="createdDate" column="created_date" />
+		<property name="voided" column="voided" type="boolean" />
+		<property name="voidedDate" column="voided_date" />
+		<property name="voidReason" column="void_reason" type="text" />
+		
+	    <many-to-one name="insurancePolicy" class="org.openmrs.module.mohbilling.model.InsurancePolicy" column="insurance_policy_id" />
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />		
+
+	</class>
+	
+</hibernate-mapping>
