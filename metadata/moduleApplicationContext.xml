@@ -44,7 +44,10 @@
 			    <prop key="module/@MODULE_ID@/departments.list">mohBillingDepartmentListController</prop>	
 			    <prop key="module/@MODULE_ID@/services.list">mohBillingHopServiceListController</prop>
 			    <prop key="module/@MODULE_ID@/service.form">mohBillingHopserviceFormController</prop> 
-			    <prop key="module/@MODULE_ID@/serviceCategory.form">mohBillServiceCategoryController</prop> 
+			    <prop key="module/@MODULE_ID@/serviceCategory.form">mohBillServiceCategoryController</prop>
+			     <prop key="module/@MODULE_ID@/admissionSearch.form">mohBillingAdmissionSearchFormController</prop>
+			    
+			     
 			  
 			</props>
 		</property>
@@ -168,6 +171,10 @@
 	<bean id="mohBillServiceCategoryController" class="org.openmrs.module.mohbilling.web.controller.MohBillServiceCategoryController">
 		<property name="viewName"><value>/module/mohbilling/mohBillServiceCategoryForm</value></property>
 	</bean>
+	<bean id="mohBillingAdmissionSearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdmissionSearchFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillAdmissionSearchForm</value></property>
+	</bean>
+	
 	<!-- /Controllers -->
 
 	<bean parent="serviceContext">
