@@ -29,7 +29,7 @@ public class AdmissionUtil {
 	 * @param admission patient admission to be saved
 	 * @return the admission saved
 	 */
-	public Admission savePatientAdmission(Admission admission){
+	public static Admission savePatientAdmission(Admission admission){
 		
 		return getService().saveAdmission(admission);
 		

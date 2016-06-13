@@ -503,19 +503,39 @@ ALTER TABLE `moh_bill_service_category`  ADD COLUMN `service_id` INT(11) default
 	</diff>
 	
 	
-	<!--  <diff>
-	<version>1.3.0.5</version>
-		<author>MoH Rwanda</author>
-		<date>March 08th 2015</date>
+ <diff>
+	<version>1.3.0.6</version>
+		<author>RBC Rwanda</author>
+		<date>June  13th 2016</date>
 		<description>
-			Modify datatype of full_price.
+			Global bill table to manage  a list of patient bills
 		</description>
 	 <sql>
-	  ALTER TABLE moh_bill_service_price
-	  MODIFY COLUMN full_price DECIMAL(20,8);
+	  CREATE TABLE IF NOT EXISTS `moh_bill_global_bill` (
+			`global_bill_id` int(11) NOT NULL AUTO_INCREMENT,
+			`admission_id` INT(11) NOT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` DATE NOT NULL,
+			`closed_by` int(11) default NULL,		
+			`closing_date` DATE default NULL,
+			`voided` SMALLINT(1) NOT NULL default '0',
+			`voided_date` DATE default NULL,
+			`void_reason` VARCHAR(250) default NULL,
+			`voided_by` int(11) default NULL,
+			
+			PRIMARY KEY (`global_bill_id`),
+	
+     CONSTRAINT `global_bill_admission` FOREIGN KEY (`admission_id`) REFERENCES `moh_bill_admission` (`admission_id`),
+     CONSTRAINT `global_bill_closed_by` FOREIGN KEY (`closed_by`) REFERENCES `users` (`user_id`),
+     CONSTRAINT `global_bill_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+     CONSTRAINT `global_bill_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `moh_bill_patient_bill`  ADD COLUMN `global_bill_id` INT(11) default NULL AFTER `patient_bill_id`;
 	 </sql>
 	</diff>
-	-->
+	
 	<!-- 
 	<diff>
 		<version>1.3.0.5</version>

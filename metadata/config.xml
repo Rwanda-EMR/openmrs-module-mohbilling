@@ -312,6 +312,7 @@
 		Departement.hbm.xml
 		HopService.hbm.xml
 		Admission.hbm.xml
+		GlobalBill.hbm.xml
 		
 	</mappingFiles>
 

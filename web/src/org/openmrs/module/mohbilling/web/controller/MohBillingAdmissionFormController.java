@@ -5,7 +5,10 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.AdmissionUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -16,6 +19,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 public class MohBillingAdmissionFormController extends
 		ParameterizableViewController {
 
+	protected final Log log = LogFactory.getLog(getClass());
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
@@ -28,16 +32,16 @@ public class MohBillingAdmissionFormController extends
 	
 	if (request.getParameter("save") != null && request.getParameter("save").equals("true")) {
 		
+	     ip =Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
+		
 		Admission admission = new Admission();
 		admission.setAdmissionDate(new Date());
+		admission.setInsurancePolicy(ip);
 		admission.setDischargingDate(new Date());
 		admission.setIsAdmitted(true);
 		admission.setCreator(Context.getAuthenticatedUser());
-		
-		
-	ip =Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
-		
-		
+		admission.setCreatedDate(new Date());
+		AdmissionUtil.savePatientAdmission(admission);		
 	}
 		
 		
