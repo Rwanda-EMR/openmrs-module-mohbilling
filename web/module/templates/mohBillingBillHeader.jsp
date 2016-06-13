@@ -2,17 +2,10 @@
 
 		
 		<li>
-			<a href="patientSearchBill.form">Create Bill</a>
+			<a href="patientSearchBill.form">Manage Bill</a>
 		</li>
 		<li>
-			<a href="#">Create Payment</a>
-		</li>
-		
-		<li>
-			<a href="#">Make Deposit</a>
-		</li>
-		<li>
-			<a href="#">Make Refund</a>
+			<a href="#">Manage Payment</a>
 		</li>
 		
 		<li>

@@ -2,10 +2,10 @@
 
 		
 		<li>
-			<a href="#">Make Deposit</a>
+			<a href="patientSearchDeposit.form">Manage Deposit</a>
 		</li>
 		<li>
-			<a href="#">Deposit Refund</a>
+			<a href="#">Refund Deposit</a>
 		</li>
 		
 		
