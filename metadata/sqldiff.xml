@@ -470,20 +470,38 @@ ALTER TABLE `moh_bill_service_category`  ADD COLUMN `service_id` INT(11) default
 		</sql>
 	</diff>
 		
-	<!--  <diff>
-		<version>1.3.0.4</version>
-		<author>MoH Rwanda</author>
-		<date>April 29th 2014</date>
+	 <diff>
+		<version>1.3.0.5</version>
+		<author>RBC Rwanda</author>
+		<date>June 13th 2016</date>
 		<description>
-			Add a new field to `moh_bill_facility_service_price` table to specify the Category of each Facility Service.
+			Admission table aiming at distinguish outpatients form inpatients
 		</description>
 		<sql>
-			ALTER TABLE `moh_bill_facility_service_price` 
-					ADD COLUMN `category` VARCHAR(150) NULL  
-								AFTER `description`;
+			CREATE TABLE IF NOT EXISTS `moh_bill_admission` (
+			`admission_id` int(11) NOT NULL AUTO_INCREMENT,
+			`insurance_policy_id` INT(11) NOT NULL,
+			`is_admitted` SMALLINT(1) NOT NULL default '0',			
+			`admission_date` DATE NOT NULL,
+			`discharging_date` DATE default NULL,
+			`discharged_by` int(11) default NULL,	
+			`creator` int(11) NOT NULL,
+			`created_date` DATE NOT NULL,
+			`voided` SMALLINT(1) NOT NULL default '0',
+			`voided_date` DATE default NULL,
+			`void_reason` VARCHAR(250) default NULL,
+			`voided_by` int(11) default NULL,
+			
+			PRIMARY KEY (`admission_id`),
+	
+     CONSTRAINT `admission_insurance_policy` FOREIGN KEY (`insurance_policy_id`) REFERENCES `moh_bill_insurance_policy` (`insurance_policy_id`),
+     CONSTRAINT `admission_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+     CONSTRAINT `admission_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 		</sql>
 	</diff>
-	-->
+	
 	
 	<!--  <diff>
 	<version>1.3.0.5</version>

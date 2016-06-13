@@ -10,7 +10,7 @@
 <h2><spring:message code="@MODULE_ID@.billing" /></h2>
 
 <div id="search_policy">
-	<mohbilling_tag:insurancePolicySearchByInsuranceCardNumber redirectUrl="billing.form" />
+	<mohbilling_tag:insurancePolicySearchByInsuranceCardNumber redirectUrl="globalBill.list" />
 </div>
 
 <br/>

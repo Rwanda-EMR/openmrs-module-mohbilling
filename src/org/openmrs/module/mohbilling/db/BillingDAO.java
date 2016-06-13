@@ -22,6 +22,7 @@ import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
@@ -481,4 +482,11 @@ public interface BillingDAO {
 	public List<HopService> getAllHopService();
 
 	public HopService getHopService(Integer serviceId);
+
+	/**
+	 * Savve admission to DB
+	 * @param admission admission to be saved
+	 * @return admission saved
+	 */
+	public Admission saveAdmission(Admission admission);
 }
