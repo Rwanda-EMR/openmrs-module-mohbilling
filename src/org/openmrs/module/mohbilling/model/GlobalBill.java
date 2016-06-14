@@ -4,9 +4,11 @@
 package org.openmrs.module.mohbilling.model;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 
+import org.openmrs.Obs;
 import org.openmrs.User;
 
 /**
@@ -86,6 +88,21 @@ public class GlobalBill {
 	 */
 	public Set<PatientBill> getPatientBills() {
 		return patientBills;
+	}
+	
+	
+	/**
+	 
+	 */
+	public void addPatientBills(PatientBill patientBill) {
+		if (patientBill == null)
+			patientBills = new HashSet<PatientBill>();
+		if (patientBill != null) {
+			patientBill.setGlobalBill(this);
+			
+			
+			patientBills.add(patientBill);
+		}
 	}
 
 	/**

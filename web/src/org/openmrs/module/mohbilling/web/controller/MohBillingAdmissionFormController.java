@@ -1,6 +1,7 @@
 package org.openmrs.module.mohbilling.web.controller;
 
 import java.util.Date;
+import java.util.HashSet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -9,9 +10,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.AdmissionUtil;
+import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.model.Admission;
+import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -41,7 +45,19 @@ public class MohBillingAdmissionFormController extends
 		admission.setIsAdmitted(true);
 		admission.setCreator(Context.getAuthenticatedUser());
 		admission.setCreatedDate(new Date());
-		AdmissionUtil.savePatientAdmission(admission);		
+	
+		Admission savedAdmission = AdmissionUtil.savePatientAdmission(admission);	
+		
+		//create new Global bill
+		GlobalBill gb =new GlobalBill();
+		gb.setAdmission(savedAdmission);
+		gb.setBillIdentifier("19780");
+		gb.setCreatedDate(new Date());
+		gb.setCreator(Context.getAuthenticatedUser());
+		gb.setPatientBills(new HashSet<PatientBill>());
+		
+		GlobalBillUtil.saveGlobalBill(gb);
+		
 	}
 		
 		

@@ -3,8 +3,11 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
+import java.util.List;
+
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Admission;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 /**
@@ -32,6 +35,12 @@ public class AdmissionUtil {
 	public static Admission savePatientAdmission(Admission admission){
 		
 		return getService().saveAdmission(admission);
+		
+	}
+	public static List<Admission> getPatientAdmissionsByInsurancePolicy(InsurancePolicy ip){
+		
+		return getService().getAdmissionsListByInsurancePolicy(ip);
+		
 		
 	}
 	
