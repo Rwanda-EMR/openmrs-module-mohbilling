@@ -4,8 +4,11 @@
 package org.openmrs.module.mohbilling.model;
 
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
+
+import org.openmrs.Obs;
 import org.openmrs.User;
 
 /**
@@ -18,9 +21,17 @@ public class GlobalBill {
 	
 	private Admission admission;
 	
-	private List<PatientBill> patientBills;
+	private String billIdentifier;
+	
+	private Set<PatientBill> patientBills;
 	
     private Date createdDate;
+    
+    private User creator;
+    
+    private Date closingDate;
+    
+    private Date closedBy;
 	
 	private Boolean voided = false;
 	
@@ -59,16 +70,45 @@ public class GlobalBill {
 	}
 
 	/**
+	 * @return the billIdentifier
+	 */
+	public String getBillIdentifier() {
+		return billIdentifier;
+	}
+
+	/**
+	 * @param billIdentifier the billIdentifier to set
+	 */
+	public void setBillIdentifier(String billIdentifier) {
+		this.billIdentifier = billIdentifier;
+	}
+
+	/**
 	 * @return the patientBills
 	 */
-	public List<PatientBill> getPatientBills() {
+	public Set<PatientBill> getPatientBills() {
 		return patientBills;
+	}
+	
+	
+	/**
+	 
+	 */
+	public void addPatientBills(PatientBill patientBill) {
+		if (patientBill == null)
+			patientBills = new HashSet<PatientBill>();
+		if (patientBill != null) {
+			patientBill.setGlobalBill(this);
+			
+			
+			patientBills.add(patientBill);
+		}
 	}
 
 	/**
 	 * @param patientBills the patientBills to set
 	 */
-	public void setPatientBills(List<PatientBill> patientBills) {
+	public void setPatientBills(Set<PatientBill> patientBills) {
 		this.patientBills = patientBills;
 	}
 
@@ -84,6 +124,48 @@ public class GlobalBill {
 	 */
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
+	}
+
+	/**
+	 * @return the creator
+	 */
+	public User getCreator() {
+		return creator;
+	}
+
+	/**
+	 * @param creator the creator to set
+	 */
+	public void setCreator(User creator) {
+		this.creator = creator;
+	}
+
+	/**
+	 * @return the closingDate
+	 */
+	public Date getClosingDate() {
+		return closingDate;
+	}
+
+	/**
+	 * @param closingDate the closingDate to set
+	 */
+	public void setClosingDate(Date closingDate) {
+		this.closingDate = closingDate;
+	}
+
+	/**
+	 * @return the closedBy
+	 */
+	public Date getClosedBy() {
+		return closedBy;
+	}
+
+	/**
+	 * @param closedBy the closedBy to set
+	 */
+	public void setClosedBy(Date closedBy) {
+		this.closedBy = closedBy;
 	}
 
 	/**
@@ -141,7 +223,5 @@ public class GlobalBill {
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
 	}
-
-	
 
 }

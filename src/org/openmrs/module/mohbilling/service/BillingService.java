@@ -18,6 +18,7 @@ import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -459,5 +460,40 @@ public interface BillingService {
 	 * @return admission
 	 */
 	public Admission saveAdmission(Admission admission);
+	
+	/**
+	 * Get patient admission
+	 * @param admissionid matching with admission
+	 * @return admission
+	 */
+	public Admission getPatientAdmission(Integer admissionid);
+	
+	/**
+	 * Get GlobalBill
+	 * @param globalBill 
+	 * @return GlobalBill
+	 */
+	public GlobalBill saveGlobalBill(GlobalBill globalBill);
+	
+	/**
+	 * @param globalBillId
+	 * @return
+	 */
+	public GlobalBill GetGlobalBill(Integer globalBillId);
+	
+	/**
+	 * Get GlobalBill by patient admission
+	 * @param admission
+	 * @return GlobalBill
+	 */
+	public GlobalBill getGlobalBillByAdmission(Admission admission);
+	
+	/**
+	 * Get admissions list by insurance
+	 * @param ip
+	 * @return List<Admission>
+	 */
+	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
+	
 	
 }

@@ -8,7 +8,7 @@
 <b>Admission Form</b>
 ${pram.insurancePolicyId}
 
-<form action="admission.form?save=true" method="post">
+<form action="admission.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&save=true" method="post">
 
 	<div class="box">
 		<table>

@@ -31,6 +31,21 @@ public class PatientBill {
 	private String voidReason;
 	private Set<PatientServiceBill> billItems;
 	private Set<BillPayment> payments;
+	private GlobalBill globalBill;
+
+	/**
+	 * @return the globalBill
+	 */
+	public GlobalBill getGlobalBill() {
+		return globalBill;
+	}
+
+	/**
+	 * @param globalBill the globalBill to set
+	 */
+	public void setGlobalBill(GlobalBill globalBill) {
+		this.globalBill = globalBill;
+	}
 
 	/**
 	 * @return the patientBillId

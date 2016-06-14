@@ -20,6 +20,7 @@ import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceCategory;
@@ -530,5 +531,50 @@ public class BillingServiceImpl implements BillingService {
 		
 		// TODO Auto-generated method stub
 		return billingDAO.saveAdmission(admission);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getPatientAdmission(java.lang.Integer)
+	 */
+	@Override
+	public Admission getPatientAdmission(Integer admissionid) {
+		// TODO Auto-generated method stub
+		return billingDAO.getPatientAdmission(admissionid);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#saveGlobalBill(org.openmrs.module.mohbilling.model.GlobalBill)
+	 */
+	@Override
+	public GlobalBill saveGlobalBill(GlobalBill globalBill) {
+		// TODO Auto-generated method stub
+		return billingDAO.saveGlobalBill(globalBill);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#GetGlobalBill(java.lang.Integer)
+	 */
+	@Override
+	public GlobalBill GetGlobalBill(Integer globalBillId) {
+		
+		return billingDAO.GetGlobalBill(globalBillId);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getGlobalBillByAdmission(org.openmrs.module.mohbilling.model.Admission)
+	 */
+	@Override
+	public GlobalBill getGlobalBillByAdmission(Admission admission) {
+	
+		return billingDAO.getGlobalBillByAdmission(admission) ;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getAdmissionsListByInsurancePolicy(org.openmrs.module.mohbilling.model.InsurancePolicy)
+	 */
+	@Override
+	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
+	
+		return billingDAO.getAdmissionsListByInsurancePolicy(ip);
 	}
 	}
