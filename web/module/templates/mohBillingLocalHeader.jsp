@@ -12,12 +12,14 @@
 	<openmrs:hasPrivilege privilege="Manage Patient Bill Calculations">
 		<li
 			class="<c:if test='<%= request.getRequestURI().contains("mohBillingBilling")%>'> active</c:if>">
-			<a href="patientSearchBill.form"><spring:message
-					code="@MODULE_ID@.billing.manage" /></a>
+			<!-- <a href="patientSearchBill.form"><spring:message code="@MODULE_ID@.billing.manage" /></a> -->
+			<a href="patientSearchBill.form">Bill</a>
 		</li>
 	</openmrs:hasPrivilege>
 
-	<li><a href="deposit.form">Deposit</a></li>
+	<li>
+	<a href="patientSearchDeposit.form">Deposit</a>
+	</li>
 
 	<openmrs:hasPrivilege privilege="Manage Billing Reports">
 		<li

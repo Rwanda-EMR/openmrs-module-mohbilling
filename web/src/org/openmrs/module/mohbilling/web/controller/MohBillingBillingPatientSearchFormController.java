@@ -43,6 +43,8 @@ public class MohBillingBillingPatientSearchFormController extends
 		if (owner != null && bens.isEmpty()){
 		mav.addObject("messageIfNoInsuranceCardNoFound","The patient you have selected does not have any Insurance card Number");
 		}*/
+		if(request.getParameter("billIdentifier")!=null)
+		log.info("gggggggggggggggggggggggggggggg "+request.getParameter("billIdentifier"));
 		mav.setViewName(getViewName());
        
 		return mav;

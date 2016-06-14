@@ -268,9 +268,8 @@
 		</table>
 	</form>
 </div>
-		<b class="boxHeader">Services</b>
 		<c:if test="${param.departmentId !=null}">
-		<div class="box">
+		<div>
 			<div id="patientTabs">
 				<ul>
 					<c:forEach items="${insurancePolicy.insurance.categories}" var="serviceCategory" varStatus="status">
