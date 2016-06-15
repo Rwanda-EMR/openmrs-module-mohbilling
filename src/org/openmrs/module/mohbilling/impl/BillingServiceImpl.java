@@ -556,6 +556,7 @@ public class BillingServiceImpl implements BillingService {
 	public List<Deposit> getDepositList(Patient patient, Date startDate,
 			Date endDate, User collector) {
 		return billingDAO.getDepositList(patient, startDate, endDate, collector);
+	}
 	/* (non-Javadoc)
 	 * @see org.openmrs.module.mohbilling.service.BillingService#getPatientAdmission(java.lang.Integer)
 	 */
@@ -599,6 +600,5 @@ public class BillingServiceImpl implements BillingService {
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
 	
 		return billingDAO.getAdmissionsListByInsurancePolicy(ip);
->>>>>>> upstream/new-1.6.x
 	}
 	}
