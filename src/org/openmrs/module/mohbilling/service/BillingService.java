@@ -17,6 +17,7 @@ import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -459,5 +460,21 @@ public interface BillingService {
 	 * @return admission
 	 */
 	public Admission saveAdmission(Admission admission);
+	
+	/**
+	 * saves Deposit to the DB
+	 * @param deposit, the deposit to be saved
+	 * @return deposit
+	 */
+	public Deposit saveDeposit(Deposit deposit);
+	/**
+	 * gets a list of deposits according to provided parameters (patient and/or startdate and/or enddate and/or collector)
+	 * @param patient
+	 * @param startdate
+	 * @param enddate
+	 * @param collector
+	 * @return
+	 */
+	public List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector);
 	
 }

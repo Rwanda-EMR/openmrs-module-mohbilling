@@ -47,6 +47,7 @@ import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -63,6 +64,10 @@ import org.openmrs.module.mohbilling.service.BillingService;
 /**
  * @author EMR@RBC
  * 
+ */
+/**
+ * @author mariam
+ *
  */
 @SuppressWarnings("unchecked")
 public class HibernateBillingDAO implements BillingDAO {
@@ -1187,5 +1192,38 @@ public class HibernateBillingDAO implements BillingDAO {
 		
 		sessionFactory.getCurrentSession().saveOrUpdate(admission);
 		return admission;
+	}
+
+	@Override
+	public Deposit saveDeposit(Deposit deposit) {
+		sessionFactory.getCurrentSession().saveOrUpdate(deposit);
+		return deposit;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getDepositList(org.openmrs.Patient, java.util.Date, java.util.Date, org.openmrs.User)
+	 */
+	@Override
+	public List<Deposit> getDepositList(Patient patient, Date startDate,
+			Date endDate, User collector) {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Deposit.class)
+		         .add(Restrictions.eq("patient", patient));
+
+		if (startDate != null && endDate == null) {
+			crit.add(Expression.eq("depositDate", startDate));
+		}
+		if (startDate == null && endDate != null) {
+			crit.add(Expression.eq("depositDate", endDate));
+		}
+		if (startDate != null && endDate != null) {
+			crit.add(Restrictions.between("depositDate", startDate, endDate));
+		}
+		if (collector != null && collector.getUserId() != null) {
+			crit.add(Expression.eq("cashier", collector));
+		}
+		
+		List<Deposit> deposits = crit.list();			
+		
+		return deposits;
 	}	
 }

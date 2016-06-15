@@ -312,7 +312,8 @@
 		Departement.hbm.xml
 		HopService.hbm.xml
 		Admission.hbm.xml
-		
+		Deposit.hbm.xml
+		DipositWithdrawal.hbm.xml
 	</mappingFiles>
 
 </module>

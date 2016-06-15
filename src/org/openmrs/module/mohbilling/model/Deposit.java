@@ -6,9 +6,12 @@ package org.openmrs.module.mohbilling.model;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.openmrs.Patient;
 import org.openmrs.User;
+import org.openmrs.logic.op.Within;
+import org.openmrs.util.OpenmrsUtil;
 
 /**
  * @author EMR@RBC
@@ -19,11 +22,12 @@ public class Deposit {
 	private Integer depositId;
 	private Patient patient;
 	private BigDecimal amount = new BigDecimal(0);
+	private User cashier;
 	private Date depositDate;
 	private String depositReason;
-	private Set<DipositWithdrawal> withdrawals;
+	private Set<DepositWithdrawal> withdrawals;
 	private User creator;
-	private Date creationDate;
+	private Date createdDate;
 	private boolean voided = false;
 	private User voidedBy;
 	private Date voidedDate;
@@ -65,6 +69,18 @@ public class Deposit {
 		this.amount = amount;
 	}
 	/**
+	 * @return the cashier
+	 */
+	public User getCashier() {
+		return cashier;
+	}
+	/**
+	 * @param cashier the cashier to set
+	 */
+	public void setCashier(User cashier) {
+		this.cashier = cashier;
+	}
+	/**
 	 * @return the depositDate
 	 */
 	public Date getDepositDate() {
@@ -91,13 +107,13 @@ public class Deposit {
 	/**
 	 * @return the withdrawals
 	 */
-	public Set<DipositWithdrawal> getWithdrawals() {
+	public Set<DepositWithdrawal> getWithdrawals() {
 		return withdrawals;
 	}
 	/**
 	 * @param withdrawals the withdrawals to set
 	 */
-	public void setWithdrawals(Set<DipositWithdrawal> withdrawals) {
+	public void setWithdrawals(Set<DepositWithdrawal> withdrawals) {
 		this.withdrawals = withdrawals;
 	}
 	/**
@@ -113,16 +129,16 @@ public class Deposit {
 		this.creator = creator;
 	}
 	/**
-	 * @return the creationDate
+	 * @return the createdDate
 	 */
-	public Date getCreationDate() {
-		return creationDate;
+	public Date getCreatedDate() {
+		return createdDate;
 	}
 	/**
-	 * @param creationDate the creationDate to set
+	 * @param createdDate the createdDate to set
 	 */
-	public void setCreationDate(Date creationDate) {
-		this.creationDate = creationDate;
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
 	}
 	/**
 	 * @return the voided
@@ -172,7 +188,21 @@ public class Deposit {
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
 	}
-	
-	
+
+	/**
+	 * Adds the withdrawal from withdrawals list
+	 * @param withdrawal
+	 * @return
+	 */
+	public boolean addWithdrawal(DepositWithdrawal withdrawal) {
+		if (withdrawal != null) {
+			withdrawal.setDeposit(this);
+			if (withdrawals == null)
+				withdrawals = new TreeSet<DepositWithdrawal>();
+			if (!OpenmrsUtil.collectionContains(withdrawals, withdrawal))
+				return withdrawals.add(withdrawal);
+		}
+		return false;
+	}
 }
 

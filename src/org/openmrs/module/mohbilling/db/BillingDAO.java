@@ -27,6 +27,7 @@ import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -41,10 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author EMR@RBC
  * 
  */
-/**
- * @author emr
- *
- */
+
 @Transactional
 public interface BillingDAO {
 
@@ -484,9 +482,24 @@ public interface BillingDAO {
 	public HopService getHopService(Integer serviceId);
 
 	/**
-	 * Savve admission to DB
+	 * Saves admission to DB
 	 * @param admission admission to be saved
 	 * @return admission saved
 	 */
 	public Admission saveAdmission(Admission admission);
+	/**
+	 * saves Deposit to the DB 
+	 * @param deposit
+	 * @return
+	 */
+	public Deposit saveDeposit(Deposit deposit);
+	/**
+	 * gets a list of deposits according to provided parameters (patient and/or startdate and/or enddate and/or collector)
+	 * @param patient
+	 * @param startdate
+	 * @param enddate
+	 * @param collector
+	 * @return
+	 */
+	public List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector);
 }

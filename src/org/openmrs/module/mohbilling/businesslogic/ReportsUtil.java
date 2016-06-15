@@ -52,7 +52,7 @@ import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 
 /**
- * @author Kamonyo
+ * @author EMR-RBC
  * 
  */
 public class ReportsUtil {
