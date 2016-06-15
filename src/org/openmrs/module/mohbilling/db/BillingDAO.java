@@ -29,6 +29,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -483,6 +484,7 @@ public interface BillingDAO {
 
 	/**
 	 * Saves admission to DB
+	 * Save admission to DB
 	 * @param admission admission to be saved
 	 * @return admission saved
 	 */
@@ -502,4 +504,37 @@ public interface BillingDAO {
 	 * @return
 	 */
 	public List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector);
+
+	/**
+	 * @param admissionid
+	 * @return
+	 */
+	public Admission getPatientAdmission(Integer admissionid);
+
+	/**
+	 * @param globalBill
+	 * @return
+	 */
+	public GlobalBill saveGlobalBill(GlobalBill globalBill);
+
+	/**
+	 * Get GlobalBillBy id 
+	 * @param globalBillId
+	 * @return GlobalBill 
+	 */
+	public GlobalBill GetGlobalBill(Integer globalBillId);
+
+	/**
+	 * Get global bill by admission
+	 * @param admission
+	 * @return Admission
+	 */
+	public GlobalBill getGlobalBillByAdmission(Admission admission);
+
+	/**
+	 * Get a List of admission by insurance policy
+	 * @param ip
+	 * @return List<Admission>
+	 */
+	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
 }

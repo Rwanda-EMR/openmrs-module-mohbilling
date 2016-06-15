@@ -34,6 +34,7 @@ import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
+import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
@@ -49,6 +50,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -1226,4 +1228,43 @@ public class HibernateBillingDAO implements BillingDAO {
 		
 		return deposits;
 	}	
+	public Admission getPatientAdmission(Integer admissionid) {
+		return (Admission) sessionFactory.getCurrentSession().get(Admission.class, admissionid);
+	}
+
+	@Override
+	public GlobalBill saveGlobalBill(GlobalBill globalBill) {
+		sessionFactory.getCurrentSession().saveOrUpdate(globalBill);
+		return globalBill;
+	}
+
+	@Override
+	public GlobalBill GetGlobalBill(Integer globalBillId) {
+		return (GlobalBill) sessionFactory.getCurrentSession().get(GlobalBill.class,globalBillId);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getGlobalBillByAdmission(org.openmrs.module.mohbilling.model.Admission)
+	 */
+	@Override
+	public GlobalBill getGlobalBillByAdmission(Admission admission) {
+	
+				Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+		                 .add(Restrictions.eq("admission",admission));				        
+				        
+				GlobalBill globalBill = (GlobalBill) crit.uniqueResult();		
+				return globalBill;
+	}
+
+	@Override
+	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
+		
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class);
+		if (ip != null ) {
+			crit.add(Expression.eq("insurancePolicy", ip));
+		}
+		
+		return crit.list();
+	}
+	
 }
