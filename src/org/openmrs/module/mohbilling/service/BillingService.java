@@ -512,5 +512,10 @@ public interface BillingService {
 	 */
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
 	
-	
+	/**
+	 * Gets deposit by Id
+	 * @param depositId
+	 * @return
+	 */
+	public Deposit getDeposit(Integer depositId);
 }

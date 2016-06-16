@@ -147,6 +147,12 @@
 		</description>
 	</globalProperty>
 	
+	<globalProperty>
+		<property>billing.depositReasons</property>
+		<defaultValue>OPD,IPD</defaultValue>
+		<description>This should be a list of possible reasons of depositing cash</description>
+	</globalProperty>
+	
 	<!-- /Required Global Properties -->
 
 	<dwr>
@@ -313,7 +319,7 @@
 		HopService.hbm.xml
 		Admission.hbm.xml
 		Deposit.hbm.xml
-		DipositWithdrawal.hbm.xml
+		DepositWithdrawal.hbm.xml
 		GlobalBill.hbm.xml
 	</mappingFiles>
 

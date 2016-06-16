@@ -27,7 +27,7 @@
 		 <td>Patient Name:</td>
 		 <td width="300px;"><openmrs_tag:patientField
 						formFieldName="insurancePolicyOwner"
-						initialValue="${beneficiaryId}" /></td>
+						initialValue="${patientId}" /></td>
 		</tr>
 		</table>
 	</div>
@@ -39,19 +39,20 @@
 		<table>
 			<tr>
 				<td>Amount</td>
-				<td><input type="text" name="depositAmount"/></td>
+				<td><input type="text" name="depositAmount" value="${deposit.amount }"/></td>
 			</tr>
 			<tr>
 				<td>Date</td>
-				<td><input type="text" name="depositDate"/></td><td>(dd/mm/yyyy)</td>
+				<td><input type="text" name="depositDate" value="${deposit.depositDate }"/></td><td>(dd/mm/yyyy)</td>
 			</tr>
 			<tr>
 				<td>Reason</td>
 				<td>
 				<!-- list to be set in Global Properties -->
 				 <select name="depositReason">
-					  <option value="opd">OPD</option>
-					  <option value="ipd">IPD</option>
+				 	<c:forEach items="${depositReasons}" var="depositReason">
+				 	 <option value="${depositReason}">${depositReason}</option>
+				 	</c:forEach>
 				</select> 
 				</td>
 			</tr>
@@ -63,19 +64,36 @@
 		<br /> <input type="submit" value="Save Deposit" id="submitButtonId" />
 </div>
 </form>
-<div>
+<form action="depositList.list" method="post">
+<br/><br/>
+<c:if test="${fn:length(depositsList)!=0}">
+<b class="boxHeader">Total Deposit : ${totalDepositAmount } <strong>FRW</strong></b>
+<div class="box">
 <table>
-<tr><th>#</th><th>Beneficiary</th><th>Amount</th><th>Deposit Reason</th><th>Collector</th></tr>
-<c:forEach items="${depositList}" var="deposit" varStatus="status">	
+	<tr>
+		<th class="columnHeader">#.</th>
+		<th class="columnHeader">Patient First Name</th>
+		<th class="columnHeader">Patient Last Name</th>
+		<th class="columnHeader">Amount</th>
+		<th class="columnHeader">Reposit Reason</th>
+		<th class="columnHeader">Collector</th>
+		<th class="columnHeader">Date</th>
+		<th class="columnHeader">Action</th>
+	</tr>
+	<c:forEach items="${depositsList}" var="deposit" varStatus="status">	
 		<tr>
-			<td>${status.count}</td>
-			<td>c></td>			
-			<td>c</td>
-			<td>c</td>	
-			<td>f</td>	
-			
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.patient.givenName}</td>	
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.patient.familyName}</td>			
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.amount}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.depositReason }</td>	
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.cashier }</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.depositDate }</td>	
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="deposit.form?depositId=${deposit.depositId}">view</a></td>
 		</tr>
 	</c:forEach>
 </table>
 </div>
+</c:if>
+</form>
 <%@ include file="/WEB-INF/template/footer.jsp"%>

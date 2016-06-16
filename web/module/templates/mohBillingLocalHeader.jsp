@@ -1,36 +1,36 @@
 <ul id="menu">
 
 	<openmrs:hasPrivilege privilege="Search Insurance Policy">
-		<li
-			class="<c:if test='<%= request.getRequestURI().contains("mohBillingInsurancePolicy")%>'> active</c:if>">
+		<li class="<c:if test='<%= request.getRequestURI().contains("mohBillingInsurancePolicy")%>'> active</c:if>">
 			<a href="insurancePolicySearch.form"><spring:message
 					code="@MODULE_ID@.insurance.policy.manage" /></a>
 		</li>
 	</openmrs:hasPrivilege>
-	<li><a href="admissionSearch.form">Admission</a></li>
+	
+	<li class="<c:if test='<%= request.getRequestURI().contains("AdmissionSearch")%>'> active</c:if>">
+	<a href="admissionSearch.form">Admission</a>
+	</li>
 
 	<openmrs:hasPrivilege privilege="Manage Patient Bill Calculations">
-		<li
-			class="<c:if test='<%= request.getRequestURI().contains("mohBillingBilling")%>'> active</c:if>">
+		<li class="<c:if test='<%= request.getRequestURI().contains("mohBillingBilling")%>'> active</c:if>">
 			<!-- <a href="patientSearchBill.form"><spring:message code="@MODULE_ID@.billing.manage" /></a> -->
 			<a href="patientSearchBill.form">Bill</a>
 		</li>
 	</openmrs:hasPrivilege>
 
-	<li>
+	<li class="<c:if test='<%= request.getRequestURI().contains("SearchDepost")%>'> active</c:if>">
 	<a href="patientSearchDeposit.form">Deposit</a>
 	</li>
 
 	<openmrs:hasPrivilege privilege="Manage Billing Reports">
-		<li
-			class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
+		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
 			<a href="cohort.form"><spring:message
 					code="@MODULE_ID@.billing.report" /></a>
 		</li>
 	</openmrs:hasPrivilege>
 
-	<liclass="<c:if test='<%= request.getRequestURI().contains("mohBillingAdmin")%>'> active</c:if>">
-	<a href="billingAdmin.form">Billing Admin</a>
+	<li class="<c:if test='<%= request.getRequestURI().contains("DepartmentList")%>'> active</c:if>">
+	<a href="departments.list">Billing Admin</a>
 	</li>
 </ul>
 

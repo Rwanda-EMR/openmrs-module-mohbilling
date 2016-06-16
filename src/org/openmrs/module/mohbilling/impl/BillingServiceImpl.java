@@ -601,4 +601,9 @@ public class BillingServiceImpl implements BillingService {
 	
 		return billingDAO.getAdmissionsListByInsurancePolicy(ip);
 	}
+
+	@Override
+	public Deposit getDeposit(Integer depositId) {
+		return billingDAO.getDeposit(depositId);
+	}
 	}

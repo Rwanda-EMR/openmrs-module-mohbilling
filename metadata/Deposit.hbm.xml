@@ -30,7 +30,7 @@
 			cascade="all-delete-orphan" sort="natural"
 			order-by="withdrawal_date asc">
 			<key column="deposit_id" />
-			<one-to-many class="DipositWithdrawal" />
+			<one-to-many class="DepositWithdrawal" />
 		</set>
 	</class>
 	

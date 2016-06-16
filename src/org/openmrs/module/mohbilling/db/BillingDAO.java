@@ -537,4 +537,12 @@ public interface BillingDAO {
 	 * @return List<Admission>
 	 */
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
+	
+	/**
+	 * Gets deposit by Id
+	 * @param depositId
+	 * @return
+	 */
+	public Deposit getDeposit(Integer depositId);
+	
 }

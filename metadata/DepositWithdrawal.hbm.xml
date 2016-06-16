@@ -7,7 +7,7 @@
 
 	<!-- DipositWithdrawal -->
 	
-	<class name="DipositWithdrawal" table="moh_bill_deposit_withdrawal">
+	<class name="DepositWithdrawal" table="moh_bill_deposit_withdrawal">
 
 		<id name="withdrawalID" type="int" column="withdrawal_id" unsaved-value="0">
 			<generator class="native" />

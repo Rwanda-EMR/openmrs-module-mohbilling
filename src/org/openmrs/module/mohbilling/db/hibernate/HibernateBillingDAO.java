@@ -67,10 +67,6 @@ import org.openmrs.module.mohbilling.service.BillingService;
  * @author EMR@RBC
  * 
  */
-/**
- * @author mariam
- *
- */
 @SuppressWarnings("unchecked")
 public class HibernateBillingDAO implements BillingDAO {
 
@@ -1265,6 +1261,12 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 		
 		return crit.list();
+	}
+
+	@Override
+	public Deposit getDeposit(Integer depositId) {
+		return (Deposit) sessionFactory.getCurrentSession().get(
+				Deposit.class, depositId);
 	}
 	
 }

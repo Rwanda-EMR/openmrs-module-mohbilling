@@ -56,7 +56,7 @@ public class AdminList extends AdministrationSectionExt {
 			map.put("module/mohbilling/admission.form", "Admission");
 			map.put("module/mohbilling/insurancePolicySearch.form", "Insurance Policy");
 			map.put("module/mohbilling/patientSearchBill.form", "Bill");
-			map.put("module/mohbilling/deposit.form", "Deposit");
+			map.put("module/mohbilling/patientSearchDeposit.form", "Deposit");
 			map.put("module/mohbilling/cohort.form", "Report");
 			map.put("module/mohbilling/billAdmin.form", "Billing Admin");
 

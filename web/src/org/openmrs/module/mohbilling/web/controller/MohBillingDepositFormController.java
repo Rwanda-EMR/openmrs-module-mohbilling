@@ -3,6 +3,7 @@ package org.openmrs.module.mohbilling.web.controller;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.BillingGlobalProperties;
 import org.openmrs.module.mohbilling.businesslogic.DepositUtil;
 import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -35,27 +37,20 @@ public class MohBillingDepositFormController extends
 
 			ModelAndView mav = new ModelAndView();
 			mav.setViewName(getViewName());
+			mav.addObject("authUser", Context.getAuthenticatedUser());
 			
 			Deposit deposit = new Deposit();
-			
-			
-			if (null != request.getParameter("insurancePolicyId")) {
-				InsurancePolicy ip = Context.getService(
+			InsurancePolicy ip = null;
+			Patient patient = null;
+			if(request.getParameter("insurancePolicyId")!=null){
+				ip = Context.getService(
 						BillingService.class).getInsurancePolicy(
 						Integer.valueOf(request
 								.getParameter("insurancePolicyId")));
-
-				mav.addObject("insurancePolicy", ip);
-				mav.addObject("beneficiaryId", ip.getOwner().getPatientId());
+				patient = ip.getOwner();
 			}
-			
-			if(request.getParameter("save")!=null && request.getParameter("save").equals("true")){
-				InsurancePolicy ip = Context.getService(
-						BillingService.class).getInsurancePolicy(
-						Integer.valueOf(request
-								.getParameter("insurancePolicyId")));
-				deposit.setPatient(ip.getOwner());
-				
+
+			if(request.getParameter("save")!=null && request.getParameter("save").equals("true")){				
 				String depositDateStr = request.getParameter("depositDate");
 				Date depositDate = null;
 				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -76,10 +71,23 @@ public class MohBillingDepositFormController extends
 				deposit.setVoided(false);
 				
 				DepositUtil.createDeposit(deposit);
-				
+				//return new ModelAndView(new RedirectView("deposit.form"));	
 			}
-//			Patient patient = Context.getPatientService().getPatient(314);
-//			mav.addObject("depositList", DepositUtil.getDepositList(patient));
+			List<Deposit> deposits =DepositUtil.getDepositList(patient, null, null, null);
+			
+			BigDecimal totalDepositAmount = new BigDecimal(0);
+
+			for (Deposit d : deposits) 
+				totalDepositAmount = totalDepositAmount.add(d.getAmount());
+			
+			if (request.getParameter("depositId") != null) {
+					mav.addObject("deposit", (DepositUtil.getDeposit(Integer.valueOf(request.getParameter("depositId")))));
+			}	
+			mav.addObject("totalDepositAmount", totalDepositAmount);
+			mav.addObject("depositsList", deposits);
+			mav.addObject("insurancePolicy", ip);
+			mav.addObject("patientId", patient.getPatientId());
+			mav.addObject("depositReasons", BillingGlobalProperties.getGpDepositReasons());
 			return mav;
 	}
 

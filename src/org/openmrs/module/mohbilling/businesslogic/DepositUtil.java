@@ -50,4 +50,12 @@ public class DepositUtil {
 	public static List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector){
 		return getService().getDepositList(patient, startDate, endDate, collector);
 	}
+	/**
+	 * gives diposit with a given id
+	 * @param depositId
+	 * @return Deposit that has id equals to depositId
+	 */
+	public static Deposit getDeposit(Integer depositId){
+		return getService().getDeposit(depositId);
+	}
 }
