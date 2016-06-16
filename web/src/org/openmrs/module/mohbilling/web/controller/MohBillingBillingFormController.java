@@ -28,7 +28,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
 /**
- * @author Yves GAKUBA
+ * @author EMR@RBC
  * 
  */
 public class MohBillingBillingFormController extends

@@ -16,7 +16,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
 /**
- * @author mariam
+ * @author EMR@RBC
  *
  */
 public class MohBillingDepartmentFormController extends

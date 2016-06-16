@@ -583,6 +583,63 @@ ALTER TABLE `moh_bill_patient_bill`  ADD COLUMN `global_bill_id` INT(11) default
 
 	</diff>
 	
+	
+	<diff>
+		<version>1.3.0.8</version>
+		<author>RBC Rwanda</author>
+		<date>June 14th 2016</date>
+		<description>
+			Deposit table
+		</description>
+		<sql>
+			CREATE TABLE IF NOT EXISTS `moh_bill_deposit` (
+			`deposit_id` int(11) NOT NULL AUTO_INCREMENT,
+			`amount` DECIMAL(20,2) NOT NULL,
+			`deposit_date` DATE NOT NULL,
+			`deposit_reason` VARCHAR(250) default NULL,
+			`created_date` DATE NOT NULL,
+			`voided` SMALLINT(1) NOT NULL default '0',
+			`voided_date` DATE default NULL,
+			`void_reason` VARCHAR(250) default NULL,
+			`cashier` int(11) NOT NULL,
+			`patient_id` INT(11) NOT NULL,
+			`voided_by` int(11) default NULL,
+			`creator` int(11) NOT NULL,
+			
+			PRIMARY KEY (`deposit_id`),
+	
+     CONSTRAINT `deposit_patient` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`patient_id`),
+     CONSTRAINT `deposit_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+     CONSTRAINT `deposit_cashier` FOREIGN KEY (`cashier`) REFERENCES `users` (`user_id`),
+     CONSTRAINT `deposit_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)
+
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8;	
+	
+	     CREATE TABLE IF NOT EXISTS `moh_bill_deposit_withdrawal` (
+			`withdrawal_id` int(11) NOT NULL AUTO_INCREMENT,
+			`withdrawal_date` date NOT NULL,
+			`withdrawal_amount` DECIMAL(20,2) NOT NULL,
+			`withdrawal_reason` VARCHAR(250) default NULL,
+			`voided` SMALLINT(1) NOT NULL default '0',
+			`voided_date` DATE default NULL,
+			`void_reason` VARCHAR(250) default NULL,
+			`created_date` date NOT NULL,
+			`deposit_id` INT(11) default NULL,
+			`voided_by` INT(11) default NULL,
+			`cashier` INT(11) NOT NULL,
+			`creator` int(11) NOT NULL,	
+	
+			PRIMARY KEY (`withdrawal_id`),
+
+		CONSTRAINT `withdrawal_deposit` FOREIGN KEY (`deposit_id`) REFERENCES `moh_bill_deposit` (`deposit_id`),
+		CONSTRAINT `withdrawal_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+        CONSTRAINT `withdrawal_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+        CONSTRAINT `withdrawal_cashier` FOREIGN KEY (`cashier`) REFERENCES `users` (`user_id`)
+
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</diff>
+	
 	<!--
     <diff>
 		<version>1.3.0.8</version>
