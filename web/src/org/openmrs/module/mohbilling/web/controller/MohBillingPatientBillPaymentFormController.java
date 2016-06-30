@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -26,7 +27,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
 /**
- * @author Yves GAKUBA
+ * @author @rbcemr
  * 
  */
 public class MohBillingPatientBillPaymentFormController extends
@@ -43,34 +44,30 @@ public class MohBillingPatientBillPaymentFormController extends
 		mav.setViewName(getViewName());
 
 		if (request.getParameter("save") != null) {
-			handleSavePatientBillPayment(request);
+			//handleSavePatientBillPayment(request);
 		}
 
-		try {
-			PatientBill pb = null;
-			List<PatientBill> patientBills = null;
+		//try {
+			Consommation  consommation = null;
+			List<Consommation> consommations = null;
 
-			if (request.getParameter("patientBillId") == null)
+			/*if (request.getParameter("consommationId") == null)
 				return new ModelAndView(new RedirectView(
-						"patientSearchBill.form"));
+						"patientSearchBill.form"));*/
 
-			pb = Context.getService(BillingService.class).getPatientBill(
-					Integer.parseInt(request.getParameter("patientBillId")));
+			consommation = Context.getService(BillingService.class).getConsommation(
+					Integer.parseInt(request.getParameter("consommationId")));
 			
-			patientBills = PatientBillUtil.getBillsByBeneficiary(pb
-					.getBeneficiary());
+			//patientBills = PatientBillUtil.getBillsByBeneficiary(pb.getBeneficiary());
 			
-			/** Updating status for unmarked ones */
-			for(PatientBill bill: patientBills)
-				if(bill.getStatus() == null)
-					PatientBillUtil.markBillAsPaid(bill);
+		
 
-			mav.addObject("patientBill", pb);
-			mav.addObject("patientBills", patientBills);
-			mav.addObject("beneficiary", pb.getBeneficiary());
+			mav.addObject("consommation", consommation);
+			//mav.addObject("patientBills", patientBills);
+			mav.addObject("beneficiary", consommation.getBeneficiary());
 
-			InsurancePolicy ip = pb.getBeneficiary().getInsurancePolicy();
-			mav.addObject("insurancePolicy", ip);
+			InsurancePolicy ip = consommation.getBeneficiary().getInsurancePolicy();
+		    mav.addObject("insurancePolicy", ip);
 
 			// check the validity of the insurancePolicy for today
 			Date today = new Date();
@@ -81,11 +78,11 @@ public class MohBillingPatientBillPaymentFormController extends
 			mav.addObject("todayDate", today);
 			mav.addObject("authUser", Context.getAuthenticatedUser());
 
-		} catch (Exception e) {
-			log.error(">>>>MOH>>BILLING>> " + e.getMessage());
-			e.printStackTrace();
-			return new ModelAndView(new RedirectView("patientSearchBill.form"));
-		}
+		//} catch (Exception e) {
+			//log.error(">>>>MOH>>BILLING>> " + e.getMessage());
+		//	e.printStackTrace();
+			//return new ModelAndView(new RedirectView("patientSearchBill.form"));
+		//}
 
 		return mav;
 	}
@@ -94,7 +91,7 @@ public class MohBillingPatientBillPaymentFormController extends
 	 * @param request
 	 * @return
 	 */
-	private BillPayment handleSavePatientBillPayment(HttpServletRequest request) {
+/*	private BillPayment handleSavePatientBillPayment(HttpServletRequest request) {
 
 		BillPayment billPayment = null;
 		// Float rate = null;
@@ -107,10 +104,10 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			if (null != request.getParameter("receivedCash")) {
 				BillPayment bp = new BillPayment();
-				/**
+				*//**
 				 * We need to add both Patient Due amount and amount paid by
 				 * third part
-				 */
+				 *//*
 
 				// if (pb.getBeneficiary().getInsurancePolicy().getThirdParty()
 				// != null) {
@@ -158,8 +155,8 @@ public class MohBillingPatientBillPaymentFormController extends
 
 				billPayment = PatientBillUtil.createBillPayment(bp);
 
-				/** Marking a Bill as PAID */
-				PatientBillUtil.markBillAsPaid(pb);
+				*//** Marking a Bill as PAID *//*
+				//PatientBillUtil.markBillAsPaid(pb);
 
 				request.getSession().setAttribute(
 						WebConstants.OPENMRS_MSG_ATTR,
@@ -184,6 +181,6 @@ public class MohBillingPatientBillPaymentFormController extends
 			return null;
 		}
 
-	}
+	}*/
 
 }

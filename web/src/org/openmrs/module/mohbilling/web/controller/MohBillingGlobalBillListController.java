@@ -29,7 +29,7 @@ public class MohBillingGlobalBillListController extends
 		
 		List<GlobalBill> globalBills = GlobalBillUtil.getGlobalBillsByInsurancePolicy(ip);
 		
-		mav.addObject("globalBills", globalBills);	
+	    mav.addObject("globalBills", globalBills);	
 		mav.setViewName(getViewName());
 		
 		// TODO Auto-generated method stub

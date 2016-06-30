@@ -313,6 +313,10 @@
 		HopService.hbm.xml
 		Admission.hbm.xml
 		GlobalBill.hbm.xml
+		Consommation.hbm.xml
+		ThirdPartyBill.hbm.xml
+		InsuranceBill.hbm.xml
+		
 		
 	</mappingFiles>
 

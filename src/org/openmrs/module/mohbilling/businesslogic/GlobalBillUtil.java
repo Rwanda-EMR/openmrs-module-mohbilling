@@ -32,9 +32,10 @@ public class GlobalBillUtil {
 	/**
 	 * Save global to DB
 	 * @param globalBill
+	 * @return 
 	 */
-	public static void saveGlobalBill(GlobalBill globalBill){
-		getService().saveGlobalBill(globalBill);	
+	public static GlobalBill saveGlobalBill(GlobalBill globalBill){
+		return getService().saveGlobalBill(globalBill);	
 		
 	}
 	public static GlobalBill getGlobalBillByAdmission(Admission admission){
@@ -55,6 +56,12 @@ public class GlobalBillUtil {
 		  
 	}
 	return globalBills;
+		
+	}
+
+	public static GlobalBill getGlobalBill(Integer globalBillId) {
+		
+	return 	getService().GetGlobalBill(globalBillId);
 		
 	}
 

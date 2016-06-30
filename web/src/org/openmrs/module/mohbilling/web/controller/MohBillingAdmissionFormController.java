@@ -51,12 +51,13 @@ public class MohBillingAdmissionFormController extends
 		//create new Global bill
 		GlobalBill gb =new GlobalBill();
 		gb.setAdmission(savedAdmission);
-		gb.setBillIdentifier("19780");
+		gb.setBillIdentifier(ip.getInsuranceCardNo()+savedAdmission.getAdmissionId());
 		gb.setCreatedDate(new Date());
 		gb.setCreator(Context.getAuthenticatedUser());
-		gb.setPatientBills(new HashSet<PatientBill>());
 		
-		GlobalBillUtil.saveGlobalBill(gb);
+		
+		gb =   GlobalBillUtil.saveGlobalBill(gb);
+		mav.addObject("globalBill",gb);
 		
 	}
 		

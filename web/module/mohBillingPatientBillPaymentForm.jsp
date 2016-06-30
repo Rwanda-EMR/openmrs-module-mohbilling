@@ -11,8 +11,6 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <br/>
-
-<b class="boxHeader">${patientBill.beneficiary.patient.personName}'s Bill as on ${patientBill.createdDate}</b>
 <div class="box">
 	<form action="patientBillPayment.form?patientBillId=${param.patientBillId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment">
 		<table width="99%">
@@ -25,10 +23,10 @@
 				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</td>
 				<th class="columnHeader right">Patient : ${100-insurancePolicy.insurance.currentRate.rate} %</td>
 			</tr>
-			<c:if test="${empty patientBill.billItems}"><tr><td colspan="7"><center>No Patient Bill Item found !</center></td></tr></c:if>
+			<c:if test="${empty consommation.billItems}"><tr><td colspan="7"><center>No consommation found !</center></td></tr></c:if>
 			<c:set var="totalBillInsurance" value="0"/>
 			<c:set var="totalBillPatient" value="0"/>
-			<c:forEach items="${patientBill.billItems}" var="billItem" varStatus="status">
+			<c:forEach items="${consommation.billItems}" var="billItem" varStatus="status">
 			  <c:set var="service" value="${billItem.service.facilityServicePrice}"/>
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
@@ -70,22 +68,35 @@
 				<td colspan="2"><openmrs_tag:userField formFieldName="billCollector" initialValue="${authUser.userId}"/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Amount Paid</b></div></td>
-				<td><div class="amount">${billingtag:amountPaidForPatientBill(patientBill.patientBillId)}</div></td>
+			    <td><div class="amount">0</div></td>
+				
 			</tr>
 			<tr>
 				<td><b>Received Date</b></td>
 				<td colspan="2"><input type="text" autocomplete="off" name="dateBillReceived" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Paid by Third Part</b></div></td>
-				<td><div class="amount">${billingtag:amountPaidByThirdPart(patientBill.patientBillId)}</div></td>
+				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>
+				
 			</tr>
 			<tr>
 				<td><b>Received Cash</b></td>
 				<td colspan="2"><input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Rest</b></div></td>
-				<td><div class="amount">${billingtag:amountNotPaidForPatientBill(patientBill.patientBillId)}</div></td>
+				
 			</tr>
+			
+			<tr>
+				<td><b>Pay with deposit</b></td>
+				<td><input type="checkbox" name="depositPayment" value="depositPayment"> </td>
+							
+			</tr>
+			<tr>
+			  <td><b>Pay with cash</b></td>
+				<td><input type="checkbox" name="cashPayment" value="cashPayment" > </td>
+								
+			</tr>			
 			<tr>
 				<td colspan="7"><hr/></td>
 			</tr>
@@ -95,10 +106,11 @@
 					<td colspan="2"><input type="button" onclick="savePatientBillPayment();" value="Confirm Bill" style="min-width: 200px;"/></td>
 				</openmrs:hasPrivilege>
 				<td colspan="3"></td>
-
-			<c:if test="${billingtag:amountPaidForPatientBill(patientBill.patientBillId)>0 ||patientBill.beneficiary.insurancePolicy.insurance.currentRate.rate==100 || patientBill.beneficiary.insurancePolicy.thirdParty!=nil}">	
+              <!-- 
+			<c:if test="${billingtag:amountPaidForPatientBill(patientBill.patientBillId)>0 ||patientBill.beneficiary.insurancePolicy.insurance.currentRate.rate==100 || patientBill.beneficiary.insurancePolicy.thirdParty!=nil}">
+			 -->	
+			
 			<td colspan="2"><div style="text-align: right;"><a href="printPDFPatientBill.form?patientBillId=${patientBill.patientBillId}">Print Bill</a></div></td>
-				
 			</tr>
 			<tr></tr>
 			<tr>
@@ -111,45 +123,7 @@
 <br/>
 
 <b class="boxHeader">Bills History</b>
-<div class="box">
-	<table width="99%">
-		<tr>
-			<th class="columnHeader">Date of Bill</td>
-			<th class="columnHeader"></th>
-			<th class="columnHeader">Created By</td>
-			<th class="columnHeader">Policy ID No.</td>
-			<th class="columnHeader right">Paid Amount (Rwf)</td>
-			<th class="columnHeader right">Total Amount (Rwf)</td>
-			<th class="columnHeader right">Rest Amount (Rwf)</td>
-			<th class="columnHeader">Status</td>
-			<th class="columnHeader"><!-- Bill ID --></td>
-		</tr>
-		<c:if test="${empty patientBills}"><tr><td colspan="9"><center>No Patient Bill found !</center></td></tr></c:if>
-		<c:set value="0" var="index"/>
-		<c:forEach items="${patientBills}" var="pb" varStatus="status">
-			<tr>
-				<c:choose>
-				  <c:when test="${pb.createdDate == currentDate}">
-				   	<td class="" <c:if test="${index%2!=0}">style="background-color: white;"</c:if>><c:if test="${pb.createdDate!=currentDate}"><openmrs:formatDate date="${pb.createdDate}" type="medium"/><c:set value="${pb.createdDate}" var="currentDate"/></c:if></td>
-				  </c:when>
-				  <c:otherwise>
-				  	<c:set value="${index+1}" var="index"/>
-				   	<td class="rowValue"><c:if test="${pb.createdDate!=currentDate}"><openmrs:formatDate date="${pb.createdDate}" type="medium"/><c:set value="${pb.createdDate}" var="currentDate"/></c:if></td>
-				  </c:otherwise>
-				</c:choose>
-				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}">${pb.createdDate}</td> -->
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${pb.creator.personName}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${pb.beneficiary.policyIdNumber}</td>
-				<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billingtag:amountPaidForPatientBill(pb.patientBillId)}</td>
-				<td class="rowValue right ${(status.count%2!=0)?'even':''}">${pb.amount}</td>
-				<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billingtag:amountNotPaidForPatientBill(pb.patientBillId)}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${pb.status}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="patientBillPayment.form?patientBillId=${pb.patientBillId}&ipCardNumber=${pb.beneficiary.policyIdNumber}">View<!-- ${pb.patientBillId} --></a></td>
-			</tr>
-		</c:forEach>
-	</table>
-</div>
+
 
 <script>
 	function savePatientBillPayment(){

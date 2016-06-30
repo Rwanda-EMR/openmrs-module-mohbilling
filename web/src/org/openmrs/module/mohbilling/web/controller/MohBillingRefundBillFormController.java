@@ -57,7 +57,7 @@ public class MohBillingRefundBillFormController extends
 			mav.addObject("insurancePolicy", ip);
 		}
 
-		if (request.getParameter("patientBillId") != null
+/*		if (request.getParameter("patientBillId") != null
 				&& !request.getParameter("patientBillId").equals("")) {
 
 			PatientBill bill = PatientBillUtil.getPatientBillById(Integer
@@ -83,7 +83,7 @@ public class MohBillingRefundBillFormController extends
 
 			mav.addObject("patientBill", bill);
 			mav.addObject("index", bill.getBillItems().size());
-		}
+		}*/
 
 		return mav;
 	}
