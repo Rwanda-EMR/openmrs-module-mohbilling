@@ -1,7 +1,7 @@
 <ul id="menu">
 
 		
-		<li>
+		<li class="<c:if test='<%= request.getRequestURI().contains("SearchDepost")%>'> active</c:if>">
 			<a href="patientSearchDeposit.form">Manage Deposit</a>
 		</li>
 		<li>

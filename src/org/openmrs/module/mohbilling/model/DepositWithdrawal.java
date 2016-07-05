@@ -12,12 +12,15 @@ import org.openmrs.User;
  * @author EMR@RBC
  *
  */
-public class DipositWithdrawal {
+public class DepositWithdrawal {
  private Integer withdrawalID;
  private Date withdrawalDate;
+ private Deposit deposit;
  private BigDecimal withdrawalAmount = new BigDecimal(0);
- private User cashier;
  private String withdrawalReason;
+ private User cashier;
+ private User creator;
+ private Date createdDate;
  private boolean voided = false;
  private User voidedBy;
  private Date voidedDate;
@@ -130,7 +133,43 @@ public String getVoidReason() {
 public void setVoidReason(String voidReason) {
 	this.voidReason = voidReason;
 }
- 
+/**
+ * @return the deposit
+ */
+public Deposit getDeposit() {
+	return deposit;
+}
+/**
+ * @param deposit the deposit to set
+ */
+public void setDeposit(Deposit deposit) {
+	this.deposit = deposit;
+}
+/**
+ * @return the creator
+ */
+public User getCreator() {
+	return creator;
+}
+/**
+ * @param creator the creator to set
+ */
+public void setCreator(User creator) {
+	this.creator = creator;
+}
+/**
+ * @return the createdDate
+ */
+public Date getCreatedDate() {
+	return createdDate;
+}
+/**
+ * @param createdDate the createdDate to set
+ */
+public void setCreatedDate(Date createdDate) {
+	this.createdDate = createdDate;
+}
+
  
  
  

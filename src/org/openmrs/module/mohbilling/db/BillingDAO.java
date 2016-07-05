@@ -28,6 +28,7 @@ import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -45,10 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author EMR@RBC
  * 
  */
-/**
- * @author emr
- *
- */
+
 @Transactional
 public interface BillingDAO {
 
@@ -488,11 +486,27 @@ public interface BillingDAO {
 	public HopService getHopService(Integer serviceId);
 
 	/**
+	 * Saves admission to DB
 	 * Save admission to DB
 	 * @param admission admission to be saved
 	 * @return admission saved
 	 */
 	public Admission saveAdmission(Admission admission);
+	/**
+	 * saves Deposit to the DB 
+	 * @param deposit
+	 * @return
+	 */
+	public Deposit saveDeposit(Deposit deposit);
+	/**
+	 * gets a list of deposits according to provided parameters (patient and/or startdate and/or enddate and/or collector)
+	 * @param patient
+	 * @param startdate
+	 * @param enddate
+	 * @param collector
+	 * @return
+	 */
+	public List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector);
 
 	/**
 	 * @param admissionid
@@ -527,6 +541,7 @@ public interface BillingDAO {
 	 */
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
 
+
 	public void saveConsommation(Consommation consommation);
 
 	public void saveInsuranceBill(InsuranceBill ib);
@@ -534,4 +549,14 @@ public interface BillingDAO {
 	public void saveThirdPartyBill(ThirdPartyBill thirdBill);
 
 	public Consommation getConsommation(Integer consommationId);
+
+	
+	/**
+	 * Gets deposit by Id
+	 * @param depositId
+	 * @return
+	 */
+	public Deposit getDeposit(Integer depositId);
+	
+
 }

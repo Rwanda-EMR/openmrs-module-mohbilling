@@ -15,7 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 /**
- * @author Yves GAKUBA
+ * @author EMR@RBC
  * 
  *         This controller backs the
  *         /web/module/mohBillingInsurancePolicySearchForm.jsp page. This

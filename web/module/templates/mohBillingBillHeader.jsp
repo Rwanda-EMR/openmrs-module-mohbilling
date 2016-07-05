@@ -1,7 +1,6 @@
 <ul id="menu">
 
-		
-		<li>
+		<li class="<c:if test='<%= request.getRequestURI().contains("mohBillingBilling")%>'> active</c:if>">
 			<a href="patientSearchBill.form">Manage Bill</a>
 		</li>
 		<li>

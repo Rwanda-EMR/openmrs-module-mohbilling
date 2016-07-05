@@ -25,7 +25,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
  * 
  * Parent class is InsurancePolicy, child class is Beneficiary
  * 
- * @author Kamonyo
+ * @author EMR-RBC
  * 
  */
 public class InsurancePolicyUtil {

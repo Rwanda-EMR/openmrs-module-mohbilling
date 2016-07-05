@@ -1,10 +1,20 @@
 <ul id="menu">
 
-	<li><a href="departments.list">Department</a></li>
-	<li><a href="services.list">Service</a></li>
-	<li><a href="facilityService.list">Facility Service Price</a></li>
-	<li><a href="insurance.list">Insurance</a></li>
-	<li><a href="thirdParty.form">Third Party</a></li>
+	<li class="<c:if test='<%= request.getRequestURI().contains("DepartmentList")%>'> active</c:if>">
+	<a href="departments.list">Department</a>
+	</li>
+	<li class="<c:if test='<%= request.getRequestURI().contains("HopServiceList")%>'> active</c:if>">
+	<a href="services.list">Service</a>
+	</li>
+	<li class="<c:if test='<%= request.getRequestURI().contains("FacilityServiceList")%>'> active</c:if>">
+	<a href="facilityService.list">Facility Service Price</a>
+	</li>
+	<li class="<c:if test='<%= request.getRequestURI().contains("InsuranceList")%>'> active</c:if>">
+	<a href="insurance.list">Insurance</a>
+	</li>
+	<li class="<c:if test='<%= request.getRequestURI().contains("Third")%>'> active</c:if>">
+	<a href="thirdParty.form">Third Party</a>
+	</li>
 
 </ul>
 

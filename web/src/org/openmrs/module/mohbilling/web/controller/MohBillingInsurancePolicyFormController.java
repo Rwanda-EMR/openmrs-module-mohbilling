@@ -23,7 +23,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
 /**
- * @author Yves GAKUBA
+ * @author EMR@RBC
  * 
  *         This controller backs the
  *         /web/module/mohBillingInsurancePolicyForm.jsp page. This controller
