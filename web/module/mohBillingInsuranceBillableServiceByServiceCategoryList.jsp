@@ -4,7 +4,20 @@
 <%@page import="org.openmrs.module.mohbilling.model.ServiceCategory"%>
 <%@page import="java.util.List"%>
 <%@page import="java.util.ArrayList"%>
+<openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 
+<script type="text/javascript">
+$(document).ready(function(){
+	var $rows = $('#table tr');
+	$('#search').keyup(function() {
+	    var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+	    $rows.show().filter(function() {
+	        var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+	        return !~text.indexOf(val);
+	    }).hide();
+	});
+});
+</script>
 
 <style>
 	.tableList{
@@ -52,7 +65,8 @@
 					ServiceCategory sc = InsuranceUtil
 							.getValidServiceCategory(Integer.valueOf(request
 									.getParameter("serviceCategoryId")));
-
+					out.println("<input type='text' id='search' placeholder='Type to search'>");
+					
 					List<BillableService> billableServices = InsuranceUtil
 							.getBillableServicesByServiceCategory(sc,
 									new Date(), false);
@@ -63,12 +77,18 @@
 							|| billableServices.size() == 0)
 						out.println("<center>No  services corresponding to this category found !</center>");
 					else {
+						out.println("<table id='table'>");
 							for (BillableService bs : billableServices) {
 								if(!bs.isRetired())
-									out.println("<div class='inTable unselectedService' id='billableService_"+bs.getServiceId()+"' onclick=addServiceToCart('"+bs.getServiceId()+"','"+bs.getFacilityServicePrice().getName().replace("'","&nbsp;").replace(" ","&nbsp;")+"','"+bs.getMaximaToPay()+"')>"
+									out.println("<tr>");	
+								    out.println("<td>");
+									out.println("<input type='checkbox' class='inTable unselectedService' id='billableService_"+bs.getServiceId()+"' onclick=addServiceToCart('"+bs.getServiceId()+"','"+bs.getFacilityServicePrice().getName().replace("'","&nbsp;").replace(" ","&nbsp;")+"','"+bs.getMaximaToPay()+"')>"
 											+ bs.getFacilityServicePrice().getName()
-											+ "</div>");
+											+ "</input>");
+									out.println("</td>");
+									out.println("</tr>");
 							}
+							out.println("</table>");
 					}
 
 				}

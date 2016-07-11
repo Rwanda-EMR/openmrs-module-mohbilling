@@ -317,7 +317,7 @@
 			}
 			addClass(tabObj, 'current');
 			
-			setTabCookie(tabObj.id);
+			//setTabCookie(tabObj.id);
 		}
 		return false;
 	}
