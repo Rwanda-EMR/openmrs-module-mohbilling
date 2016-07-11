@@ -3,17 +3,11 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.service.BillingService;
+
+
 
 /**
  * @author Yves GAKUBA
@@ -21,20 +15,19 @@ import org.openmrs.module.mohbilling.service.BillingService;
  */
 public class MohBillingTagUtil {
 
-	public static String getTotalAmountPaidByPatientBill(Integer patientBillId) {
+	public static String getTotalAmountPaidByPatientBill(Integer consommationId) {
 
 		Long amountPaid = 0l;
 //		MathContext mc = new MathContext(BigDecimal.ROUND_HALF_DOWN);
 
-		if (null == patientBillId)
+		if (null == consommationId)
 			return "";
 		else {
 			try {
-				PatientBill pb = Context.getService(BillingService.class)
-						.getPatientBill(patientBillId);
+				Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
 
-				if(pb.getAmountPaid() != null)
-					amountPaid = pb.getAmountPaid().longValue();
+				//if(pb.getAmountPaid() != null)
+					//amountPaid = pb.getAmountPaid().longValue();
 //				for (BillPayment bp : pb.getPayments()) {
 //					amountPaid = amountPaid + bp.getAmountPaid().longValue();
 //				}
@@ -47,14 +40,14 @@ public class MohBillingTagUtil {
 
 		return "" + amountPaid;
 	}
-
-	/**
+/*
+	*//**
 	 * Gets the REST of the whole Patient Bill
 	 * 
 	 * @param patientBillId
 	 *            the patient bill ID
 	 * @return the REST that is in String
-	 */
+	 *//*
 	public static String getTotalAmountNotPaidByPatientBill(
 			Integer patientBillId) {
 
@@ -89,14 +82,14 @@ public class MohBillingTagUtil {
 				if (pb.getBeneficiary().getInsurancePolicy().getThirdParty() == null) {
 					amountNotPaid = amountDueByPatient - amountPaid;
 
-					/** Marking the BILL as PAID */
+					*//** Marking the BILL as PAID *//*
 					if (amountNotPaid <= 0) {
 						pb.setIsPaid(true);
 						Context.getService(BillingService.class)
 								.savePatientBill(pb);
 					}
 
-					/** END of PAID part... */
+					*//** END of PAID part... *//*
 				} else {
 
 					double thirdPartRate = pb.getBeneficiary()
@@ -108,7 +101,7 @@ public class MohBillingTagUtil {
 
 					amountNotPaid = amountDueByPatient - (amountPaidByThirdPart + amountPaid);
 
-					/** Marking the BILL as PAID */
+					*//** Marking the BILL as PAID *//*
 					if (amountNotPaid <= 0) {
 						pb.setIsPaid(true);
 						
@@ -116,7 +109,7 @@ public class MohBillingTagUtil {
 								.savePatientBill(pb);
 					}
 
-					/** END of PAID part... */
+					*//** END of PAID part... *//*
 				}
 
 			} catch (Exception e) {
@@ -125,7 +118,7 @@ public class MohBillingTagUtil {
 			}
 		}
 
-		/** Rounding the value to 2 decimals */
+		*//** Rounding the value to 2 decimals *//*
 		double roundedAmountNotPaid = Math.round(amountNotPaid * 100);
 		roundedAmountNotPaid = roundedAmountNotPaid / 100;
 
@@ -191,14 +184,14 @@ public class MohBillingTagUtil {
 				if (pb.getBeneficiary().getInsurancePolicy().getThirdParty() == null) {
 					amountNotPaid = amountDueByPatient - totalAmountPaid;
 
-					/** Marking the BILL as PAID */
+					*//** Marking the BILL as PAID *//*
 					if (amountNotPaid <= 0) {
 						pb.setIsPaid(true);
 						Context.getService(BillingService.class)
 								.savePatientBill(pb);
 					}
 
-					/** END of PAID part... */
+					*//** END of PAID part... *//*
 				} else {
 
 					double thirdPartRate = pb.getBeneficiary()
@@ -210,7 +203,7 @@ public class MohBillingTagUtil {
 
 					amountNotPaid = amountDueByPatient - (amountPaidByThirdPart + totalAmountPaid);
 
-					/** Marking the BILL as PAID */
+					*//** Marking the BILL as PAID *//*
 					if (amountNotPaid <= 0) {
 						pb.setIsPaid(true);
 						
@@ -218,18 +211,18 @@ public class MohBillingTagUtil {
 								.savePatientBill(pb);
 					}
 
-					/** END of PAID part... */
+					*//** END of PAID part... *//*
 				}
 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			
-		/** Rounding the value to 2 decimals */
+		*//** Rounding the value to 2 decimals *//*
 		double roundedAmountNotPaid = Math.round(amountNotPaid * 100);
 		roundedAmountNotPaid = roundedAmountNotPaid / 100;
 
 		return payments;
 	}
-
+*/
 }

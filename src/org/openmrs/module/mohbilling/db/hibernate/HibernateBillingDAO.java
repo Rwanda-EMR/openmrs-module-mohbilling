@@ -47,12 +47,14 @@ import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
@@ -60,6 +62,7 @@ import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 
@@ -1129,7 +1132,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		for (BillPayment pay : payments) {			
 			
 			PatientBill pb = pay.getPatientBill();
-			if(pb.getBillItems().size()==0)
+			//if(pb.getBillItems().size()==0)
 			  refundedBills.add(pb);
 					    
 		}	
@@ -1264,9 +1267,29 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	@Override
+	public void saveConsommation(Consommation consommation) {
+		sessionFactory.getCurrentSession().saveOrUpdate(consommation);		
+	}
+
+	@Override
+	public void saveInsuranceBill(InsuranceBill ib) {
+		sessionFactory.getCurrentSession().saveOrUpdate(ib);
+		
+	}
+	@Override
+	public void saveThirdPartyBill(ThirdPartyBill thirdBill) {
+		sessionFactory.getCurrentSession().saveOrUpdate(thirdBill);
+	}
+
+	@Override
+	public Consommation getConsommation(Integer consommationId) {
+		return (Consommation) sessionFactory.getCurrentSession().get(Consommation.class, consommationId);
+	}
+		@Override
 	public Deposit getDeposit(Integer depositId) {
 		return (Deposit) sessionFactory.getCurrentSession().get(
 				Deposit.class, depositId);
+
 	}
 	
 }

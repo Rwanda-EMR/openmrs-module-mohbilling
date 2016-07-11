@@ -18,18 +18,21 @@ import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsuranceCategory;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -602,8 +605,43 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getAdmissionsListByInsurancePolicy(ip);
 	}
 
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#saveConsommation(org.openmrs.module.mohbilling.model.Consommation)
+	 */
+	@Override
+	public void saveConsommation(Consommation consommation) {
+		
+		billingDAO.saveConsommation(consommation);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#saveInsuranceBill(org.openmrs.module.mohbilling.model.InsuranceBill)
+	 */
+	@Override
+	public void saveInsuranceBill(InsuranceBill ib) {
+		billingDAO.saveInsuranceBill(ib);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#saveThirdPartyBill(org.openmrs.module.mohbilling.model.ThirdPartyBill)
+	 */
+	@Override
+	public void saveThirdPartyBill(ThirdPartyBill thirdBill) {
+		billingDAO.saveThirdPartyBill(thirdBill);
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getConsommation(java.lang.Integer)
+	 */
+	@Override
+	public Consommation getConsommation(Integer consommationId) {
+		return billingDAO. getConsommation(consommationId);
+	}
 	@Override
 	public Deposit getDeposit(Integer depositId) {
 		return billingDAO.getDeposit(depositId);
+
 	}
 	}

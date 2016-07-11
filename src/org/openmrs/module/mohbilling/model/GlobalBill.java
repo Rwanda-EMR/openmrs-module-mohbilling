@@ -6,6 +6,8 @@ package org.openmrs.module.mohbilling.model;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
+
 
 
 import org.openmrs.Obs;
@@ -23,7 +25,7 @@ public class GlobalBill {
 	
 	private String billIdentifier;
 	
-	private Set<PatientBill> patientBills;
+	private Set<Consommation> consommations;
 	
     private Date createdDate;
     
@@ -84,32 +86,17 @@ public class GlobalBill {
 	}
 
 	/**
-	 * @return the patientBills
+	 * @return the consommations
 	 */
-	public Set<PatientBill> getPatientBills() {
-		return patientBills;
-	}
-	
-	
-	/**
-	 
-	 */
-	public void addPatientBills(PatientBill patientBill) {
-		if (patientBill == null)
-			patientBills = new HashSet<PatientBill>();
-		if (patientBill != null) {
-			patientBill.setGlobalBill(this);
-			
-			
-			patientBills.add(patientBill);
-		}
+	public Set<Consommation> getConsommations() {
+		return consommations;
 	}
 
 	/**
-	 * @param patientBills the patientBills to set
+	 * @param consommations the consommations to set
 	 */
-	public void setPatientBills(Set<PatientBill> patientBills) {
-		this.patientBills = patientBills;
+	public void setConsommations(Set<Consommation> consommations) {
+		this.consommations = consommations;
 	}
 
 	/**
@@ -223,5 +210,17 @@ public class GlobalBill {
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
 	}
+	public void addConsommation(Consommation consommation){
+		
+		if (consommations == null)
+			consommations = new TreeSet<Consommation>();
+		if (consommation != null) {
+			consommation.setGlobalBill(this);
+			consommations.add(consommation);
+		}
+	}
+
+
+
 
 }
