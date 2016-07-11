@@ -1,9 +1,11 @@
+
 /**
  * 
  */
 package org.openmrs.module.mohbilling.web.controller;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,23 +14,34 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
+import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.ThirdPartyBillUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
 /**
- * @author EMR@RBC
+ * @author EMR@rbc
  * 
  */
 public class MohBillingBillingFormController extends
@@ -44,8 +57,8 @@ public class MohBillingBillingFormController extends
 		mav.setViewName(getViewName());
 
 		if (request.getParameter("save") != null) {
-			PatientBill pb = handleSavePatientBill(request, mav);
-			if (null == pb)
+			Consommation consommation = handleSavePatientConsommation(request, mav);
+			if (null == consommation)
 				return new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
@@ -53,9 +66,9 @@ public class MohBillingBillingFormController extends
 								+ request.getParameter("ipCardNumber")));
 			else
 				return new ModelAndView(new RedirectView(
-						"patientBillPayment.form?patientBillId="
-								+ pb.getPatientBillId() + "&ipCardNumber="
-								+ pb.getBeneficiary().getPolicyIdNumber()));
+						"patientBillPayment.form?consommationId="
+								+ consommation.getConsommationId() + "&ipCardNumber="
+								+ consommation.getBeneficiary().getPolicyIdNumber()));
 		}
 		if (request.getParameter("searchDpt") != null) {
 		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
@@ -66,10 +79,7 @@ public class MohBillingBillingFormController extends
 								+ "&ipCardNumber="
 								+ request.getParameter("ipCardNumber")
 								+ "&departmentId="+department.getDepartmentId()	));
-				               
-				
-				
-			
+		
 		}
 
 		try {
@@ -88,8 +98,7 @@ public class MohBillingBillingFormController extends
 
 			// check the validity of the insurancePolicy for today
 			Date today = new Date();
-			mav
-					.addObject("valid",
+			mav.addObject("valid",
 							((ip.getCoverageStartDate().getTime() <= today
 									.getTime()) && (today.getTime() <= ip
 									.getExpirationDate().getTime())));
@@ -111,30 +120,38 @@ public class MohBillingBillingFormController extends
 	 * @param mav
 	 * @return
 	 */
-	private PatientBill handleSavePatientBill(HttpServletRequest request,
+	private Consommation handleSavePatientConsommation(HttpServletRequest request,
 			ModelAndView mav) {
 
-		PatientBill savePatientBill = null;
+		Consommation saveConsommation = null;
+		//Integer globalBillId =Integer.valueOf(request.getParameter("globalBillId"));
+		
+		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(3);
+		Consommation consom = null;
 
 		try {
 			int numberOfServicesClicked = Integer.valueOf(request
 					.getParameter("numberOfServicesClicked"));
-
-			PatientBill pb = new PatientBill();
-
+			
+			consom = new Consommation();		
+			
+			BigDecimal totalAmount = new BigDecimal(0);
 
 			Beneficiary beneficiary = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request
 							.getParameter("ipCardNumber"));
+			Insurance insurance = beneficiary.getInsurancePolicy().getInsurance();
+			//check whether the insurance does have a third party;
+		    ThirdParty thirdParty = beneficiary.getInsurancePolicy().getThirdParty();
+		   
 
-			pb.setBeneficiary(beneficiary);
-			pb.setIsPaid(false);
-			pb.setPrinted(false);
-
-			pb.setCreatedDate(new Date());
-			pb.setCreator(Context.getAuthenticatedUser());
-			pb.setVoided(false);
+			consom.setBeneficiary(beneficiary);
+			consom.setCreatedDate(new Date());
+			consom.setCreator(Context.getAuthenticatedUser());
+			consom.setVoided(false);
 
 			for (int i = 0; i < numberOfServicesClicked; i++) {
+				BigDecimal  quantity= null;
+				BigDecimal unitPrice = null;
 				if (request.getParameter("billableServiceId_" + i) != null) {
 
 					PatientServiceBill psb = new PatientServiceBill();
@@ -143,32 +160,54 @@ public class MohBillingBillingFormController extends
 							.getValidBillableService(Integer.valueOf(request
 									.getParameter("billableServiceId_" + i)));
 					psb.setService(bs);
+				
 					if(request.getParameter("quantity_" + i)!=null&&!request.getParameter("quantity_" + i).equals(""))
+						 quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
 					psb.setQuantity(BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i))));
+					
 
 					psb.setServiceDate(new Date());
+					unitPrice = BigDecimal.valueOf(Double.valueOf(request
+							.getParameter("servicePrice_" + i)));
 					psb.setUnitPrice(BigDecimal.valueOf(Double.valueOf(request
 							.getParameter("servicePrice_" + i))));
+					
 
 					psb.setCreatedDate(new Date());
 					psb.setCreator(Context.getAuthenticatedUser());
 					psb.setVoided(false);
+					
+					//totalAmount.add(quantity.multiply(unitPrice)), mc), mc);
+					totalAmount = totalAmount.add(quantity.multiply(unitPrice));
 
-					pb.addBillItem(psb);
+					consom.addBillItem(psb);
 				}
-			}
-
-			// save the patientBill
-			savePatientBill = PatientBillUtil.savePatientBill(pb);
+			}					
+			
+		PatientBill	 pb =PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());
+		log.info("PAtient@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2"+pb);
+					  
+	   InsuranceBill ib =InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);			
+				
+		ThirdPartyBill	thirdPartyBill =	ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
+							
+			consom.setGlobalBill(globalBill);
+			consom.setPatientBill(pb);
+			consom.setInsuranceBill(ib);
+			consom.setThirdPartyBill(thirdPartyBill);
+			
+			//ConsommationUtils.createConsommation(consom);
+			saveConsommation = ConsommationUtil.saveConsommation(consom);
+			//GlobalBillUtil.saveGlobalBill(globalBill);			
 
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
-					"The Patient Bill has been saved successfully !");
+					"Consommation has been saved successfully !");
 
-			return savePatientBill;
+			return saveConsommation;
 
 		} catch (Exception e) {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-					"The Patient Bill has not been saved !");
+					"The  consommation  has not been saved !");
 			log.error(">>>>MOH>>BILLING>> " + e.getMessage());
 
 			e.printStackTrace();

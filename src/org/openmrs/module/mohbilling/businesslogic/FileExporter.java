@@ -1,8 +1,6 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -23,11 +21,8 @@ import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil.HeaderFooter;
 import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
-
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
@@ -46,9 +41,9 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.sun.mail.imap.Rights.Right;
 
 public class FileExporter {
-	private Log log = LogFactory.getLog(this.getClass());
+	/*private Log log = LogFactory.getLog(this.getClass());
 
-	/**
+	*//**
 	 * gets a list and export it in csv/pdf
 	 * 
 	 * @param request
@@ -57,158 +52,21 @@ public class FileExporter {
 	 * @param filename
 	 * @param title
 	 * @throws Exception
-	 */
-	public void exportToCSVFile(HttpServletRequest request,
-			HttpServletResponse response, LinkedHashMap<PatientBill, PatientInvoice> map, String filename,String title) throws Exception {
+	 *//*
+	public void exportToCSVFile() throws Exception {
 		
-        PrintWriter op = response.getWriter();
-		
-		response.setContentType("text/plain");
-		response.setHeader("Content-Disposition", "attachment; filename=\"releve.csv\"");
-		
-		Set<String> serviceCategories = null;
-		Double insuranceRate = null;
-		SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-		
-		
-		//display Header
-//		Image image = Image.getInstance(Context.getAdministrationService()
-//				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
-//		
-//		op.println(image);
-		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)!="")
-		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
-		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)!="")
-		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
-		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE)!="")
-		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_SHORT_CODE));
-		if(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)!="")
-		op.println(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
-
-		op.println();
-		
-		op.println(","+","+","+","+","+"FACTURE DES SOINS MEDICAUX ");
-		op.println();
-		
-		// display report column names
-		op.print("Date,Card Number,Names");
-		for (PatientBill pb : map.keySet()) {
-			serviceCategories=(Set<String>) map.get(pb).getInvoiceMap().keySet();
-			insuranceRate = pb.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate().doubleValue();
-	    }
-//		String totalCateg_="";
-		for (String cat : serviceCategories) {
-			op.print(","+cat);
-//			totalCateg_=totalCateg_+cat;
-//			log.info("dynamicccccccccccccccccccccccc "+totalCateg_);
-		}
-		op.print(",100%");
-		op.print(","+(100-insuranceRate)+"%");
-		op.print(","+insuranceRate+"%");
-		op.println();
-		
-		//display content
-		Double totalConsult = 0.0;
-		Double totalLabo = 0.0;
-		Double totalImagery = 0.0;
-		Double totalActs = 0.0;
-		Double totalMedica = 0.0;
-		Double totalConsomm = 0.0;
-		Double totalAmbul = 0.0;
-		Double totalAutres = 0.0;
-		Double totalHosp = 0.0;
-		Double total100 = 0.0;
-		Double totalTickMod = 0.0;
-		Double totalRate = 0.0;
-		
-		for (PatientBill pb : map.keySet()) {
-			Double totalBill=0.0;
-			
-			op.print(df.format(pb.getCreatedDate())+","+pb.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()+","+pb.getBeneficiary().getPatient().getFamilyName()+" "+pb.getBeneficiary().getPatient().getGivenName());
-			for (String st : map.get(pb).getInvoiceMap().keySet()) {
-			op.print(","+map.get(pb).getInvoiceMap().get(st).getSubTotal());
-			totalBill+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-//			String total="total"+"_"+st;
-//			log.info("dynamicccccccccccccccccccccccc "+total);
-			
-			total100+=map.get(pb).getInvoiceMap().get(st).getSubTotal();;
-			
-			if(st.equals("CONSULTATION"))
-			totalConsult+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-			if(st.equals("LABORATOIRE"))
-			totalLabo+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-			if(st.equals("IMAGERIE"))
-			totalImagery+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-			if(st.equals("ACTS"))
-			totalActs+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-			if(st.equals("MEDICAMENTS"))
-			totalMedica+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-			if(st.equals("CONSOMMABLES"))
-			totalConsomm+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-			if(st.equals("AMBULANCE"))
-			totalAmbul+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-			if(st.equals("AUTRES"))
-			totalAutres+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-			if(st.equals("HOSPITALISATION"))
-			totalHosp+=map.get(pb).getInvoiceMap().get(st).getSubTotal();
-		}
-			op.print(","+ ReportsUtil.roundTwoDecimals(totalBill)+","+ ReportsUtil.roundTwoDecimals(totalBill*(100-insuranceRate)/100)+","+ ReportsUtil.roundTwoDecimals(totalBill*insuranceRate)/100);
-			op.println();
-		}
-		totalTickMod = ReportsUtil.roundTwoDecimals(total100*(100-insuranceRate)/100);
-		totalRate = ReportsUtil.roundTwoDecimals(total100*(insuranceRate/100));
-		
-		op.print("TOTAL"+","+","+","+totalConsult+","+totalLabo+","+totalImagery+","+totalActs+","+ReportsUtil.roundTwoDecimals(totalMedica)+","+ReportsUtil.roundTwoDecimals(totalConsomm)+","+totalAmbul+","+totalAutres+","+totalHosp+","+ReportsUtil.roundTwoDecimals(total100)+","+totalTickMod+","+totalRate);
-		
-		op.flush();
-		op.close();
+  
 	}
 
-	/**
+	*//**
 	 * @param request
 	 * @param response
 	 * @param res
 	 * @param filename
 	 * @param title
 	 * @throws Exception
-	 */
-	public void exportPatientBillToPDF(HttpServletRequest request,	HttpServletResponse response,PatientInvoice patientInvoice, String filename,
-			String title) throws Exception {
-		
-		PatientBill pb = patientInvoice.getPatientBill();
-		
-		Font headingFont = new Font(Font.FontFamily.COURIER, 8,Font.NORMAL);
-		FontSelector fontSelector = (FontSelector) getFonts().get("NORMAL");
-		FileExporter fexp = new FileExporter();
-		
-		//create/open a document
-		Document document = fexp.makeReportHeader(request, response, pb);
-		
-		//add report heading
-		document.add(fontSelector.process("REPUBLIQUE DU RWANDA\n")); 
-		document.add(fexp.getImage());
-		
-		//add hc physical address
-		document.add(fexp.displayPysicalAddress(headingFont, pb));
-		
-		//report title
-		Chunk chk = new Chunk("FACTURES DES PRESTATIONS DES SOINS DE SANTE\n\n");
-		chk.setFont(new Font(FontFamily.COURIER, 10, Font.NORMAL));
-		chk.setUnderline(0.2f, -2f);
-		Paragraph par = new Paragraph();
-		par.add(chk);
-		par.setAlignment(Element.ALIGN_CENTER);
-		document.add(par);
-		
-		//add table of items
-		document.add(fexp.displayRecoveryPartItems(patientInvoice));
-		document.add(fontSelector.process("\n")); 
-		document.add(fexp.displayPercentages(fontSelector, patientInvoice));
-		document.add(fontSelector.process("\n"));
-		document.add(fexp.displayFooter(pb, fontSelector));
-		document.close();
-		
-	}
+	 *//*
+
 	public void printCashierReport(HttpServletRequest request,	HttpServletResponse response,LinkedHashMap<String, Map<String, Double>> basedDateReport, String filename, String title) throws Exception {
 
 		
@@ -347,7 +205,7 @@ public class FileExporter {
 		
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 
-		/** I would like a LOGO here!!! */
+		*//** I would like a LOGO here!!! *//*
 		document.add(image);		
 		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
 						BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)+ "\n"));
@@ -471,11 +329,11 @@ public class FileExporter {
 		//Document document = new Document();
 		
 		document.setPageSize(PageSize.A4.rotate());
-		/** Initializing image to be the logo if any... */
+		*//** Initializing image to be the logo if any... *//*
 		Image image = Image.getInstance(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
 		image.scaleToFit(40, 40);
 		
-		/** END of Initializing image */
+		*//** END of Initializing image *//*
 
 		response.setContentType("application/pdf");
 		response.setHeader("Content-Disposition", "attachment; filename=\""	+ filename + "\""); // file name
@@ -492,12 +350,12 @@ public class FileExporter {
 		FontSelector fontTitle = new FontSelector();
 		fontTitle.addFont(new Font(FontFamily.COURIER, 6, Font.NORMAL));
 
-		/** ------------- Report title ------------- */
+		*//** ------------- Report title ------------- *//*
 
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 
 		
-		/** ------------- End Report title ------------- */
+		*//** ------------- End Report title ------------- *//*
 
 //		document.add(new Paragraph("\n"));
 		Chunk chk = new Chunk("Daily cashier report");
@@ -571,146 +429,15 @@ public class FileExporter {
 			return table;
 		}
 		
-		public PdfPTable displayRecoveryPartItems(PatientInvoice patientInvoice){
-			float[] colsWidth1 = { 3f, 14f, 2f, 2f, 2f};
-			PdfPTable table = new PdfPTable(colsWidth1);
-			table.setWidthPercentage(100f);
+		public PdfPTable displayRecoveryPartItems(){
 			
-			FontSelector boldFont = (FontSelector) getFonts().get("BOLD");
-			FontSelector normalFont = (FontSelector) getFonts().get("NORMAL");
+			return null;
 			
-			// table Header
-			PdfPCell cell = new PdfPCell();
-			cell = new PdfPCell(boldFont.process("Recording date"));
-			//cell.setBackgroundColor(bckGroundTitle);
-			table.addCell(cell);
-
-			cell = new PdfPCell(boldFont.process("Libelle"));
-//			cell.setBackgroundColor(bckGroundTitle);
-			table.addCell(cell);
 			
-			cell = new PdfPCell(boldFont.process("Qty"));
-//			cell.setBackgroundColor(bckGroundTitle);
-			table.addCell(cell);
-
-			cell = new PdfPCell(boldFont.process("Unit Price"));
-//			cell.setBackgroundColor(bckGroundTitle);
-			table.addCell(cell);
-
-			cell = new PdfPCell(boldFont.process("Tot"));
-//			cell.setBackgroundColor(bckGroundTitle);
-			table.addCell(cell);
-
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-			
-			for (String key : patientInvoice.getInvoiceMap().keySet()) {
-				List<Consommation> consommations = patientInvoice.getInvoiceMap().get(key).getConsommationList();			
-				if(consommations.size()>0){	
-					
-				cell = new PdfPCell(normalFont.process(" "));
-				table.addCell(cell);
-				
-				cell = new PdfPCell(boldFont.process(key));
-				table.addCell(cell);
-				
-				cell = new PdfPCell(normalFont.process(""));
-				table.addCell(cell);
-				cell = new PdfPCell(normalFont.process(""));
-				table.addCell(cell);
-				cell = new PdfPCell(normalFont.process(""));
-				table.addCell(cell);
-				
-				Double subTotal=patientInvoice.getInvoiceMap().get(key).getSubTotal();
-				for (Consommation cons : consommations) {
-
-				cell = new PdfPCell(normalFont.process(""+df.format(cons.getRecordDate())));
-				table.addCell(cell);
-				
-				cell = new PdfPCell(normalFont.process(cons.getLibelle()));
-				table.addCell(cell);
-
-				cell = new PdfPCell(normalFont.process("" + cons.getQuantity()));
-				table.addCell(cell);
-
-				cell = new PdfPCell(normalFont.process("" + cons.getUnitCost()));
-				table.addCell(cell);
-				
-				cell = new PdfPCell(normalFont.process("" + ReportsUtil.roundTwoDecimals(cons.getCost())));
-				table.addCell(cell);
-			}
-				cell = new PdfPCell(normalFont.process(""));
-				table.addCell(cell);
-				cell = new PdfPCell(normalFont.process(""));
-				table.addCell(cell);
-				cell = new PdfPCell(normalFont.process(""));
-				table.addCell(cell);
-				cell = new PdfPCell(normalFont.process(""));
-				table.addCell(cell);
-
-			    cell = new PdfPCell(boldFont.process("" + ReportsUtil.roundTwoDecimals(subTotal)));
-				table.addCell(cell);		
-				
-				} 		
-			}
-			
-			cell = new PdfPCell(normalFont.process(""));
-			table.addCell(cell);
-			cell = new PdfPCell(boldFont.process("TOTAL FACTURE "));
-			table.addCell(cell);
-			cell = new PdfPCell(normalFont.process(""));
-			table.addCell(cell);
-			cell = new PdfPCell(normalFont.process(""));
-			table.addCell(cell);
-			cell = new PdfPCell(boldFont.process("" + ReportsUtil.roundTwoDecimals(patientInvoice.getTotalAmount())));
-			table.addCell(cell);
-			
-			return table;
 		}
 
-		public PdfPTable displayPercentages(FontSelector font,PatientInvoice patientInvoice){
-			PdfPTable table = new PdfPTable(3);
-			table.setWidthPercentage(70f);
-			
-			PdfPCell cell = new PdfPCell(font.process("ASSURANCE"));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process("%"));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process("Montant"));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process("TOTAL FACTURE"));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process("100%"));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process(""+ReportsUtil.roundTwoDecimals(patientInvoice.getTotalAmount())));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process("TICKET MODERATEUR"));
-			table.addCell(cell);
-			
-			float insuranceRate = patientInvoice.getPatientBill().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-			float ticketModer = 100-insuranceRate;
-			
-			cell = new PdfPCell(font.process(""+(100-insuranceRate)));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process(""+ReportsUtil.roundTwoDecimals(patientInvoice.getTotalAmount()*ticketModer/100)));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process(""+patientInvoice.getPatientBill().getBeneficiary().getInsurancePolicy().getInsurance().getName()));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process(""+insuranceRate));
-			table.addCell(cell);
-			
-			cell = new PdfPCell(font.process(""+ReportsUtil.roundTwoDecimals(patientInvoice.getTotalAmount()*insuranceRate/100)));
-			table.addCell(cell);
-			return table;
-		}
+		
+	
 		public HashMap getFonts(){
 			HashMap<String, FontSelector> fontsMap = new HashMap<String, FontSelector>();
 			
@@ -759,12 +486,12 @@ public class FileExporter {
 			document.open();
 			return document;
 		}
-		/**
+		*//**
 		 * displays last even item (just one item)
 		 * @param psb
 		 * @param odd
 		 * @return
-		 */
+		 *//*
 		public PdfPTable displayLastElementIfEvenItems(PatientBill pb){
 			FontSelector font = (FontSelector) getFonts().get("NORMAL");
 			PdfPCell c = new PdfPCell(font.process(""));
@@ -793,11 +520,11 @@ public class FileExporter {
 			//Document document = new Document();
 			
 			document.setPageSize(PageSize.A4.rotate());
-			/** Initializing image to be the logo if any... */
+			*//** Initializing image to be the logo if any... *//*
 			Image image = Image.getInstance(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
 			image.scaleToFit(40, 40);
 			
-			/** END of Initializing image */
+			*//** END of Initializing image *//*
 
 			response.setContentType("application/pdf");
 			response.setHeader("Content-Disposition", "attachment; filename=\""	+ filename + "\""); // file name
@@ -936,6 +663,6 @@ public class FileExporter {
 			document.add(tableTotal);
 			document.close();
 			
-		}
+		}*/
 	  
 	}

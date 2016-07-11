@@ -47,6 +47,13 @@ ${pram.insurancePolicyId}
 
 <div class="box">
 	<table cellspacing="0" cellpadding="2" width="98%" id="obs">
+	<c:set var="globalBill" value="${globalBill}" />
+	<c:set var="familyName" value="${globalBill.admission.insurancePolicy.owner.familyName}" />
+	<c:set var="insuranceName" value="${globalBill.admission.insurancePolicy.insurance.name}" />
+	<c:set var="ipCardNumber" value="${globalBill.admission.insurancePolicy.insuranceCardNo}" />
+	<c:set var="insurancePolicyId" value="${globalBill.admission.insurancePolicy.insurancePolicyId}" />
+	
+	
 		<tr>
 			<th>Name</th>
 			<th>Insurance name</th>
@@ -56,12 +63,15 @@ ${pram.insurancePolicyId}
 			<th>Action</th>
 		</tr>
 		<tr>
-			<td>${insurancePolicy.owner.familyName}</td>
-			<td>${insurancePolicy.insurance.name}</td>
-			<td>${insurancePolicy.insuranceCardNo}</td>
+			<td>${familyName}</td>
+			<td>${insuranceName}</td>
+			<td>${insuranceCardNo}</td>
 			<td>OPD</td>
 			<td>22/12/2015</td>
-			<td><a href="billing.form?admissionId=${admission.admissionId}">Make Bill<a></a></td>
+			<!-- 
+			<td><a href="billing.form?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}"></td>
+			 -->
+			<td><a href="billing.form?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBill.globalBillId}">Add Bill</a></td>
 		</tr>
 
 	</table>

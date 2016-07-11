@@ -9,11 +9,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,10 +24,8 @@ import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
-import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
@@ -150,50 +146,9 @@ public class MohBillingCohortBuilderFormController extends
 
 				/** Updating status for unmarked ones */
 				if(bill.getStatus() == null)
-					PatientBillUtil.markBillAsPaid(bill);
+					//PatientBillUtil.markBillAsPaid(bill);
+			
 				
-				Date serviceDate = null;
-				double patDueAmt = 0, insDueAmt = 0, totalDueAmt = 0, payments = 0;
-//				double cost = 0;
-				for (PatientServiceBill item : bill.getBillItems()) {
-					serviceDate = item.getServiceDate();
-					double qty = item.getQuantity().doubleValue();
-					double rate = bill.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-					
-					//act and pharmacy unit price
-					double unitPrice = item.getUnitPrice().doubleValue();
-				    
-					double cost= unitPrice*qty;
-
-					patDueAmt += ReportsUtil.roundTwoDecimals(cost*(100-rate)/100);
-
-					insDueAmt += ReportsUtil.roundTwoDecimals(cost*rate/100);
-					
-					totalDueAmt = patDueAmt + insDueAmt;
-
-				}
-				
-				//TODO: must check this method called right here from Tag...
-				payments = ReportsUtil.roundTwoDecimals(Long.parseLong(MohBillingTagUtil.getTotalAmountPaidByPatientBill(bill.getPatientBillId())));
-				billObj.add(new Object[] {
-						Context.getDateFormat().format(serviceDate),
-						bill.getBeneficiary().getPolicyIdNumber(),
-						bill.getBeneficiary().getPatient().getGivenName() + " " + bill.getBeneficiary().getPatient().getFamilyName(),
-						bill.getBillItems(),
-						bill.getBeneficiary().getInsurancePolicy().getInsurance().getName(),
-						ReportsUtil.roundTwoDecimals(insDueAmt),
-						ReportsUtil.roundTwoDecimals(patDueAmt),
-						ReportsUtil.roundTwoDecimals(payments),
-						ReportsUtil.roundTwoDecimals(totalDueAmt),
-						bill.getStatus(),
-						bill.getPatientBillId()});
-
-				totalAmount += totalDueAmt;
-				totalPatientDueAmount += patDueAmt;
-				totalInsuranceDueAmount += insDueAmt;
-				totalAmountReceived += payments;
-
-			}
 			mav.addObject("totalAmountReceived",
 					ReportsUtil.roundTwoDecimals(totalAmountReceived));
 			mav.addObject("insuranceDueAmount",
@@ -246,21 +201,22 @@ public class MohBillingCohortBuilderFormController extends
 				FileExporter fexp = new FileExporter();
 				log.info("myarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrray "+checked_bill[i]);
 				//print all these bills
-				PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(Integer.parseInt(checked_bill[i])); 
-				PatientInvoice patientInvoice = PatientBillUtil.getPatientInvoice(patientBill, null);
-				String invoiceOwner = "facNo"+patientBill.getPatientBillId()+"_"+patientBill.getBeneficiary().getPatient().getFamilyName()+" "+patientBill.getBeneficiary().getPatient().getGivenName()+"On"+patientBill.getCreatedDate()+".pdf";
-				fexp.exportPatientBillToPDF(request, response,patientInvoice,invoiceOwner,"Details des soins recus");
+				PatientBill patientBill =  Context.getService(BillingService.class).getPatientBill(Integer.parseInt(checked_bill[i]));				
+				//String invoiceOwner = "facNo"+patientBill.getPatientBillId()+"_"+patientBill.getBeneficiary().getPatient().getFamilyName()+" "+patientBill.getBeneficiary().getPatient().getGivenName()+"On"+patientBill.getCreatedDate()+".pdf";
+				
 			}
 			
 		}
 		mav.setViewName(getViewName());
 		
 
-		return mav;
+
 
 	}
-
-	
-
+		return mav;
+		}
 
 }
+
+
+

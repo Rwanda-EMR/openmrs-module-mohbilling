@@ -26,17 +26,20 @@ import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -537,6 +540,16 @@ public interface BillingDAO {
 	 * @return List<Admission>
 	 */
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
+
+
+	public void saveConsommation(Consommation consommation);
+
+	public void saveInsuranceBill(InsuranceBill ib);
+
+	public void saveThirdPartyBill(ThirdPartyBill thirdBill);
+
+	public Consommation getConsommation(Integer consommationId);
+
 	
 	/**
 	 * Gets deposit by Id
@@ -545,4 +558,5 @@ public interface BillingDAO {
 	 */
 	public Deposit getDeposit(Integer depositId);
 	
+
 }

@@ -64,14 +64,14 @@ public class MohBillingRefundReportController extends 	ParameterizableViewContro
 				
 				if (startDate != null && endDate != null) {
 			     
-					Set<PatientBill> refundedBills = PatientBillUtil.getRefundedBill(startDate, endDate, collector);
-					request.getSession().setAttribute("refundedBills" , refundedBills);
+					//Set<PatientBill> refundedBills = PatientBillUtil.getRefundedBill(startDate, endDate, collector);
+				//	request.getSession().setAttribute("refundedBills" , refundedBills);
 					
 					mav.addObject("collector", collector);
-					mav.addObject("refundedBills", refundedBills);	
+				//	mav.addObject("refundedBills", refundedBills);	
 		 
 					//Math.abs(x)==>to get an absolute value
-					mav.addObject("totalRefundedAmount", Math.abs(ReportsUtil.roundTwoDecimals(ReportsUtil.getTotalRefundedAmount(refundedBills))));
+				//	mav.addObject("totalRefundedAmount", Math.abs(ReportsUtil.roundTwoDecimals(ReportsUtil.getTotalRefundedAmount(refundedBills))));
 
 				}
 
@@ -87,7 +87,7 @@ public class MohBillingRefundReportController extends 	ParameterizableViewContro
 					String fileName = "Refund Report.pdf";
 
 					//System.out.println("ttttttttttttttttttttttttttttttttt "+billsWithRefunds.size());
-					fexp.pdfPrintRefundReport(request, response, billsWithRefunds, fileName, fileName);	
+					//fexp.pdfPrintRefundReport(request, response, billsWithRefunds, fileName, fileName);	
 				}
 	
 		mav.setViewName(getViewName());

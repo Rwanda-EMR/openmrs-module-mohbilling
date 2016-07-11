@@ -21,6 +21,9 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private PatientBill patientBill;
 	private BigDecimal unitPrice;
 	private BigDecimal quantity;
+	private Consommation consommation;
+	private BillPayment payment;
+	
 	// These following 2 attr. are alternative to have
 	// another billableService Object and using
 	// those fields should have special privileges
@@ -159,6 +162,41 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	public String getServiceOtherDescription() {
 		return serviceOtherDescription;
+	}
+
+	/**
+	 * @return the consommation
+	 */
+	public Consommation getConsommation() {
+		return consommation;
+	}
+
+	/**
+	 * @param consommation the consommation to set
+	 */
+	public void setConsommation(Consommation consommation) {
+		this.consommation = consommation;
+	}
+
+	/**
+	 * @return the payment
+	 */
+	public BillPayment getPayment() {
+		return payment;
+	}
+
+	/**
+	 * @param payment the payment to set
+	 */
+	public void setPayment(BillPayment payment) {
+		this.payment = payment;
+	}
+
+	/**
+	 * @return the voided
+	 */
+	public Boolean getVoided() {
+		return voided;
 	}
 
 	/**
@@ -303,24 +341,6 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		return this.getPatientServiceBillId().hashCode();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "\n - Patient Service Bill Id : " + this.patientServiceBillId
-				+ "\n - Service Date : " + this.serviceDate.toString()
-				+ "\n - Patient Bill : [#"
-				+ this.patientBill.getPatientBillId() + "] "
-				+ this.patientBill.getDescription() + "\n - Unit Price : "
-				+ this.unitPrice + "\n - Quantity : " + this.quantity
-				+ "\n - Amount : " + this.getAmount() + "\n - Service Other : "
-				+ this.serviceOther + " - " + this.serviceOtherDescription
-				+ "\n - Creator : " + this.creator.getName();
-
-	}
 
 	/**
 	 * @param insurance

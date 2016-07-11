@@ -33,9 +33,7 @@
 				<prop key="module/@MODULE_ID@/printPDFPatientBill.form">mohBillingPrintPDFPatientBillController</prop>
 			    <prop key="module/@MODULE_ID@/refundBill.form">mohBillingRefundBillFormController</prop>
 			    <prop key="module/@MODULE_ID@/thirdParty.form">mohBillingThirdPatryFormController</prop>
-			    <prop key="module/@MODULE_ID@/received.form">mohBillingReceivedController</prop>
-			    <prop key="module/@MODULE_ID@/recettes.form">mohBillingRevenueController</prop>
-			    <prop key="module/@MODULE_ID@/invoice.form">mohBillingInvoice</prop>
+			    <prop key="module/@MODULE_ID@/received.form">mohBillingReceivedController</prop>			   
 			    <prop key="module/@MODULE_ID@/refundBillReport.form">mohBillingRefundReportController</prop>
 			    <prop key="module/@MODULE_ID@/deposit.form">mohBillingDepositFormController</prop>
 			    <prop key="module/@MODULE_ID@/billingAdmin.form">mohBillingAdminFormController</prop>	
@@ -133,16 +131,9 @@
 
 	<bean id="mohBillingReceivedController" class="org.openmrs.module.mohbilling.web.controller.MohBillingrReceivedAmountController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingReceivedAmount</value></property>
-	</bean>
-	<bean id="mohBillingRevenueController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRevenueController">
-		<property name="viewName"><value>/module/mohbilling/mohBillingRevenue</value></property>
-	</bean>
-	
+	</bean>	
 	<bean id="mohBillingPrintPDFPatientBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingPrintPatientBillController"/>
 
-	<bean id="mohBillingInvoice" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceInvoiceController">
-		<property name="viewName"><value>/module/mohbilling/mohBillingInvoice</value></property>
-	</bean>
 	<bean id="mohBillingRefundReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundReportController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingRefundReport</value></property>
 	</bean>

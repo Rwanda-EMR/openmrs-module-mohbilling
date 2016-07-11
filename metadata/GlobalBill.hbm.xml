@@ -17,15 +17,14 @@
 		<property name="createdDate" column="created_date" />
 		<property name="voided" column="voided" type="boolean" />
 		<property name="voidedDate" column="voided_date" />
-		<property name="voidReason" column="void_reason" type="text" />		
-		
+		<property name="voidReason" column="void_reason" type="text" />			
 		   
         <many-to-one name="admission" class="org.openmrs.module.mohbilling.model.Admission"
             column="admission_id" unique="true" not-null="true"        cascade="all" />
 	  
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
-		<many-to-one name="creator" class="org.openmrs.User" column="creator" />		
-
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />	
+		
 	</class>
 	
 </hibernate-mapping>

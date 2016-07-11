@@ -16,17 +16,20 @@ import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 
 /**
  * @author EMR@RBC
@@ -511,6 +514,33 @@ public interface BillingService {
 	 * @return List<Admission>
 	 */
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
+
+	/**
+	 * Save consommation to the DB
+	 * @param consommation consommat to be saved
+	 */
+	public void saveConsommation(Consommation consommation);
+
+	/**
+	 * save InsuranceBill to the DB
+	 * @param ib
+	 */
+	public void saveInsuranceBill(InsuranceBill ib);
+
+	/**
+	 * Save the ThirdPartyBill to the DB
+	 * @param thirdBill to be saved
+	 */
+	public void saveThirdPartyBill(ThirdPartyBill thirdBill);
+
+	/**
+	 * Get consommation by id
+	 * @param consommationId
+	 * @return consommation that  matches with consommationId
+	 */
+	public Consommation getConsommation(Integer  consommationId);
+
+	
 	
 	/**
 	 * Gets deposit by Id
