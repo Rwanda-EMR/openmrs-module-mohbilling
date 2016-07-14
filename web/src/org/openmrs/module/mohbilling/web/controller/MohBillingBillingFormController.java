@@ -62,8 +62,10 @@ public class MohBillingBillingFormController extends
 				return new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
-								+ "&ipCardNumber="
-								+ request.getParameter("ipCardNumber")));
+								+ "&ipCardNumber="+request.getParameter("ipCardNumber")
+								+ "&globalBillId="+request.getParameter("globalBillId")				
+						)
+				);
 			else
 				return new ModelAndView(new RedirectView(
 						"patientBillPayment.form?consommationId="
@@ -71,13 +73,13 @@ public class MohBillingBillingFormController extends
 								+ consommation.getBeneficiary().getPolicyIdNumber()));
 		}
 		if (request.getParameter("searchDpt") != null) {
-		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));		  
 			if (department !=null)
 				return new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
-								+ "&ipCardNumber="
-								+ request.getParameter("ipCardNumber")
+								+ "&ipCardNumber="+request.getParameter("ipCardNumber")	
+								+ "&globalBillId="+request.getParameter("globalBillId")	
 								+ "&departmentId="+department.getDepartmentId()	));
 		
 		}
@@ -95,7 +97,8 @@ public class MohBillingBillingFormController extends
 			InsurancePolicy ip = InsurancePolicyUtil
 					.getInsurancePolicyByBeneficiary(ben);
 			mav.addObject("insurancePolicy", ip);
-
+			mav.addObject("globalBillId",request.getParameter("globalBillId"));
+			
 			// check the validity of the insurancePolicy for today
 			Date today = new Date();
 			mav.addObject("valid",
@@ -124,9 +127,10 @@ public class MohBillingBillingFormController extends
 			ModelAndView mav) {
 
 		Consommation saveConsommation = null;
-		//Integer globalBillId =Integer.valueOf(request.getParameter("globalBillId"));
+		Integer globalBillId =Integer.valueOf(request.getParameter("globalBillId"));
 		
-		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(3);
+		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
+		BigDecimal globalAmount = globalBill.getGlobalAmount();
 		Consommation consom = null;
 
 		try {
@@ -171,10 +175,9 @@ public class MohBillingBillingFormController extends
 							.getParameter("servicePrice_" + i)));
 					psb.setUnitPrice(BigDecimal.valueOf(Double.valueOf(request
 							.getParameter("servicePrice_" + i))));
-					
-
+					psb.setPaid(false);
 					psb.setCreatedDate(new Date());
-					psb.setCreator(Context.getAuthenticatedUser());
+					psb.setCreator(Context.getAuthenticatedUser());					
 					psb.setVoided(false);
 					
 					//totalAmount.add(quantity.multiply(unitPrice)), mc), mc);
@@ -184,9 +187,7 @@ public class MohBillingBillingFormController extends
 				}
 			}					
 			
-		PatientBill	 pb =PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());
-		log.info("PAtient@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2"+pb);
-					  
+		PatientBill	 pb =PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());					  
 	   InsuranceBill ib =InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);			
 				
 		ThirdPartyBill	thirdPartyBill =	ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
@@ -196,9 +197,12 @@ public class MohBillingBillingFormController extends
 			consom.setInsuranceBill(ib);
 			consom.setThirdPartyBill(thirdPartyBill);
 			
-			//ConsommationUtils.createConsommation(consom);
+			//ConsommationUtil.createConsommation(consom);
+			
 			saveConsommation = ConsommationUtil.saveConsommation(consom);
-			//GlobalBillUtil.saveGlobalBill(globalBill);			
+			globalAmount =globalAmount.add(pb.getAmount());
+			globalBill.setGlobalAmount(globalAmount);
+			GlobalBillUtil.saveGlobalBill(globalBill);			
 
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"Consommation has been saved successfully !");

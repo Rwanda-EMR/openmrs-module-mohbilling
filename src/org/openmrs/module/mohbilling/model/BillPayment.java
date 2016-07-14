@@ -5,12 +5,15 @@ package org.openmrs.module.mohbilling.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
 /**
- * @author Kamonyo
+ * @author z
  * 
  */
 public class BillPayment implements Comparable<BillPayment> {
@@ -26,6 +29,23 @@ public class BillPayment implements Comparable<BillPayment> {
 	private User voidedBy;
 	private Date voidedDate;
 	private String voidReason;
+	
+	
+	//constructors
+	
+	public BillPayment(){
+		
+	}
+	
+
+	public BillPayment(BillPayment bPayment) {
+		billPaymentId =bPayment.getBillPaymentId();
+		amountPaid =bPayment.getAmountPaid();
+		dateReceived = bPayment.getDateReceived();
+		patientBill = bPayment.getPatientBill();
+		collector =bPayment.getCollector();
+	
+	}
 	
 
 	/**
@@ -49,7 +69,6 @@ public class BillPayment implements Comparable<BillPayment> {
 	public BigDecimal getAmountPaid() {
 		return amountPaid;
 	}
-
 	/**
 	 * @param amountPaid
 	 *            the amountPaid to set
@@ -79,7 +98,6 @@ public class BillPayment implements Comparable<BillPayment> {
 	public User getCollector() {
 		return collector;
 	}
-
 	/**
 	 * @param collector
 	 *            the collector to set
@@ -101,6 +119,21 @@ public class BillPayment implements Comparable<BillPayment> {
 	 */
 	public void setPatientBill(PatientBill patientBill) {
 		this.patientBill = patientBill;
+	}
+
+	/**
+	 * @return the voided
+	 */
+	public Boolean getVoided() {
+		return voided;
+	}
+
+
+	/**
+	 * @param voided the voided to set
+	 */
+	public void setVoided(Boolean voided) {
+		this.voided = voided;
 	}
 
 	/**

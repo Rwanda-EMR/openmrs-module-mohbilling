@@ -4,6 +4,7 @@
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
+<%@ include file="templates/mohBillingBillHeader.jsp"%>
 
 <h2>Patient Bill Payment</h2>
 
@@ -12,7 +13,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <br/>
 <div class="box">
-	<form action="patientBillPayment.form?patientBillId=${param.patientBillId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment">
+	<form action="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment">
 		<table width="99%">
 			<tr>
 				<th class="columnHeader"></th>
@@ -22,12 +23,14 @@
 				<th class="columnHeader right">Price (Rwf)</td>
 				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</td>
 				<th class="columnHeader right">Patient : ${100-insurancePolicy.insurance.currentRate.rate} %</td>
+				<th></td>
 			</tr>
 			<c:if test="${empty consommation.billItems}"><tr><td colspan="7"><center>No consommation found !</center></td></tr></c:if>
 			<c:set var="totalBillInsurance" value="0"/>
 			<c:set var="totalBillPatient" value="0"/>
 			<c:forEach items="${consommation.billItems}" var="billItem" varStatus="status">
-			  <c:set var="service" value="${billItem.service.facilityServicePrice}"/>
+			<c:set var="service" value="${billItem.service.facilityServicePrice}"/>
+			<c:set var="fieldName" value="item-${consommation.consommationId}-${billItem.patientServiceBillId}"/>
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
@@ -52,6 +55,7 @@
 						 </c:otherwise>
 						</c:choose>
 					</td>
+					<td><input name="${fieldName}"	value="${billItem.patientServiceBillId}" type="checkbox"></td>
 				</tr>
 			</c:forEach>
 			<tr>
@@ -68,7 +72,8 @@
 				<td colspan="2"><openmrs_tag:userField formFieldName="billCollector" initialValue="${authUser.userId}"/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Amount Paid</b></div></td>
-			    <td><div class="amount">0</div></td>
+				<td><div class="amount">${billingtag:amountPaidForPatientBill(consommation.consommationId)}</div></td>
+			    
 				
 			</tr>
 			<tr>
@@ -76,17 +81,15 @@
 				<td colspan="2"><input type="text" autocomplete="off" name="dateBillReceived" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Paid by Third Part</b></div></td>
-				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>
-				
+				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>				
 			</tr>
 			<tr>
 				<td><b>Received Cash</b></td>
 				<td colspan="2"><input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Rest</b></div></td>
-				
-			</tr>
-			
+				<td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td>				
+			</tr>			
 			<tr>
 				<td><b>Pay with deposit</b></td>
 				<td><input type="checkbox" name="depositPayment" value="depositPayment"> </td>
@@ -103,19 +106,15 @@
 			
 			<tr style="font-size: 1.2em">
 				<openmrs:hasPrivilege privilege="Edit Bill">
-					<td colspan="2"><input type="button" onclick="savePatientBillPayment();" value="Confirm Bill" style="min-width: 200px;"/></td>
+					<td colspan="2"><input type="submit"  value="Confirm Bill" style="min-width: 200px;"/></td>
 				</openmrs:hasPrivilege>
-				<td colspan="3"></td>
+			 <td colspan="3"></td>
               <!-- 
 			<c:if test="${billingtag:amountPaidForPatientBill(patientBill.patientBillId)>0 ||patientBill.beneficiary.insurancePolicy.insurance.currentRate.rate==100 || patientBill.beneficiary.insurancePolicy.thirdParty!=nil}">
-			 -->	
+			 -->		
 			
-			<td colspan="2"><div style="text-align: right;"><a href="printPDFPatientBill.form?patientBillId=${patientBill.patientBillId}">Print Bill</a></div></td>
 			</tr>
-			<tr></tr>
-			<tr>
-			<td colspan="2"><div><a href="printPDFPatientBill.form?patientBillId=${patientBill.patientBillId}&&type=epson">EPSON Printer</a></div></td>
-			</tr>
+		
 			</c:if>
 		</table>
 	</form>

@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,24 +16,23 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
-import org.springframework.web.servlet.view.RedirectView;
 
 /**
-<<<<<<< HEAD
- * @author @rbcemr
-=======
- * @author EMR@RBC
->>>>>>> upstream/new-1.6.x
- * 
+ * @author @rbcemr 
  */
 public class MohBillingPatientBillPaymentFormController extends
 		ParameterizableViewController {
@@ -47,14 +47,13 @@ public class MohBillingPatientBillPaymentFormController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 
-		if (request.getParameter("save") != null) {
-			//handleSavePatientBillPayment(request);
+		if (request.getParameter("save") != null ){			
+			handleSavePatientBillPayment(request);
 		}
 
-		//try {
+		 try{
 			Consommation  consommation = null;
-			List<Consommation> consommations = null;
-
+		
 			/*if (request.getParameter("consommationId") == null)
 				return new ModelAndView(new RedirectView(
 						"patientSearchBill.form"));*/
@@ -63,8 +62,7 @@ public class MohBillingPatientBillPaymentFormController extends
 					Integer.parseInt(request.getParameter("consommationId")));
 			
 			//patientBills = PatientBillUtil.getBillsByBeneficiary(pb.getBeneficiary());
-			
-		
+					
 
 			mav.addObject("consommation", consommation);
 			//mav.addObject("patientBills", patientBills);
@@ -82,11 +80,11 @@ public class MohBillingPatientBillPaymentFormController extends
 			mav.addObject("todayDate", today);
 			mav.addObject("authUser", Context.getAuthenticatedUser());
 
-		//} catch (Exception e) {
-			//log.error(">>>>MOH>>BILLING>> " + e.getMessage());
-		//	e.printStackTrace();
+		} catch (Exception e) {
+			log.error(">>>>MOH>>BILLING>> " + e.getMessage());
+			e.printStackTrace();
 			//return new ModelAndView(new RedirectView("patientSearchBill.form"));
-		//}
+		}
 
 		return mav;
 	}
@@ -95,71 +93,58 @@ public class MohBillingPatientBillPaymentFormController extends
 	 * @param request
 	 * @return
 	 */
-/*	private BillPayment handleSavePatientBillPayment(HttpServletRequest request) {
-
+	private BillPayment handleSavePatientBillPayment(HttpServletRequest request) {
+	
 		BillPayment billPayment = null;
 		// Float rate = null;
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		try {
-			PatientBill pb = PatientBillUtil.getPatientBillById(Integer
-					.parseInt(request.getParameter("patientBillId")));
+		try {			
+			Consommation consommation =ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
+			//PatientBill pb = PatientBillUtil.getPatientBillById(Integer
+					//.parseInt(request.getParameter("patientBillId")));
+			PatientBill pb =consommation.getPatientBill();
 
-			// BigDecimal amountPaidByThirdPart = new BigDecimal(0);
+			// BigDecimal amountPaidByThirdPart = new BigDecimal(0);			
+			
+			// get all selected items and updated them as paid
+			
+			
+			
 
 			if (null != request.getParameter("receivedCash")) {
 				BillPayment bp = new BillPayment();
-				*//**
+				/**
 				 * We need to add both Patient Due amount and amount paid by
 				 * third part
-				 *//*
+				 */
 
-				// if (pb.getBeneficiary().getInsurancePolicy().getThirdParty()
-				// != null) {
-				// rate = pb.getBeneficiary().getInsurancePolicy()
-				// .getThirdParty().getRate();
-				// if (rate != null)// to avoid NullPointerException when this
-				// // is
-				// // null...
-				// amountPaidByThirdPart = pb.getAmount()
-				// .multiply(BigDecimal.valueOf(rate))
-				// .divide(new BigDecimal(100));
-				//
-				// BigDecimal patientAmount = BigDecimal.valueOf(Double
-				// .parseDouble(request.getParameter("receivedCash")));
-				//
-				// bp.setAmountPaid(patientAmount.add(amountPaidByThirdPart));
-				// } else
-				// We don't need to add anything as the patient will be
-				// paying...
-
-//				if(Integer.parseInt(request.getParameter("receivedCash"))>0)
+			
 				bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
 						.getParameter("receivedCash"))));
-					
-				
-//				List<BillPayment> pay = ReportsUtil.getDailyPayments(bp.getDateReceived());
-//				for (BillPayment p : pay) {
-//					log.info("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr "+p.getAmountPaid());
-//				}
-
 				bp.setCollector(Context.getUserService()
-						.getUser(
-								Integer.parseInt(request
-										.getParameter("billCollector"))));
+						.getUser(Integer.parseInt(request.getParameter("billCollector"))));
 				bp.setDateReceived(Context.getDateFormat().parse(
-						request.getParameter("dateBillReceived")));
-				
-//				log.info("dddddddddddddddddddddddddate "+Context.getDateFormat().parse(
-//						request.getParameter("dateBillReceived")));
-				
+						request.getParameter("dateBillReceived")));				
 				bp.setPatientBill(pb);
-
 				bp.setCreatedDate(new Date());
-				bp.setCreator(Context.getAuthenticatedUser());
+				bp.setCreator(Context.getAuthenticatedUser());					
+				//bp = PatientBillUtil.createBillPayment(bp);
+				
+				//create cashPayment
+				
+				CashPayment cp =new CashPayment(bp);
+				cp.setCreator(Context.getAuthenticatedUser());
+				cp.setVoided(false);
+				cp.setCreatedDate(new Date());			
+				//mark as paid all  selected items for payment purpose
+			
+				
+				cp =PatientBillUtil.createCashPayment(cp);
+				
+				createPaidServiceBill(request, consommation, cp);		
+				
 
-				billPayment = PatientBillUtil.createBillPayment(bp);
-
-				*//** Marking a Bill as PAID *//*
+				/** Marking a Bill as PAID */
 				//PatientBillUtil.markBillAsPaid(pb);
 
 				request.getSession().setAttribute(
@@ -179,12 +164,50 @@ public class MohBillingPatientBillPaymentFormController extends
 		} catch (Exception e) {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					"The Bill Payment has not been saved !");
-			log.error("" + e.getMessage());
+			//log.error("" + e.getMessage());
 			e.printStackTrace();
 
 			return null;
 		}
 
-	}*/
+	
+
+	}
+	
+	
+	public void createPaidServiceBill(HttpServletRequest request,Consommation consommation, BillPayment bp){
+Map<String, String[]> parameterMap = request.getParameterMap();	
+	
+		
+		for (String  parameterName : parameterMap.keySet()) {
+			
+			if (!parameterName.startsWith("item-")) {
+				continue;
+			}
+			PaidServiceBill paidSb = new PaidServiceBill();
+			
+			
+			String psbIdStr = request.getParameter(parameterName);
+			Integer  patientServiceBillId = Integer.parseInt(psbIdStr);	
+			PatientServiceBill psb  =ConsommationUtil.getPatientServiceBill(patientServiceBillId);	
+			
+			paidSb.setPaidItem(psb);
+			paidSb.setBillPayment(bp);
+			paidSb.setCreator(Context.getAuthenticatedUser());
+			paidSb.setCreatedDate(new Date());			
+			paidSb.setVoided(false);
+			BillPaymentUtil.createPaidServiceBill(paidSb);
+			
+			//if paid,then update patientservicebill as paid
+			psb.setPaid(true);
+			ConsommationUtil.createPatientServiceBill(psb);
+			
+			
+			
+		}
+		
+		
+	}
+
 
 }

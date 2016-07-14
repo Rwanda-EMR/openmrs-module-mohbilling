@@ -194,7 +194,7 @@
 </style>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-
+<%@ include file="templates/mohBillingBillHeader.jsp"%>
 
 <h2><spring:message code="@MODULE_ID@.billing.calculation"/></h2>
 
@@ -206,7 +206,7 @@
 	<div style="float: left; width: 29%">
 		<b class="boxHeader">Calculator</b>
 		<div class="box">
-			<form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="form_save_patient_bill">
+			<form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${globalBillId}&save=true" method="post" id="form_save_patient_bill">
 				<div style="max-width: 99%; overflow: auto;">
 					<table width="99%; !important;" id="cartOfServices">
 						<tr>
@@ -254,7 +254,7 @@
 		<b class="boxHeader">Search Services by Department</b>
 <div class="box">
 	<form
-		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&searchDpt=true"	method="post">
+		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${globalBillId}&searchDpt=true"	method="post">
 		<table>
 			<tr>				
 				<td><select name="departmentId">

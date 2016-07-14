@@ -8,14 +8,15 @@
 	<!-- GlobalBill -->
 	
 	<class name="GlobalBill" table="moh_bill_global_bill">
-
+	
 		<id name="globalBillId" type="int" column="global_bill_id" unsaved-value="0">
 			<generator class="native" />
 		</id>
-		<property name="billIdentifier" column="bill_identifier" type="text" />
+		<property name="billIdentifier" column="bill_identifier" type="text" />		
+		<property name="globalAmount" column="global_amount" type="big_decimal" />		
 		<property name="closingDate" column="closing_date" />
 		<property name="createdDate" column="created_date" />
-		<property name="voided" column="voided" type="boolean" />
+		<property name="voided" column="voided" type="boolean"/>
 		<property name="voidedDate" column="voided_date" />
 		<property name="voidReason" column="void_reason" type="text" />			
 		   
@@ -23,8 +24,7 @@
             column="admission_id" unique="true" not-null="true"        cascade="all" />
 	  
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
-		<many-to-one name="creator" class="org.openmrs.User" column="creator" />	
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 		
-	</class>
-	
+	</class>	
 </hibernate-mapping>

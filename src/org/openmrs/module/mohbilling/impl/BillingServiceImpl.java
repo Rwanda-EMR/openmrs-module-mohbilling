@@ -18,6 +18,7 @@ import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.Deposit;
@@ -29,7 +30,9 @@ import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsuranceCategory;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
+import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
@@ -643,5 +646,42 @@ public class BillingServiceImpl implements BillingService {
 	public Deposit getDeposit(Integer depositId) {
 		return billingDAO.getDeposit(depositId);
 
+	}
+
+	@Override
+	public CashPayment saveCashPayment(CashPayment cashPayment) {
+		return billingDAO.saveCashPayment(cashPayment);
+		
+	}
+
+	@Override
+	public PatientServiceBill saveBilledItem(PatientServiceBill psb) {
+		// TODO Auto-generated method stub
+		return billingDAO.saveBilledItem(psb);
+	}
+
+	@Override
+	public PatientServiceBill getPatientServiceBill(Integer patientServiceBillId) {
+		// TODO Auto-generated method stub
+		return billingDAO.getPatientServiceBill(patientServiceBillId);
+	}
+
+	@Override
+	public void saveBillPayment(BillPayment bp) {
+		// TODO Auto-generated method stub
+		billingDAO.getPatientServiceBill(bp);
+	}
+
+	@Override
+	public void savePaidServiceBill(PaidServiceBill paidSb) {
+		billingDAO.savePaidServiceBill(paidSb);		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getAllConsommationByGlobalBill(java.lang.Integer)
+	 */
+	@Override
+	public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill) {
+		return billingDAO.getAllConsommationByGlobalBill(globalBill);
 	}
 	}

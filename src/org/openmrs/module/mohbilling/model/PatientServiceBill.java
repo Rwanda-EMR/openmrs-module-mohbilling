@@ -17,12 +17,11 @@ import org.openmrs.util.OpenmrsUtil;
 public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private Integer patientServiceBillId;
 	private Date serviceDate;
-	private BillableService service;
-	private PatientBill patientBill;
+	private BillableService service;	
 	private BigDecimal unitPrice;
 	private BigDecimal quantity;
 	private Consommation consommation;
-	private BillPayment payment;
+	private Boolean paid = Boolean.FALSE;	
 	
 	// These following 2 attr. are alternative to have
 	// another billableService Object and using
@@ -81,20 +80,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		this.service = service;
 	}
 
-	/**
-	 * @return the patientBill
-	 */
-	public PatientBill getPatientBill() {
-		return patientBill;
-	}
 
-	/**
-	 * @param patientBill
-	 *            the patientBill to set
-	 */
-	public void setPatientBill(PatientBill patientBill) {
-		this.patientBill = patientBill;
-	}
 
 	/**
 	 * @return the unitPrice
@@ -178,19 +164,6 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		this.consommation = consommation;
 	}
 
-	/**
-	 * @return the payment
-	 */
-	public BillPayment getPayment() {
-		return payment;
-	}
-
-	/**
-	 * @param payment the payment to set
-	 */
-	public void setPayment(BillPayment payment) {
-		this.payment = payment;
-	}
 
 	/**
 	 * @return the voided
@@ -235,6 +208,24 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
+	}
+	
+	
+	public Boolean isPaid() {
+		return paid;
+	}
+	/**
+	 * @return the paid
+	 */
+	public Boolean getPaid() {
+		return isPaid();
+	}
+
+	/**
+	 * @param paid the paid to set
+	 */
+	public void setPaid(Boolean paid) {
+		this.paid = paid;
 	}
 
 	/**
