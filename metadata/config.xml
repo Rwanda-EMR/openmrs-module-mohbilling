@@ -316,7 +316,8 @@
 		Consommation.hbm.xml
 		ThirdPartyBill.hbm.xml
 		InsuranceBill.hbm.xml
-		
+		CashPayment.hbm.xml	
+		PaidServiceBill.hbm.xml	
 		
 	</mappingFiles>
 

@@ -16,8 +16,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
  * @author emr
  *
  */
-public class GlobalBillUtil {
-	
+public class GlobalBillUtil {	
 	
 	/**
 	 * Offers the BillingService to be use to talk to the DB
@@ -63,6 +62,16 @@ public class GlobalBillUtil {
 		
 	return 	getService().GetGlobalBill(globalBillId);
 		
+	}
+
+	/**
+	 * Get GlobalBill by bill identifier
+	 * @param billIdentifier matching with globalBill
+	 * @return GlobalBill
+	 */
+	public static GlobalBill getGlobalBillByBillIdentifier(String billIdentifier) {
+		
+		return getService().getGlobalBillByBillIdentifier(billIdentifier);
 	}
 
 }

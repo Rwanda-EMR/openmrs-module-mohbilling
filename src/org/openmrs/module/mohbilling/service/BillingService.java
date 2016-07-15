@@ -16,6 +16,7 @@ import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.Deposit;
@@ -26,7 +27,9 @@ import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
+import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
@@ -309,6 +312,7 @@ public interface BillingService {
 
 	/**
 	 * Gets all BillableServices that matches the provided Service Category
+	 * @param insurance 
 	 * 
 	 * @param sc
 	 *            the Service Category to match
@@ -538,14 +542,35 @@ public interface BillingService {
 	 * @param consommationId
 	 * @return consommation that  matches with consommationId
 	 */
-	public Consommation getConsommation(Integer  consommationId);
-
-	
-	
+	public Consommation getConsommation(Integer  consommationId);	
 	/**
 	 * Gets deposit by Id
 	 * @param depositId
 	 * @return
 	 */
 	public Deposit getDeposit(Integer depositId);
+
+	public CashPayment saveCashPayment(CashPayment cashPayment);
+
+	public PatientServiceBill saveBilledItem(PatientServiceBill psb);
+
+	public PatientServiceBill getPatientServiceBill(Integer patientServiceBillId);
+
+	public void saveBillPayment(BillPayment bp);
+
+	public void savePaidServiceBill(PaidServiceBill paidSb);
+
+	/**
+	 * Gets all consommation  by globalBill
+	 * @param globalBill
+	 * @return List<Consommation>
+	 */
+	public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill);
+
+	/**
+	 * Gets Global bill  matching with a given bill identifier
+	 * @param billIdentifier
+	 * @return GlobalBill
+	 */
+	public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier);
 }

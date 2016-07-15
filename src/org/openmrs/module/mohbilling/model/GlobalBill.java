@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,6 +25,8 @@ public class GlobalBill {
 	private Admission admission;
 	
 	private String billIdentifier;
+	
+	private BigDecimal globalAmount = new BigDecimal(0);
 	
 	private Set<Consommation> consommations;
 	
@@ -76,6 +79,20 @@ public class GlobalBill {
 	 */
 	public String getBillIdentifier() {
 		return billIdentifier;
+	}
+
+	/**
+	 * @return the globalAmount
+	 */
+	public BigDecimal getGlobalAmount() {
+		return globalAmount;
+	}
+
+	/**
+	 * @param globalAmount the globalAmount to set
+	 */
+	public void setGlobalAmount(BigDecimal globalAmount) {
+		this.globalAmount = globalAmount;
 	}
 
 	/**

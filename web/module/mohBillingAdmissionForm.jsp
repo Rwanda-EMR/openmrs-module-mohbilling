@@ -51,26 +51,25 @@ ${pram.insurancePolicyId}
 	<c:set var="familyName" value="${globalBill.admission.insurancePolicy.owner.familyName}" />
 	<c:set var="insuranceName" value="${globalBill.admission.insurancePolicy.insurance.name}" />
 	<c:set var="ipCardNumber" value="${globalBill.admission.insurancePolicy.insuranceCardNo}" />
-	<c:set var="insurancePolicyId" value="${globalBill.admission.insurancePolicy.insurancePolicyId}" />
-	
+	<c:set var="insurancePolicyId" value="${globalBill.admission.insurancePolicy.insurancePolicyId}" />	
 	
 		<tr>
 			<th>Name</th>
+			<th>Bill identif</th>
 			<th>Insurance name</th>
+			<th>Bill Identifier</th>
 			<th>Card Number</th>
 			<th>Admission type</th>
-			<th>admission date</th>
-			<th>Action</th>
+			<th>admission date</th>			
+			<th>Bill</th>
 		</tr>
 		<tr>
 			<td>${familyName}</td>
+			<td>${globalBill.billIdentifier}</td>			
 			<td>${insuranceName}</td>
 			<td>${insuranceCardNo}</td>
 			<td>OPD</td>
-			<td>22/12/2015</td>
-			<!-- 
-			<td><a href="billing.form?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}"></td>
-			 -->
+			<td>22/12/2015</td>		
 			<td><a href="billing.form?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBill.globalBillId}">Add Bill</a></td>
 		</tr>
 

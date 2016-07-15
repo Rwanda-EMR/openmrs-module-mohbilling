@@ -32,11 +32,12 @@ public class MohBillingAdmissionFormController extends
 			HttpServletResponse response) throws Exception {
 	
 		ModelAndView mav = new ModelAndView();
-		InsurancePolicy ip =null;
+		InsurancePolicy ip =null;		
 	
 	if (request.getParameter("save") != null && request.getParameter("save").equals("true")) {
 		
 	     ip =Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
+	     
 		
 		Admission admission = new Admission();
 		admission.setAdmissionDate(new Date());
