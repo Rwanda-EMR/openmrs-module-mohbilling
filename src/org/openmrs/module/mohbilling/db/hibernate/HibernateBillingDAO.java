@@ -1253,7 +1253,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	public GlobalBill getGlobalBillByAdmission(Admission admission) {
 	
 				Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
-		                 .add(Restrictions.eq("admission",admission));				        
+		                 .add(Restrictions.eq("admission",admission));  
 				        
 				GlobalBill globalBill = (GlobalBill) crit.uniqueResult();		
 				return globalBill;
@@ -1318,20 +1318,29 @@ public class HibernateBillingDAO implements BillingDAO {
 			sessionFactory.getCurrentSession().saveOrUpdate(bp);
 			
 		}
-
 		@Override
 		public void savePaidServiceBill(PaidServiceBill paidSb) {
 			sessionFactory.getCurrentSession().saveOrUpdate(paidSb);
 			
 		}
-
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllConsommationByGlobalBill(org.openmrs.module.mohbilling.model.GlobalBill)
+		 */
 		@Override
-		public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill) {
-			
+		public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill) {			
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Consommation.class);
-			               crit.add(Restrictions.eq("globalBill", globalBill));
-			
+			               crit.add(Restrictions.eq("globalBill", globalBill));			
 			return crit.list();
 		}
-	
-}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getGlobalBillByBillIdentifier(java.lang.String)
+		 */
+		@Override
+		public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+	                      .add(Restrictions.eq("billIdentifier",billIdentifier));
+			
+			        GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
+			        return globalBill;
+		}
+	}

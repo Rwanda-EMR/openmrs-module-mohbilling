@@ -578,6 +578,12 @@ public interface BillingDAO {
 	 * 
 	 */
 	public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill);
-	
+
+	/**
+	 * Gets GlobalBill matching with a given billIdentifier
+	 * @param billIdentifier
+	 * @return GlobalBill
+	 */
+	public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier);
 
 }

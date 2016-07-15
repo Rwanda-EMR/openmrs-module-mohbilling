@@ -684,4 +684,13 @@ public class BillingServiceImpl implements BillingService {
 	public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill) {
 		return billingDAO.getAllConsommationByGlobalBill(globalBill);
 	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getGlobalBillByBillIdentifier(java.lang.String)
+	 */
+	@Override
+	public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier) {
+		
+		return billingDAO.getGlobalBillByBillIdentifier(billIdentifier);
+	}
 	}

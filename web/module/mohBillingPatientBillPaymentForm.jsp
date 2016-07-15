@@ -1,10 +1,30 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
+<openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
+
+ <script type="text/javascript">
+        $(function () {
+            var total;
+            var checked = $('input:checkbox').click(function (e) {
+                calculateSum();
+            });
+
+            function calculateSum() {
+                var $checked = $(':checkbox:checked');
+                total = 0.0;
+                $checked.each(function () {
+                    total += parseFloat($(this).val());
+                    
+                });
+                $('#tot').text("Your Payable  Is: " + total.toFixed(2));
+            }
+        });
+    </script>
 
 <h2>Patient Bill Payment</h2>
 
@@ -37,33 +57,24 @@
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/></td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">
-					   <c:if test="${service.category!='AUTRES'}">
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">					  
 						<fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" type="number" pattern="#.##"/>
 						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}"/>
-					    </c:if>
 					</td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">						
-						<c:choose>
-						 <c:when test="${service.category=='AUTRES'}">
-						  <fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/>
-						  <c:set var="totalBillPatient" value="${totalBillPatient+(billItem.unitPrice*billItem.quantity)}"/>
-						 </c:when>
-						 <c:otherwise>
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">							
 						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
-						 </c:otherwise>
-						</c:choose>
-					</td>
+					</td>							
 					<td><input name="${fieldName}"	value="${billItem.patientServiceBillId}" type="checkbox"></td>
 				</tr>
 			</c:forEach>
-			<tr>
-				<td colspan="4"></td>
+		   
+			<tr>			   
+				<td colspan="4"> <p align="center" style="color: red; " id="tot"></p></td>
 				<td><div style="text-align: right;"><b>Total : </b></div></td>
 				<td><div class="amount"><fmt:formatNumber value="${totalBillInsurance}" type="number" pattern="#.##"/></div></td>
 				<td><div class="amount"><fmt:formatNumber value="${totalBillPatient}" type="number" pattern="#.##"/></div></td>
-			</tr>
+			</tr>			
 			<tr>
 				<td colspan="7"><hr/></td>
 			</tr>

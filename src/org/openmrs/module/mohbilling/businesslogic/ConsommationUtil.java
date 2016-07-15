@@ -11,11 +11,6 @@ import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
-
-/**
- * @author emr
- *
- */
 /**
  * @author emr
  *
@@ -100,12 +95,12 @@ public class ConsommationUtil {
 	/**
 	 * Gets list of Conosmmation by global bill
 	 * @param globalBill
-	 * @return
+	 * @return List<Consommation>
 	 */
 	public static List<Consommation> getConsommationsByGlobalBill(
 			GlobalBill globalBill) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		return getService().getAllConsommationByGlobalBill(globalBill);
 	}
 	
 	

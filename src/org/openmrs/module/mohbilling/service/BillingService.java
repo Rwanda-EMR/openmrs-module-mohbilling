@@ -560,5 +560,17 @@ public interface BillingService {
 
 	public void savePaidServiceBill(PaidServiceBill paidSb);
 
+	/**
+	 * Gets all consommation  by globalBill
+	 * @param globalBill
+	 * @return List<Consommation>
+	 */
 	public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill);
+
+	/**
+	 * Gets Global bill  matching with a given bill identifier
+	 * @param billIdentifier
+	 * @return GlobalBill
+	 */
+	public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier);
 }

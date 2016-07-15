@@ -121,8 +121,7 @@ public class MohBillingPatientBillPaymentFormController extends
 			
 				bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
 						.getParameter("receivedCash"))));
-				bp.setCollector(Context.getUserService()
-						.getUser(Integer.parseInt(request.getParameter("billCollector"))));
+				bp.setCollector(Context.getAuthenticatedUser());
 				bp.setDateReceived(Context.getDateFormat().parse(
 						request.getParameter("dateBillReceived")));				
 				bp.setPatientBill(pb);
@@ -164,7 +163,7 @@ public class MohBillingPatientBillPaymentFormController extends
 		} catch (Exception e) {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					"The Bill Payment has not been saved !");
-			//log.error("" + e.getMessage());
+			log.error("" + e.getMessage());
 			e.printStackTrace();
 
 			return null;

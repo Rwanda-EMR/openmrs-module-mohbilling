@@ -26,7 +26,7 @@
 			</tr>
 			<tr>
 				<td></td>
-				<td><input type="submit" value="submit"/></td>
+				<td><input type="submit" value="Search"/></td>
 				<td></td>
 			</tr>
 		</table>
