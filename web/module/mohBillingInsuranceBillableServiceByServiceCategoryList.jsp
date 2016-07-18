@@ -9,7 +9,9 @@
 <script type="text/javascript" charset="utf-8">
 $(document).ready(function(){
 	  $("a").click(function() {
+		  /* get the link id */
 	       var tabId = this.id;
+		  /* get the substring to retrieve the number inside the string */
 	       var index =  tabId.substring(16, tabId.indexOf('T')); 
 	          $("#search_"+index).keyup(function (){
 		       var $rows = $('#itemList div');
@@ -19,7 +21,6 @@ $(document).ready(function(){
 	                return !~text.indexOf(val);
 	              }).hide();  
 	        });  
-	        
 	   	});
 });
 </script> 
