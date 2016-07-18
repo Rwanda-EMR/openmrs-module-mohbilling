@@ -1258,15 +1258,12 @@ public class HibernateBillingDAO implements BillingDAO {
 				GlobalBill globalBill = (GlobalBill) crit.uniqueResult();		
 				return globalBill;
 	}
-
 	@Override
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
-		
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class);
-		if (ip != null ) {
-			crit.add(Expression.eq("insurancePolicy", ip));
-		}
-		
+		log.info("insurancePoilicyId>>>>>>>>"+ip.getInsurancePolicyId());
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class)	
+			             .add(Expression.eq("insurancePolicy", ip));
+		log.info("WWWWWWWWWWWWWWWWWwis this admission list size"+crit.list().size());
 		return crit.list();
 	}
 
