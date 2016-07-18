@@ -10,7 +10,7 @@ import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  * 
  *         This is only useful when we are talking about Capitation!
  */

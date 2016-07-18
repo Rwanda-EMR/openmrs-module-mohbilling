@@ -7,10 +7,8 @@
 <%@ include file="templates/mohBillingDepositHeader.jsp"%>
 
 
-<div id="search_policy">
-	<mohbilling_tag:insurancePolicySearchByInsuranceCardNumber redirectUrl="deposit.form" />
+<div>
+	<openmrs:portlet id="findPatient" url="findPatient" parameters="size=full|postURL=deposit.form|showIncludeVoided=false|viewType=shortEdit|hideAddNewPatient=true" />
 </div>
-
-
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

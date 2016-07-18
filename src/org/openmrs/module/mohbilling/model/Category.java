@@ -4,7 +4,7 @@
 package org.openmrs.module.mohbilling.model;
 
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  *
  */
 public enum Category {

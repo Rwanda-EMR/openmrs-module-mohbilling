@@ -193,9 +193,7 @@
 	}
 </style>
 
-<%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
-
 <h2><spring:message code="@MODULE_ID@.billing.calculation"/></h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
@@ -255,6 +253,7 @@
 <div class="box">
 	<form
 		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${globalBillId}&searchDpt=true"	method="post">
+
 		<table>
 			<tr>				
 				<td><select name="departmentId">
@@ -267,12 +266,17 @@
 			</tr>
 		</table>
 	</form>
+</div> 
+
 </div>
 		<c:if test="${param.departmentId !=null}">
 		<div>
 			<div id="patientTabs">
 				<ul>
 					<c:forEach items="${insurancePolicy.insurance.categories}" var="serviceCategory" varStatus="status">
+					
+						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
+				      
 					  <c:if test="${serviceCategory.department.departmentId == param.departmentId}">
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
 				       </c:if>
@@ -321,7 +325,10 @@
 		}
 		return false;
 	}
-	
+
+	function setTabCookie(value) {
+		document.cookie = value;
+	}
 </script>
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
