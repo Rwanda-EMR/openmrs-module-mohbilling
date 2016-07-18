@@ -31,7 +31,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
  * The parent class is FacilityServicePrice, and BillableServices are child
  * objects.
  * 
- * @author Kamonyo
+ * @author EMR-RBC
  * 
  */
 public class FacilityServicePriceUtil {

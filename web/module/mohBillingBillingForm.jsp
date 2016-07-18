@@ -252,7 +252,7 @@
 	
 	<div style="float: right; width: 70%">		
 		<b class="boxHeader">Search Services by Department</b>
-<div class="box">
+<!--  <div class="box">
 	<form
 		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&searchDpt=true"	method="post">
 		<table>
@@ -267,15 +267,16 @@
 			</tr>
 		</table>
 	</form>
-</div>
-		<c:if test="${param.departmentId !=null}">
+</div> 
+ -->
+	
 		<div>
 			<div id="patientTabs">
 				<ul>
 					<c:forEach items="${insurancePolicy.insurance.categories}" var="serviceCategory" varStatus="status">
-					  <c:if test="${serviceCategory.department.departmentId == param.departmentId}">
+					
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
-				       </c:if>
+				      
 					</c:forEach>
 				</ul>
 			</div>
@@ -288,7 +289,7 @@
 				</div>
 			</c:forEach>
 		</div>
-	 </c:if>
+	
 	</div>
 	<div style="clear: both;"></div>
 </div>
@@ -317,11 +318,13 @@
 			}
 			addClass(tabObj, 'current');
 			
-			//setTabCookie(tabObj.id);
+			setTabCookie(tabObj.id);
 		}
 		return false;
 	}
-	
+	function setTabCookie(value) {
+		document.cookie = value;
+	}
 </script>
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

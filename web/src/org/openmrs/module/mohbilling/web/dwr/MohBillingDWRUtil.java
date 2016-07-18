@@ -9,7 +9,7 @@ import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 
 /**
- * @author 
+ * @author EMR@RBC
  * 
  */
 public class MohBillingDWRUtil {
