@@ -39,7 +39,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
 /**
- * @author EMR@rbc
+ * @author EMR-RBC
  * 
  */
 public class MohBillingBillingFormController extends
