@@ -12,7 +12,7 @@ import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
 /**
- * @author Kamonyo
+ * @author @EMRRBC
  * 
  */
 public class InsurancePolicy {
@@ -23,7 +23,6 @@ public class InsurancePolicy {
 	private String insuranceCardNo;
 	private Date coverageStartDate;
 	private Date expirationDate;
-	
 	private ThirdParty thirdParty;
 	
 	private User creator;

@@ -5,28 +5,25 @@
 
 <hibernate-mapping package="org.openmrs.module.mohbilling.model">
 
-	<!-- BillPayment -->
+	<!-- PaidServiceBill -->
 	
 	
-	<class name="BillPayment" table="moh_bill_payment">
+	<class name="PaidServiceBill" table="moh_bill_paid_service_bill">
 
-		<id name="billPaymentId" type="int" column="bill_payment_id" unsaved-value="0">
+		<id name="paidServiceBillId" type="int" column="paid_service_bill_id" unsaved-value="0">
 			<generator class="native" />
-		</id>
-
-		<property name="amountPaid" column="amount_paid" type="big_decimal" />
-		<property name="dateReceived" column="date_received" />
+		</id>	
+	
 		<property name="createdDate" column="created_date" />
 		<property name="voided" column="voided" type="java.lang.Boolean" />
 		<property name="voidedDate" column="voided_date"  />
 		<property name="voidReason" column="void_reason" type="text" />
 		
-		<many-to-one name="collector" class="org.openmrs.User" column="collector" />
-		<many-to-one name="patientBill" class="org.openmrs.module.mohbilling.model.PatientBill" column="patient_bill_id" />	
+	    <many-to-one name="paidItem" class="org.openmrs.module.mohbilling.model.PatientServiceBill" column="patient_service_bill_id" unique="true"/>
+	    <many-to-one name="billPayment" class="org.openmrs.module.mohbilling.model.BillPayment" column="bill_payment_id" />	
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
-		
-		 
+						   
     </class>
 
 </hibernate-mapping>

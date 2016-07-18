@@ -4,13 +4,13 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
 import java.util.Date;
+import java.util.List;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
-
 /**
  * @author emr
  *
@@ -73,6 +73,38 @@ public class ConsommationUtil {
 		
 		
 	}
+	
+	public static Consommation getConsommation(Integer consommationId){
+		return getService().getConsommation(consommationId);
+		
+	}
+	public static PatientServiceBill saveBilledItem(PatientServiceBill psb){
+		
+		
+		return  getService().saveBilledItem(psb);
+		
+	}
+
+
+	public static PatientServiceBill getPatientServiceBill(	Integer patientServiceBillId) {
+		return  getService().getPatientServiceBill(patientServiceBillId);
+		
+	}
+
+
+	/**
+	 * Gets list of Conosmmation by global bill
+	 * @param globalBill
+	 * @return List<Consommation>
+	 */
+	public static List<Consommation> getConsommationsByGlobalBill(
+			GlobalBill globalBill) {
+		
+		return getService().getAllConsommationByGlobalBill(globalBill);
+	}
+	
+	
+	
 	
 	
 	

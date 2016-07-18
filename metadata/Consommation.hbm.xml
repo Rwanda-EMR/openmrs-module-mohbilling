@@ -26,7 +26,7 @@
 		<many-to-one name="thirdPartyBill" class="org.openmrs.module.mohbilling.model.ThirdPartyBill" column="third_party_bill_id" unique="true"/>
 
 		<set name="billItems" lazy="false" inverse="true"
-			cascade="all-delete-orphan" sort="natural"
+			cascade="all" sort="natural"
 			order-by="created_date asc">
 			<key column="consommation_id" />
 			<one-to-many class="PatientServiceBill" />

@@ -11,15 +11,16 @@ $(document).ready(function(){
 	  $("a").click(function() {
 	       var tabId = this.id;
 	       var index =  tabId.substring(16, tabId.indexOf('T')); 
-	         $("#search_"+index).keyup(function (){
-		       var $rows = $('#billableTable tr');
+	          $("#search_"+index).keyup(function (){
+		       var $rows = $('#list div');
 	      	   var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
 	              $rows.show().filter(function() {
 	                var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
 	                return !~text.indexOf(val);
 	              }).hide();  
-	        }); 
-	   });
+	        });  
+	        
+	   	});
 });
 </script> 
 
@@ -48,7 +49,7 @@ $(document).ready(function(){
 		font-weight: bold;
 		font-size: 0.8em;
 		text-transform: uppercase;
-		width:auto;
+		float: left;
 		
 	}
 	
@@ -62,7 +63,7 @@ $(document).ready(function(){
 		background-color: #FF6400;
 	}
 	 /* to split billable services list into muliple columns */
-    #container {
+    /* #container {
     /*column-count:2;
     -moz-column-count:2;
     -webkit-column-count:2;*/
@@ -70,18 +71,29 @@ $(document).ready(function(){
     -webkit-column-count: 5; /* Chrome, Safari, Opera */
     -moz-column-count: 5; /* Firefox */
     column-count: 5;
-   
-   -webkit-column-width: 205px; /* Chrome, Safari, Opera */
-    -moz-column-width: 205px; /* Firefox */
-    column-width: 205px;
+    
+} */
 
- 
+ul li{
+    margin:0 0 2em 2em;
+    list-style-type: decimal;
+    float:left;
+}
+ul li{
+    -webkit-column-break-inside:avoid;
+    -moz-column-break-inside:avoid;
+    -o-column-break-inside:avoid;
+    -ms-column-break-inside:avoid;
+    column-break-inside:avoid;
+}
+ul{
+    -webkit-column-count: 5; -webkit-column-gap:2em;
+    -moz-column-count:5; -moz-column-gap:2em;
+    -o-column-count:5; -o-column-gap:2em;
+    column-count:5; column-gap:2em;
+}
 
-}
-.inTable {
-    -webkit-column-span: all; /* Chrome, Safari, Opera */
-    column-span: all;
-}
+
 
 </style>
 
@@ -108,22 +120,26 @@ $(document).ready(function(){
 					else {
 						
 						out.println("<input type='text' id='search_"+sc.getServiceCategoryId()+"' placeholder='Type to search'>");
-						out.println("<div id='container'>");
-						out.println("<table id='billableTable'>");
-						out.println("<tbody>");
+						//out.println("<div id='container'>");
+						//out.println("<table id='billableTable'>");
+						//out.println("<tbody>");
+						out.println("<ul id='list'>");
 							for (BillableService bs : billableServices) {
-								if(!bs.isRetired())
-									out.println("<tr>");	
-								    out.println("<td class='submenu'>");
-									out.println("<div class='inTable unselectedService' id='billableService_"+bs.getServiceId()+"' onclick=addServiceToCart('"+bs.getServiceId()+"','"+bs.getFacilityServicePrice().getName().replace("'","&nbsp;").replace(" ","&nbsp;")+"','"+bs.getMaximaToPay()+"')>"
+								//if(!bs.isRetired())
+									/* out.println("<tr>");	
+								    out.println("<td class='submenu'>"); */
+								    out.println("<div class='inTable unselectedService' id='billableService_"+bs.getServiceId()+"' onclick=addServiceToCart('"+bs.getServiceId()+"','"+bs.getFacilityServicePrice().getName().replace("'","&nbsp;").replace(" ","&nbsp;")+"','"+bs.getMaximaToPay()+"')>");
+									out.println("<li>"
 											+ bs.getFacilityServicePrice().getName()
-										+ "</div>");
-									out.println("</td>");
-									out.println("</tr>");
+										+ "</li>");
+									out.println("</div>");
+									/* out.println("</td>");
+									out.println("</tr>"); */
 							}
-							out.println("</tbody>");
-						out.println("</table>");
-						out.println("</div>");
+							//out.println("</tbody>");
+						//out.println("</table>");
+						//out.println("</div>");
+							out.println("</ul>");
 					}
 
 				}

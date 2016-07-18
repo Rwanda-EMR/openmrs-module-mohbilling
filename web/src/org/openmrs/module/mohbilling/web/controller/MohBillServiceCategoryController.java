@@ -12,6 +12,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -36,7 +37,9 @@ public class MohBillServiceCategoryController extends
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		
+		
 		ModelAndView mav = new ModelAndView();
+		BillingService billingSvce = Context.getService(BillingService.class);
 		List<HopService> services = HopServiceUtil.getAllHospitalServices();
 		String departmentId=request.getParameter("departmentId");
 		HopService service =new HopService();
@@ -48,13 +51,14 @@ public class MohBillServiceCategoryController extends
 			Department department = DepartementUtil.getDepartement(Integer.valueOf(departmentId));
 			 service = HopServiceUtil.getHopServiceById(Integer.valueOf(serviceIdStr));
 		    System.out.println("is this service Hop services>>>>>>"+service);
-		    //Iterate over each insurance  and create service category
+		    //Iterate over each insurance  and create service category		    
 			
 			for (Insurance insurance : InsuranceUtil.getAllInsurances()) {
+				ServiceCategory existingSc = billingSvce.getServiceCategoryByName(service.getName(), insurance);
+				
 				ServiceCategory sc = new ServiceCategory();
 				
 				sc.setName(service.getName());	
-				
 		
 		    	sc.setDescription(service.getDescription());
 
@@ -62,21 +66,41 @@ public class MohBillServiceCategoryController extends
 				sc.setCreatedDate(new Date());
 				sc.setCreator(Context.getAuthenticatedUser());
 				sc.setDepartment(department);
-				sc.setHopService(service);
+				sc.setHopService(service);			
+			    insurance.addServiceCategory(sc);			    
+			    billingSvce.saveInsurance(insurance);
 				
-				insurance.addServiceCategory(sc);
-				Context.getService(BillingService.class).saveInsurance(insurance);
+			 		//Get 
+			
+				List<BillableService> billableServices = billingSvce.getBillableServiceByCategory(existingSc);
+				
+				
+				for (BillableService bs : billableServices) {
+					if(bs.getInsurance()==insurance){
+					BillableService bsCopy = new BillableService();
+					bsCopy.setFacilityServicePrice(bs.getFacilityServicePrice());
+					bsCopy.setInsurance(insurance);
+					bsCopy.setServiceCategory(sc);
+					bsCopy.setStartDate(bs.getStartDate());
+					bsCopy.setMaximaToPay(bs.getMaximaToPay());
+					bsCopy.setCreatedDate(new Date());
+					bsCopy.setCreator(Context.getAuthenticatedUser());
+					bsCopy.setRetired(false);
+					
+					InsuranceUtil.saveBillableService(bsCopy);
+					}					
+				}
+			 
+				
+				
 			}
 			
-			return new ModelAndView(new RedirectView("departments.list"));	
-			
-			
+			return new ModelAndView(new RedirectView("departments.list"));		
 		}
 		
 		
 		mav.addObject("services", services);
 		mav.addObject("departmentId", departmentId);
-	
 		
 		mav.setViewName(getViewName());
 		return mav;

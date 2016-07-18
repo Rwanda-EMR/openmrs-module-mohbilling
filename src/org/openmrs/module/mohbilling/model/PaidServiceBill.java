@@ -11,41 +11,53 @@ import org.openmrs.User;
  * @author emr
  *
  */
-public class CashPayment  extends BillPayment {
+public class PaidServiceBill {
 	
-	private Integer cashPaymentId;	
+	private Integer paidServiceBillId;
+	private PatientServiceBill paidItem;
+	private BillPayment billPayment;
+	
 	private User creator;
 	private Date createdDate;
 	private Boolean voided = false;
 	private User voidedBy;
 	private Date voidedDate;
 	private String voidReason;
-	
-	
-	//constructors
-	public CashPayment(){
-		
-	}
-	
-	public CashPayment(BillPayment bPayment){
-		super(bPayment);
-		if(bPayment != null){
-			this.cashPaymentId =bPayment.getBillPaymentId();
-			
-		}		
-	}
-	
 	/**
-	 * @return the cashPaymentId
+	 * @return the paidServiceBillId
 	 */
-	public Integer getCashPaymentId() {
-		return cashPaymentId;
+	public Integer getPaidServiceBillId() {
+		return paidServiceBillId;
 	}
 	/**
-	 * @param cashPaymentId the cashPaymentId to set
+	 * @param paidServiceBillId the paidServiceBillId to set
 	 */
-	public void setCashPaymentId(Integer cashPaymentId) {
-		this.cashPaymentId = cashPaymentId;
+	public void setPaidServiceBillId(Integer paidServiceBillId) {
+		this.paidServiceBillId = paidServiceBillId;
+	}
+	/**
+	 * @return the paidItem
+	 */
+	public PatientServiceBill getPaidItem() {
+		return paidItem;
+	}
+	/**
+	 * @param paidItem the paidItem to set
+	 */
+	public void setPaidItem(PatientServiceBill paidItem) {
+		this.paidItem = paidItem;
+	}
+	/**
+	 * @return the billPayment
+	 */
+	public BillPayment getBillPayment() {
+		return billPayment;
+	}
+	/**
+	 * @param billPayment the billPayment to set
+	 */
+	public void setBillPayment(BillPayment billPayment) {
+		this.billPayment = billPayment;
 	}
 	/**
 	 * @return the creator
@@ -120,5 +132,4 @@ public class CashPayment  extends BillPayment {
 		this.voidReason = voidReason;
 	}
 
-	
 }

@@ -12,7 +12,7 @@ import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  * 
  */
 public class PatientBill {
