@@ -23,15 +23,15 @@
 
 <!-- div: creating new departiemt -->
 <div class="create_section">
-	<form action="department.form?insuranceId=1&save=true" method="post">
+	<form action="department.form?departmentId=${department.departmentId}&save=true" method="post">
 		<table>
 			<tr>
 				<td>Name</td>
-				<td><input type="text" name="departmentName" size="70"/></td>
+				<td><input type="text" name="departmentName"  value="${department.name}" size="70"/></td>
 			</tr>
 			<tr>
 				<td>Description</td>
-				<td><textarea name="departmentDescription" cols="30" rows="3"></textarea></td>
+				<td><textarea name="departmentDescription"  cols="30" rows="3">${department.description}"</textarea></td>
 			</tr>
 			<tr>
 				<td></td>

@@ -19,8 +19,7 @@ import org.springframework.web.servlet.view.RedirectView;
  * @author EMR@RBC
  *
  */
-public class MohBillingDepartmentFormController extends
-		ParameterizableViewController {
+public class MohBillingDepartmentFormController extends  ParameterizableViewController {
 
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
@@ -29,9 +28,10 @@ public class MohBillingDepartmentFormController extends
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		
-		ModelAndView mav = new ModelAndView();
-		
+		ModelAndView mav = new ModelAndView();		
+				
 	if(request.getParameter("save")!=null){
+		
 		String name =request.getParameter("departmentName");
 		String description = request.getParameter("departmentDescription");
 		

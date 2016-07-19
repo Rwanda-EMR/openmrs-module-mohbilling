@@ -36,25 +36,27 @@ public class MohBillingGlobalBillListController extends
 		List<GlobalBill> globalBills = new ArrayList<GlobalBill>();
 		String ipCardNumber = request.getParameter("ipCardNumber");
 		String billIdentifier = request.getParameter("billIdentifier");
-		Beneficiary ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(ipCardNumber);
-		InsurancePolicy ip = InsurancePolicyUtil.getInsurancePolicyByBeneficiary(ben);
-		
-		
-		Beneficiary benef = Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(ipCardNumber);
-		
+		Beneficiary ben = null;
+			
 		if(ipCardNumber!=null ){
-			log.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@insurance Policy id"+ip.getInsurancePolicyId());
-		 globalBills = GlobalBillUtil.getGlobalBillsByInsurancePolicy(ip);		
+		     ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(ipCardNumber);
+			InsurancePolicy ip = InsurancePolicyUtil.getInsurancePolicyByBeneficiary(ben);
+			mav.addObject("beneficiary",ben);
+			mav.addObject("insurancePolicy", ip);
+		    globalBills = GlobalBillUtil.getGlobalBillsByInsurancePolicy(ip);		
 		}	
 		if(billIdentifier != null){
-			GlobalBill globalBill = GlobalBillUtil.getGlobalBillByBillIdentifier(billIdentifier);
+			GlobalBill globalBill = GlobalBillUtil.getGlobalBillByBillIdentifier(billIdentifier);		
 			globalBills.add(globalBill);
-		}
-		mav.addObject("insurancePolicy", ip);
-		mav.addObject("beneficiary",benef);	
+			
+			String insuranceCardNo  = globalBill.getAdmission().getInsurancePolicy().getInsuranceCardNo();
+			 ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(insuranceCardNo);
+			
+			mav.addObject("beneficiary",ben);
+			mav.addObject("insurancePolicy", globalBill.getAdmission().getInsurancePolicy());
+			
+		}	
 		mav.addObject("globalBills", globalBills);
-		
-		
 		mav.setViewName(getViewName());
 
 		return mav;

@@ -69,22 +69,6 @@ public class PatientBillUtil {
 		return (insurance == null) ? totalAmount : totalAmount.multiply(rate,
 				mc);
 	}
-
-
-
-
-	/**
-	 * This should return all Bills corresponding to a given Beneficiary
-	 * 
-	 * @param beneficiary
-	 * @return
-	 */
-	public static List<PatientBill> getBillsByBeneficiary(
-			Beneficiary beneficiary) {
-
-		return getService().getBillsByBeneficiary(beneficiary);
-	}
-
 	/**
 	 * This should return all paid Bills on a given date (isPaid == true),
 	 * otherwise it returns unpaid (isPaid==false)
@@ -104,7 +88,6 @@ public class PatientBillUtil {
 		}
 		return bills;
 	}
-
 	/**
 	 * 
 	 * This should return all paid Bills on,before,before a given date or

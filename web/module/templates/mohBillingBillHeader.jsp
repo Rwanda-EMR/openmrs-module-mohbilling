@@ -4,9 +4,8 @@
 			<a href="patientSearchBill.form">Manage Bill</a>
 		</li>
 		<li>
-			<a href="#">Manage Payment</a>
-		</li>
-		
+			<a href="billSearch.form">Manage Payment</a>
+		</li>		
 		<li>
 			<a href="#">Approve Refund</a>
 		</li>

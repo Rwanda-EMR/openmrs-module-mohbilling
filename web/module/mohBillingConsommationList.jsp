@@ -13,7 +13,7 @@
 
 
 <br />
-<div style="text-align: right;"><a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Make a Bill</a></div>
+<div style="text-align: right;"><a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add Consommation</a></div>
 
 <b class="boxHeader">consommations List for Global Bill id created
 	on #</b>
@@ -30,9 +30,8 @@
 			<th>Paid Amount</th>
 			<th>status</th>			
 			<th>Payment</th>
-
 		</tr>
-		<c:forEach items="${consommations}" var="consommation"
+		<c:forEach items="${consommations}" var="consommation" 
 			varStatus="status">
 			<tr>
 				<td>${status.count}</td>
