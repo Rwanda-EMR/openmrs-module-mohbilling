@@ -175,9 +175,8 @@ public class MohBillingPatientBillPaymentFormController extends
 	
 	
 	public void createPaidServiceBill(HttpServletRequest request,Consommation consommation, BillPayment bp){
-Map<String, String[]> parameterMap = request.getParameterMap();	
-	
-		
+  
+		Map<String, String[]> parameterMap = request.getParameterMap();	
 		for (String  parameterName : parameterMap.keySet()) {
 			
 			if (!parameterName.startsWith("item-")) {

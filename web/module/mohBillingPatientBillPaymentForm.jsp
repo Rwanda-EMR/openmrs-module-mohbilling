@@ -26,6 +26,19 @@
         });
     </script>
 
+<script type="text/javascript" charset="utf-8">
+$(document).ready(function(){
+	 $(":submit").click(function(){
+		var psb =  $("input:checkbox").attr("id");
+		var idArr = $(".paidchk input:checkbox").map(function(i, el) { return $(el).attr("id"); }).get();
+		//alert($('.paidchk').length);
+		// $(".paidckh").each(function(){
+			 $("input[id="+psb+"]").attr('checked', true);
+			  // });
+		  }); 
+});
+</script> 
+
 <h2>Patient Bill Payment</h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
@@ -65,7 +78,7 @@
 						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
-					<td><input name="${fieldName}"	value="${billItem.patientServiceBillId}" type="checkbox"></td>
+					<td><input name="${fieldName}"	value="${billItem.patientServiceBillId}" type="checkbox" id="${billItem.patientServiceBillId}" class='paidchk'></td>
 				</tr>
 			</c:forEach>
 		   

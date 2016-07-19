@@ -191,6 +191,14 @@
 	.selectedService{
 		background-color: #56CC81;
 	}
+	#patientTabs{
+	margin-top: 10px;
+		margin-left: auto;
+		margin-right: auto;
+		padding-top: 5px;
+		border-top: 1px solid #dddddd;
+	}
+	
 </style>
 
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
@@ -201,7 +209,7 @@
 <br/>
 
 <div class="box">
-	<div style="float: left; width: 29%">
+	<div style="float: left; width: 30%">
 		<b class="boxHeader">Calculator</b>
 		<div class="box">
 			<form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${globalBillId}&save=true" method="post" id="form_save_patient_bill">
