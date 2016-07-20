@@ -19,7 +19,6 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -473,17 +472,17 @@ public interface BillingService {
 	 * saves Deposit to the DB
 	 * @param deposit, the deposit to be saved
 	 * @return deposit
-	 */
+	 *//*
 	public Deposit saveDeposit(Deposit deposit);
-	/**
+	*//**
 	 * gets a list of deposits according to provided parameters (patient and/or startdate and/or enddate and/or collector)
 	 * @param patient
 	 * @param startdate
 	 * @param enddate
 	 * @param collector
 	 * @return
-	 */
-	public List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector);
+	 *//*
+	public List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector);*/
     
 	/**
 	 * Get patient admission
@@ -543,12 +542,12 @@ public interface BillingService {
 	 * @return consommation that  matches with consommationId
 	 */
 	public Consommation getConsommation(Integer  consommationId);	
-	/**
+/*	*//**
 	 * Gets deposit by Id
 	 * @param depositId
 	 * @return
-	 */
-	public Deposit getDeposit(Integer depositId);
+	 *//*
+	public Deposit getDeposit(Integer depositId);*/
 
 	public CashPayment saveCashPayment(CashPayment cashPayment);
 

@@ -35,7 +35,6 @@
 			    <prop key="module/@MODULE_ID@/thirdParty.form">mohBillingThirdPatryFormController</prop>
 			    <prop key="module/@MODULE_ID@/received.form">mohBillingReceivedController</prop>			   
 			    <prop key="module/@MODULE_ID@/refundBillReport.form">mohBillingRefundReportController</prop>
-			    <prop key="module/@MODULE_ID@/deposit.form">mohBillingDepositFormController</prop>
 			    <prop key="module/@MODULE_ID@/billingAdmin.form">mohBillingAdminFormController</prop>	
 			    <prop key="module/@MODULE_ID@/department.form">mohBillingDepartmentFormController</prop>	
 			    <prop key="module/@MODULE_ID@/admission.form">mohBillingAdmissionFormController</prop>
@@ -135,9 +134,6 @@
 
 	<bean id="mohBillingRefundReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundReportController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingRefundReport</value></property>
-	</bean>
-	<bean id="mohBillingDepositFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepositFormController">
-		<property name="viewName"><value>/module/mohbilling/mohBillingDepositForm</value></property>
 	</bean>
 	<bean id="mohBillingAdminFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdminFormController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingAdminForm</value></property>

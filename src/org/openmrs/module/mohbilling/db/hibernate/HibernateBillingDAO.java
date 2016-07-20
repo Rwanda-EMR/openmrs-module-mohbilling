@@ -52,7 +52,6 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -1199,15 +1198,15 @@ public class HibernateBillingDAO implements BillingDAO {
 		return admission;
 	}
 
-	@Override
+/*	@Override
 	public Deposit saveDeposit(Deposit deposit) {
 		sessionFactory.getCurrentSession().saveOrUpdate(deposit);
 		return deposit;
 	}
 
-	/* (non-Javadoc)
+	 (non-Javadoc)
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getDepositList(org.openmrs.Patient, java.util.Date, java.util.Date, org.openmrs.User)
-	 */
+	 
 	@Override
 	public List<Deposit> getDepositList(Patient patient, Date startDate,
 			Date endDate, User collector) {
@@ -1230,7 +1229,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		List<Deposit> deposits = crit.list();			
 		
 		return deposits;
-	}	
+	}	*/
 	public Admission getPatientAdmission(Integer admissionid) {
 		return (Admission) sessionFactory.getCurrentSession().get(Admission.class, admissionid);
 	}
@@ -1289,12 +1288,12 @@ public class HibernateBillingDAO implements BillingDAO {
 	public Consommation getConsommation(Integer consommationId) {
 		return (Consommation) sessionFactory.getCurrentSession().get(Consommation.class, consommationId);
 	}
-		@Override
+/*		@Override
 	public Deposit getDeposit(Integer depositId) {
 		return (Deposit) sessionFactory.getCurrentSession().get(
 				Deposit.class, depositId);
 
-	}
+	}*/
 
 		@Override
 		public CashPayment saveCashPayment(CashPayment cashPayment) {

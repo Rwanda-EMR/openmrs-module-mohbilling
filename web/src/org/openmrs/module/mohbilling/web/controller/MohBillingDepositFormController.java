@@ -1,27 +1,12 @@
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.Patient;
-import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.businesslogic.BillingGlobalProperties;
-import org.openmrs.module.mohbilling.businesslogic.DepositUtil;
-import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
-import org.openmrs.module.mohbilling.model.Deposit;
-import org.openmrs.module.mohbilling.model.FacilityServicePrice;
-import org.openmrs.module.mohbilling.service.BillingService;
-import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
-import org.springframework.web.servlet.view.RedirectView;
 
 public class MohBillingDepositFormController extends
 		ParameterizableViewController {
@@ -34,11 +19,12 @@ public class MohBillingDepositFormController extends
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
+				return null;
 		 
 		/** Logger for this class and subclasses */
 	
 
-			ModelAndView mav = new ModelAndView();
+/*			ModelAndView mav = new ModelAndView();
 			mav.setViewName(getViewName());
 			mav.addObject("authUser", Context.getAuthenticatedUser());
 			
@@ -93,12 +79,12 @@ public class MohBillingDepositFormController extends
 			mav.addObject("depositsList", deposits);
 			mav.addObject("depositReasons", BillingGlobalProperties.getGpDepositReasons());
 
-			return mav;
+			return mav;*/
 	}
 	private boolean handleRetireDeposit(HttpServletRequest request,
 			ModelAndView mav) {
 
-		Deposit deposit = null;
+	/*	Deposit deposit = null;
 
 		try {
 			deposit = DepositUtil.getDeposit(Integer.valueOf(request.getParameter("depositId")));
@@ -128,7 +114,7 @@ public class MohBillingDepositFormController extends
 			e.printStackTrace();
 
 			return false;
-		}
+		}*/
 
 		return true;
 	}

@@ -29,7 +29,6 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -496,22 +495,22 @@ public interface BillingDAO {
 	 * @return admission saved
 	 */
 	public Admission saveAdmission(Admission admission);
-	/**
+/*	*//**
 	 * saves Deposit to the DB 
 	 * @param deposit
 	 * @return
-	 */
+	 *//*
 	public Deposit saveDeposit(Deposit deposit);
-	/**
+	*//**
 	 * gets a list of deposits according to provided parameters (patient and/or startdate and/or enddate and/or collector)
 	 * @param patient
 	 * @param startdate
 	 * @param enddate
 	 * @param collector
 	 * @return
-	 */
+	 *//*
 	public List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector);
-
+*/
 	/**
 	 * @param admissionid
 	 * @return
@@ -559,8 +558,8 @@ public interface BillingDAO {
 	 * Gets deposit by Id
 	 * @param depositId
 	 * @return
-	 */
-	public Deposit getDeposit(Integer depositId);
+	 *//*
+	public Deposit getDeposit(Integer depositId);*/
 
 	public CashPayment saveCashPayment(CashPayment cashPayment);
 
