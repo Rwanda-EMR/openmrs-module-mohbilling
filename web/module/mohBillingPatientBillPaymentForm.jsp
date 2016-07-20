@@ -26,19 +26,8 @@
         });
     </script>
 
-<script type="text/javascript" charset="utf-8">
-$(document).ready(function(){
-	 $(":submit").click(function(){
-		var psb =  $("input:checkbox").attr("id");
-		var idArr = $(".paidchk input:checkbox").map(function(i, el) { return $(el).attr("id"); }).get();
-		//alert($('.paidchk').length);
-		// $(".paidckh").each(function(){
-			 $("input[id="+psb+"]").attr('checked', true);
-			  // });
-		  }); 
-});
-</script> 
 
+ 
 <h2>Patient Bill Payment</h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
@@ -78,7 +67,7 @@ $(document).ready(function(){
 						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
-					<td><input name="${fieldName}"	value="${billItem.patientServiceBillId}" type="checkbox" id="${billItem.patientServiceBillId}" class='paidchk'></td>
+					<td><input name="${fieldName}"	value="${billItem.patientServiceBillId}" type="checkbox"></td>
 				</tr>
 			</c:forEach>
 		   
@@ -130,7 +119,7 @@ $(document).ready(function(){
 			
 			<tr style="font-size: 1.2em">
 				<openmrs:hasPrivilege privilege="Edit Bill">
-					<td colspan="2"><input type="submit"  value="Confirm Bill" style="min-width: 200px;"/></td>
+					<td colspan="2"><input type="submit"  value="Confirm Bill" style="min-width: 200px;" onclick="check()"/></td>
 				</openmrs:hasPrivilege>
 			 <td colspan="3"></td>
               <!-- 

@@ -49,7 +49,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.RadioCheckField;
 
 /**
- * @author MOH
+ * @author rbcemr
  * 
  */
 public class MohBillingPrintPatientBillController extends AbstractController {

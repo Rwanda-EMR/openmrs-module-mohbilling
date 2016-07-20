@@ -15,7 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 /**
- * @author emr
+ * @author rbcemr
  *
  */
 public class MohBillingDepartmentListController extends

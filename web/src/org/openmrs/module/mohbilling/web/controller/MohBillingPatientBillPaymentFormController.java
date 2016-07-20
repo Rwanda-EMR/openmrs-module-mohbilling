@@ -32,7 +32,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 /**
- * @author @rbcemr 
+ * @author rbcemr 
  */
 public class MohBillingPatientBillPaymentFormController extends
 		ParameterizableViewController {
