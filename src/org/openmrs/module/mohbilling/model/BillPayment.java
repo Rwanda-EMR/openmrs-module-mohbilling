@@ -5,15 +5,12 @@ package org.openmrs.module.mohbilling.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
 /**
- * @author z
+ * @author EMR-RBC
  * 
  */
 public class BillPayment implements Comparable<BillPayment> {

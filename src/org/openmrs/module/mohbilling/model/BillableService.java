@@ -10,7 +10,7 @@ import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
 /**
- * @author Kamonyo
+ * @author rbcemr
  * 
  */
 public class BillableService implements Comparable<BillableService> {

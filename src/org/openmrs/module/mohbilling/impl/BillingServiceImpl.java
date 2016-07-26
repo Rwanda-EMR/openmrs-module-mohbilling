@@ -21,7 +21,6 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -31,26 +30,21 @@ import org.openmrs.module.mohbilling.model.InsuranceCategory;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
+import org.openmrs.module.mohbilling.model.Transaction;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author EMR@RBC
+ * @author rbcemr
  * 
  */
-/**
- * @author mariam
- *
- */
-/**
- * @author mariam
- *
- */
+
 @Transactional
 public class BillingServiceImpl implements BillingService {
 
@@ -492,7 +486,7 @@ public class BillingServiceImpl implements BillingService {
 	 */
 	@Override
 	public Department saveDepartement(Department departement) {
-	    return 	billingDAO.savesaveDepartement(departement);
+	    return 	billingDAO.saveDepartement(departement);
 		// TODO Auto-generated method stub
 		
 	}
@@ -548,21 +542,6 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.saveAdmission(admission);
 	}
 
-	@Override
-	public Deposit saveDeposit(Deposit deposit) {
-		// TODO Auto-generated method stub
-		return billingDAO.saveDeposit(deposit);
-	}
-
-	
-	/* (non-Javadoc)
-	 * @see org.openmrs.module.mohbilling.service.BillingService#getDepositList(org.openmrs.Patient, java.util.Date, java.util.Date, org.openmrs.User)
-	 */
-	@Override
-	public List<Deposit> getDepositList(Patient patient, Date startDate,
-			Date endDate, User collector) {
-		return billingDAO.getDepositList(patient, startDate, endDate, collector);
-	}
 	/* (non-Javadoc)
 	 * @see org.openmrs.module.mohbilling.service.BillingService#getPatientAdmission(java.lang.Integer)
 	 */
@@ -642,11 +621,6 @@ public class BillingServiceImpl implements BillingService {
 	public Consommation getConsommation(Integer consommationId) {
 		return billingDAO. getConsommation(consommationId);
 	}
-	@Override
-	public Deposit getDeposit(Integer depositId) {
-		return billingDAO.getDeposit(depositId);
-
-	}
 
 	@Override
 	public CashPayment saveCashPayment(CashPayment cashPayment) {
@@ -693,4 +667,33 @@ public class BillingServiceImpl implements BillingService {
 		
 		return billingDAO.getGlobalBillByBillIdentifier(billIdentifier);
 	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#savePatientAccount(org.openmrs.module.mohbilling.model.PatientAccount)
+	 */
+	@Override
+	public void savePatientAccount(PatientAccount account) {
+		billingDAO.savePatientAccount(account);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getPatientAccount(java.lang.Integer)
+	 */
+	@Override
+	public PatientAccount getPatientAccount(Integer accountId) {
+		return billingDAO.getPatientAccount(accountId);
+	}
+
+	@Override
+	public PatientAccount getPatientAccount(Patient patient) {
+		return billingDAO.getPatientAccount(patient);
+	}
+
+	@Override
+	public List<Transaction> getTransactions(PatientAccount acc,
+			Date startDate, Date endDate, String reason) {
+		return billingDAO.getTransactions(acc, startDate, endDate, reason);
+	}
+
+
 	}

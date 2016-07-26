@@ -14,7 +14,7 @@ import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
 /**
- * @author Kamonyo
+ * @author rbcemr
  * 
  */
 public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
