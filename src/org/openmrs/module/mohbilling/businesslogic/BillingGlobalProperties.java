@@ -39,13 +39,13 @@ public class BillingGlobalProperties {
 		  return list;
         }
 	
-	public static List<String> getGpDepositReasons() {
+	public static List<String> getGpReasons() {
 		List<String> reasons = new ArrayList<String>();
 		GlobalProperty gp = Context
 				.getAdministrationService()
-				.getGlobalPropertyObject("billing.depositReasons");
-		String[] depositReasons = gp.getPropertyValue().split(",");
-		for (String r : depositReasons) {
+				.getGlobalPropertyObject("billing.transactionReasons");
+		String[] gpReasons = gp.getPropertyValue().split(",");
+		for (String r : gpReasons) {
 			reasons.add(r);
 		}
 		return reasons;
