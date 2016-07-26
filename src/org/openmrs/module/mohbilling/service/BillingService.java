@@ -19,7 +19,6 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -28,11 +27,13 @@ import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
+import org.openmrs.module.mohbilling.model.Transaction;
 
 /**
  * @author EMR@RBC
@@ -468,22 +469,6 @@ public interface BillingService {
 	 * @return admission
 	 */
 	public Admission saveAdmission(Admission admission);
-	
-	/**
-	 * saves Deposit to the DB
-	 * @param deposit, the deposit to be saved
-	 * @return deposit
-	 */
-	public Deposit saveDeposit(Deposit deposit);
-	/**
-	 * gets a list of deposits according to provided parameters (patient and/or startdate and/or enddate and/or collector)
-	 * @param patient
-	 * @param startdate
-	 * @param enddate
-	 * @param collector
-	 * @return
-	 */
-	public List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector);
     
 	/**
 	 * Get patient admission
@@ -543,12 +528,6 @@ public interface BillingService {
 	 * @return consommation that  matches with consommationId
 	 */
 	public Consommation getConsommation(Integer  consommationId);	
-	/**
-	 * Gets deposit by Id
-	 * @param depositId
-	 * @return
-	 */
-	public Deposit getDeposit(Integer depositId);
 
 	public CashPayment saveCashPayment(CashPayment cashPayment);
 
@@ -573,4 +552,30 @@ public interface BillingService {
 	 * @return GlobalBill
 	 */
 	public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier);
+	/**
+	 * Gets Patient Account with a given accountId
+	 * @param accountId
+	 * @return PatientAccount
+	 */
+	public PatientAccount getPatientAccount(Integer accountId);
+	/**
+	 * Get patient account by patient
+	 * @param account
+	 * @return
+	 */
+	public PatientAccount getPatientAccount(Patient patient);
+	/**
+	 * saves patient account for cash deposit purpose
+	 * @param account
+	 */
+	public void savePatientAccount(PatientAccount account);
+	/**
+	 * gets transactions set by given parameters among PatientAccount, startDate, endDate and/or reason
+	 * @param acc
+	 * @param startDate
+	 * @param endDate
+	 * @param reason
+	 * @return transactions set
+	 */
+	public List<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
 }

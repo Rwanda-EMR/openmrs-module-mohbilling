@@ -26,6 +26,8 @@
         });
     </script>
 
+
+ 
 <h2>Patient Bill Payment</h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
@@ -117,7 +119,7 @@
 			
 			<tr style="font-size: 1.2em">
 				<openmrs:hasPrivilege privilege="Edit Bill">
-					<td colspan="2"><input type="submit"  value="Confirm Bill" style="min-width: 200px;"/></td>
+					<td colspan="2"><input type="submit"  value="Confirm Bill" style="min-width: 200px;" onclick="check()"/></td>
 				</openmrs:hasPrivilege>
 			 <td colspan="3"></td>
               <!-- 
