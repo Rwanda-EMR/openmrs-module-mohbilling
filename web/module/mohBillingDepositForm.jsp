@@ -1,5 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
+<openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 
@@ -15,25 +16,30 @@
 
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-
-
 <%@ include file="templates/mohBillingDepositHeader.jsp"%>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#deposits a").click(function() { 
+			  $("#deposits").hide(); 
+			});
+
+	});
+</script>
+
 <h2>Manage Deposit</h2>
 <form action="deposit.form?save=true" method="post">
 <b class="boxHeader">Section I >> Owner</b>
 <div class="box">
 	<table>
 		<tr>
-		 <td>Patient Name:</td>
-		 <td width="300px;"><openmrs_tag:patientField
-						formFieldName="insurancePolicyOwner"
-						initialValue="${patientId}" /></td>
+		 <td>Patient:   </td>
+		 <td width="300px;">${patient.personName }</td>
 		</tr>
 		</table>
 	</div>
 	<br /> 
-<input type="hidden" name="insurancePolicyId"
-		value="${insurancePolicy.insurancePolicyId}" />
+<input type="hidden" name="patientId" value="${patient.patientId}" />
+
 <b class="boxHeader">Section II >> Deposit </b>
 <div class="box">
 		<table>
@@ -51,7 +57,7 @@
 				<!-- list to be set in Global Properties -->
 				 <select name="depositReason">
 				 	<c:forEach items="${depositReasons}" var="depositReason">
-				 	 <option value="${depositReason}">${depositReason}</option>
+				 	<option value="${depositReason}" <c:if test='${deposit.depositReason==depositReason}'>selected='selected'</c:if>>${depositReason}</option>
 				 	</c:forEach>
 				</select> 
 				</td>
@@ -64,8 +70,9 @@
 		<br /> <input type="submit" value="Save Deposit" id="submitButtonId" />
 </div>
 </form>
-<form action="depositList.list" method="post">
 <br/><br/>
+<div id="deposits">
+<form action="depositList.list" method="post">
 <c:if test="${fn:length(depositsList)!=0}">
 <b class="boxHeader">Total Deposit : ${totalDepositAmount } <strong>FRW</strong></b>
 <div class="box">
@@ -75,12 +82,13 @@
 		<th class="columnHeader">Patient First Name</th>
 		<th class="columnHeader">Patient Last Name</th>
 		<th class="columnHeader">Amount</th>
-		<th class="columnHeader">Reposit Reason</th>
+		<th class="columnHeader">Deposit Reason</th>
 		<th class="columnHeader">Collector</th>
 		<th class="columnHeader">Date</th>
 		<th class="columnHeader">Action</th>
 	</tr>
 	<c:forEach items="${depositsList}" var="deposit" varStatus="status">	
+	
 		<tr>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.patient.givenName}</td>	
@@ -89,11 +97,34 @@
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.depositReason }</td>	
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.cashier }</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${deposit.depositDate }</td>	
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="deposit.form?depositId=${deposit.depositId}">view</a></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><a id="edit" href="deposit.form?depositId=${deposit.depositId}&patientId=${patient.patientId}">Edit</a></td>
 		</tr>
+		
 	</c:forEach>
 </table>
 </div>
 </c:if>
 </form>
+</div>
+<br/>
+
+<div id="retire">
+<c:if test="${deposit.depositId ne null}">
+	<b class="boxHeader">Retire this Facility Service</b>
+	<div class="box">
+		<form action="deposit.form?retire=true" method="post">
+			<table>
+				<tr>
+					<td>Retire Reason</td>
+					<td><input type="text" name="depositRetireReason" size="60"/></td>
+				</tr>
+				<tr>
+					<td><input type="hidden" name="depositId" value="${deposit.depositId}"/></td>
+					<td><input type="submit" value="Retire Deposit"/></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</c:if>
+</div>
 <%@ include file="/WEB-INF/template/footer.jsp"%>

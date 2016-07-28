@@ -23,7 +23,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 /**
- * @author Yves GAKUBA
+ * @author rbcemr
  * 
  *         This controller backs the /web/module/mohBillingInsuranceList.jsp
  *         page. This controller is tied to that jsp page in the

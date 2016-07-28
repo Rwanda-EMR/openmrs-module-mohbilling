@@ -5,7 +5,6 @@
 package org.openmrs.module.mohbilling.web.controller;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +29,6 @@ import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
-import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ThirdParty;
@@ -41,7 +39,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
 /**
- * @author EMR@rbc
+ * @author EMR-RBC
  * 
  */
 public class MohBillingBillingFormController extends

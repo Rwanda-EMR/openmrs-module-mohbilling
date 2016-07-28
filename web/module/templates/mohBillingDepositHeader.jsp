@@ -2,10 +2,7 @@
 
 		
 		<li class="<c:if test='<%= request.getRequestURI().contains("SearchDepost")%>'> active</c:if>">
-			<a href="patientSearchDeposit.form">Manage Deposit</a>
-		</li>
-		<li>
-			<a href="#">Refund Deposit</a>
+			<a href="searchPatientAccount.form">Manage Deposit</a>
 		</li>
 		
 		

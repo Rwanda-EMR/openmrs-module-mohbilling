@@ -29,7 +29,6 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -38,19 +37,19 @@ import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
-import org.springframework.transaction.annotation.Transactional;
+import org.openmrs.module.mohbilling.model.Transaction;
 
 /**
  * @author EMR@RBC
  * 
  */
 
-@Transactional
 public interface BillingDAO {
 
 	/**
@@ -446,7 +445,7 @@ public interface BillingDAO {
 	 * saves Departement object in the DB
 	 * @param departement to be saved
 	 */
-	public Department  savesaveDepartement(Department departement);
+	public Department  saveDepartement(Department departement);
 	
 	/**
 	 * Get encounter by idententifier departementid
@@ -485,21 +484,6 @@ public interface BillingDAO {
 	 * @return admission saved
 	 */
 	public Admission saveAdmission(Admission admission);
-	/**
-	 * saves Deposit to the DB 
-	 * @param deposit
-	 * @return
-	 */
-	public Deposit saveDeposit(Deposit deposit);
-	/**
-	 * gets a list of deposits according to provided parameters (patient and/or startdate and/or enddate and/or collector)
-	 * @param patient
-	 * @param startdate
-	 * @param enddate
-	 * @param collector
-	 * @return
-	 */
-	public List<Deposit> getDepositList(Patient patient,Date startDate,Date endDate,User collector);
 
 	/**
 	 * @param admissionid
@@ -543,14 +527,6 @@ public interface BillingDAO {
 
 	public Consommation getConsommation(Integer consommationId);
 
-	
-	/**
-	 * Gets deposit by Id
-	 * @param depositId
-	 * @return
-	 */
-	public Deposit getDeposit(Integer depositId);
-
 	public CashPayment saveCashPayment(CashPayment cashPayment);
 
 	public PatientServiceBill saveBilledItem(PatientServiceBill psb);
@@ -574,6 +550,25 @@ public interface BillingDAO {
 	 * @return GlobalBill
 	 */
 	public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier);
+	
+	public void savePatientAccount(PatientAccount account);
+	/**
+	 * Gets Patient Account with a given accountId
+	 * @param accountId
+	 * @return PatientAccount
+	 */
+	public PatientAccount getPatientAccount(Integer accountId);
+	/**
+	 * gets transactions set by given parameters among PatientAccount, startDate, endDate and/or reason
+	 * @param acc
+	 * @param startDate
+	 * @param endDate
+	 * @param reason
+	 * @return transactions set
+	 */
+	public List<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
+	
+	public PatientAccount getPatientAccount(Patient patient);
 
 	/**
 	 * Gets all consommations matching with a given Beneficiary

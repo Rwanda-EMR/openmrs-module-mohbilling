@@ -318,6 +318,8 @@
 		InsuranceBill.hbm.xml
 		CashPayment.hbm.xml	
 		PaidServiceBill.hbm.xml	
+		PatientAccount.hbm.xml
+		Transaction.hbm.xml
 		
 	</mappingFiles>
 

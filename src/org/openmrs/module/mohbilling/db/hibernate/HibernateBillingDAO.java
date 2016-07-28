@@ -31,7 +31,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -52,7 +51,6 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.Deposit;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -61,12 +59,14 @@ import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
+import org.openmrs.module.mohbilling.model.Transaction;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 
@@ -1135,7 +1135,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#savesaveDepartement(org.openmrs.module.mohbilling.model.Department)
 	 */
 	@Override
-	public Department savesaveDepartement(Department departement) {
+	public Department saveDepartement(Department departement) {
 		
 		sessionFactory.getCurrentSession().saveOrUpdate(departement);
 		return departement;		
@@ -1187,38 +1187,6 @@ public class HibernateBillingDAO implements BillingDAO {
 		return admission;
 	}
 
-	@Override
-	public Deposit saveDeposit(Deposit deposit) {
-		sessionFactory.getCurrentSession().saveOrUpdate(deposit);
-		return deposit;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getDepositList(org.openmrs.Patient, java.util.Date, java.util.Date, org.openmrs.User)
-	 */
-	@Override
-	public List<Deposit> getDepositList(Patient patient, Date startDate,
-			Date endDate, User collector) {
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Deposit.class)
-		         .add(Restrictions.eq("patient", patient));
-
-		if (startDate != null && endDate == null) {
-			crit.add(Expression.eq("depositDate", startDate));
-		}
-		if (startDate == null && endDate != null) {
-			crit.add(Expression.eq("depositDate", endDate));
-		}
-		if (startDate != null && endDate != null) {
-			crit.add(Restrictions.between("depositDate", startDate, endDate));
-		}
-		if (collector != null && collector.getUserId() != null) {
-			crit.add(Expression.eq("cashier", collector));
-		}
-		
-		List<Deposit> deposits = crit.list();			
-		
-		return deposits;
-	}	
 	public Admission getPatientAdmission(Integer admissionid) {
 		return (Admission) sessionFactory.getCurrentSession().get(Admission.class, admissionid);
 	}
@@ -1273,12 +1241,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public Consommation getConsommation(Integer consommationId) {
 		return (Consommation) sessionFactory.getCurrentSession().get(Consommation.class, consommationId);
-	}
-		@Override
-	public Deposit getDeposit(Integer depositId) {
-		return (Deposit) sessionFactory.getCurrentSession().get(
-				Deposit.class, depositId);
-
 	}
 
 		@Override
@@ -1335,5 +1297,56 @@ public class HibernateBillingDAO implements BillingDAO {
 		public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary) {
 			return sessionFactory.getCurrentSession().createCriteria(Consommation.class)				
 					.add(Restrictions.eq("beneficiary", beneficiary)).list();
+		}
+
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#savePatientAccount(org.openmrs.module.mohbilling.model.PatientAccount)
+		 */
+		@Override
+		public void savePatientAccount(PatientAccount account) {
+			sessionFactory.getCurrentSession().saveOrUpdate(account);
+		}
+
+		@Override
+		public PatientAccount getPatientAccount(Integer accountId) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientAccount.class)
+                    .add(Restrictions.eq("patientAccountId",accountId));
+		
+		        PatientAccount account = (PatientAccount) crit.uniqueResult();
+				return account;
+		}
+
+		@Override
+		public PatientAccount getPatientAccount(Patient patient) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientAccount.class)
+                    .add(Restrictions.eq("patient",patient));
+		
+		        PatientAccount account = (PatientAccount) crit.uniqueResult();
+				return account;
+		}
+
+		@Override
+		public List<Transaction> getTransactions(PatientAccount acc,
+				Date startDate, Date endDate, String reason) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Transaction.class);
+			
+			if (acc != null) {
+				crit.add(Expression.eq("patientAccount", acc));
+			}
+			if (reason != null) {
+				crit.add(Expression.eq("reason", reason));
+			}
+			if (startDate != null) {
+				crit.add(Expression.ge("transactionDate", startDate));
+			}
+			if (endDate != null) {
+				crit.add(Expression.le("transactionDate", endDate));
+			}
+			crit.addOrder(Order.desc("transactionDate"));
+			//crit.list() is a set, the following codes serve to convert the set to the list
+			//a set cannot be ordered on display
+			List<Transaction> list = new ArrayList<Transaction>(crit.list());
+			return list;
 		}
 	}

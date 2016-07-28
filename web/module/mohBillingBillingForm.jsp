@@ -4,14 +4,14 @@
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/@MODULE_ID@/patientBillPayment.form" />
 <script>
 
-	function loadBillableServiceByCategory(serviceCategoryId){
-		$("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
+	function loadBillableServiceByCategory(serviceCategoryId,departmentId){
+			$("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
 	}
 
 	var index=0;
 	
 	function addServiceToCart(serviceId, serviceName, servicePrice){
-      // alert(servicePrice);
+      //alert(servicePrice);
 		var isTheServiceExists=checkIfTheServiceAlreadyInTheList(serviceId);
 
 		if(isTheServiceExists)
@@ -191,11 +191,17 @@
 	.selectedService{
 		background-color: #56CC81;
 	}
+	#patientTabs{
+	margin-top: 10px;
+		margin-left: auto;
+		margin-right: auto;
+		padding-top: 5px;
+		border-top: 1px solid #dddddd;
+	}
+	
 </style>
 
-<%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
-
 <h2><spring:message code="@MODULE_ID@.billing.calculation"/></h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
@@ -203,7 +209,7 @@
 <br/>
 
 <div class="box">
-	<div style="float: left; width: 29%">
+	<div style="float: left; width: 30%">
 		<b class="boxHeader">Calculator</b>
 		<div class="box">
 			<form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${globalBillId}&save=true" method="post" id="form_save_patient_bill">
@@ -255,6 +261,7 @@
 <div class="box">
 	<form
 		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${globalBillId}&searchDpt=true"	method="post">
+
 		<table>
 			<tr>				
 				<td><select name="departmentId">
@@ -267,13 +274,17 @@
 			</tr>
 		</table>
 	</form>
+</div> 
+
 </div>
 		<c:if test="${param.departmentId !=null}">
 		<div>
 			<div id="patientTabs">
 				<ul>
-					<c:forEach items="${insurancePolicy.insurance.categories}" var="serviceCategory" varStatus="status">
-					  <c:if test="${serviceCategory.department.departmentId == param.departmentId}">
+					<c:forEach items="${insurancePolicy.insurance.categories}" var="serviceCategory" varStatus="status">						
+				     
+				      <c:if test="${serviceCategory.department.departmentId == param.departmentId}">
+				      					  
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
 				       </c:if>
 					</c:forEach>
@@ -281,6 +292,7 @@
 			</div>
 			
 			<c:forEach items="${insurancePolicy.insurance.categories}" var="sc" varStatus="counter">
+			
 				<div id="serviceCategory_${sc.serviceCategoryId}" <c:if test='${counter.count>1}'>style='display: none;'</c:if>>
 					<script>
 						loadBillableServiceByCategory("${sc.serviceCategoryId}");
@@ -321,7 +333,10 @@
 		}
 		return false;
 	}
-	
+
+	function setTabCookie(value) {
+		document.cookie = value;
+	}
 </script>
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
