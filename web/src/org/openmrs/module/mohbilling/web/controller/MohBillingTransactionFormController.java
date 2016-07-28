@@ -38,9 +38,8 @@ public class MohBillingTransactionFormController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 		
-		
 		Patient patient = Context.getPatientService().getPatient(Integer.valueOf(request.getParameter("patientId")));
-		
+		String type = request.getParameter("type");
 		if(request.getParameter("save")!=null )	{	
 
 			Transaction transaction = null;
@@ -55,10 +54,10 @@ public class MohBillingTransactionFormController extends
 				Integer accountId = Integer.valueOf(request.getParameter("patientAccountId"));
 				account = PatientAccountUtil.getPatientAccountById(accountId);
 			}
-			//log.info();
+			if(type.equals("Withdrawal")){
+				transAmount=transAmount.negate();
+			}
 			balance=account.getBalance().add(transAmount);
-			
-				log.info("yuyuyuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu "+request.getParameter("withdrawal"));
 			
 			account.setBalance(balance);
 			account.setPatient(patient);
@@ -82,6 +81,7 @@ public class MohBillingTransactionFormController extends
 		mav.addObject("transactionReasons", BillingGlobalProperties.getGpReasons());
 		mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(patient));
 		mav.addObject("patient", patient);
+		mav.addObject("type", type);
 		return mav;
 	}
 

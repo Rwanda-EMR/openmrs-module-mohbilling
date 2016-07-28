@@ -21,6 +21,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -690,9 +691,14 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	@Override
-	public List<Transaction> getTransactions(PatientAccount acc,
+	public Set<Transaction> getTransactions(PatientAccount acc,
 			Date startDate, Date endDate, String reason) {
 		return billingDAO.getTransactions(acc, startDate, endDate, reason);
+	}
+
+	@Override
+	public DepositPayment saveDepositPayment(DepositPayment depositPayment) {
+		return billingDAO.saveDepositPayment(depositPayment);
 	}
 
 

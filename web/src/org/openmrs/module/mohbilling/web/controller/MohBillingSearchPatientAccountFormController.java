@@ -33,6 +33,7 @@ public class MohBillingSearchPatientAccountFormController extends
 			HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView();
 		Patient patient = null;
+		
 		if(request.getParameter("patientId")!=null )	{	
 			patient = Context.getPatientService().getPatient(Integer.valueOf(request.getParameter("patientId")));
 			mav.addObject("patient", patient);

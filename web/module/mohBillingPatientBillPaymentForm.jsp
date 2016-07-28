@@ -25,6 +25,38 @@
             }
         });
     </script>
+    
+<script type="text/javascript">
+$(document).ready(function(){
+	//first the balance is hidden until deposit checkbox is checked
+	$('.depositPayment').hide();
+	//$('.cashPayment').hide();
+	$('#depositCheckbox').attr('checked', false);
+	$('#depositCheckbox').click(function() {
+		  if ($(this).is(":checked")) {
+                $(".depositPayment").show();
+                $('.cashPayment').hide();
+                $('#cashCheckbox').attr('checked', false);
+            } 
+		  else{
+			  $(".depositPayment").hide();
+			  $('#cashCheckbox').attr('checked', false);
+			  }
+	});	
+	
+	$('#cashCheckbox').click(function() {
+		if ($(this).is(":checked")) {
+            $(".cashPayment").show();
+            $('.depositPayment').hide();
+            $('#depositCheckbox').attr('checked', false);
+        } 
+		else{
+			$(".cashPayment").hide();
+			 $('#depositCheckbox').attr('checked', false);
+			}
+		});	
+});
+</script>
 
 
  
@@ -45,7 +77,7 @@
 				<th class="columnHeader right">Price (Rwf)</td>
 				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</td>
 				<th class="columnHeader right">Patient : ${100-insurancePolicy.insurance.currentRate.rate} %</td>
-				<th></td>
+				<th></th>
 			</tr>
 			<c:if test="${empty consommation.billItems}"><tr><td colspan="7"><center>No consommation found !</center></td></tr></c:if>
 			<c:set var="totalBillInsurance" value="0"/>
@@ -97,21 +129,34 @@
 				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>				
 			</tr>
 			<tr>
-				<td><b>Received Cash</b></td>
-				<td colspan="2"><input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/></td>
+				<td></td>
+				<td colspan="2"></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Rest</b></div></td>
 				<td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td>				
-			</tr>			
+			</tr>
+		
 			<tr>
 				<td><b>Pay with deposit</b></td>
-				<td><input type="checkbox" name="depositPayment" value="depositPayment"> </td>
-							
+				<td><input type="checkbox" id="depositCheckbox" name="depositPayment" value="depositPayment"> </td>
+				<td class="depositPayment">
+				<table><tr>
+				<td><b>Deducted Amount </b><input type="text" id="deductedAmount" name="deductedAmount" size="11" class="numbers"/></td>
+				<td> <b>Balance </b><input type="text" disabled="disabled" name="balance" value="${patientAccount.balance }" size="11" class="numbers"/></td>	
+				</tr>
+				</table>
+				</td>
+				
 			</tr>
 			<tr>
 			  <td><b>Pay with cash</b></td>
-				<td><input type="checkbox" name="cashPayment" value="cashPayment" > </td>
-								
+			  <td><input type="checkbox" id="cashCheckbox" name="cashPayment" value="cashPayment" checked="checked" > </td>
+			  <td class="cashPayment">
+			  <table><tr>
+			  <td><b>Received Cash</b><input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/></td>
+			  </tr>
+			  </table>
+			  </td>				
 			</tr>			
 			<tr>
 				<td colspan="7"><hr/></td>

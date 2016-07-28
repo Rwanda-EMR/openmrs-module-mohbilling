@@ -17,11 +17,7 @@
 						<td>Age</td>
 						<td> : <b>${insurancePolicy.owner.age}</b> yrs</td>
 					</tr>
-					<tr>
-						<td>Validity</td>
-						<td colspan="3"> : <b><openmrs:formatDate date="${insurancePolicy.coverageStartDate}" type="medium" /></b> / 
-								<b><openmrs:formatDate date="${insurancePolicy.expirationDate}" type="medium" /></b></td>
-					</tr>
+					
 				</table>
 			</div>
 		</div>
@@ -46,6 +42,12 @@
 						<td>Policy Number</td>
 						<td colspan="3"> : <b>${beneficiary.policyIdNumber}</b></td>
 					</tr>
+					<tr>
+						<td>Validity</td>
+						<td colspan="3"> : <b><openmrs:formatDate date="${insurancePolicy.coverageStartDate}" type="medium" /></b> / 
+								<b><openmrs:formatDate date="${insurancePolicy.expirationDate}" type="medium" /></b></td>
+					</tr>
+					
 				</table>
 			</div>
 		</div>
@@ -73,7 +75,9 @@
 			</table>
 		</div>
 	</div>
-	
+	<div>
+	<b> ${patientAccount.balance}</b>
+	</div>>
 	<div style="clear: both;"></div>
 	
 </div>

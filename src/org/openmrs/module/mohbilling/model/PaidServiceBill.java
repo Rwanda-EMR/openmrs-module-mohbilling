@@ -8,7 +8,7 @@ import java.util.Date;
 import org.openmrs.User;
 
 /**
- * @author emr
+ * @author rbcemr
  *
  */
 public class PaidServiceBill {
