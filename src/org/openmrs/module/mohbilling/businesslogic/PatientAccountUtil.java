@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.openmrs.Patient;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -73,10 +74,22 @@ public class PatientAccountUtil {
 	 public static PatientAccount getPatientAccountById(Integer id){
 		 return getService().getPatientAccount(id);
 	 }
-	 public static List<Transaction> getTransactions(PatientAccount acc,
+	 public static Set<Transaction> getTransactions(PatientAccount acc,
 			Date startDate, Date endDate, String reason){
 				return getService().getTransactions(acc, startDate, endDate, reason);
 		 
+	 }
+	 public static Transaction createTransaction(BigDecimal amount,Date date,Date createdDate,User creator,PatientAccount acc,String reason,User collector){
+		 Transaction transaction = new Transaction();
+			transaction.setAmount(amount);
+			
+			transaction.setTransactionDate(date);
+			transaction.setCreatedDate(createdDate);
+			transaction.setCreator(creator);
+			transaction.setPatientAccount(acc);
+			transaction.setReason(reason);
+			transaction.setCollector(collector);	
+			return PatientAccountUtil.createTransaction(transaction);
 	 }
 
 }

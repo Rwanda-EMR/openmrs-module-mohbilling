@@ -32,9 +32,9 @@
 <br/>
 
 <div style="width: 49%">
-<b class="boxHeader">Patient Account</b>
+<b class="boxHeader">${param.type} Form</b>
 <div class="box">
-	<form action="transaction.form?patientId=${param.patientId }&patientAccountId=${param.patientAccountId}&save=true" method="post">
+	<form action="transaction.form?patientId=${param.patientId }&patientAccountId=${param.patientAccountId}&save=true&type=${type}" method="post">
 		<table>
 			<tr>
 				<td>Amount</td>
@@ -42,21 +42,22 @@
 			</tr>
 			<tr>
 				<td>Reason </td>
-				<td>
+				<%-- <td>
 				<!-- list to be set in Global Properties -->
 				 <select name="reason">
 				 	<c:forEach items="${transactionReasons}" var="reason">
 				 	<option value="${reason}">${reason}</option>
 				 	</c:forEach>
 				</select> 
-				</td>
+				</td> --%>
+				<td><input type="text" name="reason"/></td>
 			</tr>
 			<tr>
 				<td>Collector</td>
 				<td><openmrs_tag:userField formFieldName="collector" initialValue="${authUser.userId}"/></td>
 			</tr>
 			<tr>
-				<td>Date Received</td>
+				<td>${param.type } Date</td>
 				<td><input type="text" autocomplete="off" name="receivedDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 			</tr>
 			

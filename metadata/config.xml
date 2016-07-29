@@ -320,9 +320,9 @@
 		PaidServiceBill.hbm.xml	
 		PatientAccount.hbm.xml
 		Transaction.hbm.xml
+		DepositPayment.hbm.xml
 		PaidServiceBillRefund.hbm.xml
 		PaymentRefund.hbm.xml
-		
 	</mappingFiles>
 
 </module>

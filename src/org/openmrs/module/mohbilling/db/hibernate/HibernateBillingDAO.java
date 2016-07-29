@@ -51,6 +51,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -1327,7 +1328,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 
 		@Override
-		public List<Transaction> getTransactions(PatientAccount acc,
+		public Set<Transaction> getTransactions(PatientAccount acc,
 				Date startDate, Date endDate, String reason) {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Transaction.class);
 			
@@ -1346,7 +1347,13 @@ public class HibernateBillingDAO implements BillingDAO {
 			crit.addOrder(Order.desc("transactionDate"));
 			//crit.list() is a set, the following codes serve to convert the set to the list
 			//a set cannot be ordered on display
-			List<Transaction> list = new ArrayList<Transaction>(crit.list());
-			return list;
+			//List<Transaction> list = new ArrayList<Transaction>(crit.list());
+			return (Set<Transaction>) crit.list();
+		}
+
+		@Override
+		public DepositPayment saveDepositPayment(DepositPayment depositPayment) {
+			sessionFactory.getCurrentSession().saveOrUpdate(depositPayment);
+			return depositPayment;
 		}
 	}

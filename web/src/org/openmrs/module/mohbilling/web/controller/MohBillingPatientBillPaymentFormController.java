@@ -15,17 +15,22 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.Transaction;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
@@ -68,6 +73,7 @@ public class MohBillingPatientBillPaymentFormController extends
 			mav.addObject("consommation", consommation);
 			mav.addObject("consommations", consommations);
 			mav.addObject("beneficiary", consommation.getBeneficiary());
+			
 
 			InsurancePolicy ip = consommation.getBeneficiary().getInsurancePolicy();
 		    mav.addObject("insurancePolicy", ip);
@@ -80,6 +86,7 @@ public class MohBillingPatientBillPaymentFormController extends
 							.getTime() <= ip.getExpirationDate().getTime())));
 			mav.addObject("todayDate", today);
 			mav.addObject("authUser", Context.getAuthenticatedUser());
+			mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(consommation.getBeneficiary().getPatient()));
 
 		} catch (Exception e) {
 			log.error(">>>>MOH>>BILLING>> " + e.getMessage());
@@ -107,19 +114,14 @@ public class MohBillingPatientBillPaymentFormController extends
 			
 			// get all selected items and updated them as paid
 			
-			
-			
 
-			if (null != request.getParameter("receivedCash")) {
+		//	if (null != request.getParameter("receivedCash")) {
 				BillPayment bp = new BillPayment();
 				/**
 				 * We need to add both Patient Due amount and amount paid by
 				 * third part
 				 */
-
-			
-				bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
-						.getParameter("receivedCash"))));
+				
 				bp.setCollector(Context.getAuthenticatedUser());
 				bp.setDateReceived(Context.getDateFormat().parse(
 						request.getParameter("dateBillReceived")));				
@@ -128,37 +130,61 @@ public class MohBillingPatientBillPaymentFormController extends
 				bp.setCreator(Context.getAuthenticatedUser());					
 				//bp = PatientBillUtil.createBillPayment(bp);
 				
-				//create cashPayment
-				
-				CashPayment cp =new CashPayment(bp);
-				cp.setCreator(Context.getAuthenticatedUser());
-				cp.setVoided(false);
-				cp.setCreatedDate(new Date());			
 				//mark as paid all  selected items for payment purpose
-			
 				
-				cp =PatientBillUtil.createCashPayment(cp);
+				if(request.getParameter("cashPayment")!=null){
+					bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
+							.getParameter("receivedCash"))));
+					//create cashPayment
+					CashPayment cp =new CashPayment(bp);	
+					setParams(cp, Context.getAuthenticatedUser(), false, new Date());
+					
+					cp =PatientBillUtil.createCashPayment(cp);
+					createPaidServiceBill(request, consommation, cp);
+					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+							"The Bill Payment with cash has been saved successfully !");
+				}
 				
-				createPaidServiceBill(request, consommation, cp);		
+				if(request.getParameter("depositPayment")!=null){
+					BigDecimal deductedAmount = BigDecimal.valueOf(Double.parseDouble(request.getParameter("deductedAmount")));
+					
+					//update the patient account balance
+					PatientAccount patientAccount = PatientAccountUtil.getPatientAccountByPatient(consommation.getBeneficiary().getPatient());
+					patientAccount.setBalance(patientAccount.getBalance().subtract(deductedAmount));
+					
+					//create transaction
+					Transaction transaction = PatientAccountUtil.createTransaction(deductedAmount, new Date(), new Date(), Context.getAuthenticatedUser(), patientAccount, "bill payment", Context.getAuthenticatedUser());
+					
+					bp.setAmountPaid(deductedAmount);
+					DepositPayment dp = new DepositPayment(bp);
+
+					setParams(dp, Context.getAuthenticatedUser(), false, new Date());
+					dp.setTransaction(transaction);
+					
+					//create deposit payment
+					dp =PatientBillUtil.createDepositPayment(dp);
+					createPaidServiceBill(request, consommation, dp);
+					request.getSession().setAttribute(
+							WebConstants.OPENMRS_MSG_ATTR,
+							"The Bill Payment with deposit has been saved successfully !");
+				}
 				
+				//createPaidServiceBill(request, consommation, cp);	
 
 				/** Marking a Bill as PAID */
 				//PatientBillUtil.markBillAsPaid(pb);
 
-				request.getSession().setAttribute(
-						WebConstants.OPENMRS_MSG_ATTR,
-						"The Bill Payment has been saved successfully !");
 
 				return billPayment;
 
-			} else {
+			/*} else {
 				request.getSession()
 						.setAttribute(
 								WebConstants.OPENMRS_MSG_ATTR,
 								"The Bill Payment cannot be saved when the 'Received Amount' is BLANK or is < 0 !");
 				return null;
 			}
-
+*/
 		} catch (Exception e) {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					"The Bill Payment has not been saved !");
@@ -198,13 +224,14 @@ public class MohBillingPatientBillPaymentFormController extends
 			//if paid,then update patientservicebill as paid
 			psb.setPaid(true);
 			ConsommationUtil.createPatientServiceBill(psb);
-			
-			
-			
 		}
 		
 		
 	}
-
+	public void setParams(BillPayment payment,User creator,Boolean voided,Date createdDate){
+		payment.setCreator(Context.getAuthenticatedUser());
+		payment.setVoided(false);
+		payment.setCreatedDate(new Date());
+	}
 
 }

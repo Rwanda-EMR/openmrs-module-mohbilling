@@ -17,6 +17,7 @@ import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillStatus;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
@@ -309,6 +310,10 @@ public class PatientBillUtil {
 		
 		return cashPayment;
 		
+	}
+	public static DepositPayment createDepositPayment(DepositPayment depositPayment){
+		getService().saveDepositPayment(depositPayment);
+		return depositPayment;
 	}
 
 }

@@ -49,9 +49,9 @@
 <c:if test="${transactions!=null}">
 <table>
 <tr>
-<td>Balance :<b>${patientAccount.balance}</b></td>
-<td><a href="transaction.form?patientId=${patientAccount.patient.patientId}&patientAccountId=${patientAccount.patientAccountId }">Deposit</a></td>
-<td><a href="transaction.form?patientId=${patientAccount.patient.patientId}&patientAccountId=${patientAccount.patientAccountId }&withdrawal=true">Withdrawal</a></td>
+<td><div class="amount">Balance : ${patientAccount.balance}</div></td>
+<td><a href="transaction.form?patientId=${patientAccount.patient.patientId}&patientAccountId=${patientAccount.patientAccountId }&type=Deposit">Deposit</a></td>
+<td><a href="transaction.form?patientId=${patientAccount.patient.patientId}&patientAccountId=${patientAccount.patientAccountId }&type=Withdrawal">Withdrawal</a></td>
 </tr>
 </table>
 <b class="boxHeader">Transactions Summary </b>
@@ -65,7 +65,6 @@
 <th style="width:12%">Creator</th>
 <th style="width:6%">Cash In</th>
 <th style="width:6%">Cash Out</th>
-<th style="width:6%">Balance</th>
 </tr>
 
     <c:forEach items="${transactions}" var="trans" varStatus="status">
@@ -75,9 +74,26 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.reason}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.collector.personName}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.creator.personName}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.amount}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.amount}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.amount}</td>
+					
+					
+					<c:choose>
+                     <c:when test="${trans.amount gt 0}">
+                      <td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.amount}</td>
+                     </c:when>
+                     <c:otherwise>
+   					 <td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+                    </c:otherwise>
+                    </c:choose>
+					
+					<c:choose>
+                     <c:when test="${trans.amount lt 0}">
+                      <td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.amount}</td>
+                     </c:when>
+                     <c:otherwise>
+   					 <td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+                    </c:otherwise>
+                    </c:choose>
+					
 				</tr>
 	</c:forEach>
 			
