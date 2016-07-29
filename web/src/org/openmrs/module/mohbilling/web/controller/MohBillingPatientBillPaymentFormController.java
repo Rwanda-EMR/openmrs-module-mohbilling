@@ -53,6 +53,7 @@ public class MohBillingPatientBillPaymentFormController extends
 
 		 try{
 			Consommation  consommation = null;
+			List<Consommation> consommations = null;
 		
 			/*if (request.getParameter("consommationId") == null)
 				return new ModelAndView(new RedirectView(
@@ -61,11 +62,11 @@ public class MohBillingPatientBillPaymentFormController extends
 			consommation = Context.getService(BillingService.class).getConsommation(
 					Integer.parseInt(request.getParameter("consommationId")));
 			
-			//patientBills = PatientBillUtil.getBillsByBeneficiary(pb.getBeneficiary());
+			consommations = ConsommationUtil.getConsommationsByBeneficiary(consommation.getBeneficiary());
 					
 
 			mav.addObject("consommation", consommation);
-			//mav.addObject("patientBills", patientBills);
+			mav.addObject("consommations", consommations);
 			mav.addObject("beneficiary", consommation.getBeneficiary());
 
 			InsurancePolicy ip = consommation.getBeneficiary().getInsurancePolicy();
@@ -85,10 +86,8 @@ public class MohBillingPatientBillPaymentFormController extends
 			e.printStackTrace();
 			//return new ModelAndView(new RedirectView("patientSearchBill.form"));
 		}
-
 		return mav;
 	}
-
 	/**
 	 * @param request
 	 * @return
@@ -182,10 +181,10 @@ public class MohBillingPatientBillPaymentFormController extends
 			if (!parameterName.startsWith("item-")) {
 				continue;
 			}
-			PaidServiceBill paidSb = new PaidServiceBill();
-			
-			
-			String psbIdStr = request.getParameter(parameterName);
+			PaidServiceBill paidSb = new PaidServiceBill();	
+			String[] splittedParameterName = parameterName.split("-");
+			String psbIdStr = splittedParameterName[2];			
+			//String psbIdStr = request.getParameter(parameterName);
 			Integer  patientServiceBillId = Integer.parseInt(psbIdStr);	
 			PatientServiceBill psb  =ConsommationUtil.getPatientServiceBill(patientServiceBillId);	
 			

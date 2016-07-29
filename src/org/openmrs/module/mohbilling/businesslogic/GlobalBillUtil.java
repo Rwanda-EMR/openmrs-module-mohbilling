@@ -6,17 +6,24 @@ package org.openmrs.module.mohbilling.businesslogic;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;
 
+import sun.util.logging.resources.logging;
+
 /**
  * @author emr
  *
  */
 public class GlobalBillUtil {	
+	
+	@SuppressWarnings("unused")
+	private Log log = LogFactory.getLog(this.getClass());
 	
 	/**
 	 * Offers the BillingService to be use to talk to the DB
@@ -46,7 +53,7 @@ public class GlobalBillUtil {
 	
 		List<GlobalBill> globalBills = new ArrayList<GlobalBill>();
 	    List<Admission> admissions = AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
-	   
+	    System.out.println("Admissions size"+admissions.size());
 	   for (Admission admission : admissions) {
 		   GlobalBill globalBill = GlobalBillUtil.getGlobalBillByAdmission(admission);
 		   if(globalBill !=null){

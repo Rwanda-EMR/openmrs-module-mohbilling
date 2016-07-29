@@ -10,7 +10,7 @@ import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
 /**
- * @author Kamonyo
+ * @author @rbc EMR
  * 
  */
 public class Beneficiary implements Comparable<Beneficiary> {

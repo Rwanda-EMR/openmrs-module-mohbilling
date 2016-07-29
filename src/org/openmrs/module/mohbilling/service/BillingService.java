@@ -274,16 +274,6 @@ public interface BillingService {
 			throws DAOException;
 
 	/**
-	 * Gets all Bills for a given beneficiary
-	 * 
-	 * @param beneficiary
-	 *            the one to match
-	 * @return bills for the given beneficiary
-	 */
-	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary)
-			throws DAOException;
-
-	/**
 	 * Gets the InsurancePolicy for a given Beneficiary
 	 * 
 	 * @param beneficiary
@@ -552,6 +542,12 @@ public interface BillingService {
 	 * @return GlobalBill
 	 */
 	public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier);
+	/**
+	 * Gets List of consommations matching with a given beneficiary
+	 * @param beneficiary
+	 * @return List<Consommation>
+	 */
+	public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary);
 	/**
 	 * Gets Patient Account with a given accountId
 	 * @param accountId

@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
-  
+<!-- Department table -->
+   <moh_bill_department department_id="1" name="MEDECINE INTERNE" description="medicne interne"  creator="1" created_date="2005-01-01 00:00:00.0" voided="0" />
   	<!-- Insurance table -->
   	
 	  <moh_bill_insurance insurance_id="1" name="Mutuelle" address="100 Rue De Akagera" phone="0832-88238" category="Mutuelle"  creator="1" created_date="2005-01-01 00:00:00.0" voided="0" />
@@ -37,19 +38,19 @@
 	  <moh_bill_beneficiary beneficiary_id="4" policy_id_number="Fbbbbbbbb" patient_id="8" retired="0"  creator="501" created_date="2005-01-01 00:00:00.0"  insurance_policy_id="2"/>
 	  
 	<!-- Patient bill table -->  
-	  <moh_bill_patient_bill patient_bill_id="1" amount="4800" printed="0" is_paid="1" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="1"/>
-	  <moh_bill_patient_bill patient_bill_id="2" amount="5000" printed="0" is_paid="1" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="2"/>
-	  <moh_bill_patient_bill patient_bill_id="3" amount="1000" printed="0" is_paid="0" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="3"/>
-	  <moh_bill_patient_bill patient_bill_id="4" amount="3000" printed="0" is_paid="0" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="4"/>
-	  <moh_bill_patient_bill patient_bill_id="5" amount="4900" printed="0" is_paid="1" creator="1" created_date="2005-01-01 00:00:00.0" voided="0" beneficiary_id="1"/>
+	  <moh_bill_patient_bill patient_bill_id="1" amount="4800"  is_paid="0"  creator="1" created_date="2005-01-01 00:00:00.0" voided="0" />
+	  <moh_bill_patient_bill patient_bill_id="2" amount="5000"  is_paid="0"  creator="1" created_date="2005-01-01 00:00:00.0" voided="0" />
+	  <moh_bill_patient_bill patient_bill_id="3" amount="1000"  is_paid="0"  creator="1" created_date="2005-01-01 00:00:00.0" voided="0" />
+	  <moh_bill_patient_bill patient_bill_id="4" amount="3000"  is_paid="0"  creator="1" created_date="2005-01-01 00:00:00.0" voided="0" />
+	  <moh_bill_patient_bill patient_bill_id="5" amount="4900"  is_paid="0"  creator="1" created_date="2005-01-01 00:00:00.0" voided="0" />
 	  
 	<!-- Bill payment table -->  
-	  <moh_bill_payment bill_payment_id="12" patient_bill_id="1" amount_paid="4700" date_received="2011-05-01 00:00:00.0" created_date="2005-01-01 00:00:00.0" voided="0" creator="1" collector="1"/>	  
-	  <moh_bill_payment bill_payment_id="11" patient_bill_id="1" amount_paid="100" date_received="2011-05-01 00:00:00.0" created_date="2005-01-01 00:00:00.0" voided="0" creator="1" collector="1"/>
-	  <moh_bill_payment bill_payment_id="13" patient_bill_id="2" amount_paid="5000" date_received="2011-05-02 00:00:00.0" created_date="2005-01-01 00:00:00.0" voided="0" creator="1" collector="1"/>
+	  <moh_bill_payment bill_payment_id="1" patient_bill_id="1" amount_paid="4700" date_received="2011-05-01 00:00:00.0" created_date="2005-01-01 00:00:00.0" voided="0" creator="1" collector="1"/>	  
+	  <moh_bill_payment bill_payment_id="2" patient_bill_id="1" amount_paid="100" date_received="2011-05-01 00:00:00.0" created_date="2005-01-01 00:00:00.0" voided="0" creator="1" collector="1"/>
+	  <moh_bill_payment bill_payment_id="3" patient_bill_id="2" amount_paid="5000" date_received="2011-05-02 00:00:00.0" created_date="2005-01-01 00:00:00.0" voided="0" creator="1" collector="1"/>
 	  
 	<!-- Patient service bill table -->  
-	  <moh_bill_patient_service_bill patient_service_bill_id="2" service_date="2011-05-02 00:00:00.0" unit_price="387" quantity="2" created_date="2005-01-01 00:00:00.0" voided="0" billable_service_id="1" patient_bill_id="1" creator="1"/>
-	  <moh_bill_patient_service_bill patient_service_bill_id="1" service_date="2011-05-02 00:00:00.0" unit_price="3898" quantity="2" created_date="2005-06-01 00:00:00.0" voided="0" billable_service_id="2" patient_bill_id="1" creator="1"/>
+	  <moh_bill_patient_service_bill patient_service_bill_id="2" service_date="2011-05-02 00:00:00.0" unit_price="387" quantity="2" created_date="2005-01-01 00:00:00.0" voided="0" billable_service_id="1" consommation_id="1" is_paid="0" creator="1"/>
+	  <moh_bill_patient_service_bill patient_service_bill_id="1" service_date="2011-05-02 00:00:00.0" unit_price="3898" quantity="2" created_date="2005-06-01 00:00:00.0" voided="0" billable_service_id="2" consommation_id="1" is_paid="0" creator="1"/>
 
 </dataset>

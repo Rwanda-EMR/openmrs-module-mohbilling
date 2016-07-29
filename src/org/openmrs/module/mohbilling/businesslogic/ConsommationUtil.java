@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -101,6 +102,16 @@ public class ConsommationUtil {
 			GlobalBill globalBill) {
 		
 		return getService().getAllConsommationByGlobalBill(globalBill);
+	}
+	/**
+	 * Gets List of consommations  matching with a given  beneficiary
+	 * @param beneficiary
+	 * @return List<Consommation>
+	 */
+	public static List<Consommation> getConsommationsByBeneficiary(
+			Beneficiary beneficiary) {
+		
+		return getService().getConsommationsByBeneficiary(beneficiary);
 	}
 	
 	

@@ -18,16 +18,15 @@
 		<th>Name</th>
 		<th>Description</th>
 		<th>Services</th>
-		<th>Add services</th>
+		<th>service</th>
 	</tr>
 	<c:forEach items="${departments}" var="department" varStatus="status">	
 		<tr>
 			<td>${status.count}</td>
 			<td><a href="department.form?departmentId=${department.departmentId}">${department.name}</a></td>			
-			<td>${department.description}</td>
-			<td>(7) &nbsp;<a href="services.list?departmentId=${department.departmentId}">view</a></td>	
-			<td> &nbsp;<a href="serviceCategory.form?departmentId=${department.departmentId}">Add Services</a></td>	
-			
+			<td>${department.description}</td>			
+			<td> &nbsp;<a href="serviceCategory.form?departmentId=${department.departmentId}">Add /<ahref="services.list?departmentId=${department.departmentId}">view</a></a></td>	
+		
 		</tr>
 	</c:forEach>
 </table>
