@@ -295,17 +295,6 @@ public interface BillingDAO {
 	 */
 	public Beneficiary getBeneficiaryByPolicyNumber(String policyIdNumber)
 			throws DAOException;
-
-	/**
-	 * Gets all Bills for a given beneficiary
-	 * 
-	 * @param beneficiary
-	 *            the one to match
-	 * @return bills for the given beneficiary
-	 */
-	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary)
-			throws DAOException;
-
 	/**
 	 * Gets the InsurancePolicy for a given Beneficiary
 	 * 
@@ -583,5 +572,12 @@ public interface BillingDAO {
 	public PatientAccount getPatientAccount(Patient patient);
 	
 	public DepositPayment saveDepositPayment(DepositPayment depositPayment);
+
+	/**
+	 * Gets all consommations matching with a given Beneficiary
+	 * @param beneficiary
+	 * @return consommations list
+	 */
+	public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary);
 
 }

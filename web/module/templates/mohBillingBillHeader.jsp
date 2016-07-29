@@ -4,13 +4,11 @@
 			<a href="patientSearchBill.form">Manage Bill</a>
 		</li>
 		<li>
-			<a href="#">Manage Payment</a>
-		</li>
-		
+			<a href="billSearch.form">Manage Payment</a>
+		</li>		
 		<li>
-			<a href="#">Approve Refund</a>
-		</li>
-		
+			<a href="#">Manage  Refund</a>
+		</li>		
 </ul>
 
 	   <!-- Here I would like to set the totals at the bottom --> 

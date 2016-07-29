@@ -606,18 +606,6 @@ public class HibernateBillingDAO implements BillingDAO {
 				.add(Restrictions.eq("policyIdNumber", policyIdNumber))
 				.uniqueResult();
 	}
-
-	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillsByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
-	 */
-	@Override
-	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary)
-			throws DAOException {
-
-		return sessionFactory.getCurrentSession().createCriteria(PatientBill.class)				
-				.add(Restrictions.eq("beneficiary", beneficiary)).list();
-	}
-
 	/**
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurancePolicyByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
 	 */
@@ -1227,15 +1215,12 @@ public class HibernateBillingDAO implements BillingDAO {
 				GlobalBill globalBill = (GlobalBill) crit.uniqueResult();		
 				return globalBill;
 	}
-
 	@Override
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
-		
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class);
-		if (ip != null ) {
-			crit.add(Expression.eq("insurancePolicy", ip));
-		}
-		
+		log.info("insurancePoilicyId>>>>>>>>"+ip.getInsurancePolicyId());
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class)	
+			             .add(Expression.eq("insurancePolicy", ip));
+		log.info("WWWWWWWWWWWWWWWWWwis this admission list size"+crit.list().size());
 		return crit.list();
 	}
 
@@ -1306,6 +1291,15 @@ public class HibernateBillingDAO implements BillingDAO {
 			        GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
 			        return globalBill;
 		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getConsommationsByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
+		 */
+		@Override
+		public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary) {
+			return sessionFactory.getCurrentSession().createCriteria(Consommation.class)				
+					.add(Restrictions.eq("beneficiary", beneficiary)).list();
+		}
+
 
 		/* (non-Javadoc)
 		 * @see org.openmrs.module.mohbilling.db.BillingDAO#savePatientAccount(org.openmrs.module.mohbilling.model.PatientAccount)
@@ -1362,6 +1356,4 @@ public class HibernateBillingDAO implements BillingDAO {
 			sessionFactory.getCurrentSession().saveOrUpdate(depositPayment);
 			return depositPayment;
 		}
-
-	
 	}

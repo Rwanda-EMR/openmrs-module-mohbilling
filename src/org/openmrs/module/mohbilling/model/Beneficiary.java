@@ -11,7 +11,6 @@ import org.openmrs.util.OpenmrsUtil;
 
 /**
  * @author rbcemr
- * 
  */
 public class Beneficiary implements Comparable<Beneficiary> {
 	private Integer beneficiaryId;

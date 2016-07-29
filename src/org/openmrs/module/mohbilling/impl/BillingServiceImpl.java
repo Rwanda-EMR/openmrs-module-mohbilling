@@ -289,16 +289,6 @@ public class BillingServiceImpl implements BillingService {
 
 		return billingDAO.getBeneficiaryByPolicyNumber(policyIdNumber);
 	}
-
-	/**
-	 * @see org.openmrs.module.mohbilling.service.BillingService#getBillsByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
-	 */
-	@Override
-	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary) {
-
-		return billingDAO.getBillsByBeneficiary(beneficiary);
-	}
-
 	/**
 	 * @see org.openmrs.module.mohbilling.service.BillingService#getInsurancePolicyByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
 	 */
@@ -668,6 +658,15 @@ public class BillingServiceImpl implements BillingService {
 		
 		return billingDAO.getGlobalBillByBillIdentifier(billIdentifier);
 	}
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getConsommationsByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
+	 */
+	@Override
+	public List<Consommation> getConsommationsByBeneficiary(
+			Beneficiary beneficiary) {
+		// TODO Auto-generated method stub
+		return billingDAO.getConsommationsByBeneficiary(beneficiary);
+	}
 
 	/* (non-Javadoc)
 	 * @see org.openmrs.module.mohbilling.service.BillingService#savePatientAccount(org.openmrs.module.mohbilling.model.PatientAccount)
@@ -700,6 +699,5 @@ public class BillingServiceImpl implements BillingService {
 	public DepositPayment saveDepositPayment(DepositPayment depositPayment) {
 		return billingDAO.saveDepositPayment(depositPayment);
 	}
-
 
 	}

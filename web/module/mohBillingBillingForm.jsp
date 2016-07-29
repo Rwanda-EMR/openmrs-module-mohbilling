@@ -4,14 +4,14 @@
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/@MODULE_ID@/patientBillPayment.form" />
 <script>
 
-	function loadBillableServiceByCategory(serviceCategoryId){
-		$("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
+	function loadBillableServiceByCategory(serviceCategoryId,departmentId){
+			$("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
 	}
 
 	var index=0;
 	
 	function addServiceToCart(serviceId, serviceName, servicePrice){
-      // alert(servicePrice);
+      //alert(servicePrice);
 		var isTheServiceExists=checkIfTheServiceAlreadyInTheList(serviceId);
 
 		if(isTheServiceExists)
@@ -281,11 +281,10 @@
 		<div>
 			<div id="patientTabs">
 				<ul>
-					<c:forEach items="${insurancePolicy.insurance.categories}" var="serviceCategory" varStatus="status">
-					
-						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
-				      
-					  <c:if test="${serviceCategory.department.departmentId == param.departmentId}">
+					<c:forEach items="${insurancePolicy.insurance.categories}" var="serviceCategory" varStatus="status">						
+				     
+				      <c:if test="${serviceCategory.department.departmentId == param.departmentId}">
+				      					  
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
 				       </c:if>
 					</c:forEach>
@@ -293,6 +292,7 @@
 			</div>
 			
 			<c:forEach items="${insurancePolicy.insurance.categories}" var="sc" varStatus="counter">
+			
 				<div id="serviceCategory_${sc.serviceCategoryId}" <c:if test='${counter.count>1}'>style='display: none;'</c:if>>
 					<script>
 						loadBillableServiceByCategory("${sc.serviceCategoryId}");

@@ -64,6 +64,12 @@ $(document).ready(function(){
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<c:set var="insurancePolicy" value="${consommation.beneficiary.insurancePolicy}"/>
+<c:set var="globalBill" value="${consommation.globalBill}"/>
+
+<div style="text-align: right;"><a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add consommation</a></div>
+
 <br/>
 <div class="box">
 	<form action="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment">
@@ -98,10 +104,9 @@ $(document).ready(function(){
 						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
-					<td><input name="${fieldName}"	value="${billItem.patientServiceBillId}" type="checkbox"></td>
+					<td><input name="${fieldName}"	value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox"></td>
 				</tr>
-			</c:forEach>
-		   
+			</c:forEach>		   
 			<tr>			   
 				<td colspan="4"> <p align="center" style="color: red; " id="tot"></p></td>
 				<td><div style="text-align: right;"><b>Total : </b></div></td>
@@ -179,6 +184,9 @@ $(document).ready(function(){
 <br/>
 
 <b class="boxHeader">Bills History</b>
+<div class="box">
+	
+</div>
 
 
 <script>
