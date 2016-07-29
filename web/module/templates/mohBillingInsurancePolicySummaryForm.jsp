@@ -1,3 +1,4 @@
+
 <div class="box">
 	
 	<div style="float: left; width: 65%">
@@ -74,10 +75,14 @@
 				</tr>
 			</table>
 		</div>
+		  <div>
+    <table><tr>
+    <td><div style="text-align: right;"><b style="font-weight: bold;"> Deposit Balance : </b></div></td>
+    <td><div class="balance">${patientAccount.balance}</div></td>
+    </tr>
+    </table>
+    </div>
 	</div>
-	<div>
-	<b> ${patientAccount.balance}</b>
-	</div>>
-	<div style="clear: both;"></div>
 	
+	<div style="clear: both;"></div>
 </div>

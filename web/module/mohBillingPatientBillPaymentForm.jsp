@@ -58,7 +58,6 @@ $(document).ready(function(){
 });
 </script>
 
-
  
 <h2>Patient Bill Payment</h2>
 
