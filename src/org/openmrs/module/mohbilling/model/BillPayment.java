@@ -5,7 +5,10 @@ package org.openmrs.module.mohbilling.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.openmrs.Obs;
 import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
@@ -16,15 +19,27 @@ import org.openmrs.util.OpenmrsUtil;
 public class BillPayment implements Comparable<BillPayment> {
 
 	private Integer billPaymentId;
+	
 	private BigDecimal amountPaid;
+	
 	private Date dateReceived;
+	
 	private User collector;
+	
 	private PatientBill patientBill;
+	
+	Set<PaidServiceBill> paidItems;
+	
 	private User creator;
+	
 	private Date createdDate;
+	
 	private Boolean voided = false;
+	
 	private User voidedBy;
+	
 	private Date voidedDate;
+	
 	private String voidReason;
 	
 	
@@ -289,6 +304,30 @@ public class BillPayment implements Comparable<BillPayment> {
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other
 					.hashCode());
 		return ret;
+	}
+
+	/**
+	 * @return the paidItems
+	 */
+	public Set<PaidServiceBill> getPaidItems() {
+		Set<PaidServiceBill> ret = new HashSet<PaidServiceBill>();
+		return ret;
+	}
+	/**
+	 * @param paidItems the paidItems to set
+	 */
+	public void setPaidItems(Set<PaidServiceBill> paidItems) {
+		this.paidItems = paidItems;
+	}
+	/**
+	 * @param paidItem
+	 */
+	public void addPaidItem(PaidServiceBill paidItem){
+		if (paidItems == null)
+			paidItems = new HashSet<PaidServiceBill>();
+		if (paidItem != null) {
+			paidItem.setBillPayment(this);
+		}
 	}
 
 }

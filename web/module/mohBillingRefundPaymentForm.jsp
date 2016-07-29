@@ -112,7 +112,7 @@
 	<div>
 		<b class="boxHeader">Patient Bill Services list</b>
 		<div class="box">
-			<form action="patientBillPayment.form?patientBillId=${param.patientBillId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="form_save_patient_bill">
+			<form action="refund.form?billPaymentId=${billPayment.billPaymentId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="form_save_patient_bill">
 				<div style="max-width: 99%; overflow: auto;">
 					<table width="99%; !important;" id="cartOfServices">
 						<tr>
@@ -123,10 +123,10 @@
 							<td class="columnHeader" style="width: 5%;"></td>
 							<td style="width: 1%;"></td>
 						</tr>
-						<c:forEach items="${patientBill.billItems}" var="billItem" varStatus="status">
+						<c:forEach items="${paidItems}" var="paidItem" varStatus="status">
 							<tr>
 								<td><span id="row_${status.count-1}">${status.count}.</span></td>
-								<td>${billItem.service.facilityServicePrice.name}</td>
+								<td>${paidItem.patientServiceBill.service.facilityServicePrice.name}</td>
 								<td><input type="text" size="3" name="quantity_${status.count-1}" id="quantity_${status.count-1}" style="text-align: center;" value="${billItem.quantity}" onblur="calculateTheBill();"/></td>
 								<td><span id="price_${status.count-1}"><b>${billItem.unitPrice}</b></span><input type="hidden" name="servicePrice_${status.count-1}" id="servicePrice_${status.count-1}" value="${billItem.unitPrice}"/></td>
 								<td>
