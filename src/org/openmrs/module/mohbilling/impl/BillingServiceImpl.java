@@ -45,6 +45,10 @@ import org.springframework.transaction.annotation.Transactional;
  * 
  */
 
+/**
+ * @author emr
+ *
+ */
 @Transactional
 public class BillingServiceImpl implements BillingService {
 
@@ -688,10 +692,40 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getPatientAccount(patient);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getTransactions(org.openmrs.module.mohbilling.model.PatientAccount, java.util.Date, java.util.Date, java.lang.String)
+	 */
 	@Override
 	public List<Transaction> getTransactions(PatientAccount acc,
 			Date startDate, Date endDate, String reason) {
 		return billingDAO.getTransactions(acc, startDate, endDate, reason);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getBillPayment(java.lang.Integer)
+	 */
+	@Override
+	public BillPayment getBillPayment(Integer paymentId) {
+	
+		return billingDAO.getBillPayment(paymentId);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getPaidServices(org.openmrs.module.mohbilling.model.BillPayment)
+	 */
+	@Override
+	public List<PaidServiceBill> getPaidServices(BillPayment payment) {
+	
+		return billingDAO.getPaidServices(payment);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getConsommationByPatientBill(org.openmrs.module.mohbilling.model.PatientBill)
+	 */
+	@Override
+	public Consommation getConsommationByPatientBill(PatientBill patientBill) {
+		
+		return billingDAO.getConsommationByPatientBill(patientBill);
 	}
 
 	}

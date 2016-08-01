@@ -10,6 +10,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 /**
@@ -112,6 +113,16 @@ public class ConsommationUtil {
 			Beneficiary beneficiary) {
 		
 		return getService().getConsommationsByBeneficiary(beneficiary);
+	}
+	/**
+	 * Gets Consommation by a given patientBill
+	 * @param patientBill
+	 * @return Consommation
+	 */
+	public static Consommation getConsommationByPatientBill(
+			PatientBill patientBill) {
+		// TODO Auto-generated method stub
+		return getService().getConsommationByPatientBill(patientBill);
 	}
 	
 	

@@ -188,7 +188,8 @@ public class MohBillingPatientBillPaymentFormController extends
 			Integer  patientServiceBillId = Integer.parseInt(psbIdStr);	
 			PatientServiceBill psb  =ConsommationUtil.getPatientServiceBill(patientServiceBillId);	
 			
-			paidSb.setPaidItem(psb);
+			paidSb.setBillItem(psb);
+			paidSb.setPaidQty(psb.getQuantity());
 			paidSb.setBillPayment(bp);
 			paidSb.setCreator(Context.getAuthenticatedUser());
 			paidSb.setCreatedDate(new Date());			

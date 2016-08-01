@@ -54,6 +54,26 @@ public class BillPaymentUtil {
 			getService().savePaidServiceBill(paidSb);
 			
 		}
+	/**
+	 * Gets BillPayment by a given paymentid
+	 * @param paymentId
+	 * @return BillPayment
+	 */
+	public static BillPayment getBillPaymentById(Integer paymentId){
+		
+		return getService().getBillPayment(paymentId);
+			
+	}
+	/**
+	 * Gets all paid billable services matching with a given payment
+	 * @param payment
+	 * @return List<PaidService> paidItems
+	 */
+	public static List<PaidServiceBill> getPaidItemsByBillPayment(
+			BillPayment payment) {
+		
+		return getService().getPaidServices(payment) ;
+	}
 
 	
 		

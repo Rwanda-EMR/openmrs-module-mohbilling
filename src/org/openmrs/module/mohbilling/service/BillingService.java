@@ -574,4 +574,24 @@ public interface BillingService {
 	 * @return transactions set
 	 */
 	public List<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
+	/**
+	 * Gets BillPayment by a given PaymentId
+	 * @param paymentId
+	 * @return Billpayment
+	 */
+	public BillPayment getBillPayment(Integer paymentId);
+
+	/**
+	 * Gets all paid bill services by BillPayment
+	 * @param payment
+	 * @return List<PaidServiceBill>  paidItems
+	 */
+	public List<PaidServiceBill> getPaidServices(BillPayment payment);
+
+	/**
+	 * Gets consommation by patientBill
+	 * @param patientBill
+	 * @return consommation
+	 */
+	public Consommation getConsommationByPatientBill(PatientBill patientBill);
 }

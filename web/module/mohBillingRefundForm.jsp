@@ -1,176 +1,135 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
-<openmrs:require privilege="Manage Refund Bill" otherwise="/login.htm" redirect="/module/@MODULE_ID@/refundBill.form" />
+<%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
 
-<script type="text/javascript">
+ <script type="text/javascript">
+        $(function () {
+            var total;
+            var checked = $('input:checkbox').click(function (e) {
+                calculateSum();
+            });
 
-	var $bill = jQuery.noConflict();
-
-	var index=$bill("#index").val();
-
-	function deleteRow(serviceId,rowNumber,patientBillId,cardNumber) {
-
-		var serv = "#delete_"+rowNumber;
-		var hrefValue = "service.list?deleteService=true&serviceId=" + rowNumber;
-		var hrefValue = "refundBill.form?patientBillId="+patientBillId+"&billItemId="+serviceId+"&ipCardNumber="+cardNumber+"&removeIt=false";
-        if(confirm("Are you sure you want to remove selected service?")){
-		    try {
-			    var table = document.getElementById("cartOfServices");
-			    			    
-			    var rowCount = table.rows.length;
-				
-			    for(var i=1; i<rowCount; i++) {
-			        var row = table.rows[i];
-			        
-			        var hiddenElmnt=row.cells[5].childNodes[0];
-			        if(null != hiddenElmnt && serviceId == hiddenElmnt.value) {
-				    	table.deleteRow(i);
-			            rowCount--;
-			            i--;
-
-			            $bill("#billableService_"+serviceId).removeClass("selectedService");
-			    	    $bill("#billableService_"+serviceId).addClass("unselectedService");
-			        }
-
-			    }
-
-			    calculateTheBill();
-			    
-		    }catch(e) {
-		        alert(e);
-		    }
-    	}else{
-    		$bill(serv).attr("href", hrefValue);
-    	}
-	}
-
-	function calculateTheBill(){
-		try {
-			var bill=0.00;
-			var j=0;
-			var index=$bill("#index").val();
-			
-		    while(j<index){
-			   	if(document.getElementById("servicePrice_"+j)!=null && document.getElementById("servicePrice_"+j)!="undefined"){
-					var price=parseFloat(document.getElementById("servicePrice_"+j).value);
-					bill+=(price*parseInt(document.getElementById("quantity_"+j).value));
-			   	}
-				
-				j++;
-			}
-
-		    document.getElementById("pBill").innerHTML=bill.toFixed(2)+" RWF";
-		    $bill("#totalAmount").val(bill.toFixed(2));
-	    }catch(e) {
-	        alert(e);
-	    }
-	}
-
-	function  savePatientBill(){
-		if(confirm("Are you sure you want to save?")){
-			//set the number of services which has been clicked
-			$bill("#numberOfServicesClicked").val(index);
-
-			//submit the patient bill form
-			document.getElementById("form_save_patient_bill").submit();
-		}
-	}
-
-	function  cancelPatientBillCalculation(){
-		if(confirm("Are you sure you want to Cancel?"))
-			document.getElementById("form_cancel").submit();
-	}
-
-
-</script>
-
-<style>
-
-	.deleteBt{
-		color: #FFFFFF;
-		background-color: red;
-		padding: 2px;
-		cursor: pointer;
-		-moz-border-radius: 2px; 
-		border-right: 2px solid #dddddd;
-		border-bottom: 2px solid #dddddd;
-	}
-
-</style>
-
-<%@ include file="templates/mohBillingLocalHeader.jsp"%>
-
-<h2><spring:message code="@MODULE_ID@.billing.refund"/></h2>
+            function calculateSum() {
+                var $checked = $(':checkbox:checked');
+                total = 0.0;
+                $checked.each(function () {
+                    total += parseFloat($(this).val());
+                    
+                });
+                $('#tot').text("Your refundable  is: " + total.toFixed(2));
+            }
+        });
+    </script>    
+ 
+<h2>Payment Refund Form</h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
 
-<br/>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
-<input type="hidden" name="index" id="index" value="${index}"/>
+<c:set var="insurancePolicy" value="${consommation.beneficiary.insurancePolicy}"/>
+<c:set var="globalBill" value="${consommation.globalBill}"/>
+
+<div style="text-align: right;"><a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add consommation</a></div>
+    
+
 <div class="box">
-	<div>
-		<b class="boxHeader">Patient Bill Services list</b>
-		<div class="box">
-			<form action="refund.form?billPaymentId=${billPayment.billPaymentId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="form_save_patient_bill">
-				<div style="max-width: 99%; overflow: auto;">
-					<table width="99%; !important;" id="cartOfServices">
-						<tr>
-							<td class="columnHeader" style="width: 5%;"></td>
-							<td class="columnHeader" style="width: 60%;">Services</td>
-							<td class="columnHeader" style="width: 10%;">Qty</td>
-							<td class="columnHeader" style="width: 19%;">Price (Rwf)</td>
-							<td class="columnHeader" style="width: 5%;"></td>
-							<td style="width: 1%;"></td>
-						</tr>
-						<c:forEach items="${paidItems}" var="paidItem" varStatus="status">
-							<tr>
-								<td><span id="row_${status.count-1}">${status.count}.</span></td>
-								<td>${paidItem.patientServiceBill.service.facilityServicePrice.name}</td>
-								<td><input type="text" size="3" name="quantity_${status.count-1}" id="quantity_${status.count-1}" style="text-align: center;" value="${billItem.quantity}" onblur="calculateTheBill();"/></td>
-								<td><span id="price_${status.count-1}"><b>${billItem.unitPrice}</b></span><input type="hidden" name="servicePrice_${status.count-1}" id="servicePrice_${status.count-1}" value="${billItem.unitPrice}"/></td>
-								<td>
-									<a onclick="deleteRow(${billItem.patientServiceBillId},${status.count-1},${patientBill.patientBillId},${patientBill.beneficiary.policyIdNumber});" id="delete_${status.count-1}" style="color: red;" href="refundBill.form?patientBillId=${patientBill.patientBillId}&billItemId=${billItem.patientServiceBillId}&ipCardNumber=${patientBill.beneficiary.policyIdNumber}&removeIt=true">
-										<span title='Remove Service' class='deleteBt'><b>X</b></span>
-									</a>
-								</td>
-								<td><input type="hidden" size="5" name="billableServiceId_${status.count-1}" id="billableServiceId_${status.count-1}" value="${billItem.patientServiceBillId}"/></td>
-							</tr>
-						</c:forEach>
-					</table>
-					<br/>
-					<div>
-						<table width="99%">
-							<tr>
-								<td class="columnHeader" style="width: 49%; font-size: 14px;"><b>Total</b></td>
-								<td class="columnHeader" style="width: 49%; text-align: right; font-size: 14px;"><input type="hidden" value="" name="totalAmount" id="totalAmount"/><b id="pBill">${patientBill.amount} RWF</b></td>
-							</tr>
-						</table>
-					</div>
-					<br/>
-					
-					<input type="hidden" name="numberOfServicesClicked" id="numberOfServicesClicked" value=""/>
-				</div>
-				
-			</form>
+	<form action="refundPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment">
+		<table width="99%">
+			<tr>
+				<th class="columnHeader"></th>
+				<th class="columnHeader">Service</td>
+				<th class="columnHeader center">Qty</td>
+				<th class="columnHeader center">PaidQty</td>
+				<th class="columnHeader center">RefQty</td>
+				<th class="columnHeader right">Unit Price (Rwf)</td>
+				<th class="columnHeader right">Price (Rwf)</td>
+				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</td>
+				<th class="columnHeader right">Patient : ${100-insurancePolicy.insurance.currentRate.rate} %</td>
+				<th></td>
+			</tr>
+			<c:if test="${empty paidItems}"><tr><td colspan="9"><center>No paid Services Bill !</center></td></tr></c:if>
+			<c:set var="totalBillInsurance" value="0"/>
+			<c:set var="totalBillPatient" value="0"/>
+			<c:forEach items="${paidItems}" var="paidItem" varStatus="status">
+			<c:set var="service" value="${paidItem.billItem.service.facilityServicePrice}"/>
+			<c:set var="billItem" value="${paidItem.billItem}"/>
 			
-			<table width="99%">
+			<c:set var="fieldName" value="item-${payment.billPaymentId}-${paidItem.paidServiceBillId}"/>
 				<tr>
-					<td style="width: 49%;">
-						<input type="button" value="Refund" onclick="savePatientBill();"/>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
+					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
+				   <td class="rowValue center ${(status.count%2!=0)?'even':''}">${paidItem.paidQty}</td>
+					<td><input type="text" size="3" name="quantity_${status.count-1}" id="quantity_${status.count-1}" style="text-align: center;" value=""/></td>
+					
+					
+					
+					
+					
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice}</td>
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/></td>
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">					  
+						<fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" type="number" pattern="#.##"/>
+						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}"/>
 					</td>
-					<td style="width: 49%; text-align: right;">
-						<form action="patientSearchBill.form" method="post" id="form_cancel">
-							<input type="button" value="Cancel" onclick="cancelPatientBillCalculation();"/>
-						</form>
-					</td>
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">							
+						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
+						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
+					</td>							
+					<td><input name="${fieldName}"	value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox"></td>
 				</tr>
-			</table>
-			
-		</div>
-	</div>
-	
-	<div style="clear: both;"></div>
+			</c:forEach>		   
+			<tr>			   
+				<td colspan="6"> <p align="center" style="color: red; " id="tot"></p></td>
+				<td><div style="text-align: right;"><b>Total : </b></div></td>
+				<td><div class="amount"><fmt:formatNumber value="${totalBillInsurance}" type="number" pattern="#.##"/></div></td>
+				<td><div class="amount"><fmt:formatNumber value="${totalBillPatient}" type="number" pattern="#.##"/></div></td>
+			</tr>			
+			<tr>
+				<td colspan="9"><hr/></td>
+			</tr>
+			<tr style="font-size: 1em">
+				<td><b>Refunder</b></td>
+				<td colspan="2"><openmrs_tag:userField formFieldName="billCollector" initialValue="${authUser.userId}"/></td>
+				<td colspan="4"></td>
+				<td><div style="text-align: right;"><b>Amount Paid</b></div></td>
+				<td><div class="amount">${payment.amountPaid}</div></td>				
+			</tr>
+			<tr>
+				<td><b>Refunding Date</b></td>
+				<td colspan="2"><input type="text" autocomplete="off" name="refundingDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
+			    <td colspan="4"></td>
+				<td><b>Refunded Amount</b></td>
+				<td colspan="2"><input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/></td>							
+			</tr>			
+			<tr>
+				<td><b>Refunding Reason</b></td>
+				<td><textarea name="refundReason" rows="1" cols="30"></textarea></td>							
+			</tr>						
+			<tr>
+				<td colspan="9"><hr/></td>
+			</tr>			
+			<tr style="font-size: 1.2em">			
+					<td colspan="2"><input type="submit"  value="Submit Refund" style="min-width: 200px;" onclick="check()"/></td>			
+			 <td colspan="3"></td>
+              <!-- 
+			<c:if test="${billingtag:amountPaidForPatientBill(patientBill.patientBillId)>0 ||patientBill.beneficiary.insurancePolicy.insurance.currentRate.rate==100 || patientBill.beneficiary.insurancePolicy.thirdParty!=nil}">
+			 -->			
+			</tr>
+		
+			</c:if>
+		</table>
+	</form>
 </div>
 
+
+
+
 <%@ include file="/WEB-INF/template/footer.jsp"%>
+
+
+
+
+

@@ -577,4 +577,25 @@ public interface BillingDAO {
 	 */
 	public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary);
 
+	/**
+	 * Gets BillPayment by a given paymentId
+	 * @param paymentId
+	 * @return billPayment
+	 */
+	public BillPayment getBillPayment(Integer paymentId);
+
+	/**
+	 * Gets all paid service bills by BillPayment
+	 * @param payment
+	 * @return List<PaidServiceBill> paidItems
+	 */
+	public List<PaidServiceBill> getPaidServices(BillPayment payment);
+
+	/**
+	 * Gets Consommation  by patientBill
+	 * @param patientBill
+	 * @return Consommation
+	 */
+	public Consommation getConsommationByPatientBill(PatientBill patientBill);
+
 }

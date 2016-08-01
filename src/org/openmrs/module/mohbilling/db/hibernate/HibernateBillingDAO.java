@@ -1216,10 +1216,9 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 	@Override
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
-		log.info("insurancePoilicyId>>>>>>>>"+ip.getInsurancePolicyId());
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class)	
 			             .add(Expression.eq("insurancePolicy", ip));
-		log.info("WWWWWWWWWWWWWWWWWwis this admission list size"+crit.list().size());
+
 		return crit.list();
 	}
 
@@ -1348,5 +1347,32 @@ public class HibernateBillingDAO implements BillingDAO {
 			//a set cannot be ordered on display
 			List<Transaction> list = new ArrayList<Transaction>(crit.list());
 			return list;
+		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillPayment(java.lang.Integer)
+		 */
+		@Override
+		public BillPayment getBillPayment(Integer paymentId) {
+			return (BillPayment) sessionFactory.getCurrentSession().get(BillPayment.class, paymentId);
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPaidServices(org.openmrs.module.mohbilling.model.BillPayment)
+		 */
+		@Override
+		public List<PaidServiceBill> getPaidServices(BillPayment payment) {
+			return sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class)				
+					.add(Restrictions.eq("billPayment", payment)).list();
+		}		
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getConsommationByPatientBill(org.openmrs.module.mohbilling.model.PatientBill)
+		 */
+		@Override
+		public Consommation getConsommationByPatientBill(PatientBill patientBill) {
+			
+		return 	(Consommation) sessionFactory.getCurrentSession()
+			.createCriteria(Consommation.class)
+			.add(Restrictions.eq("patientBill", patientBill))
+			.uniqueResult();
 		}
 	}
