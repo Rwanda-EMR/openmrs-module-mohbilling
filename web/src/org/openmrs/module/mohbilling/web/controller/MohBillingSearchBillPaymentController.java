@@ -23,7 +23,7 @@ import org.springframework.web.servlet.view.RedirectView;
 /**
  * @author EMR@RBC
  */
-public class MohBillingRefundSearchFormController extends	ParameterizableViewController {
+public class MohBillingSearchBillPaymentController extends	ParameterizableViewController {
 	/** Logger for this class and subclasses */
 	protected final Log log = LogFactory.getLog(getClass());
 
