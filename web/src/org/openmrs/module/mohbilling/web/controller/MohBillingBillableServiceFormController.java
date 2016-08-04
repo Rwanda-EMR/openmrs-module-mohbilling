@@ -130,7 +130,7 @@ public class MohBillingBillableServiceFormController extends
 			billableService.setStartDate(Context.getDateFormat().parse(
 					request.getParameter("billableServiceStartDate")));
 
-			// This only works/displays for Drug and Consumable categories
+			// This only works for Drug and Consumable categories
 			if (request.getParameter("billableServiceMaximaToPay") != null
 					&& !request.getParameter("billableServiceMaximaToPay")
 							.equals(""))

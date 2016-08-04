@@ -39,8 +39,14 @@ public class MohBillingHopserviceFormController extends
 		
 			String serviceName =request.getParameter("serviceName");
 			String description = request.getParameter("description");
-			//declare new HopService object to be saved
-			HopService service = new HopService();
+			HopService service = null;
+			if(request.getParameter("serviceId")!=null&&!request.getParameter("serviceId").equals(null)){
+			service = HopServiceUtil.getHopServiceById(Integer.valueOf(request.getParameter("serviceId")));
+			}
+			else{
+				//declare new HopService object to be saved
+				service = new HopService();
+			}
 			service.setName(serviceName);
 			service.setDescription(description);		
 			service.setCreatedDate(new Date());	
@@ -49,7 +55,7 @@ public class MohBillingHopserviceFormController extends
 			HopServiceUtil.createHopService(service);
 			
            Insurance insurance = InsuranceUtil.getInsurance(1);
-			ServiceCategory sc = new ServiceCategory();
+		   ServiceCategory sc = new ServiceCategory();
 
 			sc.setName(serviceName);
 			sc.setDescription(description);
@@ -63,9 +69,12 @@ public class MohBillingHopserviceFormController extends
 			insurance.addServiceCategory(sc);
 			Context.getService(BillingService.class).saveInsurance(insurance);
 			
-			
+			mav.addObject("service", service);
 			return new ModelAndView(new RedirectView("services.list"));				
 		}
+		if(request.getParameter("serviceId")!=null&&!request.getParameter("serviceId").equals("")){
+			mav.addObject("service", HopServiceUtil.getHopServiceById(Integer.valueOf(request.getParameter("serviceId"))));
+			}
 		mav.setViewName(getViewName());	
 		
 		return mav;

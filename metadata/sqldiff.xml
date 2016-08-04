@@ -104,7 +104,7 @@
 
 			PRIMARY KEY (`insurance_policy_id`),
 
-			CONSTRAINT `insurance_policy_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`)  UPDATE,
+			CONSTRAINT `insurance_policy_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`) ,
 			CONSTRAINT `insurance_policy_owner` FOREIGN KEY (`owner`) REFERENCES `patient` (`patient_id`),
 			CONSTRAINT `insurance_policy_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
 			CONSTRAINT `insurance_policy_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`)

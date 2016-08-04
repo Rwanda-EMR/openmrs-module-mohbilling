@@ -18,7 +18,7 @@
 		</li>
 	</openmrs:hasPrivilege>
 
-	<li class="<c:if test='<%= request.getRequestURI().contains("SearchDepost")%>'> active</c:if>">
+	<li class="<c:if test='<%= request.getRequestURI().contains("SearchPatientAccount")%>'> active</c:if>">
 	<a href="searchPatientAccount.form">Deposit</a>
 	</li>
 

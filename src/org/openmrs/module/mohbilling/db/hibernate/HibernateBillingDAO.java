@@ -33,6 +33,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
@@ -1217,10 +1218,8 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 	@Override
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
-		log.info("insurancePoilicyId>>>>>>>>"+ip.getInsurancePolicyId());
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class)	
 			             .add(Expression.eq("insurancePolicy", ip));
-		log.info("WWWWWWWWWWWWWWWWWwis this admission list size"+crit.list().size());
 		return crit.list();
 	}
 
@@ -1356,4 +1355,14 @@ public class HibernateBillingDAO implements BillingDAO {
 			sessionFactory.getCurrentSession().saveOrUpdate(depositPayment);
 			return depositPayment;
 		}
+
+		@Override
+		public List<HopService> getHospitalServicesByDepartment(
+				Department department) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class)	
+		             .add(Expression.eq("department", department));
+			 crit.setProjection(Projections.distinct(Projections.property("hopService")));
+			return crit.list();
+		}
+
 	}

@@ -580,4 +580,10 @@ public interface BillingDAO {
 	 */
 	public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary);
 
+	/**
+	 * Gets hospital services by department
+	 * @param department
+	 * @return List<HopService>
+	 */
+	public List<HopService> getHospitalServicesByDepartment(Department department);
 }

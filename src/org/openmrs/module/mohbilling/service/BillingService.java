@@ -446,6 +446,7 @@ public interface BillingService {
 	 * @return List<HopServices> services
 	 */
 	public List<HopService>getAllHopService();
+	
 
 	/**
 	 * Get Hop Service by id
@@ -577,4 +578,10 @@ public interface BillingService {
 	public Set<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
 	
 	public DepositPayment saveDepositPayment(DepositPayment depositPayment);
+	/**
+	 * Gets hospital services by department
+	 * @param department
+	 * @return List<HopService>
+	 */
+	public List<HopService> getHospitalServicesByDepartment(Department department);
 }

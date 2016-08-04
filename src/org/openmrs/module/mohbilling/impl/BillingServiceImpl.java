@@ -700,4 +700,13 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.saveDepositPayment(depositPayment);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getHospitalServicesByDepartment(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public List<HopService> getHospitalServicesByDepartment(
+			Department department) {
+		return billingDAO.getHospitalServicesByDepartment(department);
+	}
+
 	}
