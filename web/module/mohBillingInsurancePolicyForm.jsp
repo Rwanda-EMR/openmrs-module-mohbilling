@@ -107,7 +107,7 @@
 			</tr>
 		</table>
 	</div>
-	<br /> <input type="hidden" name="cardId"
+	<br /> <input type="text" name="cardId"
 		value="${insurancePolicy.insurancePolicyId}" /> <b class="boxHeader">Section
 		II >> Insurance</b>
 	<div class="box">

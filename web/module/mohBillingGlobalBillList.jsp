@@ -7,7 +7,7 @@
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 
 
-<h2>Global List List</h2>
+<h2>Global Bill List</h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
 

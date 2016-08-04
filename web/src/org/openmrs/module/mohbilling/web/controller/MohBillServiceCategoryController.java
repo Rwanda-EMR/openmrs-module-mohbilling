@@ -41,18 +41,18 @@ public class MohBillServiceCategoryController extends
 		ModelAndView mav = new ModelAndView();
 		BillingService billingSvce = Context.getService(BillingService.class);
 		List<HopService> services = HopServiceUtil.getAllHospitalServices();
-		String departmentId=request.getParameter("departmentId");
+		Department department = null;
+		String departmentId=null;
+		if(request.getParameter("departmentId")!=null&&!request.getParameter("departmentId").equals("")){
+			departmentId=request.getParameter("departmentId");
+			department = DepartementUtil.getDepartement(Integer.valueOf(departmentId));
+		}
 		HopService service =new HopService();
 		if((request.getParameter("save")!=null)&& !request.getParameter("save").equals("")){	
-		     
-	 
 			String serviceIdStr = request.getParameter("serviceId");
-			System.out.println("parameters++ serviceIdstr"+serviceIdStr+"departement Id"+departmentId);
-			Department department = DepartementUtil.getDepartement(Integer.valueOf(departmentId));
-			 service = HopServiceUtil.getHopServiceById(Integer.valueOf(serviceIdStr));
-		    System.out.println("is this service Hop services>>>>>>"+service);
+			service = HopServiceUtil.getHopServiceById(Integer.valueOf(serviceIdStr));
+			 
 		    //Iterate over each insurance  and create service category		    
-			
 			for (Insurance insurance : InsuranceUtil.getAllInsurances()) {
 				ServiceCategory existingSc = billingSvce.getServiceCategoryByName(service.getName(), insurance);
 				
@@ -101,6 +101,7 @@ public class MohBillServiceCategoryController extends
 		
 		mav.addObject("services", services);
 		mav.addObject("departmentId", departmentId);
+		mav.addObject("department", department);
 		
 		mav.setViewName(getViewName());
 		return mav;

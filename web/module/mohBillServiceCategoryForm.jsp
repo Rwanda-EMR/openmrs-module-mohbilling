@@ -3,6 +3,27 @@
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingAdminHeader.jsp"%><br />
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<b class="boxHeader">Department</b>
+<div class="box">
+	<table width="100%">
+		<tr>
+			<td>Department Name</td>
+			<td> : <b>${department.name }</b></td>
+			<td>Description</td>
+			<td> : <b>${department.description }</b></td>
+		</tr>
+		<tr>
+			<td>Created By</td>
+			<td> : <b>${department.creator }</b></td>
+			<td>Created Date</td>
+			<td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${department.createdDate}" /></b></td>
+			
+		</tr>
+	</table>
+</div>
+<br/>
 
 <b class="boxHeader">Add Service Category</b>
 <div class="box">
@@ -27,5 +48,4 @@
 		</table>
 	</form>
 </div>
-Service name :${service.name}
 <%@ include file="/WEB-INF/template/footer.jsp"%>

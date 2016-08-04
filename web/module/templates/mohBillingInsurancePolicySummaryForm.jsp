@@ -78,7 +78,7 @@
 		  <div>
     <table><tr>
     <td><div style="text-align: right;"><b style="font-weight: bold;"> Deposit Balance : </b></div></td>
-    <td><div class="balance">${patientAccount.balance}</div></td>
+    <td><div class="balance">${(patientAccount.balance gt 0)?patientAccount.balance:0}</div></td>
     </tr>
     </table>
     </div>

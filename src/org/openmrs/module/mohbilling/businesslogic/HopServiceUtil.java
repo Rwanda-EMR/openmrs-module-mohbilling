@@ -6,6 +6,7 @@ package org.openmrs.module.mohbilling.businesslogic;
 import java.util.List;
 
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.service.BillingService;
 
@@ -45,6 +46,12 @@ public class HopServiceUtil {
 	public static List<HopService> getAllHospitalServices(){
 	     return 	getService().getAllHopService();		
 	}
+	
+	public static List<HopService> getHospitalServicesByDepartment(Department department){
+		return getService().getHospitalServicesByDepartment(department);
+	}
+	
+
 	
 
 }

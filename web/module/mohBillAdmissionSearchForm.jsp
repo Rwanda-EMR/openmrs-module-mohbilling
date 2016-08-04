@@ -3,7 +3,7 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ taglib prefix="mohbilling_tag" tagdir="/WEB-INF/tags/module/mohbilling" %>
 
-<b>Patient admission :Search/Create</b>b>
+<h2>Patient admission :Search/Create</h2>
 
 
 <mohbilling_tag:insurancePolicySearchByInsuranceCardNumber redirectUrl="admission.form" />

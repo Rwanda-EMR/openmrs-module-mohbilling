@@ -2,10 +2,16 @@
  * 
  */
 package org.openmrs.module.mohbilling.web.controller;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -16,7 +22,8 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
  */
 public class MohBillingHopServiceListController extends
 		ParameterizableViewController {
-
+	/** Logger for this class and subclasses */
+	protected final Log log = LogFactory.getLog(getClass());
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -27,8 +34,17 @@ public class MohBillingHopServiceListController extends
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
-		ModelAndView mav = new ModelAndView();		
-		 mav.addObject("services",HopServiceUtil.getAllHospitalServices() );
+		ModelAndView mav = new ModelAndView();	
+		List<HopService> services = null;
+		Department department = null;
+		 if(request.getParameter("departmentId")!=null &&!request.getParameter("departmentId").equals("") ){
+			 department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+			 mav.addObject("department", department);
+			 services = HopServiceUtil.getHospitalServicesByDepartment(department);
+		 }
+		else
+		services = HopServiceUtil.getAllHospitalServices();
+		mav.addObject("services",services );
 		mav.setViewName(getViewName());
 
 		return mav;

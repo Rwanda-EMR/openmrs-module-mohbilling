@@ -6,7 +6,7 @@ package org.openmrs.module.mohbilling.extension.html;
 import org.openmrs.module.web.extension.LinkExt;
 
 /**
- * @author Yves GAKUBA
+ * @author rbcemr
  *
  */
 public class BillingGutterLink extends LinkExt {
@@ -33,7 +33,7 @@ public class BillingGutterLink extends LinkExt {
 	 */
 	@Override
 	public String getUrl() {
-		return "module/mohbilling/checkPatientBillPayment.form";
+		return "module/mohbilling/patientSearchBill.form";
 	}
 
 }
