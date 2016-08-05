@@ -62,6 +62,7 @@ import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
@@ -333,9 +334,6 @@ public class HibernateBillingDAO implements BillingDAO {
 				.createCriteria(ThirdParty.class)
 				.add(Restrictions.eq("voided", false)).list();
 	}
-
-
-
 
 	@Override
 	public Float getPaidAmountPerInsuranceAndPeriod(Insurance insurance,
@@ -1374,5 +1372,21 @@ public class HibernateBillingDAO implements BillingDAO {
 			.createCriteria(Consommation.class)
 			.add(Restrictions.eq("patientBill", patientBill))
 			.uniqueResult();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#savePaymentRefund(org.openmrs.module.mohbilling.model.PaymentRefund)
+		 */
+		@Override
+		public PaymentRefund savePaymentRefund(PaymentRefund refund) {
+			sessionFactory.getCurrentSession().saveOrUpdate(refund);
+			return refund;
+		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPaidServiceBill(java.lang.Integer)
+		 */
+		@Override
+		public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid) {
+			return (PaidServiceBill) sessionFactory.getCurrentSession().get(PaidServiceBill.class, paidSviceBillid);
 		}
 	}

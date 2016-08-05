@@ -40,6 +40,7 @@ import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
@@ -50,6 +51,10 @@ import org.openmrs.module.mohbilling.model.Transaction;
  * 
  */
 
+/**
+ * @author emr
+ *
+ */
 public interface BillingDAO {
 
 	/**
@@ -597,5 +602,17 @@ public interface BillingDAO {
 	 * @return Consommation
 	 */
 	public Consommation getConsommationByPatientBill(PatientBill patientBill);
-
+      
+	/**
+	 * saves payment refund to the DB
+	 * @param refund
+	 * @return PaymentRefund
+	 */
+	public PaymentRefund savePaymentRefund(PaymentRefund refund);
+	/**
+	 *gets paidServiceBill matching with a given paidServiceBillid
+	 * @param paidSviceBillid
+	 * @return paidItem
+	 */
+	public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid);
 }

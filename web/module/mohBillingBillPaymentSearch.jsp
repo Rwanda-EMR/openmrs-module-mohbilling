@@ -5,6 +5,7 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 
+
 <b class="boxHeader">Search Bill Payment </b>
 <div class="box" style="height: 60px;">
 	<div style="float: left; height: inherit;">
@@ -18,6 +19,28 @@
 				<tr>
 					<td></td>
 					<td><input type="submit" value="Search Payment" /></td>
+					<td></td>
+				</tr>
+			</table>
+		</form>
+	</div>	
+</div>
+<br/>
+
+
+<b class="boxHeader">Search Refund by Bill  Payment </b>
+<div class="box" style="height: 60px;">
+	<div style="float: left; height: inherit;">
+		<form action="" method="get">
+			<table>
+				<tr>
+					<td>Payment identifier</td>
+					<td><input type="text" name="paymentId" /></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td><input type="submit" value="Search Refund" /></td>
 					<td></td>
 				</tr>
 			</table>

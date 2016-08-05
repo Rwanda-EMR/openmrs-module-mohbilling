@@ -10,7 +10,6 @@
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 
-
 <c:if test="${empty paidItems}">
 	<b class="boxHeader">Search Refund form by Payment </b>
 	<div class="box">
@@ -35,7 +34,6 @@
 <c:set var="insurancePolicy" value="${insurancePolicy}" />
 <c:set var="globalBill" value="${consommation.globalBill}" />
 <c:set var="beneficiary" value="${beneficiary}"/>
-
 
 	<c:import url="mohBillingRefundForm.jsp" />
 </c:if>

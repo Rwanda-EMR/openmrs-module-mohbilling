@@ -30,6 +30,7 @@ import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
@@ -594,4 +595,17 @@ public interface BillingService {
 	 * @return consommation
 	 */
 	public Consommation getConsommationByPatientBill(PatientBill patientBill);
+	/**
+	 * saves PaymentRefund
+	 * @param refund
+	 * @return PaymentRefund
+	 */
+	public  PaymentRefund savePaymentRefund(PaymentRefund refund);
+
+	/**
+	 * gets paidSericeBill matching with agiven a paidServiceBillid
+	 * @param paidSviceBillid
+	 * @return paidItem
+	 */
+	public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid);
 }

@@ -7,7 +7,10 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
+
 import org.openmrs.User;
+import org.openmrs.util.OpenmrsUtil;
 
 /**
  * A Refund is done when the the Hospital wants to reimburse amount to patient
@@ -29,6 +32,7 @@ public class PaymentRefund {
 	private Set<PaidServiceBillRefund> refundedItems;
 
 	private User refundedBy;
+	
 
 	private Boolean approved = false;
 
@@ -284,8 +288,7 @@ public class PaymentRefund {
 	 */
 	public Set<PaidServiceBillRefund> getRefundedItems() {
 
-		Set<PaidServiceBillRefund> refItems = new HashSet<PaidServiceBillRefund>();
-		return refItems;
+		return refundedItems;
 	}
 
 	/**
@@ -295,19 +298,18 @@ public class PaymentRefund {
 	public void setRefundedItems(Set<PaidServiceBillRefund> refundedItems) {
 		this.refundedItems = refundedItems;
 	}
-
 	/**
 	 * Add the given refunded item to the refunded items list of this refund
-	 * 
-	 * @param refundedItem
+	  * @param refundedItem
 	 */
 	public void addRefundedItem(PaidServiceBillRefund refundedItem) {
 
 		if (refundedItems == null)
-			refundedItems = new HashSet<PaidServiceBillRefund>();
+			refundedItems = new TreeSet<PaidServiceBillRefund>();
 		if (refundedItem != null) {
 			refundedItem.setRefund(this);
 			refundedItems.add(refundedItem);
 		}
 	}
 }
+

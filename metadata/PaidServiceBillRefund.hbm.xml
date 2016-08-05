@@ -21,7 +21,7 @@
 		<property name="refQuantity" column="refund_quantity" type="big_decimal" />	
 
 	
-		<many-to-one name="refund" class="org.openmrs.module.mohbilling.model.PaymentRefund" column="patient_bill_id" />
+		<many-to-one name="refund" class="org.openmrs.module.mohbilling.model.PaymentRefund" column="refund_id" />
 		<many-to-one name="paidItem" class="org.openmrs.module.mohbilling.model.PaymentRefund" column="paid_item_id" />	
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />

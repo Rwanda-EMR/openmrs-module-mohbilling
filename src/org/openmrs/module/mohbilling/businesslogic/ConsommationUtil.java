@@ -37,7 +37,7 @@ public class ConsommationUtil {
 	
 	/**
 	 * Creates a PatientServiceBill object and saves it in the DB through
-	 * PatientBill which is its parent
+	 * Consommation which is its parent
 	 * 
 	 * @param psb
 	 *            the PatientServiceBill to be saved

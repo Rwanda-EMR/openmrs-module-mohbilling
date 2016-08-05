@@ -1,7 +1,10 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
+<%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld" %>
+<%@ include file="templates/mohBillingLocalHeader.jsp"%>
+<%@ include file="templates/mohBillingBillHeader.jsp"%>
 
  <script type="text/javascript">
         $(function () {
@@ -35,7 +38,7 @@
     
 
 <div class="box">
-	<form action="refundPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment">
+	<form action="paymentRefund.form?paymentId=${payment.billPaymentId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}&save=true" method="post" id="formSaveBillPayment">
 		<table width="99%">
 			<tr>
 				<th class="columnHeader"></th>
@@ -62,11 +65,7 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
 				   <td class="rowValue center ${(status.count%2!=0)?'even':''}">${paidItem.paidQty}</td>
-					<td><input type="text" size="3" name="quantity_${status.count-1}" id="quantity_${status.count-1}" style="text-align: center;" value=""/></td>
-					
-					
-					
-					
+					<td><input type="text" size="3" name="quantity-${paidItem.paidServiceBillId}" id="quantity_${status.count-1}" style="text-align: center;" value="${paidItem.paidQty }"/></td>
 					
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice}</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/></td>
@@ -92,7 +91,7 @@
 			</tr>
 			<tr style="font-size: 1em">
 				<td><b>Refunder</b></td>
-				<td colspan="2"><openmrs_tag:userField formFieldName="billCollector" initialValue="${authUser.userId}"/></td>
+				<td colspan="2"><openmrs_tag:userField formFieldName="refunder" initialValue="${authUser.userId}"/></td>
 				<td colspan="4"></td>
 				<td><div style="text-align: right;"><b>Amount Paid</b></div></td>
 				<td><div class="amount">${payment.amountPaid}</div></td>				
@@ -102,7 +101,7 @@
 				<td colspan="2"><input type="text" autocomplete="off" name="refundingDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 			    <td colspan="4"></td>
 				<td><b>Refunded Amount</b></td>
-				<td colspan="2"><input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/></td>							
+				<td colspan="2"><input type="text" autocomplete="off" name="refundedAmount" size="11" class="numbers" value=""/></td>							
 			</tr>			
 			<tr>
 				<td><b>Refunding Reason</b></td>
@@ -123,9 +122,6 @@
 		</table>
 	</form>
 </div>
-
-
-
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
 

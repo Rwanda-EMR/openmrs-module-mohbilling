@@ -33,6 +33,7 @@ import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
@@ -726,6 +727,24 @@ public class BillingServiceImpl implements BillingService {
 	public Consommation getConsommationByPatientBill(PatientBill patientBill) {
 		
 		return billingDAO.getConsommationByPatientBill(patientBill);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#savePaymentRefund(org.openmrs.module.mohbilling.model.PaymentRefund)
+	 */
+	@Override
+	public PaymentRefund savePaymentRefund(PaymentRefund refund) {
+		return billingDAO.savePaymentRefund(refund);
+	
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getPaidServiceBill(java.lang.Integer)
+	 */
+	@Override
+	public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid) {
+	return	billingDAO.getPaidServiceBill(paidSviceBillid);
 	}
 
 	}

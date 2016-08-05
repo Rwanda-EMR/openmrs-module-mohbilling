@@ -167,9 +167,6 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			return null;
 		}
-
-	
-
 	}
 	
 	
@@ -199,9 +196,7 @@ public class MohBillingPatientBillPaymentFormController extends
 			//if paid,then update patientservicebill as paid
 			psb.setPaid(true);
 			ConsommationUtil.createPatientServiceBill(psb);
-			
-			
-			
+	
 		}
 		
 		

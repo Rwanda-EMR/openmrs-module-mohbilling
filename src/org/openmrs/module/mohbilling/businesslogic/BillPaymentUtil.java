@@ -8,12 +8,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
-import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
-
 
 public class BillPaymentUtil {
 	
@@ -33,10 +29,8 @@ public class BillPaymentUtil {
 		
 		for (BillPayment billpayment: getService().getAllBillPayments()){
 		
-			payments.add(billpayment);
-			
-		}
-		
+			payments.add(billpayment);			
+		}		
 		return payments;
 	}
 	
@@ -73,6 +67,15 @@ public class BillPaymentUtil {
 			BillPayment payment) {
 		
 		return getService().getPaidServices(payment) ;
+	}
+	/**
+	 * gets paidServiceBill matching with a give paidServiceBillId
+	 * @param paidSviceBillid
+	 * @return paidItem
+	 */
+	public static PaidServiceBill getPaidServiceBill(Integer paidSviceBillid) {
+	
+		return  getService().getPaidServiceBill(paidSviceBillid);
 	}
 
 	

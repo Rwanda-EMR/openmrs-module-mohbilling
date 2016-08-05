@@ -177,10 +177,8 @@ public class MohBillingBillingFormController extends
 					psb.setCreatedDate(new Date());
 					psb.setCreator(Context.getAuthenticatedUser());					
 					psb.setVoided(false);
-					
 					//totalAmount.add(quantity.multiply(unitPrice)), mc), mc);
 					totalAmount = totalAmount.add(quantity.multiply(unitPrice));
-
 					consom.addBillItem(psb);
 				}
 			}					

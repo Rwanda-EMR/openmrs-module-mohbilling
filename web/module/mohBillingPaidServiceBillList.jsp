@@ -18,9 +18,9 @@
 		<c:if test="${!empty paidItems}">
 				<tr>
 					<td class="columnHeader"><a href="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">View</a></td>
-					<th class="columnHeader" style="font-size: 1em; font-weight: bold;" colspan="4"><center>Date: ${consommation.createdDate}, Total Amount : ${patientBill.amount} Rwf, Insurance : ${patientBill.beneficiary.insurancePolicy.insurance.name}, Policy Card No. : ${patientBill.beneficiary.policyIdNumber}</center></th>
+					<th class="columnHeader" style="font-size: 1em; font-weight: bold;" colspan="4"><center>Date: ${consommation.createdDate}, Total Amount : ${payment.amountPaid} Rwf, Insurance : ${consommation.beneficiary.insurancePolicy.insurance.name}, Policy Card No. : ${consommation.beneficiary.policyIdNumber}</center></th>
 					<td class="columnHeader">						
-							<a href="refundBill.form?consommationId=${consommation.consommationId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">Refund</a>
+							<a href="paymentRefund.form?paymentId=${payment.billPaymentId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">Refund</a>
 					</td>
 				</tr>
        </c:if>
