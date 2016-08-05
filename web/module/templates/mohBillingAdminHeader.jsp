@@ -15,6 +15,9 @@
 	<li class="<c:if test='<%= request.getRequestURI().contains("Third")%>'> active</c:if>">
 	<a href="thirdParty.form">Third Party</a>
 	</li>
+	<li class="<c:if test='<%= request.getRequestURI().contains("billingConfig")%>'> active</c:if>">
+	<a href="billingConfig.form">Billing Configuration</a>
+	</li>
 
 </ul>
 

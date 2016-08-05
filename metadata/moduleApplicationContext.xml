@@ -39,8 +39,7 @@
 			    <prop key="module/@MODULE_ID@/admission.form">mohBillingAdmissionFormController</prop>
 			    <prop key="module/@MODULE_ID@/departments.list">mohBillingDepartmentListController</prop>	
 			    <prop key="module/@MODULE_ID@/services.list">mohBillingHopServiceListController</prop>
-			    <prop key="module/@MODULE_ID@/service.form">mohBillingHopserviceFormController</prop> 
-			    <prop key="module/@MODULE_ID@/serviceCategory.form">mohBillServiceCategoryController</prop>
+			    <prop key="module/@MODULE_ID@/service.form">mohBillingHopserviceFormController</prop>			 
 			    <prop key="module/@MODULE_ID@/admissionSearch.form">mohBillingAdmissionSearchFormController</prop>
 			    <prop key="module/@MODULE_ID@/globalBill.list">mohBillingGlobalBillListController</prop>
 			    <prop key="module/@MODULE_ID@/consommation.list">mohBillingConsommationListController</prop>
@@ -49,6 +48,7 @@
 				<prop key="module/@MODULE_ID@/transaction.form">mohBillingTransactionFormController</prop>
 				<prop key="module/@MODULE_ID@/searchBillPayment.form">mohBillingSearchBillPaymentController</prop>
 				<prop key="module/@MODULE_ID@/paymentRefund.form">mohBillingRefundFormController</prop>
+				<prop key="module/@MODULE_ID@/billingConfig.form">mohBillingConfigurationFormController</prop>			
 				
 			</props>
 		</property>
@@ -153,9 +153,6 @@
 	<bean id="mohBillingHopserviceFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingHopserviceFormController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingHopServiceForm</value></property>
 	</bean>
-	<bean id="mohBillServiceCategoryController" class="org.openmrs.module.mohbilling.web.controller.MohBillServiceCategoryController">
-		<property name="viewName"><value>/module/mohbilling/mohBillServiceCategoryForm</value></property>
-	</bean>
 	<bean id="mohBillingAdmissionSearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdmissionSearchFormController">
 		<property name="viewName"><value>/module/mohbilling/mohBillAdmissionSearchForm</value></property>
 	</bean>
@@ -180,8 +177,11 @@
 	<bean id="mohBillingRefundFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundFormController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingRefundForm</value></property>
 	</bean>
-
-	<!-- /Controllers -->
+	<bean id="mohBillingConfigurationFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingConfigurationFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingConfigurationForm</value></property>
+	</bean>
+	
+		<!-- /Controllers -->
 
 	<bean parent="serviceContext">
 		<property name="moduleService">

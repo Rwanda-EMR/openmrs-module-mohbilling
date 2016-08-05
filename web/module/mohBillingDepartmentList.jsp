@@ -25,7 +25,7 @@
 			<td>${status.count}</td>
 			<td><a href="department.form?departmentId=${department.departmentId}">${department.name}</a></td>			
 			<td>${department.description}</td>			
-			<td> &nbsp;<a href="serviceCategory.form?departmentId=${department.departmentId}">Add /<ahref="services.list?departmentId=${department.departmentId}">view</a></a></td>	
+			<td> &nbsp;<a href="services.list?departmentId=${department.departmentId}">view</a></a></td>	
 		
 		</tr>
 	</c:forEach>

@@ -6,6 +6,7 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,9 +14,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
@@ -31,6 +34,7 @@ import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.web.WebConstants;
@@ -57,7 +61,7 @@ public class MohBillingBillingFormController extends
 		if (request.getParameter("save") != null) {
 			Consommation consommation = handleSavePatientConsommation(request, mav);
 			if (null == consommation)
-				return new ModelAndView(new RedirectView(
+				 new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
 								+ "&ipCardNumber="+request.getParameter("ipCardNumber")
@@ -71,8 +75,11 @@ public class MohBillingBillingFormController extends
 								+ consommation.getBeneficiary().getPolicyIdNumber()));
 		}
 		if (request.getParameter("searchDpt") != null) {
-		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));		  
+		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+	
+		 
 			if (department !=null)
+			
 				return new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
@@ -90,6 +97,23 @@ public class MohBillingBillingFormController extends
 			Beneficiary ben = InsurancePolicyUtil
 					.getBeneficiaryByPolicyIdNo(request
 							.getParameter("ipCardNumber"));
+			Set<ServiceCategory> categories = null;
+			if(request.getParameter("departmentId")!=null){
+				
+				
+				 Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+
+				 ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("ipCardNumber"));
+				 categories = HopServiceUtil.getServiceCategoryByInsurancePolicyDepartment(ben.getInsurancePolicy(), department);
+					
+					mav.addObject("categories",categories);
+			}
+				
+			
+			
+			
+			
+			
 			mav.addObject("beneficiary", ben);
 
 			InsurancePolicy ip = InsurancePolicyUtil
