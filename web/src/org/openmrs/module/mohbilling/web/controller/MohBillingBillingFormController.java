@@ -105,6 +105,8 @@ public class MohBillingBillingFormController extends
 
 				 ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("ipCardNumber"));
 				 categories = HopServiceUtil.getServiceCategoryByInsurancePolicyDepartment(ben.getInsurancePolicy(), department);
+				 
+				 log.info("categories zize>>>>>>>>>>>>>>>>>>>"+categories.size());
 					
 					mav.addObject("categories",categories);
 			}

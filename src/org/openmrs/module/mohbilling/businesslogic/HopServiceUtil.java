@@ -6,7 +6,6 @@ package org.openmrs.module.mohbilling.businesslogic;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.model.Department;
@@ -37,10 +36,8 @@ public class HopServiceUtil {
 		
 	}
 	public static HopService getHopServiceById(Integer serviceId){
-	return	getService().getHopService(serviceId);
-		
-		
-		
+	return	getService().getHopService(serviceId);		
+	
 	}
 	/**
 	 * Get all services  by departement
@@ -62,10 +59,9 @@ public class HopServiceUtil {
 			}
 			
 		}
-
 		
 		return categories;
-		
+	
 	}
 	
 

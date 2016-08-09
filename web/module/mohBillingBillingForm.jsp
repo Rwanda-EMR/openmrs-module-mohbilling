@@ -268,22 +268,19 @@
 						<c:forEach items="${departments }" var="dep">
 							<option value="${dep.departmentId}">${dep.name}</option>
 						</c:forEach>
-					</select>
+				</select>
 				</td>
 				<td><input type="submit" value="search services" /></td>
 			</tr>
 		</table>
 	</form>
-</div> 
-
+</div>
 </div>
 		<c:if test="${param.departmentId !=null}">
 		<div>
 			<div id="patientTabs">
 				<ul>
-					<c:forEach items="${categories}" var="serviceCategory" varStatus="status">						
-				     
-				      
+					<c:forEach items="${categories}" var="serviceCategory" varStatus="status"> 
 				      					  
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
 				     

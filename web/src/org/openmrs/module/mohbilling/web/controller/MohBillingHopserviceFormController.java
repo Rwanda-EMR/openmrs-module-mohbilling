@@ -48,22 +48,7 @@ public class MohBillingHopserviceFormController extends
 			
 			HopServiceUtil.createHopService(service);
 			
-           Insurance insurance = InsuranceUtil.getInsurance(1);
-			ServiceCategory sc = new ServiceCategory();
-
-			sc.setName(serviceName);
-			sc.setDescription(description);
-
-			sc.setRetired(false);
-			sc.setCreatedDate(new Date());
-			sc.setCreator(Context.getAuthenticatedUser());
-			sc.setDepartment(DepartementUtil.getDepartement(1));
-			sc.setHopService(service);
-			
-			insurance.addServiceCategory(sc);
-			Context.getService(BillingService.class).saveInsurance(insurance);
-			
-			
+          
 			return new ModelAndView(new RedirectView("services.list"));				
 		}
 		mav.setViewName(getViewName());	
