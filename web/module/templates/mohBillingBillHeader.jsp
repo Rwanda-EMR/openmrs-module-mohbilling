@@ -84,4 +84,15 @@
 		background: #F0E68C;
 		cursor: pointer;
 	}
+
+	.balance{
+	text-align: right;
+	background-color: white;
+	border: 2px solid #000000;
+	font-weight: bold;
+	float: right;
+	color: red;
+	font-size: 16px;
+	}
+
 </style>

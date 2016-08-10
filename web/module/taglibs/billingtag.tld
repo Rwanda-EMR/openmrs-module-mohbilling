@@ -34,5 +34,11 @@
 		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
 		<function-signature>java.lang.String getGlobalPaidAmountFromGlobalBill(java.lang.Integer)</function-signature>
 	</function>
+	<function>
+	<description>Get total number of services by department</description>
+		<name>servicesByDepartment</name>
+		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
+		<function-signature>java.lang.String getServicesByDepartment(java.lang.Integer)</function-signature>
+	</function>
 	
 </taglib>

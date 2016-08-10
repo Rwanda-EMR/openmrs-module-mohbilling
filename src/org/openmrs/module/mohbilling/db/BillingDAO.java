@@ -29,6 +29,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -563,17 +564,11 @@ public interface BillingDAO {
 	 * @return PatientAccount
 	 */
 	public PatientAccount getPatientAccount(Integer accountId);
-	/**
-	 * gets transactions set by given parameters among PatientAccount, startDate, endDate and/or reason
-	 * @param acc
-	 * @param startDate
-	 * @param endDate
-	 * @param reason
-	 * @return transactions set
-	 */
-	public List<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
+	
 	
 	public PatientAccount getPatientAccount(Patient patient);
+	
+	public DepositPayment saveDepositPayment(DepositPayment depositPayment);
 
 	/**
 	 * Gets all consommations matching with a given Beneficiary
@@ -615,4 +610,11 @@ public interface BillingDAO {
 	 * @return paidItem
 	 */
 	public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid);
+	/**
+	 * Gets hospital services by department
+	 * @param department
+	 * @return List<HopService>
+	 */
+	public List<HopService> getHospitalServicesByDepartment(Department department);
+
 }

@@ -12,6 +12,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -43,6 +44,7 @@ public class MohBillingConsommationListController extends	ParameterizableViewCon
 		mav.addObject("insurancePolicy", ip);
 		mav.addObject("globalBill", globalBill);
 		mav.addObject("consommations", consommations);		
+		mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(ip.getOwner()));
 		mav.setViewName(getViewName());	
 		
 		return mav;

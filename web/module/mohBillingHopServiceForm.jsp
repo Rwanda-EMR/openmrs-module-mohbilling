@@ -4,19 +4,20 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingAdminHeader.jsp"%>
 
-<h2>Manage services</h2>
+<h2>New Hospital Service</h2>
 
-<!-- div: creating new Service -->
-<div >
-	<form action="service.form?save=true" method="post">
+<p><a href="services.list">View Current Hospital Services</a> </p>
+
+<div class="box">
+	<form action="service.form?serviceId=${service.serviceId }&save=true" method="post">
 		<table>
 			<tr>
 				<td>Name</td>
-				<td><input type="text" name="serviceName" size="70"/></td>
+				<td><input type="text" name="serviceName" size="30" value="${service.name }"/></td>
 			</tr>
 			<tr>
 				<td>Description</td>
-				<td><textarea name="description" cols="30" rows="3"></textarea></td>
+				<td><textarea name="description" cols="70" rows="5">${service.description}</textarea></td>
 			</tr>			
 			<tr>
 				<td></td>

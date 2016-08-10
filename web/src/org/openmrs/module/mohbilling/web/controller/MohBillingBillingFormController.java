@@ -22,6 +22,7 @@ import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ThirdPartyBillUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
@@ -131,13 +132,13 @@ public class MohBillingBillingFormController extends
 									.getExpirationDate().getTime())));
 			
 			mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
-
+			mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(ben.getPatient()));
 		} catch (Exception e) {
 		//	log.error(">>>>MOH>>BILLING>> " + e.getMessage());
 			e.printStackTrace();
 			return new ModelAndView(new RedirectView("patientSearchBill.form"));
 		}
-
+		
 		return mav;
 
 	}
@@ -195,7 +196,7 @@ public class MohBillingBillingFormController extends
 				
 					if(request.getParameter("quantity_" + i)!=null&&!request.getParameter("quantity_" + i).equals(""))
 						 quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
-					psb.setQuantity(BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i))));
+					psb.setQuantity(quantity);
 					
 
 					psb.setServiceDate(new Date());

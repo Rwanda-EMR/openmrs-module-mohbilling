@@ -19,6 +19,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -446,6 +447,7 @@ public interface BillingService {
 	 * @return List<HopServices> services
 	 */
 	public List<HopService>getAllHopService();
+	
 
 	/**
 	 * Get Hop Service by id
@@ -566,15 +568,7 @@ public interface BillingService {
 	 * @param account
 	 */
 	public void savePatientAccount(PatientAccount account);
-	/**
-	 * gets transactions set by given parameters among PatientAccount, startDate, endDate and/or reason
-	 * @param acc
-	 * @param startDate
-	 * @param endDate
-	 * @param reason
-	 * @return transactions set
-	 */
-	public List<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
+
 	/**
 	 * Gets BillPayment by a given PaymentId
 	 * @param paymentId
@@ -608,4 +602,13 @@ public interface BillingService {
 	 * @return paidItem
 	 */
 	public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid);
+
+	public DepositPayment saveDepositPayment(DepositPayment depositPayment);
+	/**
+	 * Gets hospital services by department
+	 * @param department
+	 * @return List<HopService>
+	 */
+	public List<HopService> getHospitalServicesByDepartment(Department department);
+
 }

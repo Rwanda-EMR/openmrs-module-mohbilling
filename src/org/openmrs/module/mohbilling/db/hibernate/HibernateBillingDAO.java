@@ -33,6 +33,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
@@ -51,6 +52,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -1216,7 +1218,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class)	
 			             .add(Expression.eq("insurancePolicy", ip));
-
 		return crit.list();
 	}
 
@@ -1322,30 +1323,6 @@ public class HibernateBillingDAO implements BillingDAO {
 		        PatientAccount account = (PatientAccount) crit.uniqueResult();
 				return account;
 		}
-
-		@Override
-		public List<Transaction> getTransactions(PatientAccount acc,
-				Date startDate, Date endDate, String reason) {
-			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Transaction.class);
-			
-			if (acc != null) {
-				crit.add(Expression.eq("patientAccount", acc));
-			}
-			if (reason != null) {
-				crit.add(Expression.eq("reason", reason));
-			}
-			if (startDate != null) {
-				crit.add(Expression.ge("transactionDate", startDate));
-			}
-			if (endDate != null) {
-				crit.add(Expression.le("transactionDate", endDate));
-			}
-			crit.addOrder(Order.desc("transactionDate"));
-			//crit.list() is a set, the following codes serve to convert the set to the list
-			//a set cannot be ordered on display
-			List<Transaction> list = new ArrayList<Transaction>(crit.list());
-			return list;
-		}
 		/* (non-Javadoc)
 		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillPayment(java.lang.Integer)
 		 */
@@ -1388,5 +1365,20 @@ public class HibernateBillingDAO implements BillingDAO {
 		@Override
 		public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid) {
 			return (PaidServiceBill) sessionFactory.getCurrentSession().get(PaidServiceBill.class, paidSviceBillid);
+		}
+
+		@Override
+		public DepositPayment saveDepositPayment(DepositPayment depositPayment) {
+			sessionFactory.getCurrentSession().saveOrUpdate(depositPayment);
+			return depositPayment;
+		}
+
+		@Override
+		public List<HopService> getHospitalServicesByDepartment(
+				Department department) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class)	
+		             .add(Expression.eq("department", department));
+			 crit.setProjection(Projections.distinct(Projections.property("hopService")));
+			return crit.list();
 		}
 	}

@@ -239,5 +239,14 @@ public class MohBillingInsurancePolicyFormController extends
 
 		return true;
 	}
-
+	private void handleRetireInsurancePolicy(InsurancePolicy ip) {
+		if(ip!=null){
+			ip.setRetired(true);
+			ip.setRetiredBy(Context.getAuthenticatedUser());
+			ip.setRetiredDate(new Date());
+			ip.setRetireReason("void");
+			InsurancePolicyUtil.createInsurancePolicy(ip);
+		}
+		
+	}
 }

@@ -12,21 +12,23 @@
 
 <b class="boxHeader">Current Services </b>
 <div class="box">
-<table>
+<form action="services.list?department=${department.departmentId }">
+<table style="width:100%">
 	<tr>
-		<th>#.</th>
-		<th>Name</th>
-		<th>Description</th>	
+		<th  style="width:5%">#.</th>
+		<th style="width:8%">Name</th>
+		<th style="width:8%">Description</th>	
 		
 	</tr>
 	<c:forEach items="${services}" var="service" varStatus="status">
 			<tr>
-			<td>${status.count}</td>
-			<td><a href="hopService.form?serviceId=${service.serviceId}">${service.name}</a></td>			
-			<td>${service.description}</td>			
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="service.form?serviceId=${service.serviceId}">${service.name}</a></td>			
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.description}</td>			
 		</tr>
 	</c:forEach>
 </table>
+</form>
 </div>
 
 

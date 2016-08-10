@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+	
+	<joined-subclass name="DepositPayment" table="moh_bill_deposit_payment" extends="BillPayment">	
+	
+		<key column="deposit_payment_id" not-null="true" on-delete="cascade" />		
+		<property name="depositPaymentId" type="int" not-null="true"	column="deposit_payment_id" update="false" insert="false" />
+		<property name="createdDate" column="created_date" />
+		<property name="voided" column="voided" type="java.lang.Boolean" />
+		<property name="voidedDate" column="voided_date"  />
+		<property name="voidReason" column="void_reason" type="text" />
+		
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="transaction" class="org.openmrs.module.mohbilling.model.Transaction"
+            column="transaction_id" unique="true" not-null="true"  cascade="all" />	
+			
+	</joined-subclass>
+
+</hibernate-mapping>

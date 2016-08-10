@@ -64,5 +64,11 @@ public class HopServiceUtil {
 	
 	}
 	
+	public static List<HopService> getHospitalServicesByDepartment(Department department){
+		return getService().getHospitalServicesByDepartment(department);
+	}
+	
+
+	
 
 }
