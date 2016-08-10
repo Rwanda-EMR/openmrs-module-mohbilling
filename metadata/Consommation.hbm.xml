@@ -19,6 +19,7 @@
 
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="department" class="org.openmrs.module.mohbilling.model.Department" column="department_id" />
 		<many-to-one name="beneficiary" class="org.openmrs.module.mohbilling.model.Beneficiary" column="beneficiary_id" />
 		<many-to-one name="globalBill" class="org.openmrs.module.mohbilling.model.GlobalBill" column="global_bill_id" />
 		<many-to-one name="patientBill" class="org.openmrs.module.mohbilling.model.PatientBill" column="patient_bill_id" unique="true"/>

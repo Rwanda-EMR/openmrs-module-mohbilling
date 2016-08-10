@@ -152,8 +152,11 @@ public class MohBillingBillingFormController extends
 
 		Consommation saveConsommation = null;
 		Integer globalBillId =Integer.valueOf(request.getParameter("globalBillId"));
+		Integer departmentId =Integer.valueOf(request.getParameter("globalBillId"));
+		
 		
 		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
+		Department department = DepartementUtil.getDepartement(departmentId);
 		BigDecimal globalAmount = globalBill.getGlobalAmount();
 		Consommation consom = null;
 
@@ -173,6 +176,7 @@ public class MohBillingBillingFormController extends
 		   
 
 			consom.setBeneficiary(beneficiary);
+			consom.setDepartment(department);
 			consom.setCreatedDate(new Date());
 			consom.setCreator(Context.getAuthenticatedUser());
 			consom.setVoided(false);
