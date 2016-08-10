@@ -603,6 +603,9 @@ public interface BillingService {
 	 */
 	public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid);
 
+	public Set<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
+	
+
 	public DepositPayment saveDepositPayment(DepositPayment depositPayment);
 	/**
 	 * Gets hospital services by department

@@ -564,7 +564,15 @@ public interface BillingDAO {
 	 * @return PatientAccount
 	 */
 	public PatientAccount getPatientAccount(Integer accountId);
-	
+	/**
+	 * gets transactions set by given parameters among PatientAccount, startDate, endDate and/or reason
+	 * @param acc
+	 * @param startDate
+	 * @param endDate
+	 * @param reason
+	 * @return transactions set
+	 */
+	public Set<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
 	
 	public PatientAccount getPatientAccount(Patient patient);
 	
@@ -578,6 +586,7 @@ public interface BillingDAO {
 	public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary);
 
 	/**
+<<<<<<< HEAD
 	 * Gets BillPayment by a given paymentId
 	 * @param paymentId
 	 * @return billPayment
@@ -616,5 +625,4 @@ public interface BillingDAO {
 	 * @return List<HopService>
 	 */
 	public List<HopService> getHospitalServicesByDepartment(Department department);
-
 }

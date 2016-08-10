@@ -836,11 +836,15 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getPaidServiceBill(paidSviceBillid);
 	}
 
+	public Set<Transaction> getTransactions(PatientAccount acc,
+			Date startDate, Date endDate, String reason) {
+		return billingDAO.getTransactions(acc, startDate, endDate, reason);
+	}
+
 	@Override
 	public DepositPayment saveDepositPayment(DepositPayment depositPayment) {
 		return billingDAO.saveDepositPayment(depositPayment);
 	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -853,4 +857,5 @@ public class BillingServiceImpl implements BillingService {
 			Department department) {
 		return billingDAO.getHospitalServicesByDepartment(department);
 	}
+
 	}

@@ -1381,4 +1381,29 @@ public class HibernateBillingDAO implements BillingDAO {
 			 crit.setProjection(Projections.distinct(Projections.property("hopService")));
 			return crit.list();
 		}
+
+		public Set<Transaction> getTransactions(PatientAccount acc,
+				Date startDate, Date endDate, String reason) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Transaction.class);
+			
+			if (acc != null) {
+				crit.add(Expression.eq("patientAccount", acc));
+			}
+			if (reason != null) {
+				crit.add(Expression.eq("reason", reason));
+			}
+			if (startDate != null) {
+				crit.add(Expression.ge("transactionDate", startDate));
+			}
+			if (endDate != null) {
+				crit.add(Expression.le("transactionDate", endDate));
+			}
+			crit.addOrder(Order.desc("transactionDate"));
+			//crit.list() is a set, the following codes serve to convert the set to the list
+			//a set cannot be ordered on display
+			//List<Transaction> list = new ArrayList<Transaction>(crit.list());
+			return (Set<Transaction>) crit.list();
+
+		}
+
 	}
