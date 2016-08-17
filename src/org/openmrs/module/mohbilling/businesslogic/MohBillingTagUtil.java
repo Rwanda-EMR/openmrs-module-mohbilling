@@ -82,8 +82,11 @@ public class MohBillingTagUtil {
 				double amountDueByPatient = 0.0; //get the due Amount from patientBill				
 			
 				for (PatientServiceBill psb : consomm.getBillItems()) {
-					Double cost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
+					Double cost = null;
+					if(psb.getVoided()==false){
+					cost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
 					amountDueByPatient+=cost*patientRate.doubleValue();
+					}
 				}
 	
 				for (BillPayment bp : consomm.getPatientBill().getPayments()) {

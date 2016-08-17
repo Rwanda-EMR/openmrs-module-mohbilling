@@ -47,6 +47,7 @@
 				<prop key="module/@MODULE_ID@/billSearch.form">mohBillingBillSearchFormController</prop> 
 				<prop key="module/@MODULE_ID@/searchPatientAccount.form">mohBillingSearchPatientAccountFormController</prop>  
 				<prop key="module/@MODULE_ID@/transaction.form">mohBillingTransactionFormController</prop>
+				<prop key="module/@MODULE_ID@/consommation.form">mohBillingConsommationFormController</prop>
 			</props>
 		</property>
 	</bean>
@@ -170,7 +171,10 @@
 	</bean>
 	<bean id="mohBillingBillSearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillSearchFormController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingBillSearchForm</value></property>
-	</bean>
+	</bean> 
+	<bean id="mohBillingConsommationFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingConsommationFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingConsommationForm</value></property>
+	</bean> 
 
 	<!-- /Controllers -->
 
