@@ -29,8 +29,7 @@
 				<prop key="module/@MODULE_ID@/patientBillPayment.form">mohBillingPatientBillPaymentFormController</prop>				
 				<prop key="module/@MODULE_ID@/insurancePolicySearch.form">mohBillingInsurancePolicySearchFormController</prop>
 				<prop key="module/@MODULE_ID@/insurancePolicy.form">mohBillingInsurancePolicyFormController</prop>
-				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortController</prop>
-				<prop key="module/@MODULE_ID@/printPDFPatientBill.form">mohBillingPrintPDFPatientBillController</prop>	
+				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortController</prop>				
 			    <prop key="module/@MODULE_ID@/thirdParty.form">mohBillingThirdPatryFormController</prop>
 			    <prop key="module/@MODULE_ID@/received.form">mohBillingReceivedController</prop>			   
 			    <prop key="module/@MODULE_ID@/refundBillReport.form">mohBillingRefundReportController</prop>
@@ -127,9 +126,7 @@
 
 	<bean id="mohBillingReceivedController" class="org.openmrs.module.mohbilling.web.controller.MohBillingrReceivedAmountController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingReceivedAmount</value></property>
-	</bean>	
-	<bean id="mohBillingPrintPDFPatientBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingPrintPatientBillController"/>
-
+	</bean>
 	<bean id="mohBillingRefundReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundReportController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingRefundReport</value></property>
 	</bean>
