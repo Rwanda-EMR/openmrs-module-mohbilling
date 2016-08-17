@@ -53,7 +53,8 @@ public class MohBillingPatientBillPaymentFormController extends
 		mav.setViewName(getViewName());
 
 		if (request.getParameter("save") != null ){			
-			handleSavePatientBillPayment(request);
+			BillPayment payment = handleSavePatientBillPayment(request);
+			mav.addObject("payment",payment);
 		}
 
 		 try{

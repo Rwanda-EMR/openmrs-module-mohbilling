@@ -41,15 +41,7 @@
 				<td><input type="text" name="amount"/></td>
 			</tr>
 			<tr>
-				<td>Reason </td>
-				<%-- <td>
-				<!-- list to be set in Global Properties -->
-				 <select name="reason">
-				 	<c:forEach items="${transactionReasons}" var="reason">
-				 	<option value="${reason}">${reason}</option>
-				 	</c:forEach>
-				</select> 
-				</td> --%>
+				<td>Reason </td>				
 				<td><input type="text" name="reason"/></td>
 			</tr>
 			<tr>

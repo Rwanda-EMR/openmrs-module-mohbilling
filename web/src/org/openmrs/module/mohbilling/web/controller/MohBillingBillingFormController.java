@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
@@ -173,8 +172,7 @@ public class MohBillingBillingFormController extends
 							.getParameter("ipCardNumber"));
 			Insurance insurance = beneficiary.getInsurancePolicy().getInsurance();
 			//check whether the insurance does have a third party;
-		    ThirdParty thirdParty = beneficiary.getInsurancePolicy().getThirdParty();
-		   
+		    ThirdParty thirdParty = beneficiary.getInsurancePolicy().getThirdParty();		   
 
 			consom.setBeneficiary(beneficiary);
 			consom.setDepartment(department);
