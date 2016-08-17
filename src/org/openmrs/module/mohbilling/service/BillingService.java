@@ -31,6 +31,7 @@ import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
@@ -567,16 +568,44 @@ public interface BillingService {
 	 * @param account
 	 */
 	public void savePatientAccount(PatientAccount account);
+
 	/**
-	 * gets transactions set by given parameters among PatientAccount, startDate, endDate and/or reason
-	 * @param acc
-	 * @param startDate
-	 * @param endDate
-	 * @param reason
-	 * @return transactions set
+	 * Gets BillPayment by a given PaymentId
+	 * @param paymentId
+	 * @return Billpayment
 	 */
+	public BillPayment getBillPayment(Integer paymentId);
+
+	/**
+	 * Gets all paid bill services by BillPayment
+	 * @param payment
+	 * @return List<PaidServiceBill>  paidItems
+	 */
+	public List<PaidServiceBill> getPaidServices(BillPayment payment);
+
+	/**
+	 * Gets consommation by patientBill
+	 * @param patientBill
+	 * @return consommation
+	 */
+	public Consommation getConsommationByPatientBill(PatientBill patientBill);
+	/**
+	 * saves PaymentRefund
+	 * @param refund
+	 * @return PaymentRefund
+	 */
+	public  PaymentRefund savePaymentRefund(PaymentRefund refund);
+
+	/**
+	 * gets paidSericeBill matching with agiven a paidServiceBillid
+	 * @param paidSviceBillid
+	 * @return paidItem
+	 */
+	public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid);
+
 	public Set<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
 	
+
 	public DepositPayment saveDepositPayment(DepositPayment depositPayment);
 	/**
 	 * Gets hospital services by department
@@ -584,4 +613,5 @@ public interface BillingService {
 	 * @return List<HopService>
 	 */
 	public List<HopService> getHospitalServicesByDepartment(Department department);
+
 }

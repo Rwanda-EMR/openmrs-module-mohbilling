@@ -17,8 +17,7 @@
 	<tr>
 		<th  style="width:5%">#.</th>
 		<th style="width:8%">Name</th>
-		<th style="width:8%">Description</th>	
-		
+		<th style="width:8%">Description</th>		
 	</tr>
 	<c:forEach items="${services}" var="service" varStatus="status">
 			<tr>

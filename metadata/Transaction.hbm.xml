@@ -14,7 +14,7 @@
 		</id>
 		
 		<property name="amount" column="amount" type="big_decimal" />
-		<property name="reason" column="reason" type="text" />
+		<property name="reason" column="transaction_reason" type="text" />
 		<property name="transactionDate" column="transaction_date" type="java.util.Date" />
 		<property name="createdDate" column="created_date" type="java.util.Date" />
 		

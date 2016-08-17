@@ -6,6 +6,7 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +17,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
@@ -32,6 +34,7 @@ import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.web.WebConstants;
@@ -58,7 +61,7 @@ public class MohBillingBillingFormController extends
 		if (request.getParameter("save") != null) {
 			Consommation consommation = handleSavePatientConsommation(request, mav);
 			if (null == consommation)
-				return new ModelAndView(new RedirectView(
+				 new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
 								+ "&ipCardNumber="+request.getParameter("ipCardNumber")
@@ -72,8 +75,11 @@ public class MohBillingBillingFormController extends
 								+ consommation.getBeneficiary().getPolicyIdNumber()));
 		}
 		if (request.getParameter("searchDpt") != null) {
-		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));		  
+		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+	
+		 
 			if (department !=null)
+			
 				return new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
@@ -91,6 +97,25 @@ public class MohBillingBillingFormController extends
 			Beneficiary ben = InsurancePolicyUtil
 					.getBeneficiaryByPolicyIdNo(request
 							.getParameter("ipCardNumber"));
+			Set<ServiceCategory> categories = null;
+			if(request.getParameter("departmentId")!=null){
+				
+				
+				 Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+
+				 ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("ipCardNumber"));
+				 categories = HopServiceUtil.getServiceCategoryByInsurancePolicyDepartment(ben.getInsurancePolicy(), department);
+				 
+				 log.info("categories zize>>>>>>>>>>>>>>>>>>>"+categories.size());
+					
+					mav.addObject("categories",categories);
+			}
+				
+			
+			
+			
+			
+			
 			mav.addObject("beneficiary", ben);
 
 			InsurancePolicy ip = InsurancePolicyUtil
@@ -127,8 +152,11 @@ public class MohBillingBillingFormController extends
 
 		Consommation saveConsommation = null;
 		Integer globalBillId =Integer.valueOf(request.getParameter("globalBillId"));
+		Integer departmentId =Integer.valueOf(request.getParameter("globalBillId"));
+		
 		
 		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
+		Department department = DepartementUtil.getDepartement(departmentId);
 		BigDecimal globalAmount = globalBill.getGlobalAmount();
 		Consommation consom = null;
 
@@ -144,10 +172,10 @@ public class MohBillingBillingFormController extends
 							.getParameter("ipCardNumber"));
 			Insurance insurance = beneficiary.getInsurancePolicy().getInsurance();
 			//check whether the insurance does have a third party;
-		    ThirdParty thirdParty = beneficiary.getInsurancePolicy().getThirdParty();
-		   
+		    ThirdParty thirdParty = beneficiary.getInsurancePolicy().getThirdParty();		   
 
 			consom.setBeneficiary(beneficiary);
+			consom.setDepartment(department);
 			consom.setCreatedDate(new Date());
 			consom.setCreator(Context.getAuthenticatedUser());
 			consom.setVoided(false);
@@ -178,10 +206,8 @@ public class MohBillingBillingFormController extends
 					psb.setCreatedDate(new Date());
 					psb.setCreator(Context.getAuthenticatedUser());					
 					psb.setVoided(false);
-					
 					//totalAmount.add(quantity.multiply(unitPrice)), mc), mc);
 					totalAmount = totalAmount.add(quantity.multiply(unitPrice));
-
 					consom.addBillItem(psb);
 				}
 			}					

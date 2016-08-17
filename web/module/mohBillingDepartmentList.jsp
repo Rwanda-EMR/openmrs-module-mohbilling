@@ -21,22 +21,16 @@
 		<th style="width:10%">Description</th>
 		<th style="width:3%">Services</th>
 	</tr>
-	 <c:set var="count" value="0" />
-	<c:forEach items="${departments}" var="department" varStatus="status">	
-	 <c:set var="temp" value="0" />
-	    <c:if test="${department.departmentId == temp}">
-            ${rate}
-        </c:if>
-		<tr >
+	<c:forEach items="${departments}" var="department" varStatus="status">
+		<tr>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="department.form?departmentId=${department.departmentId}">${department.name}</a></td>			
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${department.description}</td>		
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">(${billingtag:servicesByDepartment(department.departmentId )})
-			&nbsp;&nbsp;
-			 <a href="serviceCategory.form?departmentId=${department.departmentId}">Add</a>&nbsp;/&nbsp;
-			 <a href="services.list?departmentId=${department.departmentId}">view</a>
-			</td>	
-		</tr>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${department.description}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">(2)
+			 <a href="services.list?departmentId=${department.departmentId}">view</a>	</td>
+			</td>
+		 </tr>		
+		
 	</c:forEach>
 </table>
 </div>

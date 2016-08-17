@@ -12,7 +12,7 @@
 		<id name="refundId" type="int" column="refund_id" unsaved-value="0">
 			<generator class="native" />
 		</id>
-		<property name="refundedAmount" column="refunded_amount" type="big_decimal" />
+		<property name="refundedAmount" column="amount_refunded" type="big_decimal" />
 		<property name="approved" column="is_approved" type="boolean" />
 		<property name="approvalDate" column="approval_date" />
 		<property name="declined" column="is_declined" type="boolean" />

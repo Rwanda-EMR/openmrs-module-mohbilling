@@ -78,7 +78,6 @@ public class MohBillingTransactionFormController extends
 			
 			return new ModelAndView(new RedirectView("searchPatientAccount.form?patientId="+account.getPatient().getPatientId()));	
 		}		
-		mav.addObject("transactionReasons", BillingGlobalProperties.getGpReasons());
 		mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(patient));
 		mav.addObject("patient", patient);
 		mav.addObject("type", type);

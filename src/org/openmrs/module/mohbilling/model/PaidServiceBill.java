@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import org.openmrs.User;
@@ -14,9 +15,10 @@ import org.openmrs.User;
 public class PaidServiceBill {
 	
 	private Integer paidServiceBillId;
-	private PatientServiceBill paidItem;
+	private PatientServiceBill billItem;
 	private BillPayment billPayment;
-	
+	//The paid quantity
+	private BigDecimal paidQty;
 	private User creator;
 	private Date createdDate;
 	private Boolean voided = false;
@@ -38,14 +40,14 @@ public class PaidServiceBill {
 	/**
 	 * @return the paidItem
 	 */
-	public PatientServiceBill getPaidItem() {
-		return paidItem;
+	public PatientServiceBill getBillItem() {
+		return billItem;
 	}
 	/**
 	 * @param paidItem the paidItem to set
 	 */
-	public void setPaidItem(PatientServiceBill paidItem) {
-		this.paidItem = paidItem;
+	public void setBillItem(PatientServiceBill billItem) {
+		this.billItem = billItem;
 	}
 	/**
 	 * @return the billPayment
@@ -130,6 +132,20 @@ public class PaidServiceBill {
 	 */
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
+	}
+	/**
+	 * gets the paid quantity
+	 * @return the paidQty
+	 */
+	public BigDecimal getPaidQty() {
+		return paidQty;
+	}
+	/**
+	 * Sets the paid Quantity
+	 * @param paidQty the paidQty to set
+	 */
+	public void setPaidQty(BigDecimal paidQty) {
+		this.paidQty = paidQty;
 	}
 
 }

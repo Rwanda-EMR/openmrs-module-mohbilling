@@ -268,30 +268,27 @@
 						<c:forEach items="${departments }" var="dep">
 							<option value="${dep.departmentId}">${dep.name}</option>
 						</c:forEach>
-					</select>
+				</select>
 				</td>
 				<td><input type="submit" value="search services" /></td>
 			</tr>
 		</table>
 	</form>
-</div> 
-
+</div>
 </div>
 		<c:if test="${param.departmentId !=null}">
 		<div>
 			<div id="patientTabs">
 				<ul>
-					<c:forEach items="${insurancePolicy.insurance.categories}" var="serviceCategory" varStatus="status">						
-				     
-				      <c:if test="${serviceCategory.department.departmentId == param.departmentId}">
+					<c:forEach items="${categories}" var="serviceCategory" varStatus="status"> 
 				      					  
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
-				       </c:if>
+				     
 					</c:forEach>
 				</ul>
 			</div>
 			
-			<c:forEach items="${insurancePolicy.insurance.categories}" var="sc" varStatus="counter">
+			<c:forEach items="${categories}" var="sc" varStatus="counter">
 			
 				<div id="serviceCategory_${sc.serviceCategoryId}" <c:if test='${counter.count>1}'>style='display: none;'</c:if>>
 					<script>

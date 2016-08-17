@@ -76,6 +76,7 @@ ${pram.insurancePolicyId}
 	</table>
 </div>
 
+
 <%@ include file="/WEB-INF/template/footer.jsp"%>
 
 

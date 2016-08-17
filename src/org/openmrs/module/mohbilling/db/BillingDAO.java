@@ -41,6 +41,7 @@ import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
@@ -51,6 +52,10 @@ import org.openmrs.module.mohbilling.model.Transaction;
  * 
  */
 
+/**
+ * @author emr
+ *
+ */
 public interface BillingDAO {
 
 	/**
@@ -580,6 +585,40 @@ public interface BillingDAO {
 	 */
 	public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary);
 
+	/**
+<<<<<<< HEAD
+	 * Gets BillPayment by a given paymentId
+	 * @param paymentId
+	 * @return billPayment
+	 */
+	public BillPayment getBillPayment(Integer paymentId);
+
+	/**
+	 * Gets all paid service bills by BillPayment
+	 * @param payment
+	 * @return List<PaidServiceBill> paidItems
+	 */
+	public List<PaidServiceBill> getPaidServices(BillPayment payment);
+
+	/**
+	 * Gets Consommation  by patientBill
+	 * @param patientBill
+	 * @return Consommation
+	 */
+	public Consommation getConsommationByPatientBill(PatientBill patientBill);
+      
+	/**
+	 * saves payment refund to the DB
+	 * @param refund
+	 * @return PaymentRefund
+	 */
+	public PaymentRefund savePaymentRefund(PaymentRefund refund);
+	/**
+	 *gets paidServiceBill matching with a given paidServiceBillid
+	 * @param paidSviceBillid
+	 * @return paidItem
+	 */
+	public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid);
 	/**
 	 * Gets hospital services by department
 	 * @param department
