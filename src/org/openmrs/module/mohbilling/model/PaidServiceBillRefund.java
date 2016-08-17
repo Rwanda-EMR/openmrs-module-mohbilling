@@ -3,9 +3,11 @@
  */
 package org.openmrs.module.mohbilling.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import org.openmrs.User;
+import org.openmrs.util.OpenmrsUtil;
 
 /**
  * PaidServiceBills are put together in one refund
@@ -13,17 +15,15 @@ import org.openmrs.User;
  * @author emr
  * 
  */
-public class PaidServiceBillRefund {
+public class PaidServiceBillRefund  implements Comparable<PaidServiceBillRefund> {
 
 	private Integer paidServiceBillRefundId;
 
 	private PaymentRefund refund;
 
 	private PaidServiceBill paidItem;
-	
-	private String decliningNote;
 
-	private Integer refQuantity;
+	private BigDecimal refQuantity;
 
 	private User creator;
 
@@ -79,19 +79,6 @@ public class PaidServiceBillRefund {
 		this.paidItem = paidItem;
 	}
 
-	/**
-	 * @return the refQuantity
-	 */
-	public Integer getRefQuantity() {
-		return refQuantity;
-	}
-
-	/**
-	 * @param refQuantity the refQuantity to set
-	 */
-	public void setRefQuantity(Integer refQuantity) {
-		this.refQuantity = refQuantity;
-	}
 
 	/**
 	 * @return the creator
@@ -176,21 +163,39 @@ public class PaidServiceBillRefund {
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
 	}
-
 	/**
-	 * @return the decliningNote
+	 * @return the refQuantity
 	 */
-	public String getDecliningNote() {
-		return decliningNote;
+	public BigDecimal getRefQuantity() {
+		return refQuantity;
 	}
 
 	/**
-	 * @param decliningNote the decliningNote to set
+	 * @param refQuantity the refQuantity to set
 	 */
-	public void setDecliningNote(String decliningNote) {
-		this.decliningNote = decliningNote;
+	public void setRefQuantity(BigDecimal refQuantity) {
+		this.refQuantity = refQuantity;
 	}
+
+	@Override
+	public int compareTo(PaidServiceBillRefund other) {
+		int ret = OpenmrsUtil.compareWithNullAsGreatest(this.getVoided(), other.getVoided());
+		if (ret == 0)
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getCreatedDate(),
+					other.getCreatedDate());
+		if (ret == 0 && this.getCreatedDate() != null)
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getCreatedDate(),
+					other.getCreatedDate());
+		if (ret == 0 && this.getCreatedDate() != null)
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other
+					.hashCode());
+		return ret;
+	}
+	
+
+	
+}
 
 	
 
-}
+

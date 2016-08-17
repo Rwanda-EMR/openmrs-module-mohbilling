@@ -71,14 +71,13 @@ public class MohBillingTransactionFormController extends
 			transaction.setCreator(Context.getAuthenticatedUser());
 			transaction.setPatientAccount(account);
 			transaction.setReason(request.getParameter("reason"));
-			transaction.setCollector(Context.getUserService().getUser(Integer.valueOf(request.getParameter("collector"))));		
+			transaction.setCollector(Context.getUserService().getUser(Integer.valueOf(request.getParameter("collector"))));	
 			
 			PatientAccountUtil.createTransaction(transaction);	
 			
 			
 			return new ModelAndView(new RedirectView("searchPatientAccount.form?patientId="+account.getPatient().getPatientId()));	
 		}		
-		mav.addObject("transactionReasons", BillingGlobalProperties.getGpReasons());
 		mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(patient));
 		mav.addObject("patient", patient);
 		mav.addObject("type", type);

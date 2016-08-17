@@ -28,7 +28,7 @@ public class BillPayment implements Comparable<BillPayment> {
 	
 	private PatientBill patientBill;
 	
-	Set<PaidServiceBill> paidItems;
+	private Set<PaidServiceBill> paidItems;
 	
 	private User creator;
 	

@@ -64,6 +64,7 @@ import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.model.Recovery;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
@@ -335,9 +336,6 @@ public class HibernateBillingDAO implements BillingDAO {
 				.createCriteria(ThirdParty.class)
 				.add(Restrictions.eq("voided", false)).list();
 	}
-
-
-
 
 	@Override
 	public Float getPaidAmountPerInsuranceAndPeriod(Insurance insurance,
@@ -1325,8 +1323,65 @@ public class HibernateBillingDAO implements BillingDAO {
 		        PatientAccount account = (PatientAccount) crit.uniqueResult();
 				return account;
 		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillPayment(java.lang.Integer)
+		 */
+		@Override
+		public BillPayment getBillPayment(Integer paymentId) {
+			return (BillPayment) sessionFactory.getCurrentSession().get(BillPayment.class, paymentId);
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPaidServices(org.openmrs.module.mohbilling.model.BillPayment)
+		 */
+		@Override
+		public List<PaidServiceBill> getPaidServices(BillPayment payment) {
+			return sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class)				
+					.add(Restrictions.eq("billPayment", payment)).list();
+		}		
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getConsommationByPatientBill(org.openmrs.module.mohbilling.model.PatientBill)
+		 */
+		@Override
+		public Consommation getConsommationByPatientBill(PatientBill patientBill) {
+			
+		return 	(Consommation) sessionFactory.getCurrentSession()
+			.createCriteria(Consommation.class)
+			.add(Restrictions.eq("patientBill", patientBill))
+			.uniqueResult();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#savePaymentRefund(org.openmrs.module.mohbilling.model.PaymentRefund)
+		 */
+		@Override
+		public PaymentRefund savePaymentRefund(PaymentRefund refund) {
+			sessionFactory.getCurrentSession().saveOrUpdate(refund);
+			return refund;
+		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPaidServiceBill(java.lang.Integer)
+		 */
+		@Override
+		public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid) {
+			return (PaidServiceBill) sessionFactory.getCurrentSession().get(PaidServiceBill.class, paidSviceBillid);
+		}
 
 		@Override
+		public DepositPayment saveDepositPayment(DepositPayment depositPayment) {
+			sessionFactory.getCurrentSession().saveOrUpdate(depositPayment);
+			return depositPayment;
+		}
+
+		@Override
+		public List<HopService> getHospitalServicesByDepartment(
+				Department department) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class)	
+		             .add(Expression.eq("department", department));
+			 crit.setProjection(Projections.distinct(Projections.property("hopService")));
+			return crit.list();
+		}
+
 		public Set<Transaction> getTransactions(PatientAccount acc,
 				Date startDate, Date endDate, String reason) {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Transaction.class);
@@ -1348,21 +1403,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			//a set cannot be ordered on display
 			//List<Transaction> list = new ArrayList<Transaction>(crit.list());
 			return (Set<Transaction>) crit.list();
-		}
 
-		@Override
-		public DepositPayment saveDepositPayment(DepositPayment depositPayment) {
-			sessionFactory.getCurrentSession().saveOrUpdate(depositPayment);
-			return depositPayment;
-		}
-
-		@Override
-		public List<HopService> getHospitalServicesByDepartment(
-				Department department) {
-			Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class)	
-		             .add(Expression.eq("department", department));
-			 crit.setProjection(Projections.distinct(Projections.property("hopService")));
-			return crit.list();
 		}
 
 	}

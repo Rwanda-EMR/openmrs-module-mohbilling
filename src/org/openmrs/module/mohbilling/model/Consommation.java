@@ -18,6 +18,8 @@ import org.openmrs.User;
 public class Consommation {
 
 	private Integer consommationId;
+	
+	private Department department;
 
 	private Beneficiary beneficiary;
 
@@ -105,6 +107,20 @@ public class Consommation {
 	 */
 	public PatientBill getPatientBill() {
 		return patientBill;
+	}
+
+	/**
+	 * @return the department
+	 */
+	public Department getDepartment() {
+		return department;
+	}
+
+	/**
+	 * @param department the department to set
+	 */
+	public void setDepartment(Department department) {
+		this.department = department;
 	}
 
 	/**
@@ -242,7 +258,6 @@ public class Consommation {
 	public String getVoidReason() {
 		return voidReason;
 	}
-
 	/**
 	 * @param voidReason
 	 *            the voidReason to set

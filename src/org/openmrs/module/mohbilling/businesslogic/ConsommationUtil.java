@@ -52,7 +52,7 @@ public class ConsommationUtil {
 	
 	/**
 	 * Creates a PatientServiceBill object and saves it in the DB through
-	 * PatientBill which is its parent
+	 * Consommation which is its parent
 	 * 
 	 * @param psb
 	 *            the PatientServiceBill to be saved
@@ -217,6 +217,18 @@ public class ConsommationUtil {
 		
 
 	}
+
+	/**
+	 * Gets Consommation by a given patientBill
+	 * @param patientBill
+	 * @return Consommation
+	 */
+	public static Consommation getConsommationByPatientBill(
+			PatientBill patientBill) {
+		// TODO Auto-generated method stub
+		return getService().getConsommationByPatientBill(patientBill);
+	}
+
 	
 	
 	

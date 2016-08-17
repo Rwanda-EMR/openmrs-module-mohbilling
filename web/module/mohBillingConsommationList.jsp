@@ -2,6 +2,8 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/@MODULE_ID@/taglibs/billingtag.tld"%>
+	
+	<openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
@@ -13,7 +15,9 @@
 
 
 <br />
-<div style="text-align: right;"><a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add Consommation</a></div>
+<div style="text-align: right;">
+<a href="admissionForm.form?globalBillId=">Dischage the Patient</a>
+<a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add Consommation</a></div>
 
 <b class="boxHeader">consommations List for Global Bill id created
 	on #</b>
@@ -62,5 +66,4 @@
 			</tr>
 	</table>
 </div>
-
 <%@ include file="/WEB-INF/template/footer.jsp"%>

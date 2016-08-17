@@ -10,12 +10,12 @@
  <script type="text/javascript">
         $(function () {
             var total;
-            var checked = $('input:checkbox').click(function (e) {
+            var checked = $('.items').click(function (e) {
                 calculateSum();
             });
 
             function calculateSum() {
-                var $checked = $(':checkbox:checked');
+                var $checked = $('.items:checked');
                 total = 0.0;
                 $checked.each(function () {
                     total += parseFloat($(this).val());
@@ -68,7 +68,9 @@ $(document).ready(function(){
 <c:set var="insurancePolicy" value="${consommation.beneficiary.insurancePolicy}"/>
 <c:set var="globalBill" value="${consommation.globalBill}"/>
 
-<div style="text-align: right;"><a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add consommation</a></div>
+<div style="text-align: right;">
+
+<a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add consommation</a></div>
 
 <br/>
 <div class="box">
@@ -105,7 +107,7 @@ $(document).ready(function(){
 						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
-					<td><input name="${fieldName}"	value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox"></td>
+					<td><input name="${fieldName}" class="items" value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox"></td>
 				</tr>
 				</c:if>
 			</c:forEach>		   
@@ -151,8 +153,7 @@ $(document).ready(function(){
 				<td> <b>Balance </b><input type="text" disabled="disabled" name="balance" value="${patientAccount.balance }" size="11" class="numbers"/></td>	
 				</tr>
 				</table>
-				</td>
-				
+				</td>				
 			</tr>
 			<tr>
 			  <td><b>Pay with cash</b></td>
@@ -166,41 +167,21 @@ $(document).ready(function(){
 			</tr>			
 			<tr>
 				<td colspan="7"><hr/></td>
-			</tr>
-			
+			</tr>			
 			<tr style="font-size: 1.2em">
 				<openmrs:hasPrivilege privilege="Edit Bill">
-					<td colspan="2"><input type="submit"  value="Confirm Bill" style="min-width: 200px;" onclick="check()"/></td>
+					<td colspan="2"><input type="submit"  value="Confirm Payment" style="min-width: 200px;" onclick="check()"/></td>
 				</openmrs:hasPrivilege>
 			 <td colspan="3"></td>
-              <!-- 
-			<c:if test="${billingtag:amountPaidForPatientBill(patientBill.patientBillId)>0 ||patientBill.beneficiary.insurancePolicy.insurance.currentRate.rate==100 || patientBill.beneficiary.insurancePolicy.thirdParty!=nil}">
-			 -->		
-			
-			</tr>
-		
+			</tr>	
+			<c:if test="${payment}!=null">	
+			<td colspan="2"><div style="text-align: right;"><a href="printPDFBillPayment.form?consommationId=${consommation.consommationId}&paymentId=${payment.paymentId}">Print Bill</a></div></td>	
 			</c:if>
 		</table>
 	</form>
 </div>
 <br/>
-
-<b class="boxHeader">Bills History</b>
-<div class="box">
-	
-</div>
-
-
-<script>
-	function savePatientBillPayment(){
-		if(confirm("Are you sure you want to save the payment ?")){
-			document.getElementById("formSaveBillPayment").submit();
-		}
-	}
-
-	//function printPatientBill(patientBillId){
-		
-	//}
-</script>
+	<c:set var="payments" value="${consommation.patientBill.payments}" scope="request"/>
+<c:import url="mohBillingPaymentHistory.jsp" />
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

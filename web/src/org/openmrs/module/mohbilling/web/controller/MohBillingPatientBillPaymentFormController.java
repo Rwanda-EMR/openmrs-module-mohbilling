@@ -53,7 +53,8 @@ public class MohBillingPatientBillPaymentFormController extends
 		mav.setViewName(getViewName());
 
 		if (request.getParameter("save") != null ){			
-			handleSavePatientBillPayment(request);
+			BillPayment payment = handleSavePatientBillPayment(request);
+			mav.addObject("payment",payment);
 		}
 
 		 try{
@@ -153,7 +154,7 @@ public class MohBillingPatientBillPaymentFormController extends
 					patientAccount.setBalance(patientAccount.getBalance().subtract(deductedAmount));
 					
 					//create transaction
-					Transaction transaction = PatientAccountUtil.createTransaction(deductedAmount, new Date(), new Date(), Context.getAuthenticatedUser(), patientAccount, "bill payment", Context.getAuthenticatedUser());
+					Transaction transaction = PatientAccountUtil.createTransaction(deductedAmount.negate(), new Date(), new Date(), Context.getAuthenticatedUser(), patientAccount, "bill payment", Context.getAuthenticatedUser());
 					
 					bp.setAmountPaid(deductedAmount);
 					DepositPayment dp = new DepositPayment(bp);
@@ -193,9 +194,6 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			return null;
 		}
-
-	
-
 	}
 	
 	
@@ -214,7 +212,8 @@ public class MohBillingPatientBillPaymentFormController extends
 			Integer  patientServiceBillId = Integer.parseInt(psbIdStr);	
 			PatientServiceBill psb  =ConsommationUtil.getPatientServiceBill(patientServiceBillId);	
 			
-			paidSb.setPaidItem(psb);
+			paidSb.setBillItem(psb);
+			paidSb.setPaidQty(psb.getQuantity());
 			paidSb.setBillPayment(bp);
 			paidSb.setCreator(Context.getAuthenticatedUser());
 			paidSb.setCreatedDate(new Date());			

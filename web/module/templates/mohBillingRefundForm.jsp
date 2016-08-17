@@ -112,7 +112,7 @@
 	<div>
 		<b class="boxHeader">Patient Bill Services list</b>
 		<div class="box">
-			<form action="refund.form?billPaymentId=${billPayment.billPaymentId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="form_save_patient_bill">
+			<form action="patientBillPayment.form?patientBillId=${param.patientBillId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="form_save_patient_bill">
 				<div style="max-width: 99%; overflow: auto;">
 					<table width="99%; !important;" id="cartOfServices">
 						<tr>
@@ -128,13 +128,13 @@
 								<td><span id="row_${status.count-1}">${status.count}.</span></td>
 								<td>${paidItem.patientServiceBill.service.facilityServicePrice.name}</td>
 								<td><input type="text" size="3" name="quantity_${status.count-1}" id="quantity_${status.count-1}" style="text-align: center;" value="${billItem.quantity}" onblur="calculateTheBill();"/></td>
-								<td><span id="price_${status.count-1}"><b>${billItem.unitPrice}</b></span><input type="hidden" name="servicePrice_${status.count-1}" id="servicePrice_${status.count-1}" value="${billItem.unitPrice}"/></td>
+								<td><span id="price_${status.count-1}"><b>${paidItem.patientServiceBill.unitPrice}</b></span><input type="hidden" name="servicePrice_${status.count-1}" id="servicePrice_${status.count-1}" value="${billItem.unitPrice}"/></td>
 								<td>
-									<a onclick="deleteRow(${billItem.patientServiceBillId},${status.count-1},${patientBill.patientBillId},${patientBill.beneficiary.policyIdNumber});" id="delete_${status.count-1}" style="color: red;" href="refundBill.form?patientBillId=${patientBill.patientBillId}&billItemId=${billItem.patientServiceBillId}&ipCardNumber=${patientBill.beneficiary.policyIdNumber}&removeIt=true">
+									<a onclick="deleteRow(${paidItem.patientServiceBill.patientServiceBillId},${status.count-1},${patientBill.patientBillId},${patientBill.beneficiary.policyIdNumber});" id="delete_${status.count-1}" style="color: red;" href="refundBill.form?patientBillId=${patientBill.patientBillId}&billItemId=${billItem.patientServiceBillId}&ipCardNumber=${patientBill.beneficiary.policyIdNumber}&removeIt=true">
 										<span title='Remove Service' class='deleteBt'><b>X</b></span>
 									</a>
 								</td>
-								<td><input type="hidden" size="5" name="billableServiceId_${status.count-1}" id="billableServiceId_${status.count-1}" value="${billItem.patientServiceBillId}"/></td>
+								<td><input type="hidden" size="5" name="billableServiceId_${status.count-1}" id="billableServiceId_${status.count-1}" value="${paidItem.patientServiceBill.patientServiceBillId}"/></td>
 							</tr>
 						</c:forEach>
 					</table>

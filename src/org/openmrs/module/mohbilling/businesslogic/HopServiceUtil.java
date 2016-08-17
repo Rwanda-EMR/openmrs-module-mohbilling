@@ -3,11 +3,15 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.HopService;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 /**
@@ -32,10 +36,8 @@ public class HopServiceUtil {
 		
 	}
 	public static HopService getHopServiceById(Integer serviceId){
-	return	getService().getHopService(serviceId);
-		
-		
-		
+	return	getService().getHopService(serviceId);		
+	
 	}
 	/**
 	 * Get all services  by departement
@@ -46,12 +48,24 @@ public class HopServiceUtil {
 	public static List<HopService> getAllHospitalServices(){
 	     return 	getService().getAllHopService();		
 	}
+	public  static Set<ServiceCategory> getServiceCategoryByInsurancePolicyDepartment(InsurancePolicy ip,Department department){
+		Set<ServiceCategory> categories = new HashSet<ServiceCategory>();
+		Set<String> serviceNames = GlobalPropertyConfig.getListOfHopServicesByDepartment(department);
+		
+		for (ServiceCategory  category : ip.getInsurance().getCategories()) {
+			if (serviceNames.contains(category.getName())) {
+				categories.add(category);
+				
+			}
+			
+		}
+		
+		return categories;
+	
+	}
 	
 	public static List<HopService> getHospitalServicesByDepartment(Department department){
 		return getService().getHospitalServicesByDepartment(department);
-	}
-	
-
-	
+	}	
 
 }

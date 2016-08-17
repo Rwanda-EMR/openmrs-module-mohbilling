@@ -53,7 +53,7 @@ public class MohBillingHopserviceFormController extends
 			service.setCreator(Context.getAuthenticatedUser());
 			
 			HopServiceUtil.createHopService(service);
-			
+
            Insurance insurance = InsuranceUtil.getInsurance(1);
 		   ServiceCategory sc = new ServiceCategory();
 

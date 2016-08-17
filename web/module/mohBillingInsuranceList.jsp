@@ -19,7 +19,6 @@
 		
 </ul>
 
-
 <br/><br/>
 
 <b class="boxHeader"><spring:message code="@MODULE_ID@.insurance.current" /></b>
