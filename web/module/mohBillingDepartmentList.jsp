@@ -28,7 +28,6 @@
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${department.description}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">(2)
 			 <a href="services.list?departmentId=${department.departmentId}">view</a>	</td>
-			</td>
 		 </tr>		
 		
 	</c:forEach>

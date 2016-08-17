@@ -47,11 +47,11 @@
 
 <br/>
 <c:if test="${transactions!=null}">
-<table>
+<table style="float: right;">
 <tr>
-<td><div class="amount">Balance : ${patientAccount.balance}</div></td>
 <td><a href="transaction.form?patientId=${patientAccount.patient.patientId}&patientAccountId=${patientAccount.patientAccountId }&type=Deposit">Deposit</a></td>
-<td><a href="transaction.form?patientId=${patientAccount.patient.patientId}&patientAccountId=${patientAccount.patientAccountId }&type=Withdrawal">Withdrawal</a></td>
+<td>&nbsp;/&nbsp;<a href="transaction.form?patientId=${patientAccount.patient.patientId}&patientAccountId=${patientAccount.patientAccountId }&type=Withdrawal">Withdrawal</a></td>
+<td><div class="amount">Balance : ${patientAccount.balance}</div></td>
 </tr>
 </table>
 <b class="boxHeader">Transactions Summary </b>

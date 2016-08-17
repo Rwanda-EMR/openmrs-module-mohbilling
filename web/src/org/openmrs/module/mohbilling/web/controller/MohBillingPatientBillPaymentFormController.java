@@ -154,7 +154,7 @@ public class MohBillingPatientBillPaymentFormController extends
 					patientAccount.setBalance(patientAccount.getBalance().subtract(deductedAmount));
 					
 					//create transaction
-					Transaction transaction = PatientAccountUtil.createTransaction(deductedAmount, new Date(), new Date(), Context.getAuthenticatedUser(), patientAccount, "bill payment", Context.getAuthenticatedUser());
+					Transaction transaction = PatientAccountUtil.createTransaction(deductedAmount.negate(), new Date(), new Date(), Context.getAuthenticatedUser(), patientAccount, "bill payment", Context.getAuthenticatedUser());
 					
 					bp.setAmountPaid(deductedAmount);
 					DepositPayment dp = new DepositPayment(bp);

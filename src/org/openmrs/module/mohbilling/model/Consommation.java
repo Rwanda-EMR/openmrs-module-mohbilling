@@ -44,6 +44,18 @@ public class Consommation {
 	private Date voidedDate;
 
 	private String voidReason;
+	
+	public Consommation(){
+		
+	}
+	
+	public Consommation(GlobalBill gb,Beneficiary ben,Date createDate,User creator,Boolean isVoided){
+		this.globalBill=gb;
+		this.beneficiary=ben;
+		this.createdDate=createDate;
+		this.creator=creator;
+		this.voided=isVoided();
+	}
 
 	/**
 	 * @return the consommationId

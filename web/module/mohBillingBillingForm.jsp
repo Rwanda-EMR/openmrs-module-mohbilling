@@ -2,6 +2,7 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/@MODULE_ID@/patientBillPayment.form" />
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <script>
 
 	function loadBillableServiceByCategory(serviceCategoryId,departmentId){
@@ -177,6 +178,7 @@
 
 </script>
 
+
 <style>
 	.deleteBt{
 		color: #FFFFFF;
@@ -207,7 +209,8 @@
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
 
 <br/>
-
+<c:if test="${consommation == null }">
+<div id="billingForm">
 <div class="box">
 	<div style="float: left; width: 30%">
 		<b class="boxHeader">Calculator</b>
@@ -300,7 +303,11 @@
 	 </c:if>
 	</div>
 	<div style="clear: both;"></div>
-</div>
+	</div>
+	</c:if>
+<c:if test="${consommation != null }">
+<c:import url="consommationItemList.jsp"/>
+</c:if>
 
 <script type="text/javascript">
 

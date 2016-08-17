@@ -34,20 +34,24 @@
 			<th>Paid Amount</th>
 			<th>status</th>			
 			<th>Payment</th>
+			<th></th>
 		</tr>
 		<c:forEach items="${consommations}" var="consommation" 
 			varStatus="status">
 			<tr>
-				<td>${status.count}</td>
-				<td>${consommation.consommationId}</td>
-				<td>${consommation.creator.personName}</td>
-				<td>${consommation.beneficiary.policyIdNumber}</td>								
-				<td>${consommation.insuranceBill.amount}</td>
-				<td>${consommation.thirdPartyBill.amount}</td>
-				<td>${consommation.patientBill.amount}</td>
-				<td>${billingtag:amountPaidForPatientBill(consommation.consommationId)}</td>
-				<td>paid</td>
-				<td>&nbsp;<a href="patientBillPayment.form?consommationId=${consommation.consommationId}">view payment</a></td>				
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.consommationId}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.creator.personName}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.beneficiary.policyIdNumber}</td>								
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.insuranceBill.amount}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.thirdPartyBill.amount}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.patientBill.amount}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${billingtag:amountPaidForPatientBill(consommation.consommationId)}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">paid</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;<a href="patientBillPayment.form?consommationId=${consommation.consommationId}">view payment</a></td>				
+				<%-- <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="consommation.form?consommationId=${consommation.consommationId}">Edit</a></td> --%>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&edit=true">Edit</a></td>
+				
 			</tr>						
 		</c:forEach>
 		<tr>

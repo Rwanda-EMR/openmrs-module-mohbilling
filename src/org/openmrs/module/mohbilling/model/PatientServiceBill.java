@@ -34,6 +34,38 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private User voidedBy;
 	private Date voidedDate;
 	private String voidReason;
+	
+	public PatientServiceBill(){
+		
+	}
+	/**
+	 * sets required parameters of PatientServiceBill
+	 * @param bs
+	 * @param serviceDate
+	 * @param unitPrice
+	 * @param quantity
+	 * @param creator
+	 * @param createdDate
+	 */
+	public PatientServiceBill(BillableService bs,Date serviceDate,BigDecimal unitPrice,BigDecimal quantity,User creator,Date createdDate){
+		this.service = bs;
+		this.serviceDate=serviceDate;
+		this.unitPrice=unitPrice;
+		this.quantity=quantity;
+		this.creator=creator;
+		this.createdDate=createdDate;
+	}
+	/**
+	 * Creates a new instance of PatientServiceBill from existing
+	 * Copies required parameters except newQuantity
+	 * @param psbToCopy
+	 * @param newQuantity
+	 * @return
+	 */
+	public static PatientServiceBill newInstance(PatientServiceBill psbToCopy,BigDecimal newQuantity){
+		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date());
+		return newPsb;
+	}
 
 	/**
 	 * @return the patientServiceBillId

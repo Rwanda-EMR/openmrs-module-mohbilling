@@ -107,8 +107,8 @@
 			</tr>
 		</table>
 	</div>
-	<br /> <input type="text" name="cardId"
-		value="${insurancePolicy.insurancePolicyId}" /> <b class="boxHeader">Section
+	<br /> 
+	 <b class="boxHeader">Section
 		II >> Insurance</b>
 	<div class="box">
 		<table>

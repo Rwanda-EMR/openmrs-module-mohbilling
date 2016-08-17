@@ -6,6 +6,8 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
@@ -37,6 +40,7 @@ import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -57,17 +61,22 @@ public class MohBillingBillingFormController extends
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
+		Consommation consommation = null;
+		
+		if(request.getParameter("edit")!=null){
+			consommation = ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId")));
+			mav.addObject("consommation", consommation);
+		}
 
 		if (request.getParameter("save") != null) {
-			Consommation consommation = handleSavePatientConsommation(request, mav);
+			consommation = ConsommationUtil.handleSavePatientConsommation(request, mav);
+			
 			if (null == consommation)
 				 new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
 								+ "&ipCardNumber="+request.getParameter("ipCardNumber")
-								+ "&globalBillId="+request.getParameter("globalBillId")				
-						)
-				);
+								+ "&globalBillId="+request.getParameter("globalBillId")		));
 			else
 				return new ModelAndView(new RedirectView(
 						"patientBillPayment.form?consommationId="
