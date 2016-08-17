@@ -54,6 +54,7 @@ public class MohBillingPatientBillPaymentFormController extends
 
 		if (request.getParameter("save") != null ){			
 			BillPayment payment = handleSavePatientBillPayment(request);
+			log.info(">>>>>>>>>>>BillPaymentId >>>>>"+payment.getBillPaymentId());
 			mav.addObject("payment",payment);
 		}
 
@@ -141,6 +142,7 @@ public class MohBillingPatientBillPaymentFormController extends
 					setParams(cp, Context.getAuthenticatedUser(), false, new Date());
 					
 					cp =PatientBillUtil.createCashPayment(cp);
+					billPayment =cp;
 					createPaidServiceBill(request, consommation, cp);
 					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 							"The Bill Payment with cash has been saved successfully !");
@@ -168,6 +170,7 @@ public class MohBillingPatientBillPaymentFormController extends
 					request.getSession().setAttribute(
 							WebConstants.OPENMRS_MSG_ATTR,
 							"The Bill Payment with deposit has been saved successfully !");
+					billPayment = dp;
 				}
 				
 				//createPaidServiceBill(request, consommation, cp);	
@@ -194,8 +197,7 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			return null;
 		}
-	}
-	
+	}	
 	
 	public void createPaidServiceBill(HttpServletRequest request,Consommation consommation, BillPayment bp){
   
