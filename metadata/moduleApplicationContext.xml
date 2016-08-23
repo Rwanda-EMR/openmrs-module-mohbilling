@@ -29,7 +29,7 @@
 				<prop key="module/@MODULE_ID@/patientBillPayment.form">mohBillingPatientBillPaymentFormController</prop>				
 				<prop key="module/@MODULE_ID@/insurancePolicySearch.form">mohBillingInsurancePolicySearchFormController</prop>
 				<prop key="module/@MODULE_ID@/insurancePolicy.form">mohBillingInsurancePolicyFormController</prop>
-				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortController</prop>				
+				<prop key="module/@MODULE_ID@/report.form">mohBillingReportFormController</prop>				
 			    <prop key="module/@MODULE_ID@/thirdParty.form">mohBillingThirdPatryFormController</prop>
 			    <prop key="module/@MODULE_ID@/received.form">mohBillingReceivedController</prop>			   
 			    <prop key="module/@MODULE_ID@/refundBillReport.form">mohBillingRefundReportController</prop>
@@ -120,10 +120,6 @@
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsurancePolicyForm</value></property>
 	</bean>
 	
-	<bean id="mohBillingCohortController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCohortBuilderFormController">
-		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingCohortBuilderForm</value></property>
-	</bean>
-
 	<bean id="mohBillingReceivedController" class="org.openmrs.module.mohbilling.web.controller.MohBillingrReceivedAmountController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingReceivedAmount</value></property>
 	</bean>
@@ -176,6 +172,9 @@
 	</bean>
 	<bean id="mohBillingConfigurationFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingConfigurationFormController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingConfigurationForm</value></property>
+	</bean>
+	<bean id="mohBillingReportFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingReportFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingReportForm</value></property>
 	</bean>
 	
 		<!-- /Controllers -->

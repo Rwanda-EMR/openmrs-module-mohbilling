@@ -24,7 +24,7 @@
 
 	<openmrs:hasPrivilege privilege="Manage Billing Reports">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
-			<a href="cohort.form"><spring:message
+			<a href="report.form"><spring:message
 					code="@MODULE_ID@.billing.report" /></a>
 		</li>
 	</openmrs:hasPrivilege>

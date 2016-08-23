@@ -613,5 +613,16 @@ public interface BillingService {
 	 * @return List<HopService>
 	 */
 	public List<HopService> getHospitalServicesByDepartment(Department department);
+	/**
+	 * gets hopservice by name
+	 * @param name
+	 * @return HopService
+	 */
+	public HopService getServiceByName(String name);
+
+	public List<PaidServiceBill> getPaidItemsByBillPayments(
+			List<BillPayment> payments);
+	
+	
 
 }

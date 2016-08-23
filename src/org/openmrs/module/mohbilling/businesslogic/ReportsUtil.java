@@ -22,13 +22,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.model.AllServicesRevenue;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.ServiceRevenue;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 import com.itextpdf.text.BaseColor;
@@ -308,15 +312,70 @@ public class ReportsUtil {
 
 		}
 	}
-	public static Double getTotalRefundedAmount(Set<PatientBill> pb){
-		 Double total = 0.0;
-		 for (PatientBill b : pb) {
-			for (BillPayment pay : b.getPayments()) {
-				if(pay.getAmountPaid().doubleValue()<0)
-				total+=pay.getAmountPaid().doubleValue();
+	/**
+	 * Get revenue by service
+	 * @param paidItems parameters from which we will take paid items matching  with a given hopService
+	 * @param hopService parameter which we are looking the due Amount
+	 * @return serviceRenue
+	 */
+	public static ServiceRevenue  getServiceRevenue(List<PaidServiceBill> paidItems,HopService hopService){
+		
+		BigDecimal dueAmount = new BigDecimal(0);
+		ServiceRevenue revenue=null;
+		//due Amount  by Service
+		for (PaidServiceBill paidServiceBill : paidItems) {
+			
+			if(paidServiceBill.getBillItem().getHopService()==hopService){
+				Float insuranceRate = paidServiceBill.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+				float pRate = (100f - insuranceRate) / 100f;
+				BigDecimal patientRte = new BigDecimal(""+pRate);
+				
+				BigDecimal reqQty = paidServiceBill.getPaidQty();
+				BigDecimal unitPrice =paidServiceBill.getBillItem().getUnitPrice();
+				dueAmount =dueAmount.add(reqQty.multiply(unitPrice).multiply(patientRte));				
 			}
 		}
-		return total;
-		 
-	 }
+		
+		if(dueAmount.compareTo(BigDecimal.ZERO)>0){
+			
+	    revenue = new ServiceRevenue(hopService, dueAmount);
+		}
+		return revenue;
+	}
+
+	/**
+	 * Get all paid amount after summing up all paid amount from each billpayment
+	 * @param payments
+	 * @return All paidAmount
+	 */
+	public static BigDecimal  getAllPaidAmount(List<BillPayment> payments) {
+		BigDecimal allpaidAmount = new BigDecimal(0);
+		for (BillPayment billPayment : payments) {
+			allpaidAmount = allpaidAmount.add(billPayment.getAmountPaid());			
+		}
+		
+		return allpaidAmount;
+	}
+	public static AllServicesRevenue getAllServicesRevenue(List<BillPayment> payments,String reportingPeriod){
+		
+		List<PaidServiceBill> paidItems =BillPaymentUtil.getPaidItemsByBillPayments(payments);
+		BigDecimal allPaidAmount = getAllPaidAmount(payments);
+		BigDecimal AllDueAmounts = new BigDecimal(0);
+		//get All services revenues
+		List<ServiceRevenue> allRevenues = new ArrayList<ServiceRevenue>();
+		
+		for (HopService hopService : HopServiceUtil.getAllHospitalServices()) {
+		   if(ReportsUtil.getServiceRevenue(paidItems, hopService)!=null)		   
+		   {
+			   ServiceRevenue revenue = ReportsUtil.getServiceRevenue(paidItems, hopService);
+			   AllDueAmounts = AllDueAmounts.add(revenue.getDueAmount());
+			   allRevenues.add(revenue);
+		   }
+		}
+		AllServicesRevenue allServicesRevenue = new AllServicesRevenue(AllDueAmounts, allPaidAmount, reportingPeriod);
+		                   allServicesRevenue.setRevenues(allRevenues);
+		
+		return allServicesRevenue;        
+	}
+
 }

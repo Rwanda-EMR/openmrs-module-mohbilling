@@ -15,9 +15,12 @@ import org.openmrs.util.OpenmrsUtil;
  * 
  */
 public class PatientServiceBill implements Comparable<PatientServiceBill> {
+	
 	private Integer patientServiceBillId;
+	
 	private Date serviceDate;
-	private BillableService service;	
+	private BillableService service;
+	private HopService hopService;
 	private BigDecimal unitPrice;
 	private BigDecimal quantity;
 	private Consommation consommation;
@@ -263,6 +266,20 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	public Date getVoidedDate() {
 		return voidedDate;
+	}
+
+	/**
+	 * @return the hopService
+	 */
+	public HopService getHopService() {
+		return hopService;
+	}
+
+	/**
+	 * @param hopService the hopService to set
+	 */
+	public void setHopService(HopService hopService) {
+		this.hopService = hopService;
 	}
 
 	/**

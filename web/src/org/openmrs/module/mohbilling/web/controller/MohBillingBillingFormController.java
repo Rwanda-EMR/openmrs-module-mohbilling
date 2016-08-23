@@ -29,6 +29,7 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -104,17 +105,9 @@ public class MohBillingBillingFormController extends
 				 Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
 
 				 ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("ipCardNumber"));
-				 categories = HopServiceUtil.getServiceCategoryByInsurancePolicyDepartment(ben.getInsurancePolicy(), department);
-				 
-				 log.info("categories zize>>>>>>>>>>>>>>>>>>>"+categories.size());
-					
+				 categories = HopServiceUtil.getServiceCategoryByInsurancePolicyDepartment(ben.getInsurancePolicy(), department);					
 					mav.addObject("categories",categories);
 			}
-				
-			
-			
-			
-			
 			
 			mav.addObject("beneficiary", ben);
 
@@ -152,7 +145,7 @@ public class MohBillingBillingFormController extends
 
 		Consommation saveConsommation = null;
 		Integer globalBillId =Integer.valueOf(request.getParameter("globalBillId"));
-		Integer departmentId =Integer.valueOf(request.getParameter("globalBillId"));
+		Integer departmentId =Integer.valueOf(request.getParameter("departmentId"));
 		
 		
 		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
@@ -190,13 +183,15 @@ public class MohBillingBillingFormController extends
 					BillableService bs = InsuranceUtil
 							.getValidBillableService(Integer.valueOf(request
 									.getParameter("billableServiceId_" + i)));
-					psb.setService(bs);
+					//get service by name
+					HopService hopService =HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
 				
+					psb.setService(bs);
+				    psb.setHopService(hopService);
 					if(request.getParameter("quantity_" + i)!=null&&!request.getParameter("quantity_" + i).equals(""))
 						 quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
 					psb.setQuantity(quantity);
 					
-
 					psb.setServiceDate(new Date());
 					unitPrice = BigDecimal.valueOf(Double.valueOf(request
 							.getParameter("servicePrice_" + i)));

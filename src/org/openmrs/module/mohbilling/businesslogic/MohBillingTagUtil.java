@@ -3,8 +3,6 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.List;
 import java.util.Set;
 
@@ -16,8 +14,6 @@ import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.model.ServiceCategory;
-import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 
