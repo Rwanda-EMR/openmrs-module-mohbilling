@@ -619,5 +619,14 @@ public interface BillingService {
 	 * @return Transaction
 	 */
 	public Transaction getTransactionById(Integer id);
+	/**
+	 * gets hopservice by name
+	 * @param name
+	 * @return HopService
+	 */
+	public HopService getServiceByName(String name);
+
+	public List<PaidServiceBill> getPaidItemsByBillPayments(
+			List<BillPayment> payments);
 
 }

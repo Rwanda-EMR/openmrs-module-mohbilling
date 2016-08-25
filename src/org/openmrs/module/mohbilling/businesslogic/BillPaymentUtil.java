@@ -78,6 +78,17 @@ public class BillPaymentUtil {
 		return  getService().getPaidServiceBill(paidSviceBillid);
 	}
 
+	public static List<BillPayment> getAllPaymentByDatesAndCollector(
+			Date startDate, Date endDate, User collector) {
+		return getService().getBillPaymentsByDateAndCollector(startDate, endDate, collector);
+	}
+
+	public static List<PaidServiceBill> getPaidItemsByBillPayments(
+			List<BillPayment> payments) {
+		
+		return  getService().getPaidItemsByBillPayments(payments);
+	}
+
 	
 		
 

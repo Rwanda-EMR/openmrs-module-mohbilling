@@ -37,6 +37,7 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
+import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
@@ -697,89 +698,17 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	}
 
-	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,
-			Date endDate, User collector) {
-
-		List<BillPayment> paymentItems = new ArrayList<BillPayment>();
-		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		// DateFormat formatterTime = new SimpleDateFormat("HH:mm");
-		Session session = sessionFactory.getCurrentSession();
-		StringBuilder combinedSearch = new StringBuilder("");
-
-		// works
-		combinedSearch
-				.append(" select amount_paid,date_received,collector from moh_bill_payment ");
-		// works
-		if (startDate != null && endDate != null && collector == null) {
-
-			combinedSearch.append(" where date_received >='"
-					+ formatter.format(startDate) + "' and date_received <='"
-					+ formatter.format(endDate) + "'");
-
-		}
-
-		if (startDate != null && endDate == null && collector == null) {
-
-			combinedSearch.append(" where date_received >='"
-					+ formatter.format(startDate) + "'");
-
-		}
-		if (startDate == null && endDate != null && collector == null) {
-			combinedSearch.append(" where date_received <='"
-					+ formatter.format(endDate) + "'");
-
-		}
-
-		if (startDate == null && endDate == null && collector != null) {
-
-			combinedSearch.append(" where collector =" + collector.getUserId()
-					+ " ");
-
-		}
-
-		if (startDate != null && endDate != null && collector != null) {
-
-			combinedSearch.append(" where date_received >='"
-					+ formatter.format(startDate) + "' and date_received <='"
-					+ formatter.format(endDate) + "' and collector ="
-					+ collector.getUserId() + " ");
-
-		}
-
-		if (startDate != null && endDate == null && collector != null) {
-
-			combinedSearch.append(" where date_received >='"
-					+ formatter.format(startDate) + "' and collector ="
-					+ collector.getUserId() + " ");
-
-		}
-		if (startDate == null && endDate != null && collector != null) {
-
-			combinedSearch.append(" where date_received <='"
-					+ formatter.format(endDate) + "' and collector ="
-					+ collector.getUserId() + " ");
-
-		}
-
-		combinedSearch.append(" ; ");
-		List<Object[]> paymentItem = session.createSQLQuery(
-				combinedSearch.toString()).list();
-
-		for (Object[] object : paymentItem) {
-
-			BillPayment billPayment = new BillPayment();
-
-			billPayment.setAmountPaid((BigDecimal) object[0]);
-
-			billPayment.setCreatedDate((Date) object[1]);
-			User user = Context.getUserService().getUser((Integer) object[2]);
-
-			billPayment.setCollector(user);
-			paymentItems.add(billPayment);
-
-		}
-
-		return paymentItems;
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillPaymentsByDateAndCollector(java.util.Date, java.util.Date, org.openmrs.User)
+	 */
+	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,	Date endDate, User collector) {
+		
+		
+		  
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate",startDate,endDate ));	
+				
+				return crit.list();
+	
 	}
 
 	/**
@@ -1405,7 +1334,6 @@ public class HibernateBillingDAO implements BillingDAO {
 			return (Set<Transaction>) crit.list();
 
 		}
-
 		/* (non-Javadoc)
 		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getTransactionById(java.lang.Integer)
 		 */
@@ -1413,5 +1341,24 @@ public class HibernateBillingDAO implements BillingDAO {
 		public Transaction getTransactionById(Integer id) {
 			return (Transaction) sessionFactory.getCurrentSession().get(Transaction.class, id);
 		}
+		
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getServiceByName(java.lang.String)
+		 */
+		public HopService getServiceByName(String name) {
+			return 	(HopService) sessionFactory.getCurrentSession()
+					.createCriteria(HopService.class)
+					.add(Restrictions.eq("name",name))
+					.uniqueResult();
+		}
 
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPaidItemsByBillPayments(java.util.List)
+		 */
+		@Override
+		public List<PaidServiceBill> getPaidItemsByBillPayments(List<BillPayment> payments) {
+			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class);			
+		      		criteria.add(Restrictions.in("billPayment", payments));
+			return  criteria.list();
+		}
 	}

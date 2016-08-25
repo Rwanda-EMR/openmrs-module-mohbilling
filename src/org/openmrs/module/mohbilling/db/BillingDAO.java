@@ -631,4 +631,14 @@ public interface BillingDAO {
 	 * @return Transaction
 	 */
 	public Transaction getTransactionById(Integer id);
+
+	/**
+	 * Gets hospital service by name
+	 * @param name
+	 * @return HospitalService
+	 */
+	public HopService getServiceByName(String name);
+
+	public List<PaidServiceBill> getPaidItemsByBillPayments(
+			List<BillPayment> payments);
 }

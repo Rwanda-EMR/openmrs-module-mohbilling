@@ -173,12 +173,14 @@ $(document).ready(function(){
 					<td colspan="2"><input type="submit"  value="Confirm Payment" style="min-width: 200px;" onclick="check()"/></td>
 				</openmrs:hasPrivilege>
 			 <td colspan="3"></td>
-			</tr>	
-			<c:if test="${payment}!=null">	
-			<td colspan="2"><div style="text-align: right;"><a href="printPDFBillPayment.form?consommationId=${consommation.consommationId}&paymentId=${payment.paymentId}">Print Bill</a></div></td>	
-			</c:if>
+			</tr>			
 		</table>
 	</form>
+
+
+	<div style="text-align: right;"><a href="printPDFBillPayment.form?paymentId=${payment.billPaymentId}">Print Payment</a></div>
+	
+	
 </div>
 <br/>
 	<c:set var="payments" value="${consommation.patientBill.payments}" scope="request"/>
