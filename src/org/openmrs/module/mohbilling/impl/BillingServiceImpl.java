@@ -858,4 +858,20 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getHospitalServicesByDepartment(department);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getServiceByName(java.lang.String)
+	 */
+	@Override
+	public HopService getServiceByName(String name) {
+		
+		return billingDAO.getServiceByName(name);
+	}
+
+	@Override
+	public List<PaidServiceBill> getPaidItemsByBillPayments(
+			List<BillPayment> payments) {
+		// TODO Auto-generated method stub
+		return billingDAO.getPaidItemsByBillPayments(payments);
+	}
+
 	}

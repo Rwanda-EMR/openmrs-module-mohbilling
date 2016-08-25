@@ -625,4 +625,14 @@ public interface BillingDAO {
 	 * @return List<HopService>
 	 */
 	public List<HopService> getHospitalServicesByDepartment(Department department);
+
+	/**
+	 * Gets hospital service by name
+	 * @param name
+	 * @return HospitalService
+	 */
+	public HopService getServiceByName(String name);
+
+	public List<PaidServiceBill> getPaidItemsByBillPayments(
+			List<BillPayment> payments);
 }
