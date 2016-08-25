@@ -50,6 +50,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 * @param creator
 	 * @param createdDate
 	 */
+
 	public PatientServiceBill(BillableService bs,HopService service,Date serviceDate,BigDecimal unitPrice,BigDecimal quantity,User creator,Date createdDate){
 		this.service = bs;
 		this.serviceDate=serviceDate;
@@ -58,6 +59,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		this.creator=creator;
 		this.createdDate=createdDate;
 		this.setHopService(service);
+
 	}
 	/**
 	 * Creates a new instance of PatientServiceBill from existing
@@ -67,7 +69,9 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 * @return
 	 */
 	public static PatientServiceBill newInstance(PatientServiceBill psbToCopy,BigDecimal newQuantity){
+
 		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getHopService()   ,psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date());
+
 		return newPsb;
 	}
 
@@ -85,7 +89,6 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	public void setPatientServiceBillId(Integer patientServiceBillId) {
 		this.patientServiceBillId = patientServiceBillId;
 	}
-
 	/**
 	 * @return the serviceDate
 	 */

@@ -9,8 +9,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
@@ -28,8 +26,6 @@ import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
-
-import sun.util.logging.resources.logging;
 /**
  * @author emr
  *
@@ -130,7 +126,8 @@ public class ConsommationUtil {
 			Beneficiary beneficiary) {
 		
 		return getService().getConsommationsByBeneficiary(beneficiary);
-	}	
+	}
+	
 	public static Consommation handleSavePatientConsommation(
 			HttpServletRequest request, ModelAndView mav) {
 		Consommation saveConsommation = null;
@@ -140,6 +137,7 @@ public class ConsommationUtil {
 		
 		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
 		Department department = DepartementUtil.getDepartement(departmentId);
+		
 		BigDecimal globalAmount = globalBill.getGlobalAmount();
 		BigDecimal totalAmount = new BigDecimal(0);
 		Beneficiary beneficiary = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request
@@ -177,16 +175,17 @@ public class ConsommationUtil {
 					existingPsb.setVoided(true);
 					existingPsb.setVoidedBy(creator);
 					existingPsb.setVoidReason("edit");
-					existingPsb.setVoidedDate(new Date());
-					excludeAmount=excludeAmount.add(existingPsb.getQuantity().multiply(unitPrice));
+					existingPsb.setVoidedDate(new Date());					
 				}
 				else{
-					 bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));
-					 HopService hopService =HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
+					
+					 bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));					 
+					//get service by name
+						HopService hopService =HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
 					 quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
 					 unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
 					 psb = new PatientServiceBill(bs,hopService, new Date(), unitPrice, quantity, creator, new Date());
-				}
+				}				
 				existingConsom.addBillItem(psb);
 				//if(psb.getVoided()==false)
 					totalAmount = totalAmount.add(quantity.multiply(unitPrice));
@@ -197,9 +196,8 @@ public class ConsommationUtil {
 	    InsuranceBill ib =InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);			
 				
 		ThirdPartyBill	thirdPartyBill =	ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
-							
+		existingConsom.setDepartment(department);					
 		existingConsom.setPatientBill(pb);
-		existingConsom.setDepartment(department);
 		existingConsom.setInsuranceBill(ib);
 		existingConsom.setThirdPartyBill(thirdPartyBill);
 			
@@ -208,8 +206,9 @@ public class ConsommationUtil {
 
 		Float insuranceRate = beneficiary.getInsurancePolicy()
 				.getInsurance().getCurrentRate().getRate();
-		Float patientRate = (100f - insuranceRate)/100f;		
-	
+		Float patientRate = (100f - insuranceRate)/100f;			
+		
+		System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF  "+insuranceRate);
 		globalAmount =globalAmount.add(totalAmount.multiply(new BigDecimal(patientRate)));
 		globalBill.setGlobalAmount(globalAmount);
 		GlobalBillUtil.saveGlobalBill(globalBill);			
@@ -231,7 +230,5 @@ public class ConsommationUtil {
 		// TODO Auto-generated method stub
 		return getService().getConsommationByPatientBill(patientBill);
 	}
-
-	
 
 }

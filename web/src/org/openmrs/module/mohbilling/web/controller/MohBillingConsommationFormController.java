@@ -52,8 +52,6 @@ public class MohBillingConsommationFormController extends
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-		
-		Set<PatientServiceBill> items = new HashSet<PatientServiceBill>();
 		Consommation  existingConsom = Context.getService(BillingService.class).getConsommation(
 				Integer.parseInt(request.getParameter("consommationId")));	
 
@@ -89,8 +87,6 @@ public class MohBillingConsommationFormController extends
 			cpyPsb.setConsommation(cpyConsom);
 			cpyPsb.setServiceDate(psb.getServiceDate());
 			
-			//if(psb.getVoided()==false)
-			log.info("pppooooooooooooooooooooooooooooooooppppppppppppppppppppppp "+psb.getVoided());
 			totalAmount = totalAmount.add(qty.multiply(psb.getUnitPrice()));
 	
 			cpyConsom.addBillItem(cpyPsb);
