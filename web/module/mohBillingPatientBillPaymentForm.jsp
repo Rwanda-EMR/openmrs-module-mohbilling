@@ -10,12 +10,12 @@
  <script type="text/javascript">
         $(function () {
             var total;
-            var checked = $('input:checkbox').click(function (e) {
+            var checked = $('.items').click(function (e) {
                 calculateSum();
             });
 
             function calculateSum() {
-                var $checked = $(':checkbox:checked');
+                var $checked = $('.items:checked');
                 total = 0.0;
                 $checked.each(function () {
                     total += parseFloat($(this).val());
@@ -92,6 +92,7 @@ $(document).ready(function(){
 			<c:forEach items="${consommation.billItems}" var="billItem" varStatus="status">
 			<c:set var="service" value="${billItem.service.facilityServicePrice}"/>
 			<c:set var="fieldName" value="item-${consommation.consommationId}-${billItem.patientServiceBillId}"/>
+			 <c:if test="${not billItem.voided}">
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
@@ -106,8 +107,9 @@ $(document).ready(function(){
 						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
-					<td><input name="${fieldName}"	value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox"></td>
+					<td><input name="${fieldName}" class="items" value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox"></td>
 				</tr>
+				</c:if>
 			</c:forEach>		   
 			<tr>			   
 				<td colspan="4"> <p align="center" style="color: red; " id="tot"></p></td>

@@ -3,8 +3,6 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -18,13 +16,8 @@ import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.ParametersConversion;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
-import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.HopService;
-import org.openmrs.module.mohbilling.model.PaidServiceBill;
-import org.openmrs.module.mohbilling.model.ServiceRevenue;
-import org.openmrs.reporting.Report;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
