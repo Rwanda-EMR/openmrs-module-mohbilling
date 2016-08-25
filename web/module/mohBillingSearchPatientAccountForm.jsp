@@ -65,6 +65,7 @@
 <th style="width:12%">Creator</th>
 <th style="width:6%">Cash In</th>
 <th style="width:6%">Cash Out</th>
+<th style="width:6%"></th>
 </tr>
 
     <c:forEach items="${transactions}" var="trans" varStatus="status">
@@ -93,7 +94,15 @@
    					 <td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
                     </c:otherwise>
                     </c:choose>
+					<%-- <td><a href="transaction.form?transactionId=${trans.transactionId }&patientId=${trans.patientAccount.patient.patientId}">View</a></td> --%>
 					
+					<td class="rowValue ${(status.count%2!=0)?'even':''}">
+					<form action="searchPatientAccount.form?patientId=${trans.patientAccount.patient.patientId}" method="post" style="display: inline;">
+   						 <input type="hidden" name="printed" value="${trans.transactionId }" />
+						 <input type="submit" class="list_exportBt" value="print" title="Export to PDF"/>
+					</form>
+					</td>
+				
 				</tr>
 	</c:forEach>
 			

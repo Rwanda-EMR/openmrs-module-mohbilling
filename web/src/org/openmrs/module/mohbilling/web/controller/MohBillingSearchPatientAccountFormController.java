@@ -10,9 +10,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.model.PatientAccount;
+import org.openmrs.module.mohbilling.model.Transaction;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -48,7 +50,12 @@ public class MohBillingSearchPatientAccountFormController extends
 				return new ModelAndView(new RedirectView("transaction.form?patientId="+patient.getPatientId()));		
 			}		
 		}
-
+		if (request.getParameter("printed")!=null) {
+			Transaction transaction = PatientAccountUtil.getTransactionById(Integer.valueOf(request.getParameter("printed")));
+			FileExporter fexp = new FileExporter();
+			String fileName = "DepositReceipt_"+transaction.getPatientAccount().getPatient().getPatientId()+"_"+transaction.getTransactionId()+".pdf";
+			fexp.printTransaction(request, response,transaction,fileName);
+		}
 		   mav.setViewName(getViewName());
 		return mav;
 	}

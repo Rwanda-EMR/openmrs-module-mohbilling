@@ -46,10 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author rbcemr
  * 
  */
-/**
- * @author emr
- * 
- */
+
 @Transactional
 public class BillingServiceImpl implements BillingService {
 
@@ -857,5 +854,12 @@ public class BillingServiceImpl implements BillingService {
 			Department department) {
 		return billingDAO.getHospitalServicesByDepartment(department);
 	}
+
+	@Override
+	public Transaction getTransactionById(Integer id) {
+		return billingDAO.getTransactionById(id);
+	}
+
+	
 
 	}

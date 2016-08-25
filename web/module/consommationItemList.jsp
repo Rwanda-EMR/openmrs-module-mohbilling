@@ -2,7 +2,7 @@
 <div id="consommation">
 <h2>Edit Consommation</h2>
 <div class="box">
-	<form action="billing.form?consommationId=${consommation.consommationId }&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId }&save=true" method="post" id="formSaveBillPayment">
+	<form action="billing.form?consommationId=${consommation.consommationId }&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId }&departmentId=${param.departmentId}&save=true" method="post" id="formSaveBillPayment">
 		<table width="70%" id="tableone">
 			<tr>
 				<th class="columnHeader"></th>

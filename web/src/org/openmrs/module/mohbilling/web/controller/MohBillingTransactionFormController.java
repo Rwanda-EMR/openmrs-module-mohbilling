@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillingGlobalProperties;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.Transaction;
@@ -81,6 +82,12 @@ public class MohBillingTransactionFormController extends
 		mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(patient));
 		mav.addObject("patient", patient);
 		mav.addObject("type", type);
+		
+		/*if(request.getParameter("transactionId")!=null){
+		log.info("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJSSSSSSSSSSSSS "+request.getParameter("transactionId"));
+		mav.addObject("transaction", PatientAccountUtil.getTransactionById(Integer.valueOf(request.getParameter("transactionId"))));
+		}*/
+		
 		return mav;
 	}
 

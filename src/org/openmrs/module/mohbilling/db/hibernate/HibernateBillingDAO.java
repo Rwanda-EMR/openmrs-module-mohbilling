@@ -1406,4 +1406,12 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		}
 
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getTransactionById(java.lang.Integer)
+		 */
+		@Override
+		public Transaction getTransactionById(Integer id) {
+			return (Transaction) sessionFactory.getCurrentSession().get(Transaction.class, id);
+		}
+
 	}

@@ -12,7 +12,7 @@
 <h2>Consommations List</h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
-
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <br />
 <div style="text-align: right;">
@@ -50,7 +50,7 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">paid</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;<a href="patientBillPayment.form?consommationId=${consommation.consommationId}">view payment</a></td>				
 				<%-- <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="consommation.form?consommationId=${consommation.consommationId}">Edit</a></td> --%>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&edit=true">Edit</a></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&edit=true">Edit</a></td>
 				
 			</tr>						
 		</c:forEach>
@@ -58,8 +58,9 @@
 		   <td></td>
 		</tr>
 			<tr>
-			     <td><div style="text-align: left;">Total Due Amount</div></td>			
-				<td><div class="amount">${globalBill.globalAmount}</div></td>
+			     <td><div style="text-align: left;">Total Due Amount</div></td>	
+			     <c:set var="totalDueAmount" value="${(globalBill.globalAmount)*((100-insurancePolicy.insurance.currentRate.rate)/100)}"/>		
+				<td><div class="amount"><fmt:formatNumber value="${totalDueAmount}" type="number" pattern="#.##"/></div></td>
 				<td></td><td></td> <td></td><td></td><td></td>
 				<td><div style="text-align: right;"><b>Total paid  Amount</b></div></td>
 				<td><div class="amount">${billingtag:amountPaidByGlobalBill(globalBill.globalBillId)}</div></div></td>
