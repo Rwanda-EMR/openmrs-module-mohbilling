@@ -614,6 +614,12 @@ public interface BillingService {
 	 */
 	public List<HopService> getHospitalServicesByDepartment(Department department);
 	/**
+	 * gets Transaction with a given id
+	 * @param id
+	 * @return Transaction
+	 */
+	public Transaction getTransactionById(Integer id);
+	/**
 	 * gets hopservice by name
 	 * @param name
 	 * @return HopService
@@ -622,7 +628,5 @@ public interface BillingService {
 
 	public List<PaidServiceBill> getPaidItemsByBillPayments(
 			List<BillPayment> payments);
-	
-	
 
 }

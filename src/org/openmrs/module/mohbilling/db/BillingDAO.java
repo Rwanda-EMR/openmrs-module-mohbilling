@@ -625,6 +625,12 @@ public interface BillingDAO {
 	 * @return List<HopService>
 	 */
 	public List<HopService> getHospitalServicesByDepartment(Department department);
+	/**
+	 * gets Transaction with a given id
+	 * @param id
+	 * @return Transaction
+	 */
+	public Transaction getTransactionById(Integer id);
 
 	/**
 	 * Gets hospital service by name

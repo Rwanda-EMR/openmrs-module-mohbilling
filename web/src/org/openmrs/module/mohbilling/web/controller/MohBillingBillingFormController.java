@@ -63,6 +63,7 @@ public class MohBillingBillingFormController extends
 								+ consommation.getConsommationId() + "&ipCardNumber="
 								+ consommation.getBeneficiary().getPolicyIdNumber()));
 		}
+
 		if (request.getParameter("searchDpt") != null) {
 		  Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
 	
@@ -97,6 +98,7 @@ public class MohBillingBillingFormController extends
 					mav.addObject("categories",categories);
 			}
 			
+
 			mav.addObject("beneficiary", ben);
 
 			InsurancePolicy ip = InsurancePolicyUtil
@@ -122,5 +124,4 @@ public class MohBillingBillingFormController extends
 		return mav;
 
 	}
-
 }

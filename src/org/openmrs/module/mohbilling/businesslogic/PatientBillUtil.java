@@ -198,7 +198,6 @@ public class PatientBillUtil {
 		
 	    BigDecimal  pbAmount = totalAmount.multiply(BigDecimal.valueOf((rateToPay)/100));
 		
-		
 	    PatientBill pb = new PatientBill();			 
 			 pb.setAmount(pbAmount);
 			 pb.setCreatedDate(new Date());

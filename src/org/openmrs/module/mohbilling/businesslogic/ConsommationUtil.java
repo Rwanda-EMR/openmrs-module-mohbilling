@@ -19,6 +19,7 @@ import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceBill;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ThirdParty;
@@ -150,23 +151,29 @@ public class ConsommationUtil {
 		
 		int numberOfServicesClicked;
 		String[] billItems = request.getParameterValues("billItem");
-		
+		 BigDecimal insuranceRate = (new BigDecimal(beneficiary.getInsurancePolicy().getInsurance().getCurrentRate().getRate()));
+		 BigDecimal patientRate = (new BigDecimal(100).subtract(insuranceRate)).divide(new BigDecimal(100));
+		 
 		if(request.getParameter("consommationId")!=null){
 			existingConsom = ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId")));
 			numberOfServicesClicked = billItems.length;
+			// Get 100% of the Ticket Moderateur
+			totalAmount=existingConsom.getPatientBill().getAmount().divide(patientRate);
 		}
+	
 		else{
 			existingConsom = new Consommation(globalBill, beneficiary, new Date(), creator, false);
 			numberOfServicesClicked = Integer.valueOf(request
 					.getParameter("numberOfServicesClicked"));	
 		}
-		BigDecimal excludeAmount = new BigDecimal(0);
-		
+		BigDecimal voidedItemTotalAmount = new BigDecimal(0);
+		BigDecimal addedItemTotalAmount = new BigDecimal(0);
 			for (int i = 0; i < numberOfServicesClicked; i++) {
 				BigDecimal  quantity= null;
 				BigDecimal unitPrice = null;
 				BillableService bs = null;
 				PatientServiceBill psb =null;
+				
 				if(billItems!=null){
 					PatientServiceBill existingPsb = ConsommationUtil.getPatientServiceBill(Integer.valueOf(billItems[i]));
 					quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("newQuantity_"  + billItems[i])));
@@ -175,43 +182,43 @@ public class ConsommationUtil {
 					existingPsb.setVoided(true);
 					existingPsb.setVoidedBy(creator);
 					existingPsb.setVoidReason("edit");
-					existingPsb.setVoidedDate(new Date());					
+					existingPsb.setVoidedDate(new Date());
+					BigDecimal voidedItemAmount = existingPsb.getQuantity().multiply(existingPsb.getUnitPrice());
+					BigDecimal newItemAmount = quantity.multiply(unitPrice);
+					voidedItemTotalAmount = voidedItemTotalAmount.add(voidedItemAmount);
+					addedItemTotalAmount=addedItemTotalAmount.add(newItemAmount);
 				}
 				else{
-					
-					 bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));					 
-					//get service by name
-						HopService hopService =HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
+					if(request.getParameter("billableServiceId_" + i)!=null&&request.getParameter("quantity_" + i)!=null&&request.getParameter("servicePrice_" + i)!=null){
+					 bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));
+					 HopService hopService =HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
 					 quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
 					 unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
 					 psb = new PatientServiceBill(bs,hopService, new Date(), unitPrice, quantity, creator, new Date());
-				}				
+					// totalAmount = totalAmount.add(quantity.multiply(unitPrice));
+					 addedItemTotalAmount=addedItemTotalAmount.add(quantity.multiply(unitPrice));
+					}
+				}
 				existingConsom.addBillItem(psb);
-				//if(psb.getVoided()==false)
-					totalAmount = totalAmount.add(quantity.multiply(unitPrice));
-					
-			}
-			totalAmount=totalAmount.subtract(excludeAmount);
-		PatientBill	 pb =PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());					  
-	    InsuranceBill ib =InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);			
-				
-		ThirdPartyBill	thirdPartyBill =	ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
+				}
+			totalAmount = totalAmount.add(addedItemTotalAmount);
+			totalAmount = totalAmount.subtract(voidedItemTotalAmount);
+			
+		PatientBill	 pb = PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());					  
+	    InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);				
+		ThirdPartyBill	thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
+							
 		existingConsom.setDepartment(department);					
 		existingConsom.setPatientBill(pb);
+		existingConsom.setDepartment(department);
 		existingConsom.setInsuranceBill(ib);
 		existingConsom.setThirdPartyBill(thirdPartyBill);
-			
-		//ConsommationUtil.createConsommation(consom);
-		saveConsommation = ConsommationUtil.saveConsommation(existingConsom);
-
-		Float insuranceRate = beneficiary.getInsurancePolicy()
-				.getInsurance().getCurrentRate().getRate();
-		Float patientRate = (100f - insuranceRate)/100f;			
 		
-		System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF  "+insuranceRate);
-		globalAmount =globalAmount.add(totalAmount.multiply(new BigDecimal(patientRate)));
+		saveConsommation = ConsommationUtil.saveConsommation(existingConsom);	
+		globalAmount = globalAmount.subtract(voidedItemTotalAmount).add(addedItemTotalAmount);
+		//globalAmount =globalAmount.add(totalAmount);
 		globalBill.setGlobalAmount(globalAmount);
-		GlobalBillUtil.saveGlobalBill(globalBill);			
+		GlobalBillUtil.saveGlobalBill(globalBill);	
 
 		request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,"Consommation has been saved successfully !");
 

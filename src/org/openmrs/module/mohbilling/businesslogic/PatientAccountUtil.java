@@ -82,5 +82,7 @@ public class PatientAccountUtil {
 			transaction.setCollector(collector);	
 			return PatientAccountUtil.createTransaction(transaction);
 	 }
-
+	 public static Transaction getTransactionById(Integer id){
+		 return getService().getTransactionById(id);
+	 }
 }

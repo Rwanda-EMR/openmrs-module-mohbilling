@@ -80,7 +80,6 @@ public class BillPaymentUtil {
 
 	public static List<BillPayment> getAllPaymentByDatesAndCollector(
 			Date startDate, Date endDate, User collector) {
-	System.out.println(">>>>>>>>>>>>>>>>>>>>>>start date >>>>>"+startDate+"ending date"+endDate);
 		return getService().getBillPaymentsByDateAndCollector(startDate, endDate, collector);
 	}
 
