@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
@@ -38,11 +39,12 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-		
-       if(request.getParameter("paymentId")!=null){
+		BillPayment payment = null;
+		Consommation consommation = null;
+       if(request.getParameter("paymentId")!=null && !request.getParameter("paymentId").equals("") ){
     	   
-    	   BillPayment payment = BillPaymentUtil.getBillPaymentById(Integer.parseInt(request.getParameter("paymentId")));
-    	   Consommation consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());    	   
+    	   payment = BillPaymentUtil.getBillPaymentById(Integer.parseInt(request.getParameter("paymentId")));
+    	   consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());    	   
     	   List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
     	  
     	   mav.addObject("paidItems", paidItems); 
@@ -50,10 +52,15 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
     	   mav.addObject("consommation",consommation); 
     	   mav.addObject("insurancePolicy",consommation.getBeneficiary().getInsurancePolicy()); 
     	   mav.addObject("beneficiary",consommation.getBeneficiary()); 
+    	   
+           if(request.getParameter("print")!=null){
+        	   FileExporter exp = new FileExporter();
+        	   exp.printPayment(request, response, payment, consommation, "receipt");
+           }
        }
+ 
 
 		
-
 		return mav;
 	}
 }

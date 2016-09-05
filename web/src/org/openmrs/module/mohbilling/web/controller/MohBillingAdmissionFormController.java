@@ -29,12 +29,13 @@ public class MohBillingAdmissionFormController extends
 			HttpServletResponse response) throws Exception {
 	
 		ModelAndView mav = new ModelAndView();
-		InsurancePolicy ip =null;		
-	
+		InsurancePolicy ip =null;	
+		String discharge = request.getParameter("discharge");
+		GlobalBill gb =null;
+	if(discharge==null)
 	if (request.getParameter("save") != null && request.getParameter("save").equals("true")) {
 		
-	     ip =Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
-	     
+	    ip =Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
 		
 		Admission admission = new Admission();
 		admission.setAdmissionDate(new Date());
@@ -47,22 +48,38 @@ public class MohBillingAdmissionFormController extends
 		Admission savedAdmission = AdmissionUtil.savePatientAdmission(admission);	
 		
 		//create new Global bill
-		GlobalBill gb =new GlobalBill();
+		gb =new GlobalBill();
 		gb.setAdmission(savedAdmission);
 		gb.setBillIdentifier(ip.getInsuranceCardNo()+savedAdmission.getAdmissionId());
 		gb.setCreatedDate(new Date());
 		gb.setCreator(Context.getAuthenticatedUser());
 		
-		
 		gb =   GlobalBillUtil.saveGlobalBill(gb);
 		mav.addObject("globalBill",gb);
 		
 	}
-		
-		
+	if(request.getParameter("discharge")!=null){
+		discharge = request.getParameter("discharge");
+		gb = GlobalBillUtil.getGlobalBill(Integer.valueOf(request.getParameter("globalBillId")));
+		if(request.getParameter("edit")!=null){
+		 gb.setAdmission(gb.getAdmission());
+		 gb.setBillIdentifier(gb.getBillIdentifier());
+		 gb.setGlobalAmount(gb.getGlobalAmount());
+		 gb.setCreator(gb.getCreator());
+		 gb.setCreatedDate(gb.getCreatedDate());
+		 gb.setClosingDate(new Date());
+		 gb.setClosedBy(Context.getAuthenticatedUser());
+		 gb.setClosed(true);
+		 
+		}
+		gb =   GlobalBillUtil.saveGlobalBill(gb);
+		mav.addObject("globalBill", gb);
+	}
+	
+	
 	 ip = Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
 		
-
+	    mav.addObject("discharge", discharge);
 		mav.addObject("insurancePolicy", ip);
 		mav.setViewName(getViewName());
 		return mav;

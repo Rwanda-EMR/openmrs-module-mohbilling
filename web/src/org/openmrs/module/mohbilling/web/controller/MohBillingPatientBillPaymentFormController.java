@@ -51,26 +51,21 @@ public class MohBillingPatientBillPaymentFormController extends
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-
+		BillPayment payment = null;
+		
 		if (request.getParameter("save") != null ){			
-			BillPayment payment = handleSavePatientBillPayment(request);
-			log.info(">>>>>>>>>>>BillPaymentId >>>>>"+payment.getBillPaymentId());
+			payment = handleSavePatientBillPayment(request);
 			mav.addObject("payment",payment);
 		}
 
 		 try{
 			Consommation  consommation = null;
 			List<Consommation> consommations = null;
-		
-			/*if (request.getParameter("consommationId") == null)
-				return new ModelAndView(new RedirectView(
-						"patientSearchBill.form"));*/
 
 			consommation = Context.getService(BillingService.class).getConsommation(
 					Integer.parseInt(request.getParameter("consommationId")));
 			
-			consommations = ConsommationUtil.getConsommationsByBeneficiary(consommation.getBeneficiary());
-					
+			consommations = ConsommationUtil.getConsommationsByBeneficiary(consommation.getBeneficiary());			
 
 			mav.addObject("consommation", consommation);
 			mav.addObject("consommations", consommations);
@@ -95,6 +90,7 @@ public class MohBillingPatientBillPaymentFormController extends
 			e.printStackTrace();
 			//return new ModelAndView(new RedirectView("patientSearchBill.form"));
 		}
+		
 		return mav;
 	}
 	/**
@@ -104,20 +100,10 @@ public class MohBillingPatientBillPaymentFormController extends
 	private BillPayment handleSavePatientBillPayment(HttpServletRequest request) {
 	
 		BillPayment billPayment = null;
-		// Float rate = null;
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {			
 			Consommation consommation =ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
-			//PatientBill pb = PatientBillUtil.getPatientBillById(Integer
-					//.parseInt(request.getParameter("patientBillId")));
 			PatientBill pb =consommation.getPatientBill();
-
-			// BigDecimal amountPaidByThirdPart = new BigDecimal(0);			
-			
-			// get all selected items and updated them as paid
-			
-
-		//	if (null != request.getParameter("receivedCash")) {
 				BillPayment bp = new BillPayment();
 				/**
 				 * We need to add both Patient Due amount and amount paid by
@@ -172,23 +158,8 @@ public class MohBillingPatientBillPaymentFormController extends
 							"The Bill Payment with deposit has been saved successfully !");
 					billPayment = dp;
 				}
-				
-				//createPaidServiceBill(request, consommation, cp);	
-
-				/** Marking a Bill as PAID */
-				//PatientBillUtil.markBillAsPaid(pb);
-
 
 				return billPayment;
-
-			/*} else {
-				request.getSession()
-						.setAttribute(
-								WebConstants.OPENMRS_MSG_ATTR,
-								"The Bill Payment cannot be saved when the 'Received Amount' is BLANK or is < 0 !");
-				return null;
-			}
-*/
 		} catch (Exception e) {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					"The Bill Payment has not been saved !");

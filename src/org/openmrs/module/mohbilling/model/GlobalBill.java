@@ -36,7 +36,9 @@ public class GlobalBill {
     
     private Date closingDate;
     
-    private Date closedBy;
+    private User closedBy;
+    
+    private Boolean closed = Boolean.FALSE;;
 	
 	private Boolean voided = false;
 	
@@ -161,14 +163,36 @@ public class GlobalBill {
 	/**
 	 * @return the closedBy
 	 */
-	public Date getClosedBy() {
+	public User getClosedBy() {
 		return closedBy;
+	}
+
+	/**
+	 * @return the closed
+	 */
+	public Boolean getClosed() {
+		return closed;
+	}
+	
+	
+	/**
+	 * @return
+	 */
+	public Boolean isClosed(){
+		return closed;
+	}
+
+	/**
+	 * @param closed the closed to set
+	 */
+	public void setClosed(Boolean closed) {
+		this.closed = closed;
 	}
 
 	/**
 	 * @param closedBy the closedBy to set
 	 */
-	public void setClosedBy(Date closedBy) {
+	public void setClosedBy(User closedBy) {
 		this.closedBy = closedBy;
 	}
 

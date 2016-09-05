@@ -15,6 +15,8 @@ import org.openmrs.module.mohbilling.model.ServiceRevenue;
  */
 public class AllServicesRevenue {
 	
+	private Consommation consommation;
+	
 	private List<ServiceRevenue> revenues;
 	
 	private BigDecimal allDueAmounts; 
@@ -22,6 +24,8 @@ public class AllServicesRevenue {
 	private BigDecimal allpaidAmount;
 	
 	private String reportingPeriod;
+	
+	
 	
 	private User collector;
 	
@@ -84,6 +88,18 @@ public class AllServicesRevenue {
 	 */
 	public User getCollector() {
 		return collector;
+	}
+	/**
+	 * @return the consommation
+	 */
+	public Consommation getConsommation() {
+		return consommation;
+	}
+	/**
+	 * @param consommation the consommation to set
+	 */
+	public void setConsommation(Consommation consommation) {
+		this.consommation = consommation;
 	}
 	/**
 	 * @param collector the collector to set
