@@ -84,12 +84,10 @@ public class FileExporter {
 	public void printPayment(HttpServletRequest request,	HttpServletResponse response, BillPayment payment,Consommation consommation,String filename) throws IOException{
 		 Document document = new Document();
 
-
 	        try {
 
 	            FontSelector fontselector = new FontSelector();
 	    		fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
-	            
 	            displayHeader(request, response, document, filename, fontselector);
 	            displayPaidItems(document, payment, consommation, fontselector);
 	            document.add(new Paragraph("............................................................................................................................................................\n"));
@@ -97,8 +95,8 @@ public class FileExporter {
 	            document.add(new Paragraph("\n"));	
 	            displayFooter(document,consommation.getBeneficiary().getPatient(), fontselector);
 		
-	            document.close(); // no need to close PDFwriter?
-
+	            document.close(); 
+	            
 	        } catch (DocumentException e) {
 	            e.printStackTrace();
 	        } catch (FileNotFoundException e) {
@@ -264,41 +262,44 @@ public class FileExporter {
 		 
 		 List<ServiceRevenue> revenueList = servicesRevenu.getRevenues();
 		 
-	 	 ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(consommation, "mohbilling.ACTS");
-		 revenueList.add(actsRevenue);
-		 ServiceRevenue autresRevenue = ReportsUtil.getServiceRevenue(consommation, "mohbilling.AUTRES");
+		  ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(consommation, "mohbilling.ACTS");
+		  revenueList.add(actsRevenue);
+		  ServiceRevenue autresRevenue = ReportsUtil.getServiceRevenue(consommation, "mohbilling.AUTRES");
 		 revenueList.add(autresRevenue);
 		
-		 allGlobalAmount = allGlobalAmount.add(actsRevenue.getDueAmount());
+		 //allGlobalAmount = allGlobalAmount.add(actsRevenue.getDueAmount()); 
 		 
 		 NumberFormat formatter = new DecimalFormat("#0.00");		 
-		 
+		 if(revenueList!=null)
 		 for (ServiceRevenue sr : revenueList) {
-			 cell = new PdfPCell(fontSelector.process(""));
-			 table.addCell(cell);
-			 cell = new PdfPCell(boldFont.process(""+sr.getService()));
-			 table.addCell(cell);
-			 cell = new PdfPCell(fontSelector.process(""));
-			 table.addCell(cell);
-			 cell = new PdfPCell(fontSelector.process(""));
-			 table.addCell(cell);
-			 cell = new PdfPCell(fontSelector.process(""));
-			 table.addCell(cell);
+			if(sr!=null){
+				 cell = new PdfPCell(fontSelector.process(""));
+				 table.addCell(cell);
+				 cell = new PdfPCell(boldFont.process(""+sr.getService()));
+				 table.addCell(cell);
+				 cell = new PdfPCell(fontSelector.process(""));
+				 table.addCell(cell);
+				 cell = new PdfPCell(fontSelector.process(""));
+				 table.addCell(cell);
+				 cell = new PdfPCell(fontSelector.process(""));
+				 table.addCell(cell);
 
-			 for (PatientServiceBill item : sr.getBillItems()) {
-				 cell = new PdfPCell(fontSelector.process(""+df.format(item.getCreatedDate())));
-				 table.addCell(cell);
-				 cell = new PdfPCell(fontSelector.process(""+item.getService().getFacilityServicePrice().getName()));
-				 table.addCell(cell);
-				 cell = new PdfPCell(fontSelector.process(""+item.getQuantity()));
-				 table.addCell(cell);
-				 cell = new PdfPCell(fontSelector.process(""+item.getUnitPrice()));
-				 table.addCell(cell);
-				 cell = new PdfPCell(fontSelector.process(""+formatter.format(item.getQuantity().multiply(item.getUnitPrice()))));
-				 table.addCell(cell);
-			} 
+				 for (PatientServiceBill item : sr.getBillItems()) {
+					 cell = new PdfPCell(fontSelector.process(""+df.format(item.getCreatedDate())));
+					 table.addCell(cell);
+					 cell = new PdfPCell(fontSelector.process(""+item.getService().getFacilityServicePrice().getName()));
+					 table.addCell(cell);
+					 cell = new PdfPCell(fontSelector.process(""+item.getQuantity()));
+					 table.addCell(cell);
+					 cell = new PdfPCell(fontSelector.process(""+item.getUnitPrice()));
+					 table.addCell(cell);
+					 cell = new PdfPCell(fontSelector.process(""+formatter.format(item.getQuantity().multiply(item.getUnitPrice()))));
+					 table.addCell(cell);
+				} 
+			}
+			
 		}
-		 
+		
 		document.add(table);
 		document.add(new Paragraph("\n"));	
 		float[] width = { 4f, 3f, 3f};
