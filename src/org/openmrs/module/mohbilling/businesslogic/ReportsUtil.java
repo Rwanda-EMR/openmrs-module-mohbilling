@@ -22,10 +22,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
@@ -338,7 +340,35 @@ public class ReportsUtil {
 		
 		if(dueAmount.compareTo(BigDecimal.ZERO)>0){
 			
-	    revenue = new ServiceRevenue(hopService, dueAmount);
+	    revenue = new ServiceRevenue("", dueAmount);
+		}
+		return revenue;
+	}
+public static ServiceRevenue  getServiceRevenues(Set<PatientServiceBill> billItems,HopService hopService){
+		
+		BigDecimal dueAmount = new BigDecimal(0);
+		ServiceRevenue revenue=null;
+		//due Amount  by Service
+		List<PatientServiceBill> serviceItems = new ArrayList<PatientServiceBill>();
+		for (PatientServiceBill psb : billItems) {
+			
+			if(psb.getHopService()==hopService){
+				Float insuranceRate = psb.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+				float pRate = (100f - insuranceRate) / 100f;
+				BigDecimal patientRte = new BigDecimal(""+pRate);
+				
+				BigDecimal reqQty = psb.getQuantity();
+				BigDecimal unitPrice =psb.getUnitPrice();
+				dueAmount =dueAmount.add(reqQty.multiply(unitPrice).multiply(patientRte));	
+				serviceItems.add(psb);
+			}
+			
+		}
+		
+		if(dueAmount.compareTo(BigDecimal.ZERO)>0){
+			
+	    revenue = new ServiceRevenue(hopService.getName(), dueAmount);
+	    revenue.setBillItems(serviceItems);
 		}
 		return revenue;
 	}
@@ -377,5 +407,58 @@ public class ReportsUtil {
 		
 		return allServicesRevenue;        
 	}
-
+	
+	public static AllServicesRevenue getAllServicesRevenue(Consommation cons, String category){
+	
+		BigDecimal allDueAmounts = new BigDecimal(0);
+		 Set<PatientServiceBill> billItems = cons.getBillItems();
+		
+		List<HopService> services =GlobalPropertyConfig.getHospitalServiceByCategory(category);
+		//get All services revenues
+		List<ServiceRevenue> allRevenues = new ArrayList<ServiceRevenue>();
+		
+		 for (HopService hopService : services) {
+			 //  System.out.println("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV333 "+getService().getBillItemsByCategory(cons, hopService));
+			  
+			   if(getServiceRevenues(billItems, hopService)!=null){
+				   ServiceRevenue revenue = ReportsUtil.getServiceRevenues(billItems, hopService);
+				   allDueAmounts = allDueAmounts.add(revenue.getDueAmount());
+				   allRevenues.add(revenue);
+			   }
+			}
+			AllServicesRevenue allServicesRevenue = new AllServicesRevenue(allDueAmounts, new BigDecimal(0), "2016-08-30");
+			                   allServicesRevenue.setRevenues(allRevenues);
+			                   allServicesRevenue.setConsommation(cons);
+			
+			return allServicesRevenue;      
+	}
+	public static ServiceRevenue getServiceRevenue(Consommation consommation,String categ){	
+		
+		BigDecimal dueAmount = new BigDecimal(0);
+		ServiceRevenue revenue=null;
+		
+		List<HopService> services =GlobalPropertyConfig.getHospitalServiceByCategory(categ);
+		List<PatientServiceBill> billItems = getService().getBillItemsByGroupedCategories(consommation, services);
+		//due Amount  by Service
+		for (PatientServiceBill psb : billItems) {
+			
+			if(services.contains(psb.getHopService())){
+				Float insuranceRate = psb.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+				float pRate = (100f - insuranceRate) / 100f;
+				BigDecimal patientRte = new BigDecimal(""+pRate);
+				
+				BigDecimal reqQty = psb.getQuantity();
+				BigDecimal unitPrice =psb.getUnitPrice();
+				dueAmount =dueAmount.add(reqQty.multiply(unitPrice).multiply(patientRte));	
+			}
+		}
+		
+		if(dueAmount.compareTo(BigDecimal.ZERO)>0){	
+			String[]	parts =  categ.split("\\.");
+			categ = parts[1]; 
+	        revenue = new ServiceRevenue(categ.toUpperCase(), dueAmount);
+	        revenue.setBillItems(billItems);
+		}
+		return revenue;
+	}
 }

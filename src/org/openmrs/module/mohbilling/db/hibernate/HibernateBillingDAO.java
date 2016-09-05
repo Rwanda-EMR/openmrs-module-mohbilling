@@ -1361,4 +1361,25 @@ public class HibernateBillingDAO implements BillingDAO {
 		      		criteria.add(Restrictions.in("billPayment", payments));
 			return  criteria.list();
 		}
+
+		@Override
+		public List<PatientServiceBill> getBillItemsByCategory(
+				Consommation consommation, HopService service) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientServiceBill.class);
+			if(consommation!=null)
+				crit.add(Expression.eq("consommation", consommation));
+			if(service !=null)
+			    crit.add(Expression.eq("hopService", service));
+			
+			return crit.list();
+		}
+
+		@Override
+		public List<PatientServiceBill> getBillItemsByGroupedCategories(
+				Consommation consommation, List<HopService> services) {
+			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientServiceBill.class);	
+			criteria.add(Restrictions.eq("consommation", consommation));
+      		criteria.add(Restrictions.in("hopService", services));
+      		return  criteria.list();
+		}
 	}

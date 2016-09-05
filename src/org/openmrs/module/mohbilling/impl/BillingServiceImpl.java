@@ -874,4 +874,16 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getPaidItemsByBillPayments(payments);
 	}
 
+	@Override
+	public List<PatientServiceBill> getBillItemsByCategory(
+			Consommation consommation, HopService service) {
+		return billingDAO.getBillItemsByCategory(consommation, service);
+	}
+
+	@Override
+	public List<PatientServiceBill> getBillItemsByGroupedCategories(
+			Consommation consommation, List<HopService> services) {
+		return billingDAO.getBillItemsByGroupedCategories(consommation, services);
+	}
+
 	}

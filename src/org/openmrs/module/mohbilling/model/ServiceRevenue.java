@@ -1,31 +1,53 @@
 package org.openmrs.module.mohbilling.model;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
 
 public class ServiceRevenue {
 	
-	HopService service ;
-	BigDecimal dueAmount;
+	private String service ;
+	private List<PatientServiceBill> billItems;
+	private BigDecimal dueAmount;
 	
 	
-	public ServiceRevenue(HopService svce,BigDecimal dueAmount){
-		this.service =svce;
-		this.dueAmount=dueAmount;
+	public ServiceRevenue(String service, BigDecimal dueAmount) {
+		this.service = service;
+		this.dueAmount = dueAmount;
 	}
-	
+
+
 	/**
 	 * @return the service
 	 */
-	public HopService getService() {
+	public String getService() {
 		return service;
 	}
+
 
 	/**
 	 * @param service the service to set
 	 */
-	public void setService(HopService service) {
+	public void setService(String service) {
 		this.service = service;
 	}
+
+
+	/**
+	 * @return the billItems
+	 */
+	public List<PatientServiceBill> getBillItems() {
+		return billItems;
+	}
+
+
+	/**
+	 * @param billItems the billItems to set
+	 */
+	public void setBillItems(List<PatientServiceBill> billItems) {
+		this.billItems = billItems;
+	}
+
 
 	/**
 	 * @return the dueAmount
@@ -34,12 +56,13 @@ public class ServiceRevenue {
 		return dueAmount;
 	}
 
+
 	/**
 	 * @param dueAmount the dueAmount to set
 	 */
 	public void setDueAmount(BigDecimal dueAmount) {
 		this.dueAmount = dueAmount;
-	}	
+	}
 	
 
 }

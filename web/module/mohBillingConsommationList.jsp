@@ -13,10 +13,16 @@
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-
+<script type="text/javascript">
+function myFunction() {
+    var myWindow = window.open("admission.form?insurancePolicyId=48518&ipCardNumber=1994", "Discharge Form", "width=600,height=600");
+}
+</script>
 <br />
 <div style="text-align: right;">
-<a href="admissionForm.form?globalBillId=">Dischage the Patient</a>
+
+ <a href="javascript:window.open('admission.form?globalBillId=${globalBill.globalBillId}&insurancePolicyId=${insurancePolicy.insurancePolicyId }&ipCardNumber=${insurancePolicy.insuranceCardNo}&discharge=true', 'summaryWindow', 'toolbar=no,width=660,height=600,resizable=yes,scrollbars=yes').focus()">Dischage the Patient</a>
+
 <a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add Consommation</a></div>
 
 <b class="boxHeader">consommations List for Global Bill id created

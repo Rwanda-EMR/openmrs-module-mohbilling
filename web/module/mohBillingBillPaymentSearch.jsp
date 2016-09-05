@@ -1,9 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
-<openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
-<%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
-<%@ include file="templates/mohBillingLocalHeader.jsp"%>
-<%@ include file="templates/mohBillingBillHeader.jsp"%>
+
 
 
 <b class="boxHeader">Search Bill Payment </b>

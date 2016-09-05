@@ -6,6 +6,19 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 
+<style>
+
+	.closedStutus{
+		color: #FFFFFF;
+		background-color: red;
+		padding: 2px;
+		cursor: pointer;
+		-moz-border-radius: 2px; 
+		border-right: 2px solid #dddddd;
+		border-bottom: 2px solid #dddddd;
+	}
+
+</style>
 
 <h2>Global Bill List</h2>
 
@@ -25,7 +38,8 @@
 		<th>Discharging Date</th>		
 		<th>Bill identifier</th>
 		<th>Patient Due Amount</th>
-		<th>paid Amount</th>		
+		<th>Paid Amount</th>	
+		<th>Status</th>	
 		<th>Bill</th>					
 	</tr>
 		<c:forEach items="${globalBills}" var="globalBill" varStatus="status">
@@ -45,9 +59,20 @@
 			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${dischargingDate}</td>			
 			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billIdentifier}</td>			
 			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${globalBill.globalAmount}</td>			
-		    <td class="rowValue right ${(status.count%2!=0)?'even':''}">${billingtag:amountPaidByGlobalBill(globalBill.globalBillId)}</td>		
-		    <td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;<a href="billing.form?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">Add</a>
-		    /<a href="consommation.list?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">View</a></td>
+		    <td class="rowValue right ${(status.count%2!=0)?'even':''}">${billingtag:amountPaidByGlobalBill(globalBill.globalBillId)}</td>
+		    <c:if test="${globalBill.closed}">	
+		    <td class="rowValue center ${(status.count%2!=0)?'even':''}"><span title='Closed' class='closedStutus'><b>X</b></span></td>	
+		    </c:if>
+		    <c:if test="${not globalBill.closed}">	
+		    <td class="rowValue center ${(status.count%2!=0)?'even':''}"><img src="/openmrs/images/edit.gif" title="Open" border="0" /></td>	
+		    </c:if>
+		    <td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;
+		   
+		    <c:if test="${not globalBill.closed}">
+		    <a href="billing.form?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">Add</a>
+		    </c:if>
+		    <a href="consommation.list?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">View</a>
+		    </td>
 		 </tr>
 		 
 	</c:forEach>

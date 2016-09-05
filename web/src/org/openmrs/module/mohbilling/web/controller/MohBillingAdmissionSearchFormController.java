@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -28,8 +30,7 @@ public class MohBillingAdmissionSearchFormController extends
 
 		
 	ModelAndView mav =new  ModelAndView();
-	
-	
+
 	mav.setViewName(getViewName());	
 	return mav;
 	}

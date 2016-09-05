@@ -176,14 +176,20 @@ $(document).ready(function(){
 			</tr>			
 		</table>
 	</form>
-
-
-	<div style="text-align: right;"><a href="printPDFBillPayment.form?paymentId=${payment.billPaymentId}">Print Payment</a></div>
-	
+	<div style="text-align: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div>
 	
 </div>
 <br/>
 	<c:set var="payments" value="${consommation.patientBill.payments}" scope="request"/>
 <c:import url="mohBillingPaymentHistory.jsp" />
+<!--  
+<br/>
+<div class="box"> 
+     <h2>Paid Services</h2>
+     <div class="box"></div>
+       <h2>Billed Services</h2>
+     <div class="box"></div>
+</div>
+-->
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

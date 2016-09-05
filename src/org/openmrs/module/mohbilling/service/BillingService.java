@@ -628,5 +628,7 @@ public interface BillingService {
 
 	public List<PaidServiceBill> getPaidItemsByBillPayments(
 			List<BillPayment> payments);
+	public List<PatientServiceBill> getBillItemsByCategory(Consommation consommation, HopService service);
+	public List<PatientServiceBill> getBillItemsByGroupedCategories(Consommation consommation, List<HopService> services);
 
 }

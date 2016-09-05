@@ -8,6 +8,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.openmrs.util.OpenmrsUtil;
+
 /**
  * @author emr
  *
@@ -52,6 +54,18 @@ public class ParametersConversion {
 		}
 		return endDate;
 		
+	}
+	public static Date getConvertStringToDate(String dateStr){
+		DateFormat df = new SimpleDateFormat(dateStr);
+		Date date = null;
+		if (dateStr != null && dateStr.length() != 0) {
+			try {
+				date =   df.parse(dateStr);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+		return date;
 	}
 
 }

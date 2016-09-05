@@ -2,7 +2,8 @@
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
 
-
+<div style="float: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div>
+<br/>
 <b class="boxHeader">Bill Payment</b>
 
 <div class="box" style="clear: both;">

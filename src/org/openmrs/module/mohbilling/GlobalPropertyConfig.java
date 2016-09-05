@@ -3,13 +3,16 @@
  */
 package org.openmrs.module.mohbilling;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.HopService;
 
 /**
  * @author emr
@@ -39,4 +42,28 @@ public class GlobalPropertyConfig {
 		        }
 		  return services;
 		 }	
+	
+	 /**
+		 * Gets a List of services from global properties matching wih a given parameter
+		 * @param revenueCateg parameters name configured in Global property
+		 * @return List<HopService>
+		 */
+		public static List<HopService> getHospitalServiceByCategory(String categ){
+			List<HopService> services = new ArrayList<HopService>();
+			  StringTokenizer tokenizer = new StringTokenizer(getHospitalServiceByCateg(categ),",");
+			  while (tokenizer.hasMoreTokens()) {
+			   Integer serviceId = Integer.parseInt(tokenizer.nextToken());
+			   HopService service =HopServiceUtil.getHopServiceById(serviceId);
+			   services.add(service);
+			        }
+			  return services;
+		}
+		 /**
+		 * gets a  revenues matching revenueCateg
+		 * @param revenueCateg
+		 * @return String object
+		 */
+		public static String getHospitalServiceByCateg(String categ){
+			return Context.getAdministrationService().getGlobalProperty(categ);
+		}
 }
