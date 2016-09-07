@@ -32,7 +32,6 @@ public class MohBillingAdmissionFormController extends
 		InsurancePolicy ip =null;	
 		String discharge = request.getParameter("discharge");
 		GlobalBill gb =null;
-		log.info("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK "+discharge);
 	if(discharge==null)
 	if (request.getParameter("save") != null && request.getParameter("save").equals("true")) {
 		
