@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -79,9 +80,13 @@ public class MohBillingTagUtil {
 			
 				for (PatientServiceBill psb : consomm.getBillItems()) {
 					Double cost = null;
+					
 					if(psb.getVoided()==false){
-					cost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
-					amountDueByPatient+=cost*patientRate.doubleValue();
+						if(psb.getPaidQuantity()==null)
+					         cost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
+						else
+							cost = psb.getUnitPrice().doubleValue()*(psb.getQuantity().subtract(psb.getPaidQuantity())).doubleValue();
+					        amountDueByPatient+=cost*patientRate.doubleValue();
 					}
 				}
 	

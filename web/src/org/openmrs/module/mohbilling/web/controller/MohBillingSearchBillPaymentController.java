@@ -55,7 +55,6 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
        	   mav.addObject("beneficiary",consommation.getBeneficiary()); 
        	   
               if(request.getParameter("print")!=null){
-           	   log.info("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd "+payment.getBillPaymentId()+" "+consommation.getConsommationId());
            	   FileExporter exp = new FileExporter();
            	   exp.printPayment(request, response, payment, consommation, "receipt");
               }

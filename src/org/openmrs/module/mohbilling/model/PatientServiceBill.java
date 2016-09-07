@@ -23,6 +23,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private HopService hopService;
 	private BigDecimal unitPrice;
 	private BigDecimal quantity;
+	private BigDecimal paidQuantity;
 	private Consommation consommation;
 	private Boolean paid = Boolean.FALSE;	
 	
@@ -167,6 +168,18 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		this.quantity = quantity;
 	}
 
+	/**
+	 * @return the paidQuantity
+	 */
+	public BigDecimal getPaidQuantity() {
+		return paidQuantity;
+	}
+	/**
+	 * @param paidQuantity the paidQuantity to set
+	 */
+	public void setPaidQuantity(BigDecimal paidQuantity) {
+		this.paidQuantity = paidQuantity;
+	}
 	/**
 	 * @return the serviceOther
 	 */

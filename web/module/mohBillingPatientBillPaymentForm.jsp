@@ -26,6 +26,7 @@
         });
     </script>
     
+    
 <script type="text/javascript">
 $(document).ready(function(){
 	//first the balance is hidden until deposit checkbox is checked
@@ -57,6 +58,49 @@ $(document).ready(function(){
 		});	
 });
 </script>
+<script>
+function calculateCost(j){
+	var cost=0.00;
+	var paidQty = document.getElementById("paidQty_"+j).value;
+	var up = document.getElementById("up_"+j).value;
+	var price= paidQty*up;
+	document.getElementById("cost_"+j).value=price.toFixed(2);
+	
+	//var insuranceRate = document.getElementById("insuranceRate").value;
+	var patientRate = document.getElementById("patientRate").value;
+
+	//document.getElementById("insuranceCost_"+j).value=(price*insuranceRate).toFixed(2);
+	document.getElementById("patientCost_"+j).value=(price*patientRate).toFixed(2);
+	
+	//Adjust the totals (totalBillInsurance, patientBillTotal)
+	recalculateTotals();
+	
+}
+
+function recalculateTotals() {
+   // var sumInsurance = 0;
+    var sumPatient= 0;
+    //iterate through each insurance column's values
+    /* $(".insuranceCol").each(function () {
+
+        //add only if the value is number
+        if (!isNaN(this.value) && this.value.length != 0) {
+        	sumInsurance += parseFloat(this.value);
+        }
+    }); */
+    //iterate through each patient column's values
+    $(".patientCol").each(function () {
+        if (!isNaN(this.value) && this.value.length != 0) {
+        	sumPatient += parseFloat(this.value);
+        }
+    });
+    //.toFixed() method will roundoff the final sum to 2 decimal places
+  //  $("#totalBillInsurance").val(sumInsurance.toFixed(2));
+    $("#totalBillPatient").val(sumPatient.toFixed(2));
+}
+
+</script>
+
 
  
 <h2>Patient Bill Payment</h2>
@@ -78,12 +122,13 @@ $(document).ready(function(){
 		<table width="99%">
 			<tr>
 				<th class="columnHeader"></th>
-				<th class="columnHeader">Service</td>
-				<th class="columnHeader center">Qty</td>
-				<th class="columnHeader right">Unit Price (Rwf)</td>
-				<th class="columnHeader right">Price (Rwf)</td>
-				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</td>
-				<th class="columnHeader right">Patient : ${100-insurancePolicy.insurance.currentRate.rate} %</td>
+				<th class="columnHeader">Service</th>
+				<th class="columnHeader center">Qty</th>
+				<th class="columnHeader center">Qty Paid</th>
+				<th class="columnHeader right">Unit Price (Rwf)</th>
+				<th class="columnHeader right">Price (Rwf)</th>
+				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</th>
+				<th class="columnHeader right">Patient : ${100-insurancePolicy.insurance.currentRate.rate} %</th>
 				<th></th>
 			</tr>
 			<c:if test="${empty consommation.billItems}"><tr><td colspan="7"><center>No consommation found !</center></td></tr></c:if>
@@ -92,30 +137,53 @@ $(document).ready(function(){
 			<c:forEach items="${consommation.billItems}" var="billItem" varStatus="status">
 			<c:set var="service" value="${billItem.service.facilityServicePrice}"/>
 			<c:set var="fieldName" value="item-${consommation.consommationId}-${billItem.patientServiceBillId}"/>
-			 <c:if test="${not billItem.voided}">
+			<c:if test="${not billItem.voided}">
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice}</td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/></td>
+					<c:if test="${not empty billItem.paidQuantity}">
+					<c:set var="paidQty" value="${ billItem.paidQuantity }"/>
+					</c:if>
+					<c:if test="${empty billItem.paidQuantity}">
+					<c:set var="paidQty" value="${ billItem.quantity }"/>
+					</c:if>
+					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${paidQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId})" style="text-align: center;"/></td>
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><input type="text"  size="10" id="up_${billItem.patientServiceBillId}"      value="${billItem.unitPrice}" style="border:none; text-align: center;"/></td>
+					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" size="10" id="cost_${billItem.patientServiceBillId}"    value="${billItem.unitPrice*billItem.quantity}" style="border:none; text-align: center;"/></td>
+					<!--  <td class="rowValue right ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/></td>-->
+					
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">					  
+						<!-- 
 						<fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" type="number" pattern="#.##"/>
-						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}"/>
+						 -->
+						 
+						 <input type="hidden" id="insuranceRate" value="${(insurancePolicy.insurance.currentRate.rate)/100 }"/>
+				         <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate)/100}"/>
+						 
+						 
+						<input value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" id="insuranceCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="insuranceCol"/>
+						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}" />
 					</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">							
-						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
+						 <!-- <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/> -->
+						<input value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" id="patientCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="patientCol"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
 					<td><input name="${fieldName}" class="items" value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox"></td>
 				</tr>
 				</c:if>
 			</c:forEach>		   
-			<tr>			   
-				<td colspan="4"> <p align="center" style="color: red; " id="tot"></p></td>
+			<tr>			
+			    <td colspan="5"> <p align="center" style="color: red; " id="tot"></p></td>   
 				<td><div style="text-align: right;"><b>Total : </b></div></td>
+				<!-- 
 				<td><div class="amount"><fmt:formatNumber value="${totalBillInsurance}" type="number" pattern="#.##"/></div></td>
 				<td><div class="amount"><fmt:formatNumber value="${totalBillPatient}" type="number" pattern="#.##"/></div></td>
+				 -->
+				 
+				 <td><div class="amount"><input id="totalBillInsurance" value="${totalBillInsurance}" style="border: none;background-color: #aabbcc"/></div></td>
+				 <td><div class="amount"><input id="totalBillPatient" value="${totalBillPatient}" style="border: none;background-color: #aabbcc"/></div></td>
 			</tr>			
 			<tr>
 				<td colspan="7"><hr/></td>

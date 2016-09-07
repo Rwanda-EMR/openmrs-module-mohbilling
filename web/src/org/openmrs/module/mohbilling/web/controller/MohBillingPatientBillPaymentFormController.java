@@ -172,7 +172,8 @@ public class MohBillingPatientBillPaymentFormController extends
 	
 	public void createPaidServiceBill(HttpServletRequest request,Consommation consommation, BillPayment bp){
   
-		Map<String, String[]> parameterMap = request.getParameterMap();	
+		Map<String, String[]> parameterMap = request.getParameterMap();			
+		
 		for (String  parameterName : parameterMap.keySet()) {
 			
 			if (!parameterName.startsWith("item-")) {
@@ -185,19 +186,27 @@ public class MohBillingPatientBillPaymentFormController extends
 			Integer  patientServiceBillId = Integer.parseInt(psbIdStr);	
 			PatientServiceBill psb  =ConsommationUtil.getPatientServiceBill(patientServiceBillId);	
 			
+			
 			paidSb.setBillItem(psb);
-			paidSb.setPaidQty(psb.getQuantity());
+		
+			BigDecimal paidQuantity = new BigDecimal(Double.valueOf(request.getParameter("paidQty_"+psb.getPatientServiceBillId())));
+			paidSb.setPaidQty(paidQuantity);
 			paidSb.setBillPayment(bp);
 			paidSb.setCreator(Context.getAuthenticatedUser());
 			paidSb.setCreatedDate(new Date());			
 			paidSb.setVoided(false);
 			BillPaymentUtil.createPaidServiceBill(paidSb);
 			
+			BigDecimal totalQtyPaid=paidQuantity;
+			if(psb.getPaidQuantity()!=null)
+				totalQtyPaid = psb.getPaidQuantity().add(paidQuantity);
+			
 			//if paid,then update patientservicebill as paid
 			psb.setPaid(true);
+			psb.setPaidQuantity(totalQtyPaid);
 			ConsommationUtil.createPatientServiceBill(psb);
 		}
-		
+	
 		
 	}
 	public void setParams(BillPayment payment,User creator,Boolean voided,Date createdDate){
