@@ -24,6 +24,11 @@
 			$bill("div.printarea").printArea();
 			$bill('.meta').hide();
 		});
+		
+		/*  $bill('#reportType').change(function(){
+		        $bill('.reports').hide();
+		        $bill('#' + $bill(this).val()).show();
+		    }); */
 	});
 </script>
 
@@ -169,6 +174,13 @@
 				              <option value="23">23</option>
 				             </select>
 								</td>
+								<!-- 
+								<td>
+								 <c:forEach begin="0" end="10" varStatus="loop">
+									 <option value="00">00</option>
+								</c:forEach>
+								</td>
+								 -->
                            <td>
 							<select name="endMinute">
 					          <option value="00">00</option>
@@ -239,14 +251,45 @@
 				<td>Collector :</td>
 				<td><openmrs_tag:userField formFieldName="cashCollector"
 						initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
+				<td>Report Type : </td>
+				<td>
+				  <select name="reportType" id="reportType">
+				    <option selected="selected">--select--</option>
+				    <option value="insurance">Insurance</option>
+				    <option value="serviceRevenue">Service Revenue</option>
+				    <option value="internal">Internal</option>
+				  </select>
+				</td>
+			</tr>
+			<tr>
+			<td>Insurance : </td>
+				<td>
+				  <select name="insuranceId">
+				    <option selected="selected">--select--</option>
+				    <option value="1">RAMA</option>
+				    <option value="3">MUTUEL</option>
+				  </select>
+				</td>
 			</tr>
 		</table>
 		<input type="submit" value="Search" id="submitId" />
 	</form>
 </div>
 <br />
-<div class="box">
+<div class="reports" id="cashierReport"  style="display:none">
+    <h2> Cashier Daily Report</h2>
 	Collected Amount :${allServicesRevenue.allpaidAmount}
 <c:import url="mohBillingServiceRevenue.jsp" />
 </div>
+<br />
+
+<div class="reports" id="rssbReport">
+<h2> RSSB Report</h2>
+<c:import url="mohBillingInsuranceBill.jsp" />
+</div>
+<br />
+<div class="reports"  id="musaReport" style="display:none">
+ <h2>MUSA Report</h2>
+</div>
+
 <%@ include file="/WEB-INF/template/footer.jsp"%>

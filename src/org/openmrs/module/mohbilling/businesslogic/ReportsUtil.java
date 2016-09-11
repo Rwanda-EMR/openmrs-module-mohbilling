@@ -29,8 +29,10 @@ import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -314,37 +316,14 @@ public class ReportsUtil {
 
 		}
 	}
+
 	/**
-	 * Get revenue by service
-	 * @param paidItems parameters from which we will take paid items matching  with a given hopService
-	 * @param hopService parameter which we are looking the due Amount
-	 * @return serviceRenue
+	 * gets revenue of a specific category (eg: MEDICAMENTS, CONSULTATION,...)
+	 * @param billItems
+	 * @param hopService
+	 * @return
 	 */
-	public static ServiceRevenue  getServiceRevenue(List<PaidServiceBill> paidItems,HopService hopService){
-		
-		BigDecimal dueAmount = new BigDecimal(0);
-		ServiceRevenue revenue=null;
-		//due Amount  by Service
-		for (PaidServiceBill paidServiceBill : paidItems) {
-			
-			if(paidServiceBill.getBillItem().getHopService()==hopService){
-				Float insuranceRate = paidServiceBill.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-				float pRate = (100f - insuranceRate) / 100f;
-				BigDecimal patientRte = new BigDecimal(""+pRate);
-				
-				BigDecimal reqQty = paidServiceBill.getPaidQty();
-				BigDecimal unitPrice =paidServiceBill.getBillItem().getUnitPrice();
-				dueAmount =dueAmount.add(reqQty.multiply(unitPrice).multiply(patientRte));				
-			}
-		}
-		
-		if(dueAmount.compareTo(BigDecimal.ZERO)>0){
-			
-	    revenue = new ServiceRevenue("", dueAmount);
-		}
-		return revenue;
-	}
-public static ServiceRevenue  getServiceRevenues(Set<PatientServiceBill> billItems,HopService hopService){
+       public static ServiceRevenue  getServiceRevenues(Set<PatientServiceBill> billItems,HopService hopService){
 		
 		BigDecimal dueAmount = new BigDecimal(0);
 		ServiceRevenue revenue=null;
@@ -386,28 +365,13 @@ public static ServiceRevenue  getServiceRevenues(Set<PatientServiceBill> billIte
 		
 		return allpaidAmount;
 	}
-	public static AllServicesRevenue getAllServicesRevenue(List<BillPayment> payments,String reportingPeriod){
-		
-		List<PaidServiceBill> paidItems =BillPaymentUtil.getPaidItemsByBillPayments(payments);
-		BigDecimal allPaidAmount = getAllPaidAmount(payments);
-		BigDecimal AllDueAmounts = new BigDecimal(0);
-		//get All services revenues
-		List<ServiceRevenue> allRevenues = new ArrayList<ServiceRevenue>();
-		
-		for (HopService hopService : HopServiceUtil.getAllHospitalServices()) {
-		   if(ReportsUtil.getServiceRevenue(paidItems, hopService)!=null)		   
-		   {
-			   ServiceRevenue revenue = ReportsUtil.getServiceRevenue(paidItems, hopService);
-			   AllDueAmounts = AllDueAmounts.add(revenue.getDueAmount());
-			   allRevenues.add(revenue);
-		   }
-		}
-		AllServicesRevenue allServicesRevenue = new AllServicesRevenue(AllDueAmounts, allPaidAmount, reportingPeriod);
-		                   allServicesRevenue.setRevenues(allRevenues);
-		
-		return allServicesRevenue;        
-	}
-	
+
+	/**
+	 * get revenue from all categories on the given consommable
+	 * @param cons
+	 * @param category
+	 * @return AllServicesRevenue
+	 */
 	public static AllServicesRevenue getAllServicesRevenue(Consommation cons, String category){
 	
 		BigDecimal allDueAmounts = new BigDecimal(0);
@@ -424,7 +388,7 @@ public static ServiceRevenue  getServiceRevenues(Set<PatientServiceBill> billIte
 				   ServiceRevenue revenue = ReportsUtil.getServiceRevenues(billItems, hopService);
 				   allDueAmounts = allDueAmounts.add(revenue.getDueAmount());
 				   allRevenues.add(revenue);
-			   }
+			   }			   
 			}
 			AllServicesRevenue allServicesRevenue = new AllServicesRevenue(allDueAmounts, new BigDecimal(0), "2016-08-30");
 			                   allServicesRevenue.setRevenues(allRevenues);
@@ -432,6 +396,12 @@ public static ServiceRevenue  getServiceRevenues(Set<PatientServiceBill> billIte
 			
 			return allServicesRevenue;      
 	}
+	/**
+	 * gets revenue from grouped categories (eg: imagerie=Echographie+radiographie)
+	 * @param consommation
+	 * @param categ
+	 * @return Service Revenue
+	 */
 	public static ServiceRevenue getServiceRevenue(Consommation consommation,String categ){	
 		
 		BigDecimal dueAmount = new BigDecimal(0);
@@ -461,4 +431,19 @@ public static ServiceRevenue  getServiceRevenues(Set<PatientServiceBill> billIte
 		}
 		return revenue;
 	}
+	
+
+	public static List<GlobalBill> getGlobalBills(Date date1, Date date2){
+		return getService().getGlobalBills(date1,date2);
+	}
+	/**
+	 * gets a list of consommations matching with a given global bill list
+	 * @param gb
+	 * @return list of Consommations
+	 */
+	public static List<Consommation> getConsommationByGlobalBills(List<GlobalBill> globalBills){
+		return getService().getConsommationByGlobalBills(globalBills);
+				
+	}
+
 }

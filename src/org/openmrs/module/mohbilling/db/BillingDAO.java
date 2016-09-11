@@ -644,4 +644,21 @@ public interface BillingDAO {
 	
 	public List<PatientServiceBill> getBillItemsByCategory(Consommation consommation, HopService service);
 	public List<PatientServiceBill> getBillItemsByGroupedCategories(Consommation consommation, List<HopService> services);
+	/**
+	 * gets Global Bills between 2 dates
+	 * @param date1
+	 * @param date2
+	 * @return list of Global bills
+	 */
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2);
+	
+	/**
+	 * gets a list of consommations matching with a given global bill list
+	 * @param gb
+	 * @return list of Consommations
+	 */
+	public List<Consommation> getConsommationByGlobalBills(
+			List<GlobalBill> globalBills);
+	
+
 }
