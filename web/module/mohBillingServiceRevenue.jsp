@@ -12,8 +12,8 @@
 	<c:forEach items="${allServicesRevenue.revenues}" var="revenue" varStatus="status">
 		 <tr>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${revenue.service.name}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${revenue.dueAmount}</td>				
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${revenue.service}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${revenue.dueAmount}</td>							
 		 </tr>		
 	</c:forEach>
 	<tr>

@@ -701,13 +701,12 @@ public class HibernateBillingDAO implements BillingDAO {
 	/* (non-Javadoc)
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillPaymentsByDateAndCollector(java.util.Date, java.util.Date, org.openmrs.User)
 	 */
-	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,	Date endDate, User collector) {
-		
-		
-		  
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate",startDate,endDate ));	
+	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,	Date endDate, User collector) {		  
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class)
+				.add(Restrictions.between("createdDate",startDate,endDate ));
+				//.add(Restrictions.eq("collector",collector ));
 				
-				return crit.list();
+		return crit.list();
 	
 	}
 
@@ -1382,4 +1381,20 @@ public class HibernateBillingDAO implements BillingDAO {
       		criteria.add(Restrictions.in("hopService", services));
       		return  criteria.list();
 		}
+
+		@Override
+		public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+					.add(Restrictions.between("createdDate",date1,date2 ));
+		return crit.list();
+		}
+
+		@Override
+		public List<Consommation> getConsommationByGlobalBills(
+				List<GlobalBill> globalBills) {
+			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Consommation.class);			
+      		criteria.add(Restrictions.in("globalBill", globalBills));
+	        return  criteria.list();
+		}
+
 	}

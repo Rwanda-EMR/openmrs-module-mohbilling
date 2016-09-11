@@ -238,4 +238,5 @@ public class ConsommationUtil {
 		return getService().getConsommationByPatientBill(patientBill);
 	}
 
+
 }

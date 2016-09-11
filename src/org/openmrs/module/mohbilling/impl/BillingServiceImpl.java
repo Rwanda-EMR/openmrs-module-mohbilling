@@ -886,4 +886,21 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getBillItemsByGroupedCategories(consommation, services);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getGlobalBills(java.util.Date, java.util.Date)
+	 */
+	@Override
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
+		// TODO Auto-generated method stub
+		return billingDAO.getGlobalBills(date1, date2);
 	}
+
+	@Override
+	public List<Consommation> getConsommationByGlobalBills(
+			List<GlobalBill> globalBills) {
+		// TODO Auto-generated method stub
+		return billingDAO.getConsommationByGlobalBills(globalBills);
+	}
+
+
+}
