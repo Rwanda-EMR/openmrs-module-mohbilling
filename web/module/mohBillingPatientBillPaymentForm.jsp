@@ -56,6 +56,16 @@ $(document).ready(function(){
 			 $('#depositCheckbox').attr('checked', false);
 			}
 		});	
+	
+	// this funciton : disable submit button until at least one item is selected
+	 $('.submitBtn').attr('disabled', true);
+		$('.items').change(function () {
+		    var a = $('.items').filter(":checked").length;
+		    if (a == 0) 
+		        $('.submitBtn').attr('disabled', true);
+		    else 
+		    	 $('.submitBtn').attr('disabled', false);
+		});
 });
 </script>
 <script>
@@ -98,7 +108,6 @@ function recalculateTotals() {
   //  $("#totalBillInsurance").val(sumInsurance.toFixed(2));
     $("#totalBillPatient").val(sumPatient.toFixed(2));
 }
-
 </script>
 
 
@@ -237,9 +246,9 @@ function recalculateTotals() {
 				<td colspan="7"><hr/></td>
 			</tr>			
 			<tr style="font-size: 1.2em">
-				<openmrs:hasPrivilege privilege="Edit Bill">
-					<td colspan="2"><input type="submit"  value="Confirm Payment" style="min-width: 200px;" onclick="check()"/></td>
-				</openmrs:hasPrivilege>
+				
+					<td colspan="2"><input type="submit"  value="Confirm Payment" style="min-width: 200px;" class="submitBtn"/></td>
+				
 			 <td colspan="3"></td>
 			</tr>			
 		</table>
