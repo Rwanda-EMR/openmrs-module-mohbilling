@@ -7,8 +7,10 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,18 +20,25 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.ParametersConversion;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
-import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
-import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
+import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.DepartmentRevenues;
 import org.openmrs.module.mohbilling.model.GlobalBill;
-import org.openmrs.module.mohbilling.model.InsuranceBill;
+import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
 import org.openmrs.module.mohbilling.model.ServiceRevenue;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -72,49 +81,31 @@ public class MohBillingReportFormController extends
 						endHourStr, endMinuteStr);
 			}
 
-			if (request.getParameter("cashCollector") != null) {
+			if (request.getParameter("cashCollector") != null && !request.getParameter("cashCollector").equals("")) {
 				collector = Context.getUserService()
-						.getUser(
-								Integer.parseInt(request
-										.getParameter("cashCollector")));
+						.getUser(Integer.parseInt(request.getParameter("cashCollector")));
 			}
-			
 
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+
 			// get all consommation with globalbill closed
 			List<GlobalBill> globalBills = ReportsUtil.getGlobalBills(startDate, endDate);
-			
-			List<Consommation> cons = ReportsUtil.getConsommationByGlobalBills(globalBills);
+			List<Consommation> cons = null;
+			if(globalBills.size()!=0)
+			 cons = ReportsUtil.getConsommationByGlobalBills(globalBills);
 			
 			List<AllServicesRevenue> listOfAllServicesRevenue = new ArrayList<AllServicesRevenue>();
+			
+			List<AllServicesRevenue> listOfAllPrivServicesRevenue = new ArrayList<AllServicesRevenue>();
 				
 				AllServicesRevenue servicesRevenu = null;
 				BigDecimal allGlobalAmount = null;
 				
+				AllServicesRevenue privAllServicesRevenu = null;
+	            List<PaidServiceRevenue> paidServiceRevenues = new ArrayList<PaidServiceRevenue>();
+					
 				// revenueList
+	            if(cons!=null)
 				for (Consommation c : cons) {
-					//allGlobalAmount = servicesRevenu.getAllDueAmounts();
-					List<ServiceRevenue> revenueList = new ArrayList<ServiceRevenue>();
-					 
-					 
 					 ServiceRevenue consultRevenue =  ReportsUtil.getServiceRevenue(c, "mohbilling.CONSULTATION");
 					 if(consultRevenue==null){
 						 consultRevenue = new ServiceRevenue("mohbilling.CONSULTATION", new BigDecimal(0));
@@ -127,8 +118,7 @@ public class MohBillingReportFormController extends
 					 if(hospRevenue==null){
 						 hospRevenue = new ServiceRevenue("mohbilling.HOSPITALISATION", new BigDecimal(0));
 					 }
-					
-						 
+					 
 					 ServiceRevenue proceduresAndMater = ReportsUtil.getServiceRevenue(c, "mohbilling.procAndMaterials");
 					 if(proceduresAndMater==null){
 						 proceduresAndMater = new ServiceRevenue("mohbilling.procAndMaterials", new BigDecimal(0));
@@ -144,29 +134,124 @@ public class MohBillingReportFormController extends
 						 medicRevenue = new ServiceRevenue("mohbilling.MEDICAMENTS", new BigDecimal(0));
 					 }
 					 
-					 revenueList.add(consultRevenue);
-					 revenueList.add(laboRevenue);
-					 revenueList.add(hospRevenue);
-					 revenueList.add(proceduresAndMater);
-					 revenueList.add(otherConsummables);
-					 revenueList.add(medicRevenue);
+					 ServiceRevenue echoRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.ECHOGRAPHY");
+					 if(echoRevenue==null){
+						 echoRevenue = new ServiceRevenue("mohbilling.ECHOGRAPHY", new BigDecimal(0));
+					 }
+					 
+					 ServiceRevenue radioRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.RADIOLOGY");
+					 if(radioRevenue==null){
+						 radioRevenue = new ServiceRevenue("mohbilling.RADIOLOGY", new BigDecimal(0));
+					 }
+					 
+					 ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.ACTS");
+					 if(actsRevenue==null){
+						 actsRevenue = new ServiceRevenue("mohbilling.ACTS", new BigDecimal(0));
+					 }
+					 ServiceRevenue nursingCareRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.NURSINGCARE");
+					 if(nursingCareRevenue==null){
+						 nursingCareRevenue = new ServiceRevenue("mohbilling.NURSINGCARE", new BigDecimal(0));
+					 }
+					 
+					 ServiceRevenue pharmacyRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.PHARMACY");
+					 if(pharmacyRevenue==null){
+						 pharmacyRevenue = new ServiceRevenue("mohbilling.PHARMACY", new BigDecimal(0));
+					 }
+					if(startDate!=null && endDate!=null){
+					if(c.getBeneficiary().getInsurancePolicy().getInsurance().getInsuranceId()==1){
+						//allGlobalAmount = servicesRevenu.getAllDueAmounts();
+						List<ServiceRevenue> revenueList = new ArrayList<ServiceRevenue>();
+						 
+						 revenueList.add(consultRevenue);
+						 revenueList.add(laboRevenue);
+						 revenueList.add(hospRevenue);
+						 revenueList.add(proceduresAndMater);
+						 revenueList.add(otherConsummables);
+						 revenueList.add(medicRevenue);
 
-					 //populate asr
-					 servicesRevenu = new AllServicesRevenue(new BigDecimal(20000), new BigDecimal(21000), "2016-09-11");
-					 servicesRevenu.setRevenues(revenueList);
-					 servicesRevenu.setAllDueAmounts(c.getPatientBill().getAmount());
-					 servicesRevenu.setConsommation(c);
-					 listOfAllServicesRevenue.add(servicesRevenu); 
-				}				
-				// servicesRevenu.setRevenues(revenueList); 
+						 //populate asr
+						 servicesRevenu = new AllServicesRevenue(new BigDecimal(20000), new BigDecimal(21000), "2016-09-11");
+						 servicesRevenu.setRevenues(revenueList);
+						 servicesRevenu.setAllDueAmounts(c.getPatientBill().getAmount());
+						 servicesRevenu.setConsommation(c);
+						 listOfAllServicesRevenue.add(servicesRevenu); 
+					}
+					else if(c.getBeneficiary().getInsurancePolicy().getInsurance().getCategory().equals("PRIVATE")){
+						List<ServiceRevenue> privRevenueList = new ArrayList<ServiceRevenue>();
+						
+						 privRevenueList.add(hospRevenue);
+						 privRevenueList.add(consultRevenue);
+						 privRevenueList.add(laboRevenue);
+						 privRevenueList.add(echoRevenue);
+						 privRevenueList.add(radioRevenue);
+						 privRevenueList.add(actsRevenue);
+						 privRevenueList.add(nursingCareRevenue);
+						 privRevenueList.add(otherConsummables);
+						 privRevenueList.add(pharmacyRevenue);
+						 
+						 
+						 privAllServicesRevenu = new AllServicesRevenue(new BigDecimal(20000), new BigDecimal(21000), "2016-09-11");
+						 privAllServicesRevenu.setRevenues(privRevenueList);
+						 privAllServicesRevenu.setAllDueAmounts(c.getPatientBill().getAmount());
+						 privAllServicesRevenu.setConsommation(c);
+						 listOfAllPrivServicesRevenue.add(privAllServicesRevenu); 
+					}
+					}
+					} 
+				
+			// cashier report
+			if(request.getParameter("reportType")!=null && !request.getParameter("reportType").equals("")){
+					List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate,
+							collector);
+					 List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments); 
+					 if(request.getParameter("reportType").equals("cashierReport")){
+							BigDecimal totalReceivedAmount = new BigDecimal(0);
+							List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
+							for (HopService hs : reportColumns) {
+								if(ReportsUtil.getPaidServiceRevenue(paidItems,hs.getName())!=null)
+								paidServiceRevenues.add(ReportsUtil.getPaidServiceRevenue(paidItems,hs.getName()));
+							}
+
+							mav.addObject("totalReceivedAmount", totalReceivedAmount);
+							mav.addObject("paidServiceRevenues", paidServiceRevenues);
+					}
+			}
+
+			//revenues by department
+			if(request.getParameter("reportType")!=null && !request.getParameter("reportType").equals("")){
+				if(request.getParameter("reportType").equals("serviceRevenue")){
+						
+						List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate,
+								collector);
+						 List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments);
+						 
+						 List<Department> allDepartments = DepartementUtil.getAllHospitalDepartements();
+						 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.servicesReportColumn");
+						 List<String> columns = new ArrayList<String>();
+						 for (HopService hopService : reportColumns) {
+							 columns.add(hopService.getName());
+						}
+						 
+						 List<DepartmentRevenues> departRevenues =  new ArrayList<DepartmentRevenues>();
+						 for (Department depart : allDepartments) {
+							 if(ReportsUtil.getRevenuesByDepartment(paidItems, depart,columns)!=null)
+							     departRevenues.add(ReportsUtil.getRevenuesByDepartment(paidItems, depart,columns));
+						 }
+						 mav.addObject("departmentsRevenues", departRevenues);	 
+						 mav.addObject("services", departRevenues.get(0).getPaidServiceRevenues());
+			   }
+					
+			}
+				
+				
+				mav.addObject("listOfAllServicesRevenue", listOfAllServicesRevenue);
+				mav.addObject("listOfAllPrivServicesRevenue", listOfAllPrivServicesRevenue);
 			
-			mav.addObject("listOfAllServicesRevenue", listOfAllServicesRevenue);
+				
 			
-			/*for (AllServicesRevenue asr : listOfAllServicesRevenue) {
-				log.info("VCCCCCCCCCCCCCCCCCCCCCCCCVVVVVVVVVV "+asr.getRevenues());
-			}*/
+
 		}
-
+		mav.addObject("insurances",InsuranceUtil.getAllInsurances());
 		mav.setViewName(getViewName());
 
 		return mav;

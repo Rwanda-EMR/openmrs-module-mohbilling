@@ -177,7 +177,8 @@ public class FileExporter {
 		PdfPTable tableRight = new PdfPTable(1);
 		tableRight.setHorizontalAlignment(Element.ALIGN_RIGHT);
 		
-		String itemName,unitPriceStr,paidQtyStr,itemPaidCost="";
+		String itemName;
+		BigDecimal unitPrice,paidQty,itemPaidCost=new BigDecimal(0.0);
 		BigDecimal totalToBePaidByPatient = new BigDecimal(0.0);
 		BigDecimal totalPaid = new BigDecimal(0.0);
 		for (PaidServiceBill service: BillPaymentUtil.getPaidItemsByBillPayment(payment)) {	
@@ -186,15 +187,15 @@ public class FileExporter {
 			BigDecimal itemCost = service.getBillItem().getQuantity().multiply(service.getBillItem().getUnitPrice().multiply(patientRate).divide(new BigDecimal(100)));
 			totalToBePaidByPatient=totalToBePaidByPatient.add(itemCost);
 			
-			BigDecimal paid= service.getPaidQty().multiply(itemCost);
+			BigDecimal paid= service.getBillItem().getPaidQuantity().multiply(itemCost);
 			totalPaid=totalPaid.add(paid);
 			
 			 itemName = service.getBillItem().getService().getFacilityServicePrice().getName();
-			 unitPriceStr = ""+service.getBillItem().getUnitPrice().multiply(patientRate).divide(new BigDecimal(100));
-			 paidQtyStr = ""+service.getPaidQty();
-			 itemPaidCost = ""+paid;
+			 unitPrice = service.getBillItem().getUnitPrice().multiply(patientRate).divide(new BigDecimal(100));
+			 paidQty = service.getPaidQty();
+			 itemPaidCost = paid;
 			
-			String itemDetails = number+")"+itemName +" "+unitPriceStr +" X "+paidQtyStr+" = "+itemPaidCost;
+			String itemDetails = number+")"+itemName +" "+unitPrice +" X "+paidQty+" = "+(unitPrice.multiply(paidQty));
 		
 			cell = new PdfPCell(fontSelector.process(""+itemDetails));
 			cell.setBorder(Rectangle.NO_BORDER);

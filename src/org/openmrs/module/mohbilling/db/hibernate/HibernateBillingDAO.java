@@ -35,6 +35,7 @@ import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.SQLGrammarException;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -702,9 +703,10 @@ public class HibernateBillingDAO implements BillingDAO {
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillPaymentsByDateAndCollector(java.util.Date, java.util.Date, org.openmrs.User)
 	 */
 	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,	Date endDate, User collector) {		  
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class)
-				.add(Restrictions.between("createdDate",startDate,endDate ));
-				//.add(Restrictions.eq("collector",collector ));
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class);
+				crit.add(Restrictions.between("createdDate",startDate,endDate ));
+				if(collector!=null)
+				crit.add(Restrictions.eq("collector",collector ));
 				
 		return crit.list();
 	
@@ -1356,9 +1358,10 @@ public class HibernateBillingDAO implements BillingDAO {
 		 */
 		@Override
 		public List<PaidServiceBill> getPaidItemsByBillPayments(List<BillPayment> payments) {
-			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class);			
-		      		criteria.add(Restrictions.in("billPayment", payments));
-			return  criteria.list();
+			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class);
+	      		criteria.add(Restrictions.in("billPayment", payments));
+			return criteria.list();
+			
 		}
 
 		@Override
@@ -1392,9 +1395,8 @@ public class HibernateBillingDAO implements BillingDAO {
 		@Override
 		public List<Consommation> getConsommationByGlobalBills(
 				List<GlobalBill> globalBills) {
-			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Consommation.class);			
-      		criteria.add(Restrictions.in("globalBill", globalBills));
+			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Consommation.class);	
+      			criteria.add(Restrictions.in("globalBill", globalBills));
 	        return  criteria.list();
 		}
-
 	}

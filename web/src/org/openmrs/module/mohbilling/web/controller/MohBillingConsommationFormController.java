@@ -53,11 +53,12 @@ public class MohBillingConsommationFormController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 		Consommation  existingConsom = Context.getService(BillingService.class).getConsommation(
-				Integer.parseInt(request.getParameter("consommationId")));	
-
-		if(request.getParameter("edit")!=null&&!request.getParameter("edit").equals("")){
-		 
+				Integer.parseInt(request.getParameter("consommationId")));
 		
+		//Set<BillPayment> payments = existingConsom.getPatientBill().getPayments();
+		
+		//if(payments!=null)
+		if(request.getParameter("edit")!=null&&!request.getParameter("edit").equals("")){
 		Consommation cpyConsom = new Consommation();
 		cpyConsom.setBeneficiary(existingConsom.getBeneficiary());
 		cpyConsom.setCreator(Context.getAuthenticatedUser());
@@ -107,6 +108,14 @@ public class MohBillingConsommationFormController extends
 				"patientBillPayment.form?consommationId="
 						+ saveConsommation.getConsommationId() ));
 		}
+		/*else{
+			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,"You can't edit this consommation !");
+			return new ModelAndView(new RedirectView(
+					"billing.form?consommationId="
+							+ existingConsom.getConsommationId()+"&insurancePolicy="+existingConsom.getBeneficiary().getInsurancePolicy().getInsurancePolicyId()+
+							"&ipCardNumber="+existingConsom.getBeneficiary().getInsurancePolicy().getInsuranceCardNo() ));
+		}*/
+			
 
 		mav.addObject("consommation", existingConsom);
 		mav.addObject("ipCardNumber", existingConsom.getBeneficiary().getPolicyIdNumber());

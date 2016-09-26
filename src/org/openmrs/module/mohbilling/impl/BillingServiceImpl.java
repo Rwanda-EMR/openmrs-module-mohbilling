@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.impl;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -898,9 +899,7 @@ public class BillingServiceImpl implements BillingService {
 	@Override
 	public List<Consommation> getConsommationByGlobalBills(
 			List<GlobalBill> globalBills) {
-		// TODO Auto-generated method stub
 		return billingDAO.getConsommationByGlobalBills(globalBills);
 	}
-
 
 }

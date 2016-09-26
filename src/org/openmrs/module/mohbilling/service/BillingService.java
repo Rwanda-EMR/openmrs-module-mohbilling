@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.service;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -642,7 +643,4 @@ public interface BillingService {
 	public List<Consommation> getConsommationByGlobalBills(
 			List<GlobalBill> globalBills);
 	
-
-
-
 }

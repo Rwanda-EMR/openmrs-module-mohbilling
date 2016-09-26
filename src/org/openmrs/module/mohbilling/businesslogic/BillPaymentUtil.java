@@ -85,7 +85,6 @@ public class BillPaymentUtil {
 
 	public static List<PaidServiceBill> getPaidItemsByBillPayments(
 			List<BillPayment> payments) {
-		
 		return  getService().getPaidItemsByBillPayments(payments);
 	}
 
