@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 public class BillPaymentUtil {
@@ -87,9 +88,6 @@ public class BillPaymentUtil {
 			List<BillPayment> payments) {
 		return  getService().getPaidItemsByBillPayments(payments);
 	}
-
-	
-		
 
 	
 

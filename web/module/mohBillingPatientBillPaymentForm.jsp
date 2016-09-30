@@ -76,7 +76,7 @@ $(document).ready(function(){
 	 $('.submitBtn').attr('disabled', false);
 	 if(paidQty > reqQty){
 	 $('.submitBtn').attr('disabled', true);
-	 alert("Qty paid cannot be greater thant requested Qty!!");
+	 alert("Qty paid cannot be greater than requested Qty!!");
 	 return false;
 	 }
 	 

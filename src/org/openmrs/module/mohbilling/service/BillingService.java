@@ -29,6 +29,7 @@ import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -643,4 +644,18 @@ public interface BillingService {
 	public List<Consommation> getConsommationByGlobalBills(
 			List<GlobalBill> globalBills);
 	
+	/**
+	 * gets all submitted payment refunds
+	 * @return
+	 */
+	public List<PaymentRefund> getAllSubmittedPaymentRefunds();
+	
+	/**
+	 * get refund by id
+	 * @param id
+	 * @return
+	 */
+	public PaymentRefund getRefundById(Integer id);
+	
+	public PaidServiceBillRefund getPaidServiceBillRefund(Integer paidSviceBillRefundid);
 }

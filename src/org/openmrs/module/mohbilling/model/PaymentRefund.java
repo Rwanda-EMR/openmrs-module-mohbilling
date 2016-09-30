@@ -32,17 +32,6 @@ public class PaymentRefund {
 	private Set<PaidServiceBillRefund> refundedItems;
 
 	private User refundedBy;
-	
-
-	private Boolean approved = false;
-
-	private User approvedBy;
-
-	private Date approvalDate;
-
-	private Boolean declined = false;
-
-	private String decliningNote;
 
 	private User creator;
 
@@ -116,83 +105,7 @@ public class PaymentRefund {
 		this.refundedBy = refundedBy;
 	}
 
-	public Boolean isApproved() {
-		return approved;
-	}
 
-	/**
-	 * @return the approved
-	 */
-	public Boolean getApproved() {
-		return isApproved();
-	}
-
-	/**
-	 * @param approved
-	 *            the approved to set
-	 */
-	public void setApproved(Boolean approved) {
-		this.approved = approved;
-	}
-
-	/**
-	 * @return the approvedBy
-	 */
-	public User getApprovedBy() {
-		return approvedBy;
-	}
-
-	/**
-	 * @param approvedBy
-	 *            the approvedBy to set
-	 */
-	public void setApprovedBy(User approvedBy) {
-		this.approvedBy = approvedBy;
-	}
-
-	/**
-	 * @return the approvalDate
-	 */
-	public Date getApprovalDate() {
-		return approvalDate;
-	}
-
-	/**
-	 * @return the decliningNote
-	 */
-	public String getDecliningNote() {
-		return decliningNote;
-	}
-
-	/**
-	 * @param decliningNote the decliningNote to set
-	 */
-	public void setDecliningNote(String decliningNote) {
-		this.decliningNote = decliningNote;
-	}
-
-	/**
-	 * @param approvalDate
-	 *            the approvalDate to set
-	 */
-	public void setApprovalDate(Date approvalDate) {
-		this.approvalDate = approvalDate;
-	}
-
-	/**
-	 * @return the declined
-	 */
-	public Boolean getDeclined() {
-		return declined;
-	}
-
-	/**
-	 * @param declined
-	 *            the declined to set
-	 */
-	public void setDeclined(Boolean declined) {
-		this.declined = declined;
-	}
 	/**
 	 * @return the creator
 	 */

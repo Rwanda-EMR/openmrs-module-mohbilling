@@ -75,13 +75,13 @@ public class MohBillingConsommationFormController extends
 		
 			String[] splittedParameterName = parameterName.split("-");
 			String psbIdStr = splittedParameterName[2];			
-			//String psbIdStr = request.getParameter(parameterName);
 			Integer  patientServiceBillId = Integer.parseInt(psbIdStr);				
 			PatientServiceBill psb  =ConsommationUtil.getPatientServiceBill(patientServiceBillId);	
 			
-			BigDecimal qty = new BigDecimal(10);
+			BigDecimal qty = new BigDecimal(0);
 			PatientServiceBill cpyPsb = new PatientServiceBill();
 			cpyPsb.setUnitPrice(psb.getUnitPrice());
+			qty = psb.getQuantity();
 			cpyPsb.setQuantity(qty);
 			cpyPsb.setCreator(Context.getAuthenticatedUser());
 			cpyPsb.setCreatedDate(new Date());
@@ -108,14 +108,6 @@ public class MohBillingConsommationFormController extends
 				"patientBillPayment.form?consommationId="
 						+ saveConsommation.getConsommationId() ));
 		}
-		/*else{
-			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,"You can't edit this consommation !");
-			return new ModelAndView(new RedirectView(
-					"billing.form?consommationId="
-							+ existingConsom.getConsommationId()+"&insurancePolicy="+existingConsom.getBeneficiary().getInsurancePolicy().getInsurancePolicyId()+
-							"&ipCardNumber="+existingConsom.getBeneficiary().getInsurancePolicy().getInsuranceCardNo() ));
-		}*/
-			
 
 		mav.addObject("consommation", existingConsom);
 		mav.addObject("ipCardNumber", existingConsom.getBeneficiary().getPolicyIdNumber());

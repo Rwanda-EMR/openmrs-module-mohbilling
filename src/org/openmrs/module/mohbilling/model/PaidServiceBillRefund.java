@@ -28,6 +28,20 @@ public class PaidServiceBillRefund  implements Comparable<PaidServiceBillRefund>
 	private User creator;
 
 	private Date createdDate;
+	
+	private String refundReason;
+	
+	private Boolean approved = false;
+
+	private User approvedBy;
+
+	private Date approvalDate;
+
+	private Boolean declined = false;
+
+	private String decliningNote;
+	
+	private Date declineDate;
 
 	private Boolean voided = false;
 
@@ -36,6 +50,10 @@ public class PaidServiceBillRefund  implements Comparable<PaidServiceBillRefund>
 	private Date voidedDate;
 
 	private String voidReason;
+	
+	public Boolean isApproved() {
+		return approved;
+	}
 
 	/**
 	 * @return the paidServiceBillRefundId
@@ -106,6 +124,104 @@ public class PaidServiceBillRefund  implements Comparable<PaidServiceBillRefund>
 	 */
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
+	}
+
+	/**
+	 * @return the refundReason
+	 */
+	public String getRefundReason() {
+		return refundReason;
+	}
+
+	/**
+	 * @param refundReason the refundReason to set
+	 */
+	public void setRefundReason(String refundReason) {
+		this.refundReason = refundReason;
+	}
+
+	/**
+	 * @return the approved
+	 */
+	public Boolean getApproved() {
+		return approved;
+	}
+
+	/**
+	 * @param approved the approved to set
+	 */
+	public void setApproved(Boolean approved) {
+		this.approved = approved;
+	}
+
+	/**
+	 * @return the approvedBy
+	 */
+	public User getApprovedBy() {
+		return approvedBy;
+	}
+
+	/**
+	 * @param approvedBy the approvedBy to set
+	 */
+	public void setApprovedBy(User approvedBy) {
+		this.approvedBy = approvedBy;
+	}
+
+	/**
+	 * @return the approvalDate
+	 */
+	public Date getApprovalDate() {
+		return approvalDate;
+	}
+
+	/**
+	 * @param approvalDate the approvalDate to set
+	 */
+	public void setApprovalDate(Date approvalDate) {
+		this.approvalDate = approvalDate;
+	}
+
+	/**
+	 * @return the declined
+	 */
+	public Boolean getDeclined() {
+		return declined;
+	}
+
+	/**
+	 * @param declined the declined to set
+	 */
+	public void setDeclined(Boolean declined) {
+		this.declined = declined;
+	}
+
+	/**
+	 * @return the decliningNote
+	 */
+	public String getDecliningNote() {
+		return decliningNote;
+	}
+
+	/**
+	 * @param decliningNote the decliningNote to set
+	 */
+	public void setDecliningNote(String decliningNote) {
+		this.decliningNote = decliningNote;
+	}
+
+	/**
+	 * @return the declineDate
+	 */
+	public Date getDeclineDate() {
+		return declineDate;
+	}
+
+	/**
+	 * @param declineDate the declineDate to set
+	 */
+	public void setDeclineDate(Date declineDate) {
+		this.declineDate = declineDate;
 	}
 
 	/**

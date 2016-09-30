@@ -32,6 +32,7 @@ import org.openmrs.module.mohbilling.model.InsuranceCategory;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -900,6 +901,25 @@ public class BillingServiceImpl implements BillingService {
 	public List<Consommation> getConsommationByGlobalBills(
 			List<GlobalBill> globalBills) {
 		return billingDAO.getConsommationByGlobalBills(globalBills);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getAllSubmittedPaymentRefunds()
+	 */
+	@Override
+	public List<PaymentRefund> getAllSubmittedPaymentRefunds() {
+		return billingDAO.getAllSubmittedPaymentRefunds();
+	}
+
+	@Override
+	public PaymentRefund getRefundById(Integer id) {
+		return billingDAO.getRefundById(id);
+	}
+
+	@Override
+	public PaidServiceBillRefund getPaidServiceBillRefund(
+			Integer paidSviceBillRefundid) {
+		return billingDAO.getPaidServiceBillRefund(paidSviceBillRefundid);
 	}
 
 }

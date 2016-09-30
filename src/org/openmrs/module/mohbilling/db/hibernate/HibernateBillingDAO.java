@@ -63,6 +63,7 @@ import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -1398,5 +1399,25 @@ public class HibernateBillingDAO implements BillingDAO {
 			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Consommation.class);	
       			criteria.add(Restrictions.in("globalBill", globalBills));
 	        return  criteria.list();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllSubmittedPaymentRefunds()
+		 */
+		@Override
+		public List<PaymentRefund> getAllSubmittedPaymentRefunds() {
+		       Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PaymentRefund.class);		
+		       return criteria.list();
+		}
+
+		@Override
+		public PaymentRefund getRefundById(Integer id) {
+			return (PaymentRefund) sessionFactory.getCurrentSession().get(PaymentRefund.class, id);
+		}
+
+		@Override
+		public PaidServiceBillRefund getPaidServiceBillRefund(
+				Integer paidSviceBillRefundid) {
+			return (PaidServiceBillRefund) sessionFactory.getCurrentSession().get(PaidServiceBillRefund.class, paidSviceBillRefundid);
 		}
 	}
