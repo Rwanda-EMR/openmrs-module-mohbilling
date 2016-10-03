@@ -10,6 +10,7 @@ import java.util.List;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 public class BillPaymentUtil {
@@ -45,7 +46,6 @@ public class BillPaymentUtil {
 
 
 	public static void createPaidServiceBill(PaidServiceBill paidSb) {
-		
 			getService().savePaidServiceBill(paidSb);
 			
 		}
@@ -89,7 +89,9 @@ public class BillPaymentUtil {
 		return  getService().getPaidItemsByBillPayments(payments);
 	}
 
-	
+	public static List<PaymentRefund> getRefundsByBillPayment(BillPayment payment){
+		return getService().getRefundsByBillPayment(payment);
+	}
 
 	
 

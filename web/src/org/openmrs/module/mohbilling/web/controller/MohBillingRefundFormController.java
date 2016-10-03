@@ -15,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.mapping.Value;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.ParametersConversion;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
@@ -25,6 +26,7 @@ import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.PaymentRefund;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -60,6 +62,7 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 					"The refund has been Verified by the Chief Cashier !");
 			handleEditRefund(payment, refund, request);
 			mav.addObject("refund", refund);
+			
 		}
 
 		if (request.getParameter("save") != null) {
@@ -73,6 +76,26 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 					+" &consommationId="+consommation.getConsommationId()
 			));
 		}
+
+
+		if(request.getParameter("refundingDate")!=null){
+			//String refundDateStr = request.getParameter("refundingDate");
+			String refundAmountStr = request.getParameter("refundedAmount");
+			refund = PaymentRefundUtil.getRefundById(Integer.parseInt(request.getParameter("refundId")));
+			refund.setRefundedAmount(BigDecimal.valueOf(Double.parseDouble(refundAmountStr)));
+			refund.setRefundedBy(Context.getAuthenticatedUser()); 
+			
+			Context.getService(BillingService.class).savePaymentRefund(refund);
+			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+					"The refund has been confirmed !");
+			return new ModelAndView(new RedirectView(
+					"patientBillPayment.form?"
+					+"consommationId="+consommation.getConsommationId()
+					+"&ipCardNumber="+consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+					+"&refundId="+refund.getRefundId()
+			));
+		}
+		
 		
 		mav.addObject("paidItems",paidItems);
 		mav.addObject("payment", payment);

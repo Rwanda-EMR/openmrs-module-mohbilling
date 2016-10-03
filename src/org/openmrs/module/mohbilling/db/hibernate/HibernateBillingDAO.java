@@ -1268,7 +1268,9 @@ public class HibernateBillingDAO implements BillingDAO {
 		@Override
 		public List<PaidServiceBill> getPaidServices(BillPayment payment) {
 			return sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class)				
-					.add(Restrictions.eq("billPayment", payment)).list();
+					.add(Restrictions.eq("billPayment", payment))
+					.add(Restrictions.eq("voided", false))
+			.list();
 		}		
 		/* (non-Javadoc)
 		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getConsommationByPatientBill(org.openmrs.module.mohbilling.model.PatientBill)
@@ -1419,5 +1421,12 @@ public class HibernateBillingDAO implements BillingDAO {
 		public PaidServiceBillRefund getPaidServiceBillRefund(
 				Integer paidSviceBillRefundid) {
 			return (PaidServiceBillRefund) sessionFactory.getCurrentSession().get(PaidServiceBillRefund.class, paidSviceBillRefundid);
+		}
+
+		@Override
+		public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientServiceBill.class);
+				crit.add(Expression.eq("consommation", payment));
+				return crit.list();
 		}
 	}

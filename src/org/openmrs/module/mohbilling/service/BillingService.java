@@ -658,4 +658,7 @@ public interface BillingService {
 	public PaymentRefund getRefundById(Integer id);
 	
 	public PaidServiceBillRefund getPaidServiceBillRefund(Integer paidSviceBillRefundid);
+	
+	public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment);
+	
 }

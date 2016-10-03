@@ -11,8 +11,8 @@
 		<tr>
 			<th class="columnHeader"></th>
 			<th class="columnHeader">Service</td>
-			<th class="columnHeader center">Qty</td>
-			<th class="columnHeader center">PaidQty</td>
+			<th class="columnHeader center">Requested Qty</td>
+			<th class="columnHeader center">Paid Qty</td>
 			<th class="columnHeader right">Unit Price (Rwf)</td>
 			<th class="columnHeader right">Price (Rwf)</td>					
 		</tr>
@@ -33,7 +33,12 @@
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${paidItem.billItem.quantity}</td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${paidItem.paidQty}</td>					
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${paidItem.billItem.unitPrice}</td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${paidItem.billItem.unitPrice*paidItem.billItem.quantity}</td>			
+					<c:if test="${empty paidItem.paidQty }">
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${paidItem.billItem.unitPrice*paidItem.billItem.quantity}</td>	
+					</c:if>	
+					<c:if test="${not empty paidItem.paidQty }">
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${paidItem.billItem.unitPrice*paidItem.paidQty}</td>	
+					</c:if>		
 				</tr>
 			</c:forEach> 
 	      </c:if>

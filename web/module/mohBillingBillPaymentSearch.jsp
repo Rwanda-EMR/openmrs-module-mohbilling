@@ -68,7 +68,7 @@
   <td class="rowValue ${(status.count%2!=0)?'even':''}">${submittedRef.billPayment.billPaymentId}</td>
  <td class="rowValue ${(status.count%2!=0)?'even':''}">${submittedRef.creator.personName}</td>
  <td class="rowValue ${(status.count%2!=0)?'even':''}">${submittedRef.createdDate}</td>
- <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="paymentRefund.form?paymentId=${submittedRef.billPayment.billPaymentId}&ipCardNumber=12345">Confirm</a></td>
+ <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="refundItemList.form?refundId=${submittedRef.refundId}&billPayment=${submittedRef.billPayment.billPaymentId}&confirm=true">Confirm</a></td>
  </tr>
  </c:forEach>
 </table>
@@ -102,7 +102,7 @@
 </table>
 </div>
 </c:if>
-
+<br/>
 <c:if test="${!empty(paidItems)}">
 
 <c:set var="paidItems" value="${paidItems}" />
