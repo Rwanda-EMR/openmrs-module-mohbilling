@@ -34,6 +34,7 @@ public class MohBillingRefundedItemListController extends
   	  if(request.getParameter("refundId")!=null && !request.getParameter("refundId").equals("")){
 		  PaymentRefund refund = PaymentRefundUtil.getRefundById(Integer.valueOf(request.getParameter("refundId")));
 		  mav.addObject("refund", refund);
+			
 	  }
   	  
 		return mav;

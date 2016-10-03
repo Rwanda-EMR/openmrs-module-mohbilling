@@ -922,4 +922,10 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getPaidServiceBillRefund(paidSviceBillRefundid);
 	}
 
+
+	@Override
+	public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment) {
+		return billingDAO.getRefundsByBillPayment(payment);
+	}
+
 }

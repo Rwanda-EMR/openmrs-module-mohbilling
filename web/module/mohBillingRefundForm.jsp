@@ -77,8 +77,8 @@ $(function(){
 			<tr>
 				<th class="columnHeader"></th>
 				<th class="columnHeader">Service</td>
-				<th class="columnHeader center">Qty</td>
-				<th class="columnHeader center">PaidQty</td>
+				<th class="columnHeader center">Requested Qty</td>
+				<th class="columnHeader center">Paid Qty</td>
 				<th class="columnHeader center">RefQty</td>
 				<th class="columnHeader right">Unit Price (Rwf)</td>
 				<th class="columnHeader right">Price (Rwf)</td>
@@ -103,14 +103,25 @@ $(function(){
 				
 				    <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate)/100}"/>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" value="${billItem.unitPrice }" name="up-${paidItem.paidServiceBillId}" id="up-${paidItem.paidServiceBillId}" disabled="disabled" style="border: none;"/></td>
+					<c:if test="${empty paidItem.paidQty }">
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" value="${billItem.unitPrice*billItem.quantity}" name="price-${paidItem.paidServiceBillId}" id="price-${paidItem.paidServiceBillId}" disabled="disabled" style="border: none;"/></td>
-
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">							
 						 <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
-					</td>							
+					</td>	
+					
+					</c:if>
+					<c:if test="${not empty paidItem.paidQty }">
+					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" value="${billItem.unitPrice*paidItem.paidQty}" name="price-${paidItem.paidServiceBillId}" id="price-${paidItem.paidServiceBillId}" disabled="disabled" style="border: none;"/></td>
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">							
+						 <fmt:formatNumber value="${((billItem.unitPrice*paidItem.paidQty)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/>
+						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*paidItem.paidQty)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
+					</td>	
+					</c:if>
+									
 					<td><input name="${fieldName}"	value="${paidItem.paidServiceBillId}" type="checkbox" class="items"></td>
-					<td><textarea name="refundReason-${paidItem.paidServiceBillId}" id="refundReason-${paidItem.paidServiceBillId}" rows="1" cols="20" value="" style="display: none;"></textarea></td>	
+					<td><textarea name="refundReason-${paidItem.paidServiceBillId}" id="refundReason-${paidItem.paidServiceBillId}" rows="1" cols="20" value="" style="display: none;"></textarea>
+					</td>	
 				</tr>
 			</c:forEach>		   
 			<tr>			   
@@ -121,20 +132,22 @@ $(function(){
 			<tr>
 				<td colspan="11"><hr/></td>
 			</tr>
-			<tr style="font-size: 1em" class="hide">
+			<c:if test="${not empty confirmedRefund }">
+			<tr style="font-size: 1em">
 				<td><b>Refunder</b></td>
 				<td colspan="2"><openmrs_tag:userField formFieldName="refunder" initialValue="${authUser.userId}"/></td>
 				<td colspan="4"></td>
 				<td><div style="text-align: right;"><b>Amount Paid</b></div></td>
 				<td><div class="amount">${payment.amountPaid}</div></td>				
 			</tr>
-			<tr class="hide">
+			<tr>
 				<td><b>Refunding Date</b></td>
 				<td colspan="2"><input type="text" autocomplete="off" name="refundingDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 			    <td colspan="4"></td>
 				<td><b>Refunded Amount</b></td>
 				<td colspan="2"><input type="text" autocomplete="off" name="refundedAmount" size="11" class="numbers" value=""/></td>							
-			</tr>									
+			</tr>	
+			</c:if>							
 			<tr>
 				<td colspan="10"><hr/></td>
 			</tr>			

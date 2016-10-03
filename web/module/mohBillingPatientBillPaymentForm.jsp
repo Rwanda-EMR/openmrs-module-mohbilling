@@ -226,14 +226,19 @@ function recalculateTotals() {
 				<td><div style="text-align: right;"><b>Amount Paid</b></div></td>
 				<td><div class="amount">${billingtag:amountPaidForPatientBill(consommation.consommationId)}</div></td>
 			    
-				
+				<td><div style="text-align: right;"><b>Refunded Amount</b></div></td>
+				<td><div class="amount">1800</div></td>				
 			</tr>
 			<tr>
 				<td><b>Received Date</b></td>
 				<td colspan="2"><input type="text" autocomplete="off" name="dateBillReceived" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Paid by Third Part</b></div></td>
-				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>				
+				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>
+				
+				<td><div style="text-align: right;"><b>Current Payment Amount</b></div></td>
+				<td><div class="amount">1800</div></td>		
+								
 			</tr>
 			<tr>
 				<td></td>

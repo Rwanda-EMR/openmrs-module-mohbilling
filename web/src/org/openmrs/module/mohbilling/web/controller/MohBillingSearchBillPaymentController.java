@@ -21,7 +21,6 @@ import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
-import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * @author EMR@RBC
@@ -43,18 +42,20 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 		mav.setViewName(getViewName());
 		BillPayment payment = null;
 		Consommation consommation = null;
+		
      try {
     	  if(request.getParameter("paymentId")!=null && !request.getParameter("paymentId").equals("") ){
        	   
        	   payment = BillPaymentUtil.getBillPaymentById(Integer.parseInt(request.getParameter("paymentId")));
        	   consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());    	   
        	   List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
-       	  
+
        	   mav.addObject("paidItems", paidItems); 
        	   mav.addObject("payment", payment);
        	   mav.addObject("consommation",consommation); 
        	   mav.addObject("insurancePolicy",consommation.getBeneficiary().getInsurancePolicy()); 
        	   mav.addObject("beneficiary",consommation.getBeneficiary()); 
+       	   
        	   
               if(request.getParameter("print")!=null){
            	   FileExporter exp = new FileExporter();
@@ -63,7 +64,7 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
           }
 
 	} catch (Exception e) {
-		// TODO: handle exception
+		log.info(e.getMessage());
 	}
  
 
@@ -79,6 +80,7 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 		// get all refund with some item not yet checked by the chief cashier
 		for (PaymentRefund refund : submittedRefunds) {
 			if(PaymentRefundUtil.areAllRefundItemsConfirmed(refund))
+				if(refund.getRefundedAmount()==null)
 				checkedRefundsByChief.add(refund);
 		}
 		mav.addObject("pendingRefunds", pendingRefunds);

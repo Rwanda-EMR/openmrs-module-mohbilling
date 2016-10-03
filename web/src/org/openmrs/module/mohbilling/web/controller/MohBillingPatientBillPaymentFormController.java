@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,15 +22,18 @@ import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.PaymentRefundUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.model.Transaction;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
@@ -52,6 +56,11 @@ public class MohBillingPatientBillPaymentFormController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 		BillPayment payment = null;
+		
+		if(request.getParameter("refundId")!=null){
+			PaymentRefund refund = PaymentRefundUtil.getRefundById(Integer.valueOf(request.getParameter("refundId")));
+			updatePaymentAfterRefund(request, refund);
+		}
 		
 		if (request.getParameter("save") != null ){			
 			payment = handleSavePatientBillPayment(request);
@@ -157,7 +166,7 @@ public class MohBillingPatientBillPaymentFormController extends
 							WebConstants.OPENMRS_MSG_ATTR,
 							"The Bill Payment with deposit has been saved successfully !");
 					billPayment = dp;
-				}
+				} 
 
 				return billPayment;
 		} catch (Exception e) {
@@ -168,8 +177,38 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			return null;
 		}
-	}	
+	}
 	
+	public BillPayment updatePaymentAfterRefund(HttpServletRequest request,PaymentRefund refund){
+		Set<PaidServiceBillRefund> refundedItems = refund.getRefundedItems();
+		BillPayment paymentCopy = new BillPayment();
+		BigDecimal remainingQty = null;
+		for (PaidServiceBillRefund refundedItem : refundedItems) {
+			remainingQty = refundedItem.getPaidItem().getPaidQty().subtract(refundedItem.getRefQuantity());
+			
+			//if all qty have been refunded, no reason to copy the paidItem
+			if(remainingQty.compareTo(BigDecimal.ZERO)>0){
+			PaidServiceBill refundedItemCopy = new PaidServiceBill();	
+			refundedItemCopy.setPaidQty(remainingQty);
+			refundedItemCopy.setBillPayment(refund.getBillPayment());
+			refundedItemCopy.setCreator(refundedItem.getCreator());
+			refundedItemCopy.setCreatedDate(refundedItem.getCreatedDate());			
+			refundedItemCopy.setVoided(refundedItem.getVoided());
+			refundedItemCopy.setBillItem(refundedItem.getPaidItem().getBillItem());
+			BillPaymentUtil.createPaidServiceBill(refundedItemCopy);
+			}
+			
+			//void previous paidItem
+			PaidServiceBill paidItem = refundedItem.getPaidItem();
+			paidItem.setVoided(true);
+			paidItem.setVoidedBy(Context.getAuthenticatedUser());
+			paidItem.setVoidedDate(new Date());
+			paidItem.setVoidReason("Refunded Reason: "+refundedItem.getRefundReason());
+			BillPaymentUtil.createPaidServiceBill(paidItem);
+		}
+		return paymentCopy;
+		
+	}
 	public void createPaidServiceBill(HttpServletRequest request,Consommation consommation, BillPayment bp){
   
 		Map<String, String[]> parameterMap = request.getParameterMap();			

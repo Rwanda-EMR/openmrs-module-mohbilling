@@ -676,4 +676,6 @@ public interface BillingDAO {
 	
 	public PaidServiceBillRefund getPaidServiceBillRefund(Integer paidSviceBillRefundid);
 	
+	public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment);
+	
 }

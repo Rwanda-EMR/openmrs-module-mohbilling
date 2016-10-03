@@ -23,6 +23,19 @@ $(function(){
    });
 });
 </script>
+<style>
+
+	.closedStutus{
+		color: #FFFFFF;
+		background-color: red;
+		padding: 2px;
+		cursor: pointer;
+		-moz-border-radius: 2px; 
+		border-right: 2px solid #dddddd;
+		border-bottom: 2px solid #dddddd;
+	}
+
+</style>
 
 <c:set var="insurancePolicy" value="${consommation.beneficiary.insurancePolicy}"/>
 <c:set var="globalBill" value="${consommation.globalBill}"/>
@@ -65,7 +78,7 @@ $(function(){
 				<th></th>
 			</tr>
 			<c:if test="${empty refund.refundedItems}"><tr><td colspan="7"><center>No refund items found !</center></td></tr></c:if>
-
+			<c:set var="totalRefundAmount" value="0"/>
 			<c:forEach items="${refund.refundedItems}" var="refundItem" varStatus="status">
 			<c:set var="psb" value="${refundItem.paidItem.billItem}"/>
 			<c:set var="fieldName" value="item-${refundItem.paidServiceBillRefundId}"/>
@@ -78,27 +91,62 @@ $(function(){
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${psb.unitPrice}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${refundItem.refundReason}</td>
 					
+					<c:if test="${refundItem.approved==false && refundItem.declined==false}">
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">
 					Approved<input type="radio" value="1_${refundItem.paidServiceBillRefundId}" name="approveRadio_${refundItem.paidServiceBillRefundId}" id="approve_${refundItem.paidServiceBillRefundId}" class="approval"/>				
 					Declined<input type="radio" value="0_${refundItem.paidServiceBillRefundId}" name="approveRadio_${refundItem.paidServiceBillRefundId}" id="decline_${refundItem.paidServiceBillRefundId}" class=decline />
 					<textarea name="declineNote_${refundItem.paidServiceBillRefundId}" id="declineNote_${refundItem.paidServiceBillRefundId}" rows="1" cols="20" value="" style="display: none;" ></textarea>
-					</td>
+					</c:if>
 					
+					</td>
+					<c:if test="${refundItem.approved }">
+					<c:set var="action" value="${refundItem.approved}"/>
+					<c:if test="${refundItem.approved }">
+					 <td class="rowValue center ${(status.count%2!=0)?'even':''}"><span title='approved' class='closedStutus'><b>V</b></span></td>	
+					</c:if>
+					
+					<c:if test="${not refundItem.approved }">
+					 <td class="rowValue center ${(status.count%2!=0)?'even':''}"><span title='declined' class='closedStutus'><b>X</b></span></td>	
+					</c:if>
+					
+					<c:set var="totalRefundAmount" value="${totalRefundAmount+(refundItem.refQuantity*psb.unitPrice)}"/>
+					</c:if>
 				</tr>
 				</c:if>
-			</c:forEach>		   
+			</c:forEach>
+						
+			<tr>
+				<td colspan="11"><hr/></td>
+			</tr>
+	
+			<%-- <tr style="font-size: 1em">
+				<td><b>Refunder</b></td>
+				<td><openmrs_tag:userField formFieldName="refunder" initialValue="${authUser.userId}"/></td>
+			</tr> --%>
+			
+			<c:if test="${totalRefundAmount!=0 }">
+			<tr>
+				<td><b>Refunding Date</b></td>
+				<td><input type="text" autocomplete="off" id="refundingDate" name="refundingDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
+			    <td></td>
+				<td><b>Refunded Amount</b></td>
+				<td><input type="text" autocomplete="off" id="refundedAmount" name="refundedAmount" size="11" class="numbers" value="${totalRefundAmount }" readonly="readonly"/></td>							
+			</tr>	
+			 </c:if>
 			
 			<tr>
 				<td colspan="7"><hr/></td>
 			</tr>			
 			<tr style="font-size: 1.2em">
 				
-					<td colspan="2"><input type="submit"  value="Confirm" style="min-width: 200px;" class="submitBtn"/></td>
+					<td colspan="2"><input type="submit"  value="Save" style="min-width: 200px;" class="submitBtn"/></td>
 				
 			 <td colspan="3"></td>
 			</tr>			
 		</table>
 	</form>
+	
+	
 	
 </div>
 
