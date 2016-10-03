@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
+import org.openmrs.module.mohbilling.businesslogic.PaymentRefundUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
@@ -59,12 +61,28 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
            	   exp.printPayment(request, response, payment, consommation, "receipt");
               }
           }
+
 	} catch (Exception e) {
 		// TODO: handle exception
 	}
  
 
+		List<PaymentRefund> submittedRefunds = PaymentRefundUtil.getAllSubmittedPaymentRefunds();
+		List<PaymentRefund> pendingRefunds = new ArrayList<PaymentRefund>();
+		List<PaymentRefund> checkedRefundsByChief = new ArrayList<PaymentRefund>();
 		
+		// get all refund with all items checked by the chief cashier
+		for (PaymentRefund refund : submittedRefunds) {
+			if(!PaymentRefundUtil.areAllRefundItemsConfirmed(refund))
+				pendingRefunds.add(refund);
+		}
+		// get all refund with some item not yet checked by the chief cashier
+		for (PaymentRefund refund : submittedRefunds) {
+			if(PaymentRefundUtil.areAllRefundItemsConfirmed(refund))
+				checkedRefundsByChief.add(refund);
+		}
+		mav.addObject("pendingRefunds", pendingRefunds);
+		mav.addObject("checkedRefundsByChief", checkedRefundsByChief);
 		return mav;
 	}
 }

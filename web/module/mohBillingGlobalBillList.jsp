@@ -6,6 +6,8 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 
+<openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
+
 <style>
 
 	.closedStutus{

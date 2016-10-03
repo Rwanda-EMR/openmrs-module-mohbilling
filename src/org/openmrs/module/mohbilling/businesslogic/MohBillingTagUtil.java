@@ -13,6 +13,7 @@ import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
+import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -82,10 +83,7 @@ public class MohBillingTagUtil {
 					Double cost = null;
 					
 					if(psb.getVoided()==false){
-						if(psb.getPaidQuantity()==null)
 					         cost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
-						else
-							cost = psb.getUnitPrice().doubleValue()*(psb.getQuantity().subtract(psb.getPaidQuantity())).doubleValue();
 					        amountDueByPatient+=cost*patientRate.doubleValue();
 					}
 				}

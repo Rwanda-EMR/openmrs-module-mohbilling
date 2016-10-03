@@ -12,6 +12,7 @@
             var total;
             var checked = $('.items').click(function (e) {
                 calculateSum();
+                validateQties();
             });
 
             function calculateSum() {
@@ -24,8 +25,8 @@
                 $('#tot').text("Your Payable  Is: " + total.toFixed(2));
             }
         });
-    </script>
-    
+        
+    </script>    
     
 <script type="text/javascript">
 $(document).ready(function(){
@@ -68,6 +69,20 @@ $(document).ready(function(){
 		});
 });
 </script>
+<script type="text/javascript">
+ function validateQties(j){
+	 var paidQty = document.getElementById("paidQty_"+j).value;
+	 var reqQty = document.getElementById("reqQty_"+j).value;
+	 $('.submitBtn').attr('disabled', false);
+	 if(paidQty > reqQty){
+	 $('.submitBtn').attr('disabled', true);
+	 alert("Qty paid cannot be greater than requested Qty!!");
+	 return false;
+	 }
+	 
+ }
+</script>
+
 <script>
 function calculateCost(j){
 	var cost=0.00;
@@ -84,9 +99,8 @@ function calculateCost(j){
 	
 	//Adjust the totals (totalBillInsurance, patientBillTotal)
 	recalculateTotals();
-	
 }
-
+//update totals after updating quantity
 function recalculateTotals() {
    // var sumInsurance = 0;
     var sumPatient= 0;
@@ -107,10 +121,14 @@ function recalculateTotals() {
     //.toFixed() method will roundoff the final sum to 2 decimal places
   //  $("#totalBillInsurance").val(sumInsurance.toFixed(2));
     $("#totalBillPatient").val(sumPatient.toFixed(2));
+    
+    //update the rest
+    $("#rest").val(sumPatient.toFixed(2));
+    
+    //update payable
+   // $("#tot").val(sumPatient.toFixed(2));
 }
 </script>
-
-
  
 <h2>Patient Bill Payment</h2>
 
@@ -157,7 +175,9 @@ function recalculateTotals() {
 					<c:if test="${empty billItem.paidQuantity}">
 					<c:set var="paidQty" value="${ billItem.quantity }"/>
 					</c:if>
-					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${paidQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId})" style="text-align: center;"/></td>
+					<td class="rowValue center ${(status.count%2!=0)?'even':''}">
+					<input type="hidden" value="${billItem.quantity}" id="reqQty_${billItem.patientServiceBillId}"/>
+					<input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${paidQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId});validateQties(${billItem.patientServiceBillId})" style="text-align: center;"/></td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><input type="text"  size="10" id="up_${billItem.patientServiceBillId}"      value="${billItem.unitPrice}" style="border:none; text-align: center;"/></td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" size="10" id="cost_${billItem.patientServiceBillId}"    value="${billItem.unitPrice*billItem.quantity}" style="border:none; text-align: center;"/></td>
 					<!--  <td class="rowValue right ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/></td>-->
@@ -179,7 +199,9 @@ function recalculateTotals() {
 						<input value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" id="patientCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="patientCol"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
-					<td><input name="${fieldName}" class="items" value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox"></td>
+					<td>
+					<input name="${fieldName}" class="items" value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox">
+					</td>
 				</tr>
 				</c:if>
 			</c:forEach>		   
@@ -191,8 +213,8 @@ function recalculateTotals() {
 				<td><div class="amount"><fmt:formatNumber value="${totalBillPatient}" type="number" pattern="#.##"/></div></td>
 				 -->
 				 
-				 <td><div class="amount"><input id="totalBillInsurance" value="${totalBillInsurance}" style="border: none;background-color: #aabbcc"/></div></td>
-				 <td><div class="amount"><input id="totalBillPatient" value="${totalBillPatient}" style="border: none;background-color: #aabbcc"/></div></td>
+				 <td><div class="amount"><input id="totalBillInsurance" value="${totalBillInsurance}" disabled="disabled" style="border: none;background-color: #aabbcc"/></div></td>
+				 <td><div class="amount"><input id="totalBillPatient" value="${totalBillPatient}" disabled="disabled"   style="border: none;background-color: #aabbcc"/></div></td>
 			</tr>			
 			<tr>
 				<td colspan="7"><hr/></td>
@@ -218,7 +240,12 @@ function recalculateTotals() {
 				<td colspan="2"></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Rest</b></div></td>
-				<td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td>				
+				<!-- <td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td>	 -->
+				<td>
+				<div class="amount" style="text-align: right"><b>
+				 <input type="text" disabled="disabled" value="${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}" id="rest" style="border: none;background-color: #aabbcc"/>
+				</b></div>	
+			   </td>		
 			</tr>
 		
 			<tr>

@@ -13,7 +13,6 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();
-
 	$bill(document).ready(function(){
 		$bill('.meta').hide();
 		$bill('#submitId').click(function() {
@@ -32,6 +31,69 @@
 	});
 </script>
 
+<script type="text/javascript">
+var $j = jQuery.noConflict();
+$j(document).ready(function(){
+	$j('.collector').hide();
+	$j('.insurances').hide();
+	
+	$j('.reportType').change(function () {
+		  switch ($j(this).val()) {
+		    case 'insurance':
+		    	$j('.insurances').show();
+		    	$j('.collector').hide();
+		    break;
+		    
+		    case 'cashierReport':
+		      $j('.collector').show();
+		      $j('.insurances').hide();
+		      $j('#cashierReport').show();
+		    break;
+		    case 'serviceRevenue':
+			      $j('.collector').hide();
+			      $j('.insurances').hide();
+			      $j('#cashierReport').hide();
+				  $j('#serviceReport').show();
+			    break;
+		    
+		    
+		    default:
+		      $j('.reportType').show();
+		      $j('.dates').show();
+		    }
+	});	
+	$j('.insurance').change(function () {
+		var insuranceId = $j(this).val();
+		if(insuranceId==1){
+			  $j("#rssbReport").show();
+			  $j("#privateReport").hide();
+			  $j('#cashierReport').hide();
+		} 
+		else if(insuranceId==7){
+			$j("#rssbReport").hide();
+			$j("#privateReport").show();
+			 $j('#cashierReport').hide();
+		}
+	});
+ 	$j('.reportType').change(function () {
+		var report = $j(this).val();
+		if(report =='cashierReport'){
+			  $j("#rssbReport").hide();
+			  $j("#privateReport").hide();
+			  $j('#cashierReport').show();
+			  $j('#serviceReport').hide();
+		} 
+		if(report=='serviceRevenue'){
+			  $j("#rssbReport").hide();
+			  $j("#privateReport").hide();
+			  $j('#cashierReport').hide();
+			  $j('#serviceReport').show();
+		}
+	}); 
+
+});
+</script>
+
 <h2>
 	<spring:message code="@MODULE_ID@.billing.report" />
 </h2>
@@ -41,7 +103,19 @@
 	<form method="post" action=" ">	
 	<input type="hidden" name="formStatus" id="formStatusId" value="" />	
 		<table>
-			<tr>
+		    <tr class="reportType">
+				<td>Report Type: </td>
+				<td>
+				  <select name="reportType" class="reportType">
+				    <option selected="selected">--select--</option>
+				    <option value="insurance">Insurance</option>
+				    <option value="cashierReport">Cashier Report</option>
+				    <option value="serviceRevenue">Revenue By Service</option>
+				  </select>
+				</td>
+	        </tr>
+	        
+			<tr class="dates">
 				<td width="10%">When?</td>
 				<td>
 					<table>
@@ -246,28 +320,25 @@
 				             </select>
 						</td>
 						</tr>
+
 					</table>
 				</td>
-				<td>Collector :</td>
-				<td><openmrs_tag:userField formFieldName="cashCollector"
-						initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
-				<td>Report Type : </td>
-				<td>
-				  <select name="reportType" id="reportType">
-				    <option selected="selected">--select--</option>
-				    <option value="insurance">Insurance</option>
-				    <option value="serviceRevenue">Service Revenue</option>
-				    <option value="internal">Internal</option>
-				  </select>
-				</td>
+				
 			</tr>
-			<tr>
+			
+			<tr class="collector">
+			<td>Collector :</td>
+		    <td><openmrs_tag:userField formFieldName="cashCollector" initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
+			</tr>
+			
+			<tr class="insurances">
 			<td>Insurance : </td>
 				<td>
-				  <select name="insuranceId">
+				  <select name="insuranceId" class="insurance">
 				    <option selected="selected">--select--</option>
-				    <option value="1">RAMA</option>
-				    <option value="3">MUTUEL</option>
+				    <c:forEach items="${insurances }" var="insurance">
+				    <option value="${insurance.insuranceId }">${insurance.name }</option>
+				    </c:forEach>
 				  </select>
 				</td>
 			</tr>
@@ -275,21 +346,42 @@
 		<input type="submit" value="Search" id="submitId" />
 	</form>
 </div>
+<c:if test="${not empty paidServiceRevenues}">
 <br />
-<div class="reports" id="cashierReport"  style="display:none">
+<div id="cashierReport" >
     <h2> Cashier Daily Report</h2>
-	Collected Amount :${allServicesRevenue.allpaidAmount}
+	Collected Amount :<b>${totalReceivedAmount}</b>
 <c:import url="mohBillingServiceRevenue.jsp" />
 </div>
 <br />
-
-<div class="reports" id="rssbReport">
+</c:if>
+<c:if test="${not empty listOfAllServicesRevenue}">
+<div id="rssbReport" style="display: none;" >
 <h2> RSSB Report</h2>
 <c:import url="mohBillingInsuranceBill.jsp" />
 </div>
+</c:if>
+
+<c:if test="${not empty listOfAllServicesRevenue}">
 <br />
-<div class="reports"  id="musaReport" style="display:none">
+<div id="musaReport" style="display:none">
  <h2>MUSA Report</h2>
 </div>
+</c:if>
 
+<c:if test="${not empty listOfAllPrivServicesRevenue}">
+<br/>
+<div id="privateReport" style="display: none;">
+ <h2>Private Report</h2>
+ <c:import url="mohBillingPrivateCompanyReport.jsp" />
+</div>
+</c:if>
+
+<c:if test="${not empty departmentsRevenues}">
+<br/>
+<div id="serviceReport" style="display: none;">
+ <h2>Service Report</h2>
+ <c:import url="mohBillingDepartment.jsp" />
+</div>
+</c:if>
 <%@ include file="/WEB-INF/template/footer.jsp"%>

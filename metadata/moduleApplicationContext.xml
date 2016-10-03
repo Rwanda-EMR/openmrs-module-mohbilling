@@ -48,7 +48,9 @@
 				<prop key="module/@MODULE_ID@/consommation.form">mohBillingConsommationFormController</prop>
 				<prop key="module/@MODULE_ID@/searchBillPayment.form">mohBillingSearchBillPaymentController</prop>
 				<prop key="module/@MODULE_ID@/paymentRefund.form">mohBillingRefundFormController</prop>
-				<prop key="module/@MODULE_ID@/billingConfig.form">mohBillingConfigurationFormController</prop>				
+				<prop key="module/@MODULE_ID@/billingConfig.form">mohBillingConfigurationFormController</prop>	
+				<prop key="module/@MODULE_ID@/refundItemList.form">mohBillingRefundedItemListController</prop>	
+							
 			</props>
 		</property>
 	</bean>
@@ -178,7 +180,11 @@
 	</bean>
 	<bean id="mohBillingReportFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingReportFormController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingReportForm</value></property>
-	</bean>	
+	</bean>
+	
+	<bean id="mohBillingRefundedItemListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundedItemListController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingRefundedItemList</value></property>
+	</bean>
 
 	<bean parent="serviceContext">
 		<property name="moduleService">

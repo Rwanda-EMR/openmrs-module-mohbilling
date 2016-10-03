@@ -5,7 +5,6 @@ package org.openmrs.module.mohbilling.businesslogic;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -13,14 +12,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
@@ -28,35 +25,26 @@ import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Consommation;
-import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.DepartmentRevenues;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.Insurance;
-import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ServiceRevenue;
 import org.openmrs.module.mohbilling.service.BillingService;
 
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Font.FontFamily;
-import com.itextpdf.text.Image;
-import com.itextpdf.text.PageSize;
-import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.ColumnText;
-import com.itextpdf.text.pdf.FontSelector;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
-import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 
 /**
@@ -445,5 +433,78 @@ public class ReportsUtil {
 		return getService().getConsommationByGlobalBills(globalBills);
 				
 	}
+
+	/**
+	 * takes a list of paiditems and returns PaidServiceRevenue by a given category
+	 * @param paidItems
+	 * @param categ
+	 * @return PaidServiceRevenue
+	 */
+	public static PaidServiceRevenue getPaidServiceRevenue(List<PaidServiceBill> paidItems, String categ){
+		BigDecimal paidAmountOnThiCategory = new BigDecimal(0);
+		for (PaidServiceBill pi : paidItems) {	
+			if(categ.equals(pi.getBillItem().getHopService().getName())){
+				Float insuranceRate = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+				float pRate = (100f - insuranceRate) / 100f;
+				BigDecimal patientRte = new BigDecimal(""+pRate);
+				
+				BigDecimal paidQty = pi.getPaidQty();
+				BigDecimal unitPrice =pi.getBillItem().getUnitPrice();
+				paidAmountOnThiCategory =paidAmountOnThiCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));	
+			}
+		}
+		PaidServiceRevenue paidRevenue = null;
+
+		if(paidAmountOnThiCategory.compareTo(BigDecimal.ZERO)>0){	
+			paidRevenue = new PaidServiceRevenue();
+			paidRevenue.setService(categ);
+			paidRevenue.setPaidItems(paidItems);
+			paidRevenue.setPaidAmount(paidAmountOnThiCategory);
+		}
+		else{
+			paidRevenue = new PaidServiceRevenue();
+			paidRevenue.setService(categ);
+			paidRevenue.setPaidItems(null);
+			paidRevenue.setPaidAmount(new BigDecimal(0));
+		}
+		return paidRevenue;
+		
+	}
+	/**
+	 * get revenues by categories and by each department
+	 * @param paidItems
+	 * @param d
+	 * @param columns
+	 * @return DepartmentRevenues
+	 */
+	public static DepartmentRevenues getRevenuesByDepartment(List<PaidServiceBill> paidItems,Department d,List<String> columns) {
+		List<PaidServiceBill> itemsByDepart = new ArrayList<PaidServiceBill>();
+	//	List<HopService> services =GlobalPropertyConfig.getHospitalServiceByCategory(columns);
+		for (PaidServiceBill pi : paidItems) {
+			if(pi.getBillItem().getConsommation().getDepartment().getName().equals(d.getName())){
+		       itemsByDepart.add(pi);
+			}
+		}
+		List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
+//		List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory(columns);
+		BigDecimal totalByDepartment = new BigDecimal(0);
+		for (String col : columns) {
+			if(getPaidServiceRevenue(itemsByDepart, col)!=null){
+			paidSr.add(getPaidServiceRevenue(itemsByDepart, col));
+			totalByDepartment=totalByDepartment.add(getPaidServiceRevenue(itemsByDepart, col).getPaidAmount());
+			}
+	    }
+		
+		DepartmentRevenues departRevenues = null;
+		if(totalByDepartment.compareTo(BigDecimal.ZERO)>0){	
+		departRevenues = new DepartmentRevenues();
+		departRevenues.setAmount(totalByDepartment);
+		departRevenues.setDepartment(d);
+		departRevenues.setPaidServiceRevenues(paidSr);
+		}
+		return departRevenues;
+	}
+
+
 
 }

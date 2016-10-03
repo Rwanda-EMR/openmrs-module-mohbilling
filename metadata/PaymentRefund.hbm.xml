@@ -12,11 +12,7 @@
 		<id name="refundId" type="int" column="refund_id" unsaved-value="0">
 			<generator class="native" />
 		</id>
-		<property name="refundedAmount" column="amount_refunded" type="big_decimal" />
-		<property name="approved" column="is_approved" type="boolean" />
-		<property name="approvalDate" column="approval_date" />
-		<property name="declined" column="is_declined" type="boolean" />
-		<property name="decliningNote" column="declining_note" type="text" />				
+		<property name="refundedAmount" column="amount_refunded" type="big_decimal" />		
 		<property name="createdDate" column="created_date" />
 		<property name="voided" column="voided" type="boolean" />
 		<property name="voidedDate" column="voided_date" />
@@ -24,7 +20,6 @@
 		
 		<many-to-one name="billPayment" class="org.openmrs.module.mohbilling.model.BillPayment" column="bill_payment_id" />	
         <many-to-one name="refundedBy" class="org.openmrs.User" column="refunded_by" />
-        <many-to-one name="approvedBy" class="org.openmrs.User" column="approved_by" />
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />		
 

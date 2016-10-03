@@ -3,6 +3,9 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
+import java.util.List;
+import java.util.Set;
+
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
@@ -40,5 +43,28 @@ public class PaymentRefundUtil {
 		
 	}
 	
+	public static List<PaymentRefund> getAllSubmittedPaymentRefunds(){
+		return getService().getAllSubmittedPaymentRefunds();
+	}
+	
+	public static PaymentRefund getRefundById(Integer id){
+		return getService().getRefundById(id);
+	}
 
+	public static PaidServiceBillRefund getPaidServiceBillRefund(Integer paidSviceBillRefundid) {
+		return  getService().getPaidServiceBillRefund(paidSviceBillRefundid);
+	}
+
+	public static Boolean areAllRefundItemsConfirmed(PaymentRefund refund){
+		Boolean allChecked=false;
+		Set<PaidServiceBillRefund> items = refund.getRefundedItems();
+		for (PaidServiceBillRefund refundItem : items) {
+			if(refundItem.getApproved()==true || refundItem.getDeclined()==true)
+				allChecked=true;
+			else
+				allChecked=false;
+		}
+		return allChecked;
+		
+	}
 }
