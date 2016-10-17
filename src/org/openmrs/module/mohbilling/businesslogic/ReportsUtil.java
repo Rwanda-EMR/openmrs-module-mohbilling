@@ -18,8 +18,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
+import org.openmrs.module.mohbilling.ParametersConversion;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
@@ -35,6 +37,7 @@ import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ServiceRevenue;
+import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 import com.itextpdf.text.Document;
@@ -407,7 +410,8 @@ public class ReportsUtil {
 				
 				BigDecimal reqQty = psb.getQuantity();
 				BigDecimal unitPrice =psb.getUnitPrice();
-				dueAmount =dueAmount.add(reqQty.multiply(unitPrice).multiply(patientRte));	
+				/*dueAmount =dueAmount.add(reqQty.multiply(unitPrice).multiply(patientRte));	*/
+				dueAmount =dueAmount.add(reqQty.multiply(unitPrice));	
 			}
 		}
 		
@@ -506,5 +510,59 @@ public class ReportsUtil {
 	}
 
 
+	/**
+	 * get all parameters 
+	 * @param request
+	 * @param startDateStr
+	 * @param startHrStr
+	 * @param startMinStr
+	 * @param endDateStr
+	 * @param endHrStr
+	 * @param endMinStr
+	 * @param collectorStr
+	 * @param insuranceStr
+	 * @param thirdPartyStr
+	 * @return array of all given parameters
+	 */
+	public static Object[] getReportParameters(HttpServletRequest request,String startDateStr,String startHrStr,String startMinStr,
+			String endDateStr,String endHrStr,String endMinStr,String collectorStr,String insuranceStr,String thirdPartyStr){
+		Date startDate = null;
+		Date endDate = null;
+		User collector = null;
+		Insurance insurance=null;
+		ThirdParty thirdParty=null;
+		
+		Object[] params = new Object[5]; 
+		
+		if (startDateStr != null && !startDateStr.equals("")) {
+			startDate = ParametersConversion.getStartDate(startDateStr,
+					startHrStr, startMinStr);
+			params[0]=startDate;
+		}
+
+		if (endDateStr != null && !endDateStr.equals("")) {
+			endDate = ParametersConversion.getEndDate(endDateStr,
+					endHrStr, endMinStr);
+			params[1]=endDate;
+		}
+
+		if (collectorStr != null && !collectorStr.equals("")) {
+			collector = Context.getUserService()
+					.getUser(Integer.valueOf(collectorStr));
+			params[2]=collector;
+		}
+		
+		if(insuranceStr!=null && !insuranceStr.equals("")){
+			insurance = InsuranceUtil.getInsurance(Integer.valueOf(insuranceStr));
+			params[3]=insurance;
+		}
+		
+		if(thirdPartyStr!=null && !thirdPartyStr.equals("")){
+			thirdParty = Context.getService(BillingService.class).getThirdParty(Integer.valueOf(thirdPartyStr));
+			params[4]=thirdParty;
+		}
+		
+		return params;
+	}
 
 }

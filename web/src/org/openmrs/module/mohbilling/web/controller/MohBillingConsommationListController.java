@@ -8,6 +8,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
@@ -25,7 +27,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
  *
  */
 public class MohBillingConsommationListController extends	ParameterizableViewController {
-
+	protected final Log log = LogFactory.getLog(getClass());
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
@@ -45,6 +47,10 @@ public class MohBillingConsommationListController extends	ParameterizableViewCon
 		mav.addObject("globalBill", globalBill);
 		mav.addObject("consommations", consommations);		
 		mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(ip.getOwner()));
+		
+		if(request.getParameter("consommation")!=null && !request.getParameter("consommation").equals("")){
+			log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+request.getParameter("consommation"));
+		}
 		mav.setViewName(getViewName());	
 		
 		return mav;

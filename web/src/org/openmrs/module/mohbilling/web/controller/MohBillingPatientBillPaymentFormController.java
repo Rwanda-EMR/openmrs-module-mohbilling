@@ -99,6 +99,7 @@ public class MohBillingPatientBillPaymentFormController extends
 			e.printStackTrace();
 			//return new ModelAndView(new RedirectView("patientSearchBill.form"));
 		}
+	
 		
 		return mav;
 	}
@@ -160,11 +161,17 @@ public class MohBillingPatientBillPaymentFormController extends
 					dp.setTransaction(transaction);
 					
 					//create deposit payment
+					if(deductedAmount.compareTo(patientAccount.getBalance())<0){
 					dp =PatientBillUtil.createDepositPayment(dp);
 					createPaidServiceBill(request, consommation, dp);
 					request.getSession().setAttribute(
 							WebConstants.OPENMRS_MSG_ATTR,
 							"The Bill Payment with deposit has been saved successfully !");
+					}
+					else
+						request.getSession().setAttribute(
+								WebConstants.OPENMRS_ERROR_ATTR,
+								"The Bill Payment is not saved. No sufficient balance !");
 					billPayment = dp;
 				} 
 

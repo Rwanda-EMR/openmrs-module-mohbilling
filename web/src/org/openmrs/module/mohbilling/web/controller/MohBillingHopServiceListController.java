@@ -2,6 +2,7 @@
  * 
  */
 package org.openmrs.module.mohbilling.web.controller;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.model.Department;
@@ -35,17 +37,27 @@ public class MohBillingHopServiceListController extends
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView();	
-		List<HopService> services = null;
+		List<HopService> services = new ArrayList<HopService>();
 		Department department = null;
 		 if(request.getParameter("departmentId")!=null &&!request.getParameter("departmentId").equals("") ){
 			 department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
 			 mav.addObject("department", department);
-			 services = HopServiceUtil.getHospitalServicesByDepartment(department);
+			 String[] servicesStr = null;
+			 if(GlobalPropertyConfig.getListOfHopServicesByDepartment1(department)!=null){
+			  servicesStr = GlobalPropertyConfig.getListOfHopServicesByDepartment1(department).split(",");
+			 
+			 //services = HopServiceUtil.getHospitalServicesByDepartment(department);
+			 
+			 for (String s : servicesStr) {
+				services.add(HopServiceUtil.getHopServiceById(Integer.valueOf(s)));
+			}
 		 }
-		else
-		services = HopServiceUtil.getAllHospitalServices();
+		 }
+		
+		//services = HopServiceUtil.getAllHospitalServices();
 		mav.addObject("services",services );
 		mav.setViewName(getViewName());
+		mav.addObject("allServices",HopServiceUtil.getAllHospitalServices() );
 
 		return mav;
 	}

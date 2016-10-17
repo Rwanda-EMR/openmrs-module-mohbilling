@@ -928,4 +928,13 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getRefundsByBillPayment(payment);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getRefundsBetweenDatesAndByCollector(java.util.Date, java.util.Date, org.openmrs.User)
+	 */
+	@Override
+	public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(
+			Date startDate, Date endDate, User collector) {
+		return billingDAO.getRefundsBetweenDatesAndByCollector(startDate, endDate, collector);
+	}
+
 }

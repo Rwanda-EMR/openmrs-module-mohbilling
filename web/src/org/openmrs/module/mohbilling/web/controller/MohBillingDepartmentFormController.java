@@ -47,7 +47,8 @@ public class MohBillingDepartmentFormController extends  ParameterizableViewCont
 		dpt.setName(name);
 		dpt.setDescription(description);
 		dpt.setCreatedDate(new Date());
-		dpt.setCreator(Context.getAuthenticatedUser());			
+		dpt.setCreator(Context.getAuthenticatedUser());		
+		
 		//save Departement		
 		DepartementUtil.saveDepartement(dpt);
 		

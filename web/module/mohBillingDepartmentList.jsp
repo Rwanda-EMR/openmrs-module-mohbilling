@@ -26,7 +26,7 @@
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="department.form?departmentId=${department.departmentId}">${department.name}</a></td>			
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${department.description}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">(2)
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">(${billingtag:servicesByDepartment(department.departmentId)})
 			 <a href="services.list?departmentId=${department.departmentId}">view</a>	</td>
 		 </tr>		
 		

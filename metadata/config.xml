@@ -282,6 +282,69 @@
         <name>Billing Reports - View Releve</name>
         <description>Allows users to view Releve Report</description>
     </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Cashier Report</name>
+        <description>Allows users to view Cashier Report</description>
+    </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Service Report</name>
+        <description>Allows users to view Service Report</description>
+    </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Refund Report</name>
+        <description>Allows users to view Refund Report</description>
+    </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Insurance Report</name>
+        <description>Allows users to view Insurance Report</description>
+    </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Third Party Report</name>
+        <description>Allows users to view Third Party Report</description>
+    </privilege>
+    
+    <!-- Payment Refund -->
+     <privilege>
+        <name>Submit a refund</name>
+        <description>Allows cashiers to submit a refund to the chief cashier</description>
+    </privilege>
+    
+     <privilege>
+        <name>Approve a refund</name>
+        <description>Allows chief cashier to approve a submitted refund</description>
+    </privilege>
+    
+    <privilege>
+        <name>Confirm approved refunds</name>
+        <description>Allows cashier to confirm approved refunds</description>
+    </privilege>
+    
+    <!-- View billing admin page -->
+     <privilege>
+        <name>Billing Configuration - View Billing Admin</name>
+        <description>Allows user to configure billing module</description>
+    </privilege>
+    
+     <!-- Manage billing admission -->
+     <privilege>
+        <name>Manage Admission</name>
+        <description>Allows user to manage admission</description>
+     </privilege>
+     
+     <!-- Manage billing deposit -->
+     <privilege>
+        <name>Manage deposit</name>
+        <description>Allows user to manage admission</description>
+     </privilege>
+     
+     
+    
+    
   
 	<!-- Internationalization -->
 	<!-- All message codes should start with @MODULE_ID@.* -->

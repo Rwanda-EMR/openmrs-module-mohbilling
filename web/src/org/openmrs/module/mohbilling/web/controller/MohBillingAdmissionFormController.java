@@ -1,6 +1,8 @@
 package org.openmrs.module.mohbilling.web.controller;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,10 +12,12 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.AdmissionUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -27,11 +31,23 @@ public class MohBillingAdmissionFormController extends
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
-	
+		
 		ModelAndView mav = new ModelAndView();
 		InsurancePolicy ip =null;	
 		String discharge = request.getParameter("discharge");
 		GlobalBill gb =null;
+		
+		if(request.getParameter("insurancePolicyId")!=null){
+			ip=Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
+			List<Admission> admissions =  AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
+			List<GlobalBill> globalBills = new ArrayList<GlobalBill>();
+			for (Admission ad : admissions) {
+				if(ad.getDischargingDate()==null)
+					globalBills.add(Context.getService(BillingService.class).getGlobalBillByAdmission(ad));
+			}
+			mav.addObject("globalBills", globalBills);
+		}
+		
 	if(discharge==null)
 	if (request.getParameter("save") != null && request.getParameter("save").equals("true")) {
 		
@@ -41,11 +57,13 @@ public class MohBillingAdmissionFormController extends
 		Admission admission = new Admission();
 		admission.setAdmissionDate(new Date());
 		admission.setInsurancePolicy(ip);
-		admission.setDischargingDate(new Date());
-		admission.setIsAdmitted(true);
+		//admission.setDischargingDate(new Date());
+		Boolean isAdmitted = Boolean.valueOf(request.getParameter("isAdmitted"));
+		admission.setIsAdmitted(isAdmitted);
 		admission.setCreator(Context.getAuthenticatedUser());
 		admission.setCreatedDate(new Date());
 	
+		if(!isPatientAdmitted(ip)){
 		Admission savedAdmission = AdmissionUtil.savePatientAdmission(admission);	
 		
 		//create new Global bill
@@ -55,9 +73,15 @@ public class MohBillingAdmissionFormController extends
 		gb.setCreatedDate(new Date());
 		gb.setCreator(Context.getAuthenticatedUser());
 		
-		
 		gb =   GlobalBillUtil.saveGlobalBill(gb);
-		mav.addObject("globalBill",gb);
+		request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+				"The patient admission has been saved succefully !");
+		mav.addObject("globalBill", gb);
+		}
+		else{
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					"Not Saved..The patient is already admitted !");
+		}
 		
 	}
 	if(request.getParameter("discharge")!=null){
@@ -74,8 +98,8 @@ public class MohBillingAdmissionFormController extends
 		 gb.setClosed(true);
 		 
 		}
-		gb =   GlobalBillUtil.saveGlobalBill(gb);
 		mav.addObject("globalBill", gb);
+
 	}
 	
 	
@@ -83,8 +107,21 @@ public class MohBillingAdmissionFormController extends
 		
 	    mav.addObject("discharge", discharge);
 		mav.addObject("insurancePolicy", ip);
+		if(ip.getAdmissions()!=null)
+		mav.addObject("admissions", ip.getAdmissions());
 		mav.setViewName(getViewName());
 		return mav;
+	}
+	
+	public Boolean isPatientAdmitted(InsurancePolicy ip){
+		Boolean found=false;
+		List<Admission> admissionsList = Context.getService(BillingService.class).getAdmissionsListByInsurancePolicy(ip);
+		if(Context.getService(BillingService.class).getAdmissionsListByInsurancePolicy(ip)!=null)
+		for (Admission ad : admissionsList) {
+			if(ad.getDischargingDate()==null)
+				found=true;
+		}
+		return found;
 	}
 
 }

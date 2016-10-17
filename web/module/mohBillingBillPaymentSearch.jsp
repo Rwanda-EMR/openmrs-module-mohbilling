@@ -48,6 +48,7 @@
 		</form>
 	</div>	
 </div>  -->
+<openmrs:hasPrivilege privilege="Confirm approved refunds">
 <br/>
 <c:if test="${!empty checkedRefundsByChief}">	
 <b>Approved Refunds</b> : <b style="color: blue;">(${fn:length(checkedRefundsByChief)})</b>
@@ -74,8 +75,9 @@
 </table>
 </div>
 </c:if>
+</openmrs:hasPrivilege>
 
-
+<openmrs:hasPrivilege privilege="Approve a refund">
 <br/>
 <c:if test="${!empty pendingRefunds}">	
 <b>Submitted Refunds for approval</b> : <b style="color: red;">(${fn:length(pendingRefunds)})</b>
@@ -102,6 +104,8 @@
 </table>
 </div>
 </c:if>
+</openmrs:hasPrivilege>
+
 <br/>
 <c:if test="${!empty(paidItems)}">
 

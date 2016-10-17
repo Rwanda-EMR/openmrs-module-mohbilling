@@ -6,16 +6,34 @@
 
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 
-<h2><spring:message code="@MODULE_ID@.billing" /></h2>
+<h2>Manage Bill Payments</h2>
 
  
-<b class="boxHeader">Search Bill by BIll Identifier </b>
+<b class="boxHeader">Search Global Bill </b>
 <div class="box">
 <form action="billSearch.form" method="get">
 		<table>
 			<tr>
-				<td>Bill Identifier Id</td>
+				<td>Global Bill Identifier</td>
 				<td><input type="text" name="billIdentifier"/></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><input type="submit" value="Search"/></td>
+				<td></td>
+			</tr>
+		</table>
+</form>
+</div>
+<br>
+<b class="boxHeader">Search Consommation </b>
+<div class="box">
+<form action="" method="get">
+		<table>
+			<tr>
+				<td>Consommation Identifier</td>
+				<td><input type="text" name="consommationId"/></td>
 				<td></td>
 			</tr>
 			<tr>

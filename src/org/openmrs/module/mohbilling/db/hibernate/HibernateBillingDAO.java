@@ -705,7 +705,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	 */
 	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,	Date endDate, User collector) {		  
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class);
-				crit.add(Restrictions.between("createdDate",startDate,endDate ));
+				crit.add(Restrictions.between("dateReceived",startDate,endDate ));
 				if(collector!=null)
 				crit.add(Restrictions.eq("collector",collector ));
 				
@@ -1391,7 +1391,8 @@ public class HibernateBillingDAO implements BillingDAO {
 		@Override
 		public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
-					.add(Restrictions.between("createdDate",date1,date2 ));
+					.add(Restrictions.between("createdDate",date1,date2 ))
+					.add(Restrictions.eq("closed",true ));
 		return crit.list();
 		}
 
@@ -1428,5 +1429,18 @@ public class HibernateBillingDAO implements BillingDAO {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientServiceBill.class);
 				crit.add(Expression.eq("consommation", payment));
 				return crit.list();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getRefundsBetweenDatesAndByCollector(java.util.Date, java.util.Date, org.openmrs.User)
+		 */
+		@Override
+		public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(
+				Date startDate, Date endDate, User collector) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PaymentRefund.class)
+					.add(Restrictions.between("createdDate",startDate,endDate ));
+					if(collector!=null)
+					crit.add(Restrictions.eq("creator",collector ));
+			return crit.list();
 		}
 	}

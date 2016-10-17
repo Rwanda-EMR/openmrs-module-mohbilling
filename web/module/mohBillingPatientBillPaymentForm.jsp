@@ -129,6 +129,21 @@ function recalculateTotals() {
    // $("#tot").val(sumPatient.toFixed(2));
 }
 </script>
+
+<script type="text/javascript">
+ function validatePayWithDeposit(){
+	 var deductedAmount = document.getElementById("deductedAmount").value;
+	 var balance = document.getElementById("balance").value;
+	 $('.submitBtn').attr('disabled', false);
+	
+	 if(deductedAmount > balance){
+	  $('.submitBtn').attr('disabled', true);
+	  alert("The balance is not sufficient...");
+	  return false;
+	 }
+	 
+ }
+</script>
  
 <h2>Patient Bill Payment</h2>
 
@@ -139,19 +154,26 @@ function recalculateTotals() {
 <c:set var="insurancePolicy" value="${consommation.beneficiary.insurancePolicy}"/>
 <c:set var="globalBill" value="${consommation.globalBill}"/>
 
-<div style="text-align: right;">
-
-<a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add consommation</a></div>
+<table>
+<tr>
+<td>Consommation # : <b>${consommation.consommationId}(${consommation.department.name})</b></td>
+<td>Global Bill # : <b>${consommation.globalBill.billIdentifier}</b></td>
+<c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
+<td><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
+</c:if>
+</tr>
+</table>
 
 <br/>
 <div class="box">
-	<form action="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment">
+	<form action="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment" onsubmit="validatePayWithDeposit(this)">
 		<table width="99%">
 			<tr>
 				<th class="columnHeader"></th>
 				<th class="columnHeader">Service</th>
 				<th class="columnHeader center">Qty</th>
-				<th class="columnHeader center">Qty Paid</th>
+				<th class="columnHeader center">Paid Qty</th>
+				<th class="columnHeader center">Paying Qty</th>
 				<th class="columnHeader right">Unit Price (Rwf)</th>
 				<th class="columnHeader right">Price (Rwf)</th>
 				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</th>
@@ -171,26 +193,28 @@ function recalculateTotals() {
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
 					<c:if test="${not empty billItem.paidQuantity}">
 					<c:set var="paidQty" value="${ billItem.paidQuantity }"/>
+					<c:set var="pendingQty" value="${billItem.quantity-billItem.paidQuantity}"/>
 					</c:if>
 					<c:if test="${empty billItem.paidQuantity}">
-					<c:set var="paidQty" value="${ billItem.quantity }"/>
+					<c:set var="paidQty" value="0"/>
+					<c:set var="pendingQty" value="${billItem.quantity}"/>
 					</c:if>
+					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${paidQty}</td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">
 					<input type="hidden" value="${billItem.quantity}" id="reqQty_${billItem.patientServiceBillId}"/>
-					<input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${paidQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId});validateQties(${billItem.patientServiceBillId})" style="text-align: center;"/></td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><input type="text"  size="10" id="up_${billItem.patientServiceBillId}"      value="${billItem.unitPrice}" style="border:none; text-align: center;"/></td>
-					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" size="10" id="cost_${billItem.patientServiceBillId}"    value="${billItem.unitPrice*billItem.quantity}" style="border:none; text-align: center;"/></td>
-					<!--  <td class="rowValue right ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${billItem.unitPrice*billItem.quantity}" type="number" pattern="#.##"/></td>-->
-					
+					<c:if test="${pendingQty>0}">
+					<input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${pendingQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId});validateQties(${billItem.patientServiceBillId})" style="text-align: center;"/>
+					</c:if>
+					<c:if test="${pendingQty<=0}">
+					<input type="text" size="4" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="F.PAID" style="text-align: center;border: none;" disabled="disabled"/>
+					</c:if>
+					</td>
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><input type="text"  size="10" id="up_${billItem.patientServiceBillId}"  value="${billItem.unitPrice}" style="border:none; text-align: center;"/></td>
+					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" size="10" id="cost_${billItem.patientServiceBillId}" value="${billItem.unitPrice*billItem.quantity}" style="border:none; text-align: center;"/></td>
+	
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">					  
-						<!-- 
-						<fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" type="number" pattern="#.##"/>
-						 -->
-						 
 						 <input type="hidden" id="insuranceRate" value="${(insurancePolicy.insurance.currentRate.rate)/100 }"/>
 				         <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate)/100}"/>
-						 
-						 
 						<input value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" id="insuranceCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="insuranceCol"/>
 						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}" />
 					</td>
@@ -200,13 +224,18 @@ function recalculateTotals() {
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
 					<td>
+					<c:if test="${pendingQty<=0}">
+					<input name="${fieldName}" class="items" value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox" checked="checked" disabled="disabled">
+					</c:if>
+					<c:if test="${pendingQty>0}">
 					<input name="${fieldName}" class="items" value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox">
+					</c:if>
 					</td>
 				</tr>
 				</c:if>
 			</c:forEach>		   
 			<tr>			
-			    <td colspan="5"> <p align="center" style="color: red; " id="tot"></p></td>   
+			    <td colspan="6"> <p align="center" style="color: red; " id="tot"></p></td>   
 				<td><div style="text-align: right;"><b>Total : </b></div></td>
 				<!-- 
 				<td><div class="amount"><fmt:formatNumber value="${totalBillInsurance}" type="number" pattern="#.##"/></div></td>
@@ -226,8 +255,10 @@ function recalculateTotals() {
 				<td><div style="text-align: right;"><b>Amount Paid</b></div></td>
 				<td><div class="amount">${billingtag:amountPaidForPatientBill(consommation.consommationId)}</div></td>
 			    
-				<td><div style="text-align: right;"><b>Refunded Amount</b></div></td>
-				<td><div class="amount">1800</div></td>				
+				<!-- 
+								<td><div style="text-align: right;"><b>Refunded Amount</b></div></td>
+				<td><div class="amount">1800</div></td>	
+				 -->			
 			</tr>
 			<tr>
 				<td><b>Received Date</b></td>
@@ -236,8 +267,10 @@ function recalculateTotals() {
 				<td><div style="text-align: right;"><b>Paid by Third Part</b></div></td>
 				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>
 				
-				<td><div style="text-align: right;"><b>Current Payment Amount</b></div></td>
-				<td><div class="amount">1800</div></td>		
+			<!-- 
+							<td><div style="text-align: right;"><b>Current Payment Amount</b></div></td>
+				<td><div class="amount">1800</div></td>	
+			 -->	
 								
 			</tr>
 			<tr>
@@ -259,7 +292,7 @@ function recalculateTotals() {
 				<td class="depositPayment">
 				<table><tr>
 				<td><b>Deducted Amount </b><input type="text" id="deductedAmount" name="deductedAmount" size="11" class="numbers"/></td>
-				<td> <b>Balance </b><input type="text" disabled="disabled" name="balance" value="${patientAccount.balance }" size="11" class="numbers"/></td>	
+				<td> <b>Balance </b><input type="text" id="balance" disabled="disabled" name="balance" value="${patientAccount.balance }" size="11" class="numbers"/></td>	
 				</tr>
 				</table>
 				</td>				

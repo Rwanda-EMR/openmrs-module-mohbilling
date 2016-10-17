@@ -3,17 +3,17 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
-import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -147,7 +147,14 @@ public class MohBillingTagUtil {
 	}
 	public static String getServicesByDepartment(Integer departmentId){
 		Department department = DepartementUtil.getDepartement(departmentId);
-		List<HopService> services = Context.getService(BillingService.class).getHospitalServicesByDepartment(department);
+		List<HopService> services = new ArrayList<HopService>();
+		if(GlobalPropertyConfig.getListOfHopServicesByDepartment1(department)!=null){
+		String[] servicesByDepartStr = GlobalPropertyConfig.getListOfHopServicesByDepartment1(department).split(",");
+		 for (String s : servicesByDepartStr) {
+			 if(s!=null && !s.equals(""))
+			services.add(HopServiceUtil.getHopServiceById(Integer.valueOf(s)));
+		}
+		}
 		return ""+services.size();		
 	}
 

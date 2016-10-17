@@ -1,40 +1,41 @@
 <ul id="menu">
-        <openmrs:hasPrivilege privilege="Billing Reports - View Find Bills">
-		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
-			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		
-		<openmrs:hasPrivilege privilege="Billing Reports - View Payments">
-	    <li>
-			<a href="received.form"><spring:message code="@MODULE_ID@.billing.received"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		
-		 <openmrs:hasPrivilege privilege="Billing Reports - View Revenue">
-		 <li>
-			<a href="recettes.form"><spring:message code="@MODULE_ID@.billing.revenue"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		
-		 <openmrs:hasPrivilege privilege="Billing Reports - View Invoice">
-		<li>
-			<a href="invoice.form"><spring:message code="@MODULE_ID@.billing.invoice"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		
-		 <openmrs:hasPrivilege privilege="Billing Reports - View Releve">
-		<li>
-			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		<li>
-			<a href="refundBillReport.form">Refunding report</a>
-		</li>
-		
+
 		<!-- 
-		<li>
-			<a href="hmisReport.form">HMIS Reports</a>
+		<li class="<c:if test='<%= request.getRequestURI().contains("Cashier")%>'> active</c:if>">
+			<a href="cashierReport.form">Find Global Bill</a>
 		</li>
 		 -->
+		
+		<openmrs:hasPrivilege privilege="Billing Report - View Cashier Report">
+		<li class="<c:if test='<%= request.getRequestURI().contains("Cashier")%>'> active</c:if>">
+			<a href="cashierReport.form">Cashier Report</a>
+		</li>
+		</openmrs:hasPrivilege>
+
+		
+		<openmrs:hasPrivilege privilege="Billing Report - View Service Report">
+	    <li class="<c:if test='<%= request.getRequestURI().contains("RevenueReport")%>'> active</c:if>">
+			<a href="serviceRevenueReport.form">Service Report</a>
+		</li>
+		</openmrs:hasPrivilege>
+		
+		<openmrs:hasPrivilege privilege="Billing Report - View Refund Report">
+		<li class="<c:if test='<%= request.getRequestURI().contains("RefundReport")%>'> active</c:if>">
+			<a href="refundBillReport.form">Refund Report</a>
+		</li>
+		</openmrs:hasPrivilege>
+		
+		 <openmrs:hasPrivilege privilege="Billing Report - View Insurance Report">
+		 <li class="<c:if test='<%= request.getRequestURI().contains("InsuranceReport")%>'> active</c:if>">
+			<a href="insuranceReport.form">Insurance Report</a>
+		</li>
+		</openmrs:hasPrivilege>
+		
+		 <openmrs:hasPrivilege privilege="Billing Report - View Third Party Report">
+		<li class="<c:if test='<%= request.getRequestURI().contains("ThirdPartyReport")%>'> active</c:if>">
+			<a href="thirdPartyReport.form">Third Party Report</a>
+		</li>
+		</openmrs:hasPrivilege>
+		
+
 </ul>

@@ -20,9 +20,13 @@
 				<tr>
 					<td class="columnHeader"><a href="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">View</a></td>
 					<th class="columnHeader" style="font-size: 1em; font-weight: bold;" colspan="4"><center>Date: ${consommation.createdDate}, Total Amount : ${payment.amountPaid} Rwf, Insurance : ${consommation.beneficiary.insurancePolicy.insurance.name}, Policy Card No. : ${consommation.beneficiary.policyIdNumber}</center></th>
+					
+					<openmrs:hasPrivilege privilege="Submit a refund">
 					<td class="columnHeader">						
 							<a href="paymentRefund.form?paymentId=${payment.billPaymentId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">Refund</a>
 					</td>
+					</openmrs:hasPrivilege>
+					
 				</tr>
        </c:if>
 		<c:if test="${!empty paidItems}">			

@@ -209,13 +209,14 @@
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
 
 <br/>
-<c:if test="${consommation == null }">
+<c:if test="${editStr==null }">
 <div id="billingForm">
 <div class="box">
 	<div style="float: left; width: 30%">
 		<b class="boxHeader">Calculator</b>
 		<div class="box">
-			<form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${globalBillId}&departmentId=${param.departmentId }&save=true" method="post" id="form_save_patient_bill">
+			<form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&departmentId=${param.departmentId }&save=true" method="post" id="form_save_patient_bill">
+			<input type="hidden" name="consomationToAddOn" value="${addNew.consommationId}"/>
 				<div style="max-width: 99%; overflow: auto;">
 					<table width="99%; !important;" id="cartOfServices">
 						<tr>
@@ -263,7 +264,7 @@
 		<b class="boxHeader">Search Services by Department</b>
 <div class="box">
 	<form
-		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${globalBillId}&searchDpt=true"	method="post">
+		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&searchDpt=true"	method="post">
 
 		<table>
 			<tr>				
@@ -304,10 +305,12 @@
 	</div>
 	<div style="clear: both;"></div>
 	</div>
-	</c:if>
+</c:if>
 <c:if test="${consommation != null }">
 <c:import url="consommationItemList.jsp"/>
 </c:if>
+
+
 
 <script type="text/javascript">
 

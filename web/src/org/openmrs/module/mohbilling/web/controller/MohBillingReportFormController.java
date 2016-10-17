@@ -242,16 +242,8 @@ public class MohBillingReportFormController extends
 			   }
 					
 			}
-				
-				
-				mav.addObject("listOfAllServicesRevenue", listOfAllServicesRevenue);
-				mav.addObject("listOfAllPrivServicesRevenue", listOfAllPrivServicesRevenue);
-			
-				
-			
-
+					
 		}
-		mav.addObject("insurances",InsuranceUtil.getAllInsurances());
 		mav.setViewName(getViewName());
 
 		return mav;
