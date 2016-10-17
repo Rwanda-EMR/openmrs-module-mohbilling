@@ -15,7 +15,7 @@
 
 <br/> &nbsp; or<br/><br/>
  
-<b class="boxHeader">Search by BIll Identifier Id </b>
+<b class="boxHeader">Search by BIll Identifier</b>
 <div class="box">
 <form action="globalBill.list?billIdentifier=1984" method="get">
 		<table>

@@ -53,11 +53,10 @@ public class MohBillingConsommationFormController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 		Consommation  existingConsom = Context.getService(BillingService.class).getConsommation(
-				Integer.parseInt(request.getParameter("consommationId")));
+				Integer.parseInt(request.getParameter("edit")));
 		
 		//Set<BillPayment> payments = existingConsom.getPatientBill().getPayments();
-		
-		//if(payments!=null)
+
 		if(request.getParameter("edit")!=null&&!request.getParameter("edit").equals("")){
 		Consommation cpyConsom = new Consommation();
 		cpyConsom.setBeneficiary(existingConsom.getBeneficiary());
@@ -67,6 +66,7 @@ public class MohBillingConsommationFormController extends
 		
 		BigDecimal totalAmount = new BigDecimal(0);
 		Map<String, String[]> parameterMap = request.getParameterMap();	
+		
 		for (String  parameterName : parameterMap.keySet()) {
 			
 			if (!parameterName.startsWith("item-")) {
@@ -108,6 +108,7 @@ public class MohBillingConsommationFormController extends
 				"patientBillPayment.form?consommationId="
 						+ saveConsommation.getConsommationId() ));
 		}
+		
 
 		mav.addObject("consommation", existingConsom);
 		mav.addObject("ipCardNumber", existingConsom.getBeneficiary().getPolicyIdNumber());

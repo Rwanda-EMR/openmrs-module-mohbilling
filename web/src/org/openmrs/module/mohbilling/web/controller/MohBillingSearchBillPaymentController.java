@@ -43,7 +43,7 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 		BillPayment payment = null;
 		Consommation consommation = null;
 		
-     try {
+     //try {
     	  if(request.getParameter("paymentId")!=null && !request.getParameter("paymentId").equals("") ){
        	   
        	   payment = BillPaymentUtil.getBillPaymentById(Integer.parseInt(request.getParameter("paymentId")));
@@ -56,35 +56,39 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
        	   mav.addObject("insurancePolicy",consommation.getBeneficiary().getInsurancePolicy()); 
        	   mav.addObject("beneficiary",consommation.getBeneficiary()); 
        	   
-       	   
-              if(request.getParameter("print")!=null){
+             List<PaymentRefund> submittedRefunds = PaymentRefundUtil.getAllSubmittedPaymentRefunds();
+      		List<PaymentRefund> pendingRefunds = new ArrayList<PaymentRefund>();
+      		List<PaymentRefund> checkedRefundsByChief = new ArrayList<PaymentRefund>();
+      		
+      		if(submittedRefunds!=null){
+      		// get all refund with all items checked by the chief cashier
+      		for (PaymentRefund refund : submittedRefunds) {
+      			if(!PaymentRefundUtil.areAllRefundItemsConfirmed(refund))
+      				pendingRefunds.add(refund);
+      		}
+      		// get all refund with some item not yet checked by the chief cashier
+      		for (PaymentRefund refund : submittedRefunds) {
+      			if(PaymentRefundUtil.areAllRefundItemsConfirmed(refund))
+      				if(refund.getRefundedAmount()==null)
+      				checkedRefundsByChief.add(refund);
+      		}
+      		mav.addObject("pendingRefunds", pendingRefunds);
+      		mav.addObject("checkedRefundsByChief", checkedRefundsByChief);
+      		}
+            if(request.getParameter("print")!=null){
            	   FileExporter exp = new FileExporter();
-           	   exp.printPayment(request, response, payment, consommation, "receipt");
+           	   exp.printPayment(request, response, payment, consommation, "receipt.pdf");
               }
+  
           }
+    	  
 
-	} catch (Exception e) {
-		log.info(e.getMessage());
+	/*} catch (Exception e) {
+		log.error(e.getMessage());
 	}
- 
+ */
 
-		List<PaymentRefund> submittedRefunds = PaymentRefundUtil.getAllSubmittedPaymentRefunds();
-		List<PaymentRefund> pendingRefunds = new ArrayList<PaymentRefund>();
-		List<PaymentRefund> checkedRefundsByChief = new ArrayList<PaymentRefund>();
-		
-		// get all refund with all items checked by the chief cashier
-		for (PaymentRefund refund : submittedRefunds) {
-			if(!PaymentRefundUtil.areAllRefundItemsConfirmed(refund))
-				pendingRefunds.add(refund);
-		}
-		// get all refund with some item not yet checked by the chief cashier
-		for (PaymentRefund refund : submittedRefunds) {
-			if(PaymentRefundUtil.areAllRefundItemsConfirmed(refund))
-				if(refund.getRefundedAmount()==null)
-				checkedRefundsByChief.add(refund);
-		}
-		mav.addObject("pendingRefunds", pendingRefunds);
-		mav.addObject("checkedRefundsByChief", checkedRefundsByChief);
+	
 		return mav;
 	}
 }

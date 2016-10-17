@@ -1,6 +1,19 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<div id="consommation">
 <h2>Edit Consommation</h2>
+
+<div id="consommation">
+<div>
+<table>
+<tr>
+<td>Consommation # : <b>${consommation.consommationId}(${consommation.department.name})</b></td>
+<td>Global Bill # : <b>${consommation.globalBill.billIdentifier}</b></td>
+<c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
+<td><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
+</c:if>
+</tr>
+</table>
+</div>
+
 <div class="box">
 	<form action="billing.form?consommationId=${consommation.consommationId }&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId }&departmentId=${param.departmentId}&save=true" method="post" id="formSaveBillPayment">
 		<table width="70%" id="tableone">

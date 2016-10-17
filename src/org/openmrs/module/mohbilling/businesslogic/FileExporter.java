@@ -1,24 +1,11 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.net.MalformedURLException;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,25 +15,21 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
 import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil.HeaderFooter;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
-import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ServiceRevenue;
 import org.openmrs.module.mohbilling.model.Transaction;
 
-import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Font.FontFamily;
-import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Rectangle;
@@ -54,7 +37,6 @@ import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.sun.mail.imap.Rights.Right;
 
 public class FileExporter {
 	private Log log = LogFactory.getLog(this.getClass());
@@ -69,13 +51,13 @@ public class FileExporter {
 	            Font font = new Font(Font.FontFamily.COURIER, 6,Font.NORMAL);
 	            FontSelector fontselector = new FontSelector();
 	    		fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
-	            
+	    		openFile(request, response, document);
 	            displayHeader(document, fontselector);
 	            displayTransaction(document, transaction, font);
 	            document.add(new Paragraph("\n"));	
 	            displayFooter(document,transaction.getPatientAccount().getPatient(), fontselector);
 		
-	            document.close(); // no need to close PDFwriter?
+	            document.close(); 
 
 	        } catch (DocumentException e) {
 	            e.printStackTrace();
@@ -108,7 +90,7 @@ public class FileExporter {
 	public void openFile(HttpServletRequest request,HttpServletResponse response,Document document) throws DocumentException, IOException{
 
  		PdfWriter writer = PdfWriter.getInstance(document,response.getOutputStream());
-
+ 		
  		writer.setBoxSize("art", PageSize.A4);
  		HeaderFooter event = new HeaderFooter();
  		writer.setPageEvent(event);
@@ -125,22 +107,63 @@ public class FileExporter {
 	}
 	
 	public void displayTransaction(Document document,Transaction transaction,Font font) throws DocumentException{
-		Chunk chk = new Chunk("DEPOSIT RECEIPT");
-		chk.setFont(new Font(FontFamily.COURIER, 12, Font.BOLD));
+		Chunk chk = new Chunk("RECU POUR CAUTION #"+transaction.getTransactionId());
+		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
 		pa.add(chk);
 		pa.setAlignment(Element.ALIGN_CENTER);
 		document.add(pa);
 		document.add(new Paragraph("\n"));	
+		PdfPTable table = new PdfPTable(2);
+		table.setWidthPercentage(100f);
 		
-		Paragraph p = new Paragraph();
-		p.add(new Paragraph("AMOUNT : "+transaction.getAmount().abs(), font));
-		p.add(new Paragraph("RECEIVED FROM : "+transaction.getPatientAccount().getPatient().getPersonName(), font));
-		p.add(new Paragraph("FOR : "+transaction.getReason(), font));
-		p.add(new Paragraph("RECEIVED BY : "+transaction.getCollector(), font));
-		p.add(new Paragraph("RECEIPT No : "+transaction.getTransactionId(), font));
-		document.add(p);
+		
+		FontSelector normal = new FontSelector();
+		normal.addFont(new Font(FontFamily.COURIER, 8f, Font.NORMAL));
+		
+		FontSelector boldFont = new FontSelector();
+		boldFont.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
+		
+		
+		PdfPTable tableLeft = new PdfPTable(1);
+		tableLeft.setHorizontalAlignment(Element.ALIGN_LEFT);
+
+		PdfPTable tableRight = new PdfPTable(1);
+		tableRight.setHorizontalAlignment(Element.ALIGN_RIGHT);
+		
+		PdfPTable transTable = new PdfPTable(2);		   
+		
+		PdfPCell c1 = new PdfPCell(normal.process("Amount : "+transaction.getAmount().abs()));
+		c1.setBorder(Rectangle.NO_BORDER); 
+		tableLeft.addCell(c1);
+		
+		
+		c1 = new PdfPCell(normal.process("Received from :  "+transaction.getPatientAccount().getPatient().getPersonName()));
+		c1.setBorder(Rectangle.NO_BORDER); 
+		tableLeft.addCell(c1);
+		
+		c1 = new PdfPCell(normal.process("Received by : "+transaction.getCollector().getPersonName()));
+		c1.setBorder(Rectangle.NO_BORDER);
+		tableLeft.addCell(c1);
+		
+		c1 = new PdfPCell(normal.process("For : "+transaction.getReason()));
+		c1.setBorder(Rectangle.NO_BORDER); 
+		tableRight.addCell(c1);
+		
+		c1 = new PdfPCell(normal.process("Receipt No : "+transaction.getTransactionId()));
+		c1.setBorder(Rectangle.NO_BORDER); 
+		tableRight.addCell(c1);
+		
+		PdfPCell c = new PdfPCell(tableLeft);
+		c.setBorder(Rectangle.NO_BORDER);
+		transTable.addCell(c);
+		
+		c = new PdfPCell(tableRight);
+		c.setBorder(Rectangle.NO_BORDER); 
+		transTable.addCell(c);   
+		
+		document.add(transTable);
 	}
 	public void displayPaidItems(Document document,BillPayment payment,Consommation consommation,FontSelector fontSelector) throws DocumentException{
 		
@@ -361,7 +384,7 @@ public class FileExporter {
 
 				 for (PatientServiceBill item : sr.getBillItems()) {
 					 if(!item.isVoided()){
-					 cell = new PdfPCell(fontSelector.process(""+df.format(item.getCreatedDate())));
+					 cell = new PdfPCell(fontSelector.process(""+df.format(item.getServiceDate())));
 					 table.addCell(cell);
 					 cell = new PdfPCell(fontSelector.process(""+item.getService().getFacilityServicePrice().getName()));
 					 table.addCell(cell);

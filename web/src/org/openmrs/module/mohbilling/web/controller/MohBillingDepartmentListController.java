@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.model.Department;
@@ -36,6 +37,9 @@ public class MohBillingDepartmentListController extends
 		List<Department> departments =DepartementUtil.getAllHospitalDepartements();
 		mav.addObject("departments", departments);
 		mav.setViewName(getViewName());		
+		
+		
+		
 		return mav;
 	}
 

@@ -7,9 +7,11 @@
 		</li>
 	</openmrs:hasPrivilege>
 	
+	<openmrs:hasPrivilege privilege="Manage Admission">
 	<li class="<c:if test='<%= request.getRequestURI().contains("AdmissionSearch")%>'> active</c:if>">
 	<a href="admissionSearch.form">Admission</a>
 	</li>
+	</openmrs:hasPrivilege>
 
 	<openmrs:hasPrivilege privilege="Manage Patient Bill Calculations">
 		<li class="<c:if test='<%= request.getRequestURI().contains("mohBillingBilling")%>'> active</c:if>">
@@ -18,20 +20,24 @@
 		</li>
 	</openmrs:hasPrivilege>
 
+	<openmrs:hasPrivilege privilege="Manage deposit">
 	<li class="<c:if test='<%= request.getRequestURI().contains("SearchPatientAccount")%>'> active</c:if>">
 	<a href="searchPatientAccount.form">Deposit</a>
 	</li>
+	</openmrs:hasPrivilege>
 
 	<openmrs:hasPrivilege privilege="Manage Billing Reports">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
-			<a href="report.form"><spring:message
+			<a href="cashierReport.form"><spring:message
 					code="@MODULE_ID@.billing.report" /></a>
 		</li>
 	</openmrs:hasPrivilege>
 
+	<openmrs:hasPrivilege privilege="Billing Configuration - View Billing Admin">
 	<li class="<c:if test='<%= request.getRequestURI().contains("DepartmentList")%>'> active</c:if>">
 	<a href="departments.list">Billing Admin</a>
 	</li>
+	</openmrs:hasPrivilege>
 </ul>
 
 <!-- Here I would like to set the totals at the bottom -->

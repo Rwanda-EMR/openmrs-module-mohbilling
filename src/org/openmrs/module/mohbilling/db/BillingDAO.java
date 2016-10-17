@@ -678,4 +678,13 @@ public interface BillingDAO {
 	
 	public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment);
 	
+	/**
+	 * get all confirmed refunds between two dates and by a given collector
+	 * @param startDate
+	 * @param endDate
+	 * @param collector
+	 * @return list of PaymentRefund
+	 */
+	public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(Date startDate,Date endDate, User collector);
+	
 }

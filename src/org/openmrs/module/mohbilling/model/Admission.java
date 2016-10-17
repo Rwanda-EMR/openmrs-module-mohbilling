@@ -17,7 +17,7 @@ public class Admission {
 	
 	private InsurancePolicy insurancePolicy;
 	
-	private Boolean isAdmitted;
+	private Boolean isAdmitted = false;
 	
 	private Date admissionDate;
 	
@@ -188,7 +188,6 @@ public class Admission {
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
 	}
-	
-	
+
 
 }

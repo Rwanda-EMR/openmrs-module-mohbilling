@@ -51,7 +51,8 @@
 	<c:set var="billIdentifier" value="${globalBill.billIdentifier}" />
 	<c:set var="admissionDate" value="${globalBill.admission.admissionDate}" />
 	<c:set var="dischargingDate" value="${globalBill.closingDate}"/>
-				
+	<c:set var="insuranceRate" value="${globalBill.admission.insurancePolicy.insurance.currentRate.rate}" />
+	<c:set var="patientRate" value="${100-(globalBill.admission.insurancePolicy.insurance.currentRate.rate)}" />				
 		<tr>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${globalBill.createdDate}</td>
@@ -60,7 +61,7 @@
 			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${admissionDate}</td>
 			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${dischargingDate}</td>			
 			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billIdentifier}</td>			
-			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${globalBill.globalAmount}</td>			
+			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${(globalBill.globalAmount*patientRate)/100}</td>			
 		    <td class="rowValue right ${(status.count%2!=0)?'even':''}">${billingtag:amountPaidByGlobalBill(globalBill.globalBillId)}</td>
 		    <c:if test="${globalBill.closed}">	
 		    <td class="rowValue center ${(status.count%2!=0)?'even':''}"><span title='Closed' class='closedStutus'><b>X</b></span></td>	

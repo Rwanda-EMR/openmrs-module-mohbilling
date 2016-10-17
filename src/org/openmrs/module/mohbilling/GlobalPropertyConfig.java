@@ -33,13 +33,16 @@ public class GlobalPropertyConfig {
 	public static Set<String> getListOfHopServicesByDepartment(Department department){
 		
 		  Set<String> services = new HashSet<String>();
-		  StringTokenizer tokenizer = new StringTokenizer(getListOfHopServicesByDepartment1(department),",");
+		  StringTokenizer tokenizer = null;
+		  if(getListOfHopServicesByDepartment1(department)!=null){
+		  tokenizer = new StringTokenizer(getListOfHopServicesByDepartment1(department),",");
 		  while (tokenizer.hasMoreTokens()) {
 		   Integer ServiceId = Integer.parseInt(tokenizer.nextToken());
 		   String  hopServiceName= HopServiceUtil.getHopServiceById(ServiceId).getName();
 		   services.add(hopServiceName);		   
 		    
 		        }
+		  }
 		  return services;
 		 }	
 	

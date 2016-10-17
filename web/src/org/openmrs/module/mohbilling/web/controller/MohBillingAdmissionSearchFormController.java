@@ -20,7 +20,8 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 public class MohBillingAdmissionSearchFormController extends
 		ParameterizableViewController {
 	
-	
+	/** Logger for this class and subclasses */
+	protected final Log log = LogFactory.getLog(getClass());
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
@@ -30,7 +31,6 @@ public class MohBillingAdmissionSearchFormController extends
 
 		
 	ModelAndView mav =new  ModelAndView();
-
 	mav.setViewName(getViewName());	
 	return mav;
 	}
