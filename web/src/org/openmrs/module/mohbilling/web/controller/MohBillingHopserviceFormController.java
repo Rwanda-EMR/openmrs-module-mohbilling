@@ -40,7 +40,7 @@ public class MohBillingHopserviceFormController extends
 			String serviceName =request.getParameter("serviceName");
 			String description = request.getParameter("description");
 			HopService service = null;
-			if(request.getParameter("serviceId")!=null&&!request.getParameter("serviceId").equals(null)){
+			if(request.getParameter("serviceId")!=null&&!request.getParameter("serviceId").equals(null)&&!request.getParameter("serviceId").equals("")){
 			service = HopServiceUtil.getHopServiceById(Integer.valueOf(request.getParameter("serviceId")));
 			}
 			else{

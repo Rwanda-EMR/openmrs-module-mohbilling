@@ -58,8 +58,12 @@ public class MohBillingAdmissionFormController extends
 		admission.setAdmissionDate(new Date());
 		admission.setInsurancePolicy(ip);
 		//admission.setDischargingDate(new Date());
-		Boolean isAdmitted = Boolean.valueOf(request.getParameter("isAdmitted"));
-		admission.setIsAdmitted(isAdmitted);
+		Boolean isAdmitted = null;
+		if (request.getParameterValues("isAdmitted")!= null) {
+			String [] isAdmittedStr =request.getParameterValues("isAdmitted");
+			isAdmitted=Boolean.parseBoolean(isAdmittedStr[0]);
+			admission.setIsAdmitted(isAdmitted);
+		}	
 		admission.setCreator(Context.getAuthenticatedUser());
 		admission.setCreatedDate(new Date());
 	
@@ -80,7 +84,7 @@ public class MohBillingAdmissionFormController extends
 		}
 		else{
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-					"Not Saved..The patient is already admitted !");
+					"Not Saved..The patient is already admitted [Some Global Bills are not yet closed.]");
 		}
 		
 	}
@@ -118,8 +122,10 @@ public class MohBillingAdmissionFormController extends
 		List<Admission> admissionsList = Context.getService(BillingService.class).getAdmissionsListByInsurancePolicy(ip);
 		if(Context.getService(BillingService.class).getAdmissionsListByInsurancePolicy(ip)!=null)
 		for (Admission ad : admissionsList) {
-			if(ad.getDischargingDate()==null)
+			if(GlobalBillUtil.getGlobalBillByAdmission(ad)!=null&&GlobalBillUtil.getGlobalBillByAdmission(ad).getClosingDate()==null){
 				found=true;
+				break;
+			}
 		}
 		return found;
 	}

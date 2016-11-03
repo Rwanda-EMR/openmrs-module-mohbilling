@@ -686,5 +686,10 @@ public interface BillingDAO {
 	 * @return list of PaymentRefund
 	 */
 	public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(Date startDate,Date endDate, User collector);
-	
+	/**
+	 * get InsurancePolicy by a given third party
+	 * @param t
+	 * @return InsurancePolicy
+	 */
+	public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t);
 }

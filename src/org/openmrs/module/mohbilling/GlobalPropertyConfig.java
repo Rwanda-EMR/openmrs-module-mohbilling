@@ -39,9 +39,8 @@ public class GlobalPropertyConfig {
 		  while (tokenizer.hasMoreTokens()) {
 		   Integer ServiceId = Integer.parseInt(tokenizer.nextToken());
 		   String  hopServiceName= HopServiceUtil.getHopServiceById(ServiceId).getName();
-		   services.add(hopServiceName);		   
-		    
-		        }
+		   services.add(hopServiceName);	
+		   }
 		  }
 		  return services;
 		 }	

@@ -395,7 +395,7 @@ public class ReportsUtil {
 	 */
 	public static ServiceRevenue getServiceRevenue(Consommation consommation,String categ){	
 		
-		BigDecimal dueAmount = new BigDecimal(0);
+		BigDecimal amount = new BigDecimal(0);
 		ServiceRevenue revenue=null;
 		
 		List<HopService> services =GlobalPropertyConfig.getHospitalServiceByCategory(categ);
@@ -411,14 +411,14 @@ public class ReportsUtil {
 				BigDecimal reqQty = psb.getQuantity();
 				BigDecimal unitPrice =psb.getUnitPrice();
 				/*dueAmount =dueAmount.add(reqQty.multiply(unitPrice).multiply(patientRte));	*/
-				dueAmount =dueAmount.add(reqQty.multiply(unitPrice));	
+				amount =amount.add(reqQty.multiply(unitPrice));	
 			}
 		}
 		
-		if(dueAmount.compareTo(BigDecimal.ZERO)>0){	
+		if(amount.compareTo(BigDecimal.ZERO)>0){	
 			String[]	parts =  categ.split("\\.");
 			categ = parts[1]; 
-	        revenue = new ServiceRevenue(categ.toUpperCase(), dueAmount);
+	        revenue = new ServiceRevenue(categ.toUpperCase(), amount);
 	        revenue.setBillItems(billItems);
 		}
 		return revenue;

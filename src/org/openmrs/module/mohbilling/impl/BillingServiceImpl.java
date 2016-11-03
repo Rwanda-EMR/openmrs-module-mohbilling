@@ -937,4 +937,9 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getRefundsBetweenDatesAndByCollector(startDate, endDate, collector);
 	}
 
+	@Override
+	public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t) {
+		return billingDAO.getInsurancePolicyByThirdParty(t);
+	}
+
 }

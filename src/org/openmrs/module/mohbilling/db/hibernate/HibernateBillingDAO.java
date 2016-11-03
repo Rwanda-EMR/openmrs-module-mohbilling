@@ -1443,4 +1443,11 @@ public class HibernateBillingDAO implements BillingDAO {
 					crit.add(Restrictions.eq("creator",collector ));
 			return crit.list();
 		}
+
+		@Override
+		public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t) {
+			return (InsurancePolicy) sessionFactory.getCurrentSession().createCriteria(InsurancePolicy.class)				
+					.add(Restrictions.eq("thirdParty", t))
+					.uniqueResult();
+		}
 	}

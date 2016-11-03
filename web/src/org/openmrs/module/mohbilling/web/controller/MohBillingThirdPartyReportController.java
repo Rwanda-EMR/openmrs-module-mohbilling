@@ -11,11 +11,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
+import org.openmrs.module.mohbilling.businesslogic.ThirdPartyBillUtil;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.ServiceRevenue;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -59,7 +62,7 @@ public class MohBillingThirdPartyReportController extends
 			 Date endDate = (Date) params[1];
 			 
 			 ThirdParty thirdParty = Context.getService(BillingService.class).getThirdParty(Integer.valueOf(request.getParameter("thirdPartyId")));
-			 
+			 log.info("nnnnnnnnnnnnnnnnnnnnnnnnnnnnmmmmmmmmmmmmmmmmmmmmmmm "+request.getParameter("thirdPartyId"));
 			// get all consommation with globalbill closed
 				List<GlobalBill> globalBills = ReportsUtil.getGlobalBills(startDate, endDate);
 				List<Consommation> cons = null;
@@ -69,97 +72,122 @@ public class MohBillingThirdPartyReportController extends
 				List<AllServicesRevenue> listOfAllServicesRevenue = new ArrayList<AllServicesRevenue>();
 				
 					AllServicesRevenue servicesRevenu = null;
-					BigDecimal globalBillAmount = new BigDecimal(0);
-						
-					try {
-						// revenueList
-			            if(cons!=null)
-						for (Consommation c : cons) {
-							globalBillAmount=globalBillAmount.add(c.getInsuranceBill().getAmount());
-							 ServiceRevenue consultRevenue =  ReportsUtil.getServiceRevenue(c, "mohbilling.CONSULTATION");
-							 if(consultRevenue==null){
-								 consultRevenue = new ServiceRevenue("mohbilling.CONSULTATION", new BigDecimal(0));
-							 }
-							 ServiceRevenue laboRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.LABORATOIRE");
-							 if(laboRevenue==null){
-								 laboRevenue = new ServiceRevenue("mohbilling.LABORATOIRE", new BigDecimal(0));
-							 }
-							 ServiceRevenue hospRevenue= ReportsUtil.getServiceRevenue(c, "mohbilling.HOSPITALISATION");
-							 if(hospRevenue==null){
-								 hospRevenue = new ServiceRevenue("mohbilling.HOSPITALISATION", new BigDecimal(0));
-							 }
-							
-							 ServiceRevenue proceduresAndMater = ReportsUtil.getServiceRevenue(c, "mohbilling.procAndMaterials");
-							 if(proceduresAndMater==null){
-								 proceduresAndMater = new ServiceRevenue("mohbilling.procAndMaterials", new BigDecimal(0));
-							 }
-							 
-							 ServiceRevenue otherConsummables = ReportsUtil.getServiceRevenue(c, "mohbilling.otherConsummables");
-							 if(otherConsummables==null){
-								 otherConsummables = new ServiceRevenue("mohbilling.otherConsummables", new BigDecimal(0));
-							 }
-							 
-							 ServiceRevenue medicRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.MEDICAMENTS");
-							 if(medicRevenue==null){
-								 medicRevenue = new ServiceRevenue("mohbilling.MEDICAMENTS", new BigDecimal(0));
-							 }
-							 
-							 ServiceRevenue echoRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.ECHOGRAPHY");
-							 if(echoRevenue==null){
-								 echoRevenue = new ServiceRevenue("mohbilling.ECHOGRAPHY", new BigDecimal(0));
-							 }
-							 
-							 ServiceRevenue radioRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.RADIOLOGY");
-							 if(radioRevenue==null){
-								 radioRevenue = new ServiceRevenue("mohbilling.RADIOLOGY", new BigDecimal(0));
-							 }
-							 
-							 ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.ACTS");
-							 if(actsRevenue==null){
-								 actsRevenue = new ServiceRevenue("mohbilling.ACTS", new BigDecimal(0));
-							 }
-							 ServiceRevenue nursingCareRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.NURSINGCARE");
-							 if(nursingCareRevenue==null){
-								 nursingCareRevenue = new ServiceRevenue("mohbilling.NURSINGCARE", new BigDecimal(0));
-							 }
-							 
-							 ServiceRevenue pharmacyRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.PHARMACY");
-							 if(pharmacyRevenue==null){
-								 pharmacyRevenue = new ServiceRevenue("mohbilling.PHARMACY", new BigDecimal(0));
-							 }
-								
-							if(startDate!=null && endDate!=null){
-								if(c.getBeneficiary().getInsurancePolicy().getThirdParty()!=null)
-							if(c.getBeneficiary().getInsurancePolicy().getThirdParty().getThirdPartyId()==thirdParty.getThirdPartyId()){
-								//allGlobalAmount = servicesRevenu.getAllDueAmounts();
-								List<ServiceRevenue> revenueList = new ArrayList<ServiceRevenue>();
-								 
-								 revenueList.add(consultRevenue);
-								 revenueList.add(laboRevenue);
-								 revenueList.add(radioRevenue);
-								 revenueList.add(hospRevenue);
-								 revenueList.add(proceduresAndMater);
-								 revenueList.add(otherConsummables);
-								 revenueList.add(medicRevenue);
+					
+		         	BigDecimal totalConsult = new BigDecimal(0);
+		         	BigDecimal totalLabo = new BigDecimal(0);
+		         	BigDecimal totalImaging = new BigDecimal(0);
+		         	BigDecimal totalHosp = new BigDecimal(0);
+		         	BigDecimal totalProcAndMater = new BigDecimal(0);
+		         	BigDecimal totalOtherCons = new BigDecimal(0);
+		         	BigDecimal totalMedic = new BigDecimal(0);
+		         	BigDecimal total100 = new BigDecimal(0);
+		         	Float insuranceRate =  null;
+		    		Float patientRate =null;
+		    		InsurancePolicy ip = null;
+		    		
+		    		if(thirdParty!=null){			    		
+			    		
+						try {
+			    			ip = InsurancePolicyUtil.getInsurancePolicyByThirdParty(thirdParty);
+			    			insuranceRate =  ip.getInsurance().getCurrentRate().getRate();
+				    		patientRate = (100-insuranceRate)-thirdParty.getRate();
+							// revenueList
+				            if(cons!=null)
+								for (Consommation c : cons) {
+									if(c.getBeneficiary().getInsurancePolicy().getThirdParty()!=null)
+									if(c.getBeneficiary().getInsurancePolicy().getThirdParty().getThirdPartyId()==thirdParty.getThirdPartyId()){
+									
+									 ServiceRevenue consultRevenue =  ReportsUtil.getServiceRevenue(c, "mohbilling.CONSULTATION");
+									 if(consultRevenue==null){
+										 consultRevenue = new ServiceRevenue("mohbilling.CONSULTATION", new BigDecimal(0));
+									 }
+									 totalConsult=totalConsult.add(consultRevenue.getDueAmount());
+									 
+									 ServiceRevenue laboRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.LABORATOIRE");
+									 if(laboRevenue==null){
+										 laboRevenue = new ServiceRevenue("mohbilling.LABORATOIRE", new BigDecimal(0));
+									 }
+									 totalLabo=totalLabo.add(laboRevenue.getDueAmount());
+									 
+									 ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.IMAGING");
+									 if(imagingRevenue==null){
+										 imagingRevenue = new ServiceRevenue("mohbilling.IMAGING", new BigDecimal(0));
+									 }
+									 totalImaging=totalImaging.add(imagingRevenue.getDueAmount());
+									 
+									 ServiceRevenue hospRevenue= ReportsUtil.getServiceRevenue(c, "mohbilling.HOSPITALISATION");
+									 if(hospRevenue==null){
+										 hospRevenue = new ServiceRevenue("mohbilling.HOSPITALISATION", new BigDecimal(0));
+									 }
+									 totalHosp=totalHosp.add(hospRevenue.getDueAmount());
+									 
+									 ServiceRevenue proceduresAndMater = ReportsUtil.getServiceRevenue(c, "mohbilling.procAndMaterials");
+									 if(proceduresAndMater==null){
+										 proceduresAndMater = new ServiceRevenue("mohbilling.procAndMaterials", new BigDecimal(0));
+									 }
+									 totalProcAndMater=totalProcAndMater.add(proceduresAndMater.getDueAmount());
+									 
+									 ServiceRevenue otherConsummables = ReportsUtil.getServiceRevenue(c, "mohbilling.otherConsummables");
+									 if(otherConsummables==null){
+										 otherConsummables = new ServiceRevenue("mohbilling.otherConsummables", new BigDecimal(0));
+									 }
+									 totalOtherCons=totalOtherCons.add(otherConsummables.getDueAmount());
+									 
+									 ServiceRevenue medicRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.MEDICAMENTS");
+									 if(medicRevenue==null){
+										 medicRevenue = new ServiceRevenue("mohbilling.MEDICAMENTS", new BigDecimal(0));
+									 }
+									 totalMedic=totalMedic.add(medicRevenue.getDueAmount());
+									 
+									if(startDate!=null && endDate!=null){
+										//allGlobalAmount = servicesRevenu.getAllDueAmounts();
+										List<ServiceRevenue> revenueList = new ArrayList<ServiceRevenue>();
+										 revenueList.add(consultRevenue);
+										 revenueList.add(laboRevenue);
+										 revenueList.add(imagingRevenue);
+										 revenueList.add(hospRevenue);
+										 revenueList.add(proceduresAndMater);
+										 revenueList.add(otherConsummables);
+										 revenueList.add(medicRevenue);
 
-								 //populate asr
-								 servicesRevenu = new AllServicesRevenue(new BigDecimal(20000), new BigDecimal(21000), "2016-09-11");
-								 servicesRevenu.setRevenues(revenueList);
-								 servicesRevenu.setAllDueAmounts(c.getInsuranceBill().getAmount());
-								 servicesRevenu.setConsommation(c);
-								 listOfAllServicesRevenue.add(servicesRevenu); 
-							}
-							}
-							}
-					} catch (Exception e) {
-						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-								"No patient bill found or service categories are not set properly. Contact System Admin... !");
-						log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
-					}
+										 //populate asr
+										 servicesRevenu = new AllServicesRevenue(new BigDecimal(20000), new BigDecimal(21000), "2016-09-11");
+										 servicesRevenu.setRevenues(revenueList);
+										 servicesRevenu.setAllDueAmounts(c.getInsuranceBill().getAmount());
+										 servicesRevenu.setConsommation(c);
+										 listOfAllServicesRevenue.add(servicesRevenu); 
+									}
+									}
+									
+			               }
+						} catch (Exception e) {
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+									"No patient bill found or service categories are not set properly. Contact System Admin... !");
+							log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
+						}
+		    		}
+		    		
+
    
 		    		mav.addObject("listOfAllServicesRevenue", listOfAllServicesRevenue);
 		    		mav.addObject("resultMsg", "["+thirdParty.getName()+"] Bill from "+startDateStr +" To "+ endDateStr);
-		    		mav.addObject("globalBillAmount", globalBillAmount);
+		    		
+		    		mav.addObject("totalConsult", totalConsult);
+		    		mav.addObject("totalLabo", totalLabo);
+		    		mav.addObject("totalImaging", totalImaging);
+		    		mav.addObject("totalHosp", totalHosp);
+		    		mav.addObject("totalProcAndMater", totalProcAndMater);
+		    		mav.addObject("totalOtherCons", totalOtherCons);
+		    		mav.addObject("totalMedic", totalMedic);
+		    		total100=total100.add(totalConsult).add(totalLabo).add(totalImaging).add(totalHosp).add(totalProcAndMater).add(totalOtherCons).add(totalMedic);
+		    		mav.addObject("total100", total100);
+		    		
+		    		
+		    		
+		    		mav.addObject("thirdPartyRate", thirdParty.getRate());
+		    		mav.addObject("patientRate", patientRate);
+		    		mav.addObject("insuranceRate", insuranceRate);
+		    		
 	}
 		 mav.addObject("thirdParties", Context.getService(BillingService.class).getAllThirdParties());
 		return mav;

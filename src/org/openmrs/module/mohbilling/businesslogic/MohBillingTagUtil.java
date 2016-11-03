@@ -157,5 +157,9 @@ public class MohBillingTagUtil {
 		}
 		return ""+services.size();		
 	}
+	
 
+	public static String getConsommationStatus(Integer id){
+		return ConsommationUtil.getConsommationStatus(id);
+	}
 }
