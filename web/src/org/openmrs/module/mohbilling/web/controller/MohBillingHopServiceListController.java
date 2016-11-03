@@ -52,12 +52,16 @@ public class MohBillingHopServiceListController extends
 				services.add(HopServiceUtil.getHopServiceById(Integer.valueOf(s)));
 			}
 		 }
+			 mav.addObject("services",services );
+		 }
+		 else{
+			 mav.addObject("services",HopServiceUtil.getAllHospitalServices() );
 		 }
 		
 		//services = HopServiceUtil.getAllHospitalServices();
-		mav.addObject("services",services );
+		
 		mav.setViewName(getViewName());
-		mav.addObject("allServices",HopServiceUtil.getAllHospitalServices() );
+		//mav.addObject("allServices",HopServiceUtil.getAllHospitalServices() );
 
 		return mav;
 	}

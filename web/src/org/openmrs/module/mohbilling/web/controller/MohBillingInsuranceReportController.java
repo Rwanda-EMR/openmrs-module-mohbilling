@@ -56,7 +56,17 @@ public class MohBillingInsuranceReportController extends
 			 Date endDate = (Date) params[1];
 			 
 			 Insurance insurance = InsuranceUtil.getInsurance(Integer.valueOf(request.getParameter("insuranceId")));
+			 Float insuranceRate=insurance.getCurrentRate().getRate();
 			 
+         	BigDecimal totalConsult = new BigDecimal(0);
+         	BigDecimal totalLabo = new BigDecimal(0);
+         	BigDecimal totalImaging = new BigDecimal(0);
+         	BigDecimal totalHosp = new BigDecimal(0);
+         	BigDecimal totalProcAndMater = new BigDecimal(0);
+         	BigDecimal totalOtherCons = new BigDecimal(0);
+         	BigDecimal totalMedic = new BigDecimal(0);
+         	BigDecimal total100 = new BigDecimal(0);
+
 			// get all consommation with globalbill closed
 				List<GlobalBill> globalBills = ReportsUtil.getGlobalBills(startDate, endDate);
 				List<Consommation> cons = null;
@@ -66,73 +76,61 @@ public class MohBillingInsuranceReportController extends
 				List<AllServicesRevenue> listOfAllServicesRevenue = new ArrayList<AllServicesRevenue>();
 				
 					AllServicesRevenue servicesRevenu = null;
-					BigDecimal globalBillAmount = new BigDecimal(0);
 						
 					try {
-						// revenueList
-			            if(cons!=null)
+		            	
+						//ambulance?????		
 						for (Consommation c : cons) {
-							globalBillAmount=globalBillAmount.add(c.getInsuranceBill().getAmount());
+							if(c.getBeneficiary().getInsurancePolicy().getInsurance().getInsuranceId()==insurance.getInsuranceId()){
 							
 							 ServiceRevenue consultRevenue =  ReportsUtil.getServiceRevenue(c, "mohbilling.CONSULTATION");
 							 if(consultRevenue==null){
 								 consultRevenue = new ServiceRevenue("mohbilling.CONSULTATION", new BigDecimal(0));
 							 }
+							 totalConsult=totalConsult.add(consultRevenue.getDueAmount());
+							 
 							 ServiceRevenue laboRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.LABORATOIRE");
 							 if(laboRevenue==null){
 								 laboRevenue = new ServiceRevenue("mohbilling.LABORATOIRE", new BigDecimal(0));
 							 }
+							 totalLabo=totalLabo.add(laboRevenue.getDueAmount());
+							 
+							 ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.IMAGING");
+							 if(imagingRevenue==null){
+								 imagingRevenue = new ServiceRevenue("mohbilling.IMAGING", new BigDecimal(0));
+							 }
+							 totalImaging=totalImaging.add(imagingRevenue.getDueAmount());
+							 
 							 ServiceRevenue hospRevenue= ReportsUtil.getServiceRevenue(c, "mohbilling.HOSPITALISATION");
 							 if(hospRevenue==null){
 								 hospRevenue = new ServiceRevenue("mohbilling.HOSPITALISATION", new BigDecimal(0));
 							 }
-							
+							 totalHosp=totalHosp.add(hospRevenue.getDueAmount());
+							 
 							 ServiceRevenue proceduresAndMater = ReportsUtil.getServiceRevenue(c, "mohbilling.procAndMaterials");
 							 if(proceduresAndMater==null){
 								 proceduresAndMater = new ServiceRevenue("mohbilling.procAndMaterials", new BigDecimal(0));
 							 }
+							 totalProcAndMater=totalProcAndMater.add(proceduresAndMater.getDueAmount());
 							 
 							 ServiceRevenue otherConsummables = ReportsUtil.getServiceRevenue(c, "mohbilling.otherConsummables");
 							 if(otherConsummables==null){
 								 otherConsummables = new ServiceRevenue("mohbilling.otherConsummables", new BigDecimal(0));
 							 }
+							 totalOtherCons=totalOtherCons.add(otherConsummables.getDueAmount());
 							 
 							 ServiceRevenue medicRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.MEDICAMENTS");
 							 if(medicRevenue==null){
 								 medicRevenue = new ServiceRevenue("mohbilling.MEDICAMENTS", new BigDecimal(0));
 							 }
+							 totalMedic=totalMedic.add(medicRevenue.getDueAmount());
 							 
-							 ServiceRevenue echoRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.ECHOGRAPHY");
-							 if(echoRevenue==null){
-								 echoRevenue = new ServiceRevenue("mohbilling.ECHOGRAPHY", new BigDecimal(0));
-							 }
-							 
-							 ServiceRevenue radioRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.RADIOLOGY");
-							 if(radioRevenue==null){
-								 radioRevenue = new ServiceRevenue("mohbilling.RADIOLOGY", new BigDecimal(0));
-							 }
-							 
-							 ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.ACTS");
-							 if(actsRevenue==null){
-								 actsRevenue = new ServiceRevenue("mohbilling.ACTS", new BigDecimal(0));
-							 }
-							 ServiceRevenue nursingCareRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.NURSINGCARE");
-							 if(nursingCareRevenue==null){
-								 nursingCareRevenue = new ServiceRevenue("mohbilling.NURSINGCARE", new BigDecimal(0));
-							 }
-							 
-							 ServiceRevenue pharmacyRevenue = ReportsUtil.getServiceRevenue(c, "mohbilling.PHARMACY");
-							 if(pharmacyRevenue==null){
-								 pharmacyRevenue = new ServiceRevenue("mohbilling.PHARMACY", new BigDecimal(0));
-							 }
 							if(startDate!=null && endDate!=null){
-							if(c.getBeneficiary().getInsurancePolicy().getInsurance().getInsuranceId()==insurance.getInsuranceId()){
 								//allGlobalAmount = servicesRevenu.getAllDueAmounts();
 								List<ServiceRevenue> revenueList = new ArrayList<ServiceRevenue>();
-								 
 								 revenueList.add(consultRevenue);
 								 revenueList.add(laboRevenue);
-								 revenueList.add(radioRevenue);
+								 revenueList.add(imagingRevenue);
 								 revenueList.add(hospRevenue);
 								 revenueList.add(proceduresAndMater);
 								 revenueList.add(otherConsummables);
@@ -155,7 +153,16 @@ public class MohBillingInsuranceReportController extends
    
 		    		mav.addObject("listOfAllServicesRevenue", listOfAllServicesRevenue);
 		    		mav.addObject("resultMsg", "["+insurance.getName()+"] Bill from "+startDateStr +" To "+ endDateStr);
-		    		mav.addObject("globalBillAmount", globalBillAmount);
+		    		mav.addObject("insuranceRate", insuranceRate);
+		    		mav.addObject("totalConsult", totalConsult);
+		    		mav.addObject("totalLabo", totalLabo);
+		    		mav.addObject("totalImaging", totalImaging);
+		    		mav.addObject("totalHosp", totalHosp);
+		    		mav.addObject("totalProcAndMater", totalProcAndMater);
+		    		mav.addObject("totalOtherCons", totalOtherCons);
+		    		mav.addObject("totalMedic", totalMedic);
+		    		total100=total100.add(totalConsult).add(totalLabo).add(totalImaging).add(totalHosp).add(totalProcAndMater).add(totalOtherCons).add(totalMedic);
+		    		mav.addObject("total100", total100);
 	}
 		 mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 		return mav;

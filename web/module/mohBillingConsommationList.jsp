@@ -39,8 +39,7 @@
 			<th>Payment</th>
 			<th></th>
 		</tr>
-		<c:forEach items="${consommations}" var="consommation" 
-			varStatus="status">
+		<c:forEach items="${consommations}" var="consommation" varStatus="status">
 			<tr>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.consommationId}</td>
@@ -50,9 +49,8 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.thirdPartyBill.amount}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.patientBill.amount}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${billingtag:amountPaidForPatientBill(consommation.consommationId)}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">paid</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${billingtag:consommationStatus(consommation.consommationId)}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;<a href="patientBillPayment.form?consommationId=${consommation.consommationId}">view payment</a></td>				
-				<%-- <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="consommation.form?consommationId=${consommation.consommationId}">Edit</a></td> --%>
 				<c:if test="${not consommation.globalBill.closed }">
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&edit=true">Edit Qty</a></td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>

@@ -814,5 +814,9 @@ public class InsurancePolicyUtil {
 		}
 		else return false;		
 	}
+	
+	public static InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t){
+		return getService().getInsurancePolicyByThirdParty(t);
+	}
 
 }
