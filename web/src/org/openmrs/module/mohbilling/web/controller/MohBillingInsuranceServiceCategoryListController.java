@@ -9,6 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -33,13 +36,13 @@ public class MohBillingInsuranceServiceCategoryListController extends
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-
 		try {
 			mav.addObject("insurance", Context.getService(BillingService.class)
 					.getInsurance(
 							Integer
 									.valueOf(request
 											.getParameter("insuranceId"))));
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ModelAndView(new RedirectView("insurance.list"));

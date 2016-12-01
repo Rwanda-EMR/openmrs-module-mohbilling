@@ -3,7 +3,6 @@
  */
 package org.openmrs.module.mohbilling.impl;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -941,5 +940,30 @@ public class BillingServiceImpl implements BillingService {
 	public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t) {
 		return billingDAO.getInsurancePolicyByThirdParty(t);
 	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getConsommations(java.util.Date, java.util.Date, org.openmrs.module.mohbilling.model.Insurance, org.openmrs.module.mohbilling.model.ThirdParty, org.openmrs.User)
+	 */
+	@Override
+	public List<Consommation> getConsommations(Date startDate, Date endDate,
+			Insurance insurance, ThirdParty tp, User billCreator,Department department) {
+		return billingDAO.getConsommations(startDate, endDate, insurance, tp, billCreator,department);
+	}
+
+	@Override
+	public void updateOtherInsurances( ServiceCategory sc) {
+		billingDAO.updateOtherInsurances(sc);
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getTransactions(java.util.Date, java.util.Date, org.openmrs.User, java.lang.String)
+	 */
+	@Override
+	public List<Transaction> getTransactions(Date startDate, Date endDate,
+			User collector, String type) {
+		return billingDAO.getTransactions(startDate, endDate, collector, type);
+	}
+
 
 }

@@ -18,7 +18,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.model.ServiceCategory;
+import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -42,6 +46,19 @@ public class MohBillingInsuranceListController extends
 		mav.setViewName(getViewName());
 
 		mav.addObject("insurances", InsuranceUtil.getInsurances(true));
+		
+		
+		//update other insurances taking rssb as a reference
+		try {
+			if(request.getParameter("update")!=null){
+				 ServiceCategory sc = Context.getService(BillingService.class).getServiceCategory(Integer.valueOf(request.getParameter("serviceCategoryId")));
+				 Context.getService(BillingService.class).updateOtherInsurances(sc);
+			}
+		} catch (Exception e) {
+			request.getSession().setAttribute(
+					WebConstants.OPENMRS_ERROR_ATTR,
+					"The service category already exist!");
+		}
 
 		return mav;
 

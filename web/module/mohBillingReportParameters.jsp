@@ -43,7 +43,16 @@
 							 
 				             </select>
 						  </td>
-
+						  <td class="deposit">Type</td>
+						  <td class="deposit">
+						  <select name="transactionType">
+						  <option value="deposit">Deposit</option>
+						   <option value="billPayment">Payment</option>
+						   <option value="withdrawal">Withdrawal</option>
+						  </select>
+						  </td>
+							<td class="billCreator">Bill Creator :</td>
+							<td class="billCreator"><openmrs_tag:userField formFieldName="billCreator" initialValue="${billCreator}"/></td>
 						</tr>
 						<tr>
 							<td>On Or Before <input type="text" size="11"
@@ -76,10 +85,27 @@
 				             </select>
 						  </td>
 						  
+						  	<td class="billStatus">Bill Status</td>
+							<td class="billStatus">
+								<select name="billStatus">
+									<option value="">---</option>
+									<option value="FULLY PAID" ${billStatus== 'FULLY PAID' ? 'selected' : ''}>FULLY PAID</option>
+									<option value="UNPAID" ${billStatus== 'UNPAID' ? 'selected' : ''}>UNPAID</option>
+									<option value="PARTLY PAID" ${billStatus== 'PARTLY PAID' ? 'selected' : ''}>PARTLY PAID</option>
+								</select>
+							</td>
+						  
 						  	<td class="collector">Collector :</td>
 		    				<td class="collector"><openmrs_tag:userField formFieldName="cashCollector" initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
 							
-											  
+								<td class="paymentType">Type</td>
+								<td class="paymentType">
+								<select name="paymentType">
+									<option value="">All</option>
+									<option value="cashPayment">Cash Payment</option>
+									<option value="depositPayment">Deposit Payment</option>
+								</select>
+								</td>			  
 						</tr>
 
 					</table>
@@ -87,7 +113,6 @@
 				
 			</tr>
 
-			
 			<tr class="insurances">
 			<td>Insurance : </td>
 				<td>
@@ -95,6 +120,16 @@
 				    <option value="">--select--</option>
 				    <c:forEach items="${insurances }" var="insurance">
 				    <option value="${insurance.insuranceId }">${insurance.name }</option>
+				    </c:forEach>
+				  </select>
+				</td>
+				
+				<td class="services">Service : </td>
+				<td class="services">
+				  <select name="departmentId">
+				    <option value="">--select--</option>
+				    <c:forEach items="${departments }" var="department">
+				    <option value="${department.departmentId }">${department.name }</option>
 				    </c:forEach>
 				  </select>
 				</td>

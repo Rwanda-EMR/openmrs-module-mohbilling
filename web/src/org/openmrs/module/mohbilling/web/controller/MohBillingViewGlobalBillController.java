@@ -11,9 +11,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
+import org.openmrs.module.mohbilling.model.AllServicesRevenue;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -36,27 +38,41 @@ public class MohBillingViewGlobalBillController extends
 		mav.setViewName(getViewName());
 		
 		String globalBillStr = request.getParameter("globalBillId");
-		GlobalBill globalBill = null;
-		Set<HopService> allHopServices = new HashSet<HopService>();
+		List<ServiceRevenue> serviceRevenueList = new ArrayList<ServiceRevenue>();
 		
 		if(globalBillStr!=null && !globalBillStr.equals("")){
-//			log.info("wwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa "+globalBillStr);
-			globalBill=GlobalBillUtil.getGlobalBill(Integer.parseInt(globalBillStr));
-			Set<PatientServiceBill> allItems = new HashSet<PatientServiceBill>();
-			for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(globalBill)) {
+			GlobalBill globalBill=GlobalBillUtil.getGlobalBill(Integer.parseInt(globalBillStr));
+			List<Consommation> consommations = ConsommationUtil.getConsommationsByGlobalBill(globalBill);
+			List<PatientServiceBill> allItems = new ArrayList<PatientServiceBill>();
+			for (Consommation c : consommations) {
 				for (PatientServiceBill item : c.getBillItems()) {
 					allItems.add(item);
-					allHopServices.add(item.getHopService());
 				}
 			}
-			List<ServiceRevenue> serviceRevenueList = new ArrayList<ServiceRevenue>();
-			for (HopService hs : allHopServices) {
-				serviceRevenueList.add(ReportsUtil.getServiceRevenues(allItems, hs));
+			List<HopService> revenuesCategories = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.REVENUE");
+			for (HopService hopService : revenuesCategories) {
+				if(ReportsUtil.getServiceRevenues(allItems, hopService)!=null)
+				serviceRevenueList.add(ReportsUtil.getServiceRevenues(allItems, hopService));
+					 
 			}
+			ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.IMAGING");
+			if(imagingRevenue!=null)
+			serviceRevenueList.add(imagingRevenue);
+			
+			ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.ACTS");
+			if(actsRevenue!=null)
+			serviceRevenueList.add(actsRevenue);
+			
+			ServiceRevenue autreRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.AUTRES");
+			if(autreRevenue!=null)
+			serviceRevenueList.add(autreRevenue);
 			
 			mav.addObject("globalBill", globalBill);
-			mav.addObject("serviceRevenueList", serviceRevenueList);
+
 		}
+		mav.addObject("serviceRevenueList", serviceRevenueList);
+		
+		
 
 		return mav;
 	}

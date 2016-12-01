@@ -321,5 +321,10 @@ public class ConsommationUtil {
 		}
 		return found;
 	}
+	public static List<Consommation> getConsommations(Date startDate,
+			Date endDate, Insurance insurance, ThirdParty tp,
+			User billCreator,Department department){
+		 return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+	}
 
 }

@@ -25,7 +25,7 @@
 
 
 <style>
-.insurances, .thirdParties,.time {
+.insurances, .thirdParties,.time,.billCreator,.billStatus,.services,.deposit,.paymentType{
     display: none;
 }
 a.print {

@@ -46,7 +46,7 @@ public class GlobalPropertyConfig {
 		 }	
 	
 	 /**
-		 * Gets a List of services from global properties matching wih a given parameter
+		 * Gets a List of services from global properties matching with a given parameter
 		 * @param revenueCateg parameters name configured in Global property
 		 * @return List<HopService>
 		 */
@@ -62,7 +62,7 @@ public class GlobalPropertyConfig {
 		}
 		 /**
 		 * gets a  revenues matching revenueCateg
-		 * @param revenueCateg
+		 * @param category
 		 * @return String object
 		 */
 		public static String getHospitalServiceByCateg(String categ){

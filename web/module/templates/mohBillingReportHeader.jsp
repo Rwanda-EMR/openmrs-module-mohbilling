@@ -1,10 +1,10 @@
 <ul id="menu">
 
-		<!-- 
-		<li class="<c:if test='<%= request.getRequestURI().contains("Cashier")%>'> active</c:if>">
-			<a href="cashierReport.form">Find Global Bill</a>
+		
+		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
+			<a href="cohort.form">Find Bills</a>
 		</li>
-		 -->
+		 
 		
 		<openmrs:hasPrivilege privilege="Billing Report - View Cashier Report">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cashier")%>'> active</c:if>">
@@ -12,6 +12,11 @@
 		</li>
 		</openmrs:hasPrivilege>
 
+		<openmrs:hasPrivilege privilege="Billing Report - View Deposit Report">
+		<li class="<c:if test='<%= request.getRequestURI().contains("DepositReport")%>'> active</c:if>">
+			<a href="depositReport.form">Deposits</a>
+		</li>
+		</openmrs:hasPrivilege>
 		
 		<openmrs:hasPrivilege privilege="Billing Report - View Service Report">
 	    <li class="<c:if test='<%= request.getRequestURI().contains("RevenueReport")%>'> active</c:if>">

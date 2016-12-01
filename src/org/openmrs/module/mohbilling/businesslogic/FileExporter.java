@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -166,12 +167,12 @@ public class FileExporter {
 		document.add(transTable);
 	}
 	public void displayPaidItems(Document document,BillPayment payment,Consommation consommation,FontSelector fontSelector) throws DocumentException{
-		
+		NumberFormat formatter = new DecimalFormat("#0.00");
 		Float insuranceRate = consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
 		float patRate = 100f - insuranceRate;
 		BigDecimal patientRate = new BigDecimal(""+patRate);
 		 
-		Chunk chk = new Chunk("RECU POUR FACTURE #"+consommation.getGlobalBill().getBillIdentifier()+" - "+consommation.getCreatedDate());
+		Chunk chk = new Chunk("RECU POUR CONSOMMATION#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+consommation.getCreatedDate());
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -204,14 +205,20 @@ public class FileExporter {
 		BigDecimal unitPrice,paidQty,itemPaidCost=new BigDecimal(0.0);
 		BigDecimal totalToBePaidByPatient = new BigDecimal(0.0);
 		BigDecimal totalPaid = new BigDecimal(0.0);
-		for (PaidServiceBill service: BillPaymentUtil.getPaidItemsByBillPayment(payment)) {	
+		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+		
+    	   if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+       		   paidItems=BillPaymentUtil.getOldPayments(payment);
+       	   }
+		 
+		for (PaidServiceBill service: paidItems) {	
 			number++; 
 			
 			BigDecimal itemCost = service.getBillItem().getQuantity().multiply(service.getBillItem().getUnitPrice().multiply(patientRate).divide(new BigDecimal(100)));
 			totalToBePaidByPatient=totalToBePaidByPatient.add(itemCost);
 			
 			BigDecimal paid= service.getBillItem().getPaidQuantity().multiply(itemCost);
-			totalPaid=totalPaid.add(paid);
+			//totalPaid=totalPaid.add(paid);
 			
 			 itemName = service.getBillItem().getService().getFacilityServicePrice().getName();
 			 unitPrice = service.getBillItem().getUnitPrice().multiply(patientRate).divide(new BigDecimal(100));
@@ -236,11 +243,16 @@ public class FileExporter {
 		
 		PdfPTable serviceTotPat = new PdfPTable(4);
 		PdfPCell c1 = new PdfPCell(boldFont.process("Due Amount: "+consommation.getPatientBill().getAmount()));
+		 if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+			 c1 = new PdfPCell(boldFont.process("Due Amount: "+consommation.getPatientBill().getAmount().multiply(patientRate).divide(new BigDecimal(100))));
+		 }
 		c1.setBorder(Rectangle.NO_BORDER); 
 		serviceTotPat.addCell(c1);
 		
-		
-		c1 = new PdfPCell(boldFont.process("Paid: "+totalPaid));
+		for (BillPayment pay : consommation.getPatientBill().getPayments()) {
+			totalPaid=totalPaid.add(pay.getAmountPaid());
+		}
+		c1 = new PdfPCell(boldFont.process("Paid: "+payment.getAmountPaid()));
 		c1.setBorder(Rectangle.NO_BORDER); 
 		serviceTotPat.addCell(c1);
 		
@@ -248,7 +260,12 @@ public class FileExporter {
 		c1.setBorder(Rectangle.NO_BORDER);
 		serviceTotPat.addCell(c1);
 		
-		c1 = new PdfPCell(boldFont.process("Rest: "+consommation.getPatientBill().getAmount().subtract(totalPaid)));
+		String rest = formatter.format((consommation.getPatientBill().getAmount().multiply(patientRate).divide(new BigDecimal(100))).subtract(totalPaid));
+		/*if(rest.compareTo(BigDecimal.ZERO)<0)
+		c1 = new PdfPCell(boldFont.process("Rest: "+0));
+		else
+			c1 = new PdfPCell(boldFont.process("Rest: "+consommation.getPatientBill().getAmount().subtract(totalPaid)));*/
+		c1 = new PdfPCell(boldFont.process("Rest: "+rest));
 		c1.setBorder(Rectangle.NO_BORDER); 
 		serviceTotPat.addCell(c1);
 		
@@ -290,9 +307,9 @@ public class FileExporter {
 		
 		String admissionMode = "";
 		if(consommation.getGlobalBill().getAdmission().getIsAdmitted())
-			admissionMode = "Qui";
-		else
 			admissionMode = "Non";
+		else
+			admissionMode = "Qui";
 		
 		head2 = new PdfPCell(fontSelector.process("Ambulant: "+admissionMode+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
@@ -351,25 +368,29 @@ public class FileExporter {
 		
 		 AllServicesRevenue servicesRevenu = ReportsUtil.getAllServicesRevenue(consommation, "mohbilling.REVENUE");
 		 
-		 BigDecimal allGlobalAmount = servicesRevenu.getAllDueAmounts();
-		 
+		// BigDecimal allGlobalAmount = servicesRevenu.getAllDueAmounts();
 		 List<ServiceRevenue> revenueList = servicesRevenu.getRevenues();
 		 
-		  ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(consommation, "mohbilling.ACTS");
-		  revenueList.add(actsRevenue);
-		  ServiceRevenue autresRevenue = ReportsUtil.getServiceRevenue(consommation, "mohbilling.AUTRES");
-		 revenueList.add(autresRevenue);
-		
-		 //allGlobalAmount = allGlobalAmount.add(actsRevenue.getDueAmount()); 
+		 ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(consommation, "mohbilling.IMAGING");
+		 revenueList.add(imagingRevenue);
 		 
-		 Float insuranceRate = consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-		 float patRate = 100f - insuranceRate;
+		 ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(consommation, "mohbilling.ACTS");
+		 revenueList.add(actsRevenue);
+		   
+		 ServiceRevenue autresRevenue = ReportsUtil.getServiceRevenue(consommation, "mohbilling.AUTRES");
+		 revenueList.add(autresRevenue);
+		 
+		 Float insRate = consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+		 float patRate = 100f - insRate;
 		 BigDecimal patientRate = new BigDecimal(""+patRate);
+		 BigDecimal insuranceRate = new BigDecimal(""+insRate);
+		 
+		 BigDecimal total = new BigDecimal(0);
 		 
 		 NumberFormat formatter = new DecimalFormat("#0.00");		 
 		 if(revenueList!=null)
 		 for (ServiceRevenue sr : revenueList) {
-			if(sr!=null){
+			if(sr!=null&& sr.getDueAmount().compareTo(BigDecimal.ZERO)!=0){
 				 cell = new PdfPCell(fontSelector.process(""));
 				 table.addCell(cell);
 				 cell = new PdfPCell(boldFont.process(""+sr.getService()));
@@ -381,7 +402,6 @@ public class FileExporter {
 				 cell = new PdfPCell(fontSelector.process(""));
 				 table.addCell(cell);
 				 
-
 				 for (PatientServiceBill item : sr.getBillItems()) {
 					 if(!item.isVoided()){
 					 cell = new PdfPCell(fontSelector.process(""+df.format(item.getServiceDate())));
@@ -395,6 +415,7 @@ public class FileExporter {
 					 cell = new PdfPCell(fontSelector.process(""+formatter.format(item.getQuantity().multiply(item.getUnitPrice().multiply(patientRate.divide(new BigDecimal(100) ))))));
 					 table.addCell(cell);
 					 }
+					 total=total.add(item.getQuantity().multiply(item.getUnitPrice()));
 				} 
 			}
 			
@@ -405,7 +426,7 @@ public class FileExporter {
 		float[] width = { 4f, 3f, 3f};
 		PdfPTable summaryTable = new PdfPTable(width);
 		
-		PdfPCell c = new PdfPCell(boldFont.process("Assurances"));
+		PdfPCell c = new PdfPCell(boldFont.process("Assurance"));
 		cell.setBorder(Rectangle.NO_BORDER);
 		summaryTable.addCell(c);
 		
@@ -421,7 +442,8 @@ public class FileExporter {
 		cell.setBorder(Rectangle.NO_BORDER);
 		summaryTable.addCell(c);
 		
-		c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount().add(consommation.getInsuranceBill().getAmount())));
+		
+		c = new PdfPCell(fontSelector.process(""+formatter.format(total)));
 		cell.setBorder(Rectangle.NO_BORDER);
 		summaryTable.addCell(c);
 		
@@ -433,7 +455,8 @@ public class FileExporter {
 		cell.setBorder(Rectangle.NO_BORDER);
 		summaryTable.addCell(c);
 		
-		c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
+//		c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
+		c = new PdfPCell(fontSelector.process(""+formatter.format(total.multiply(patientRate).divide(new BigDecimal(100)))));
 		cell.setBorder(Rectangle.NO_BORDER);
 		summaryTable.addCell(c);
 		
@@ -445,7 +468,7 @@ public class FileExporter {
 		cell.setBorder(Rectangle.NO_BORDER);
 		summaryTable.addCell(c);
 		
-		c = new PdfPCell(fontSelector.process(""+consommation.getInsuranceBill().getAmount()));
+		c = new PdfPCell(fontSelector.process(""+formatter.format(total.multiply(insuranceRate).divide(new BigDecimal(100)))));
 		cell.setBorder(Rectangle.NO_BORDER);
 		summaryTable.addCell(c);
 		

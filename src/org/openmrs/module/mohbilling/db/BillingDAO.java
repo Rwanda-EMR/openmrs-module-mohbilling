@@ -692,4 +692,25 @@ public interface BillingDAO {
 	 * @return InsurancePolicy
 	 */
 	public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t);
+	/**
+	 * get all consommations by provided parameters
+	 * @param startDate
+	 * @param endDate
+	 * @param insurance
+	 * @param tp
+	 * @param billCreator
+	 * @return consommation list
+	 */
+	public List<Consommation> getConsommations(Date startDate,Date endDate,Insurance insurance,ThirdParty tp,User billCreator,Department department);
+	
+	public void updateOtherInsurances(ServiceCategory sc);
+	/**
+	 * gets transactions by type,in a period and by cashier
+	 * @param startDate
+	 * @param endDate
+	 * @param collector
+	 * @param type
+	 * @return List<DepositPayment>
+	 */
+	public List<Transaction> getTransactions(Date startDate,Date endDate,User collector,String type);
 }

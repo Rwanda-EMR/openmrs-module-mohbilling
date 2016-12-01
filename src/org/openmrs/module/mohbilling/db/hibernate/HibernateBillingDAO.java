@@ -50,6 +50,7 @@ import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.BillStatus;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
@@ -1450,4 +1451,88 @@ public class HibernateBillingDAO implements BillingDAO {
 					.add(Restrictions.eq("thirdParty", t))
 					.uniqueResult();
 		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getConsommations(java.util.Date, java.util.Date, org.openmrs.module.mohbilling.model.Insurance, org.openmrs.module.mohbilling.model.ThirdParty, org.openmrs.User)
+		 */
+		@Override
+		public List<Consommation> getConsommations(Date startDate,
+				Date endDate, Insurance insurance, ThirdParty tp,
+				User billCreator,Department department) {
+			Session session = sessionFactory.getCurrentSession();
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			StringBuilder combinedSearch = new StringBuilder("");
+
+			combinedSearch.append("SELECT c.* FROM moh_bill_consommation c "
+					+" inner join moh_bill_patient_bill pb on pb.patient_bill_id=c.patient_bill_id"
+					+ " and c.created_date between '"+df.format(startDate)+" 00:00:00 "+"' AND '"+df.format(endDate)+" 23:59:59'");
+
+			if(insurance!=null || tp!=null){
+				combinedSearch
+				.append(" inner join moh_bill_beneficiary b on b.beneficiary_id=c.beneficiary_id "
+						+ " inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=b.insurance_policy_id "
+						+ " inner join moh_bill_insurance i on i.insurance_id = ip.insurance_id "
+						);
+				
+				if (insurance != null)
+					combinedSearch.append(" and i.insurance_id ='"+insurance.getInsuranceId()+"'");
+				
+				if (tp != null)
+					combinedSearch.append(" and ip.third_party_id ='"+tp.getThirdPartyId()+"'");
+			}
+			
+			if (billCreator != null)
+				combinedSearch.append(" and c.creator ='"+billCreator.getUserId()+"'");
+				
+			if (department != null)
+				combinedSearch.append(" and c.department_id ='"+department.getDepartmentId()+"'");
+			
+			List<Consommation> consommations = session
+					.createSQLQuery(combinedSearch.toString())
+					.addEntity("c", Consommation.class).list();
+
+			return consommations;
+		}
+
+		@Override
+		public void updateOtherInsurances(ServiceCategory sc) {
+			Session session = sessionFactory.getCurrentSession();
+			
+			try {
+				for (Insurance ins : InsuranceUtil.getAllInsurances()) {
+					StringBuilder queryStr = new StringBuilder("");
+					if(ins.getInsuranceId()!=1){
+						ServiceCategory serviceCategory = getServiceCategoryByName(sc.getName(), ins);
+						if(serviceCategory==null){
+						queryStr.append("insert ignore into moh_bill_service_category(name,description,created_date,retired,insurance_id,creator)");
+						queryStr.append(" SELECT name,description,created_date,retired,"+ins.getInsuranceId()+" as insurance_id,creator FROM moh_bill_service_category "
+								+ " where service_category_id="+sc.getServiceCategoryId()+";");
+						session.createSQLQuery(queryStr.toString()).executeUpdate();
+						}
+							
+					}
+					
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+			
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getTransactions(java.util.Date, java.util.Date, org.openmrs.User, java.lang.String)
+		 */
+		@Override
+		public List<Transaction> getTransactions(Date startDate,
+				Date endDate, User collector, String type) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Transaction.class)
+					.add(Restrictions.between("createdDate",startDate,endDate));
+					if(collector!=null)
+					crit.add(Restrictions.eq("collector",collector ));
+					if(type!=null)
+					crit.add(Restrictions.eq("reason",type ));
+			return crit.list();
+		}
+
+
 	}

@@ -19,7 +19,9 @@ import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
@@ -75,23 +77,47 @@ public class MohBillingCashierReportController extends
 			 Date endDate = (Date) params[1];
 			 User collector =  (User) params[2];
 
-			
-			 List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate,collector);
+			 
 			 BigDecimal totalReceivedAmount = new BigDecimal(0);
-			 for (BillPayment bp : payments) {
-				totalReceivedAmount=totalReceivedAmount.add(bp.getAmountPaid());
-			}
 
 			 try {
-				 List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments); 
+				  
+					 List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate,collector);
+					 
+					 List<BillPayment> cashPayments = new ArrayList<BillPayment>();
+					 List<BillPayment> depositPayments= new ArrayList<BillPayment>();
+					 List<PaidServiceBill> paidItems = null; 
+					 if(request.getParameter("paymentType").equals("cashPayment")){
+					 for (BillPayment bp : payments) {
+						if(bp instanceof CashPayment)
+							cashPayments.add(bp);
+					 }
+					 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(cashPayments); 
+						mav.addObject("reportMsg", "Cash Payments From "+startDateStr+" To "+endDateStr);
+					 }
+					 else if(request.getParameter("paymentType").equals("depositPayment")){
+						 for (BillPayment bp : payments) {
+								if(bp instanceof DepositPayment)
+									depositPayments.add(bp);
+							 }
+					  paidItems = BillPaymentUtil.getPaidItemsByBillPayments(depositPayments); 
+					  mav.addObject("reportMsg", "Deposit Payments From "+startDateStr+" To "+endDateStr);
+					 }
+					 else{
+						 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments); 
+						 mav.addObject("reportMsg", "Total Amount From "+startDateStr+" To "+endDateStr);
+					 }
+				 
 				 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
 	     		 for (HopService hs : reportColumns) {
-					if(ReportsUtil.getPaidServiceRevenue(paidItems,hs.getName())!=null)
-						paidServiceRevenues.add(ReportsUtil.getPaidServiceRevenue(paidItems,hs.getName()));
+	     			 PaidServiceRevenue psr= ReportsUtil.getPaidServiceRevenue(paidItems,hs.getName());
+					if(psr!=null){
+						paidServiceRevenues.add(psr);
+						totalReceivedAmount=totalReceivedAmount.add(psr.getPaidAmount());
+					}
 				}
 	 			mav.addObject("totalReceivedAmount", totalReceivedAmount);
 				mav.addObject("paidServiceRevenues", paidServiceRevenues);
-				mav.addObject("reportMsg", collector.getPersonName()+" From "+startDateStr+" To "+endDateStr);
 				
 			} catch (Exception e) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,

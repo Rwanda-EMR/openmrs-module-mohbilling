@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -162,4 +163,14 @@ public class MohBillingTagUtil {
 	public static String getConsommationStatus(Integer id){
 		return ConsommationUtil.getConsommationStatus(id);
 	}
+	
+	public static String getTotalPaidByConsommation(Integer consommationId){
+		Consommation c = ConsommationUtil.getConsommation(consommationId);
+		BigDecimal totalPaid = new BigDecimal(0);
+		for (BillPayment pay : c.getPatientBill().getPayments()) {
+			totalPaid=totalPaid.add(pay.getAmountPaid());
+		}
+		return ""+totalPaid;
+	}
+	
 }

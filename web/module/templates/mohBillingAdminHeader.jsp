@@ -1,3 +1,4 @@
+<openmrs:hasPrivilege privilege="Billing Configuration - View Billing Admin">
 <ul id="menu">
 
 	<li class="<c:if test='<%= request.getRequestURI().contains("DepartmentList")%>'> active</c:if>">
@@ -20,6 +21,7 @@
 	</li>
 
 </ul>
+</openmrs:hasPrivilege>
 
 <!-- Here I would like to set the totals at the bottom -->
 <style>
