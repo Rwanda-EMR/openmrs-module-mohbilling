@@ -7,6 +7,7 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingReportHeader.jsp"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
 <script type="text/javascript">
 	var $bill = jQuery.noConflict();
 	$bill(document).ready(function(){
@@ -25,7 +26,7 @@
 
 
 <style>
-.insurances, .thirdParties,.time,.billCreator,.billStatus,.services,.deposit {
+.insurances, .thirdParties,.time,.billCreator,.billStatus,.services,.paymentType {
     display: none;
 }
 a.print {
@@ -37,19 +38,28 @@ a.print {
 </style>
 
 <h2>
-	Cashier Daily Report
+	Deposits/Caution Report
 </h2>
 
 <c:import url="mohBillingReportParameters.jsp" />
 
-<c:if test="${empty paidServiceRevenues }">
- <div style="text-align: center;color: red;"><p>No payments found!</p></div>
+<c:if test="${empty transactions }">
+ <div style="text-align: center;color: red;"><p>No Transaction found!</p></div>
 </c:if>
 
-<c:if test="${not empty paidServiceRevenues }">
+<c:if test="${not empty transactions }">
 <br/>
 <b class="boxHeader">
-${reportMsg} : <b style="color: black;font: bold;"><fmt:formatNumber value="${totalReceivedAmount}" type="number" pattern="#.##"/> FRW</b>
+<c:if test="${reason=='Deposit' }">
+Total Deposits Collected : 
+</c:if>
+<c:if test="${reason=='Bill Payment' }">
+Payments Made With Patients' Deposits : 
+</c:if>
+<c:if test="${reason=='Withdrawal' }">
+Amount Withdrawn : 
+</c:if>
+<b style="color: black;font: bold;">${total < 0 ? -total:total} FRW</b>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
@@ -62,18 +72,24 @@ ${reportMsg} : <b style="color: black;font: bold;"><fmt:formatNumber value="${to
 <table style="width:70%">
 	<tr>
 		<th class="columnHeader">#.</th>
-		<th class="columnHeader">Service Name</th>	
-		<th class="columnHeader">Due Amount</th>
+		<th class="columnHeader">Date</th>
+		<th class="columnHeader">Collector</th>
+		<th class="columnHeader">Patient Names</th>	
+		<th class="columnHeader">Amount</th>
+		<th class="columnHeader">Reason</th>
 	</tr>
 
-	<c:forEach items="${paidServiceRevenues}" var="psr" varStatus="status">
-	<c:if test="${psr.paidAmount != 0 }">
+	<c:forEach items="${transactions}" var="trans" varStatus="status">
 	<tr>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
-	<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${psr.service }</td>
-	<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${psr.paidAmount}" type="number" pattern="#.##"/></td>
+	<td class="rowValue ${(status.count%2!=0)?'even':''}">
+			<fmt:formatDate pattern="yyyy-MM-dd" value="${trans.transactionDate }" />
+	</td>
+	<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${trans.collector }</td>
+	<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${trans.patientAccount.patient.personName }</td>
+	<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.amount < 0 ? -trans.amount:trans.amount}</td>
+	<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.reason}</td>
 	</tr>
-	</c:if>
 	</c:forEach>
 </table>
 </div>

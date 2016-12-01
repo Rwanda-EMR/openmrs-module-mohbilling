@@ -19,10 +19,11 @@
 <div style="text-align: right;">
 
  <!--  see http://www.quackit.com/html/codes/html_close_window_code.cfm  -->
+ <c:if test="${not globalBill.closed}">
  <a href="javascript:window.open('admission.form?globalBillId=${globalBill.globalBillId}&insurancePolicyId=${insurancePolicy.insurancePolicyId }&ipCardNumber=${insurancePolicy.insuranceCardNo}&discharge=true', 'dischargeWindow', 'height=300,width=450,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=yes').focus()">Dischage the Patient | </a>
 
 <a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add Consommation</a></div>
-
+</c:if>
 <b class="boxHeader">Consommations List for Global Bill id # ${globalBill.billIdentifier}</b>
 <div class="box">
 	<table>

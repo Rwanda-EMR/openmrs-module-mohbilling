@@ -14,20 +14,25 @@
                 calculateSum();
                 validateQties();
             });
-
+            var patientRate = $('#patientRate').val();
             function calculateSum() {
                 var $checked = $('.items:checked');
                 total = 0.0;
                 $checked.each(function () {
-                    total += parseFloat($(this).val());
-                    
+                	var id=$(this).val();
+                	var paidQty = $('#paidQty_'+id).val();
+                	var up=$('#up_'+id).val();
+                	var cost=paidQty*up;
+                	if(!isNaN(cost))
+                    total += parseFloat(cost*patientRate);
                 });
                 $('#tot').text("Your Payable  Is: " + total.toFixed(2));
             }
         });
         
     </script>    
-    
+
+   
 <script type="text/javascript">
 $(document).ready(function(){
 	//first the balance is hidden until deposit checkbox is checked
@@ -62,7 +67,9 @@ $(document).ready(function(){
 	 $('.submitBtn').attr('disabled', true);
 		$('.items').change(function () {
 		    var a = $('.items').filter(":checked").length;
-		    if (a == 0) 
+		    var balance=$('#balance');
+		    var deductedAmount=$('#deductedAmount');
+		    if (a == 0 || (deductedAmount>balance)) 
 		        $('.submitBtn').attr('disabled', true);
 		    else 
 		    	 $('.submitBtn').attr('disabled', false);
@@ -74,10 +81,12 @@ $(document).ready(function(){
 	 var paidQty = document.getElementById("paidQty_"+j).value;
 	 var reqQty = document.getElementById("reqQty_"+j).value;
 	 $('.submitBtn').attr('disabled', false);
-	 if(paidQty > reqQty){
-	 $('.submitBtn').attr('disabled', true);
-	 alert("Qty paid cannot be greater than requested Qty!!");
-	 return false;
+	 if(paidQty <= reqQty){
+	 $('.submitBtn').attr('disabled', false);
+	 }
+	 else{
+		 $('.submitBtn').attr('disabled', true);
+		 alert("Qty paid cannot be greater than requested Qty!!"); 
 	 }
 	 
  }
@@ -126,25 +135,10 @@ function recalculateTotals() {
     $("#rest").val(sumPatient.toFixed(2));
     
     //update payable
-   // $("#tot").val(sumPatient.toFixed(2));
+   //$("#tot1").val(sumPatient.toFixed(2));
 }
 </script>
 
-<script type="text/javascript">
- function validatePayWithDeposit(){
-	 var deductedAmount = document.getElementById("deductedAmount").value;
-	 var balance = document.getElementById("balance").value;
-	 $('.submitBtn').attr('disabled', false);
-	
-	 if(deductedAmount > balance){
-	  $('.submitBtn').attr('disabled', true);
-	  alert("The balance is not sufficient...");
-	  return false;
-	 }
-	 
- }
-</script>
- 
 <h2>Patient Bill Payment</h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
@@ -166,7 +160,7 @@ function recalculateTotals() {
 
 <br/>
 <div class="box">
-	<form action="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment" onsubmit="validatePayWithDeposit(this)">
+	<form action="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment">
 		<table width="99%">
 			<tr>
 				<th class="columnHeader"></th>
@@ -203,7 +197,7 @@ function recalculateTotals() {
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">
 					<input type="hidden" value="${billItem.quantity}" id="reqQty_${billItem.patientServiceBillId}"/>
 					<c:if test="${pendingQty>0}">
-					<input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${pendingQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId});validateQties(${billItem.patientServiceBillId})" style="text-align: center;"/>
+					<input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${pendingQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId});validateQties(${billItem.patientServiceBillId})" style="text-align: center;" class="paying"/>
 					</c:if>
 					<c:if test="${pendingQty<=0}">
 					<input type="text" size="4" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="F.PAID" style="text-align: center;border: none;" disabled="disabled"/>
@@ -225,17 +219,17 @@ function recalculateTotals() {
 					</td>							
 					<td>
 					<c:if test="${pendingQty<=0}">
-					<input name="${fieldName}" class="items" value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox" checked="checked" disabled="disabled">
+					<input name="${fieldName}" class="items" value="${billItem.patientServiceBillId}" type="checkbox" checked="checked" disabled="disabled">
 					</c:if>
 					<c:if test="${pendingQty>0}">
-					<input name="${fieldName}" class="items" value="${(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}" type="checkbox">
+					<input name="${fieldName}" class="items" value="${billItem.patientServiceBillId}" type="checkbox">
 					</c:if>
 					</td>
 				</tr>
 				</c:if>
 			</c:forEach>		   
 			<tr>			
-			    <td colspan="6"> <p align="center" style="color: red; " id="tot"></p></td>   
+			   <td colspan="6"> <p align="center" style="color: red; " id="tot"></p></td>  
 				<td><div style="text-align: right;"><b>Total : </b></div></td>
 				<!-- 
 				<td><div class="amount"><fmt:formatNumber value="${totalBillInsurance}" type="number" pattern="#.##"/></div></td>

@@ -146,13 +146,14 @@ public class MohBillingPatientBillPaymentFormController extends
 				
 				if(request.getParameter("depositPayment")!=null){
 					BigDecimal deductedAmount = BigDecimal.valueOf(Double.parseDouble(request.getParameter("deductedAmount")));
-					
-					//update the patient account balance
 					PatientAccount patientAccount = PatientAccountUtil.getPatientAccountByPatient(consommation.getBeneficiary().getPatient());
+					//create deposit payment
+					if(deductedAmount.compareTo(patientAccount.getBalance())==-1){
+					//update the patient account balance
 					patientAccount.setBalance(patientAccount.getBalance().subtract(deductedAmount));
 					
 					//create transaction
-					Transaction transaction = PatientAccountUtil.createTransaction(deductedAmount.negate(), new Date(), new Date(), Context.getAuthenticatedUser(), patientAccount, "bill payment", Context.getAuthenticatedUser());
+					Transaction transaction = PatientAccountUtil.createTransaction(deductedAmount.negate(), new Date(), new Date(), Context.getAuthenticatedUser(), patientAccount, "Bill Payment", Context.getAuthenticatedUser());
 					
 					bp.setAmountPaid(deductedAmount);
 					DepositPayment dp = new DepositPayment(bp);
@@ -160,10 +161,11 @@ public class MohBillingPatientBillPaymentFormController extends
 					setParams(dp, Context.getAuthenticatedUser(), false, new Date());
 					dp.setTransaction(transaction);
 					
-					//create deposit payment
-					if(deductedAmount.compareTo(patientAccount.getBalance())<0){
 					dp =PatientBillUtil.createDepositPayment(dp);
 					createPaidServiceBill(request, consommation, dp);
+					
+					billPayment = dp;
+					
 					request.getSession().setAttribute(
 							WebConstants.OPENMRS_MSG_ATTR,
 							"The Bill Payment with deposit has been saved successfully !");
@@ -172,7 +174,6 @@ public class MohBillingPatientBillPaymentFormController extends
 						request.getSession().setAttribute(
 								WebConstants.OPENMRS_ERROR_ATTR,
 								"The Bill Payment is not saved. No sufficient balance !");
-					billPayment = dp;
 				} 
 
 				return billPayment;

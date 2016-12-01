@@ -42,11 +42,18 @@
 			</tr>
 			<tr>
 				<td>Reason </td>				
-				<td><input type="text" name="reason"/></td>
+				<!-- <td><input type="text" name="reason"/></td> -->
+				<td>
+				<select name="reason">
+						  <option value="deposit">Deposit</option>
+						  <option value="withdrawal">Withdrawal</option>
+				</select>
+				</td>
 			</tr>
 			<tr>
 				<td>Collector</td>
-				<td><openmrs_tag:userField formFieldName="collector" initialValue="${authUser.userId}"/></td>
+				<!--<td><openmrs_tag:userField formFieldName="collector" initialValue="${authUser.userId}"/></td> -->
+				<td><input type="text" name="collector" value="${authenticatedUser.username}" disabled="disabled"/></td>
 			</tr>
 			<tr>
 				<td>${param.type } Date</td>

@@ -55,7 +55,9 @@
 				<prop key="module/@MODULE_ID@/insuranceReport.form">mohBillingInsuranceReportController</prop>	
 				<prop key="module/@MODULE_ID@/thirdPartyReport.form">mohBillingThirdPartyReportController</prop>	
 				<prop key="module/@MODULE_ID@/viewRefundedItems.form">mohBillingViewRefundedItemsController</prop>
-				<prop key="module/@MODULE_ID@/viewGlobalBill.form">mohBillingViewGlobalBillController</prop>	
+				<prop key="module/@MODULE_ID@/viewGlobalBill.form">mohBillingViewGlobalBillController</prop>
+				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortBuilderFormController</prop>	
+				<prop key="module/@MODULE_ID@/depositReport.form">mohBillingDepositReportController</prop>	
 
 							
 			</props>
@@ -215,7 +217,12 @@
 	<bean id="mohBillingViewGlobalBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingViewGlobalBillController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingViewGlobalBill</value></property>
 	</bean>
-	
+	<bean id="mohBillingCohortBuilderFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCohortBuilderFormController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingCohortBuilderForm</value></property>
+	</bean>
+	<bean id="mohBillingDepositReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepositReportController">
+		<property name="viewName"><value>/module/mohbilling/mohBillingDepositReport</value></property>
+	</bean>
 	
 	
 	<bean parent="serviceContext">

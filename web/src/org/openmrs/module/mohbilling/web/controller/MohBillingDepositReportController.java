@@ -3,9 +3,7 @@ package org.openmrs.module.mohbilling.web.controller;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,20 +11,24 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
-import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
+import org.openmrs.module.mohbilling.businesslogic.DepositUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.DepartmentRevenues;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
+import org.openmrs.module.mohbilling.model.Transaction;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
-public class MohBillingServiceRevenueReportController extends
+public class MohBillingDepositReportController extends
 		ParameterizableViewController {
 	protected final Log log = LogFactory.getLog(getClass());
 	/* (non-Javadoc)
@@ -35,9 +37,9 @@ public class MohBillingServiceRevenueReportController extends
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
-		ModelAndView mav = new ModelAndView();
-		mav.setViewName(getViewName());
 		
+		
+		ModelAndView mav = new ModelAndView();
 		if (request.getParameter("formStatus") != null
 				&& !request.getParameter("formStatus").equals("")) {
 			String startDateStr = request.getParameter("startDate");
@@ -55,52 +57,49 @@ public class MohBillingServiceRevenueReportController extends
 			if(request.getParameter("cashCollector")!=null && !request.getParameter("cashCollector").equals(""))
 				collectorStr= request.getParameter("cashCollector");
 
+			if(request.getParameter("insuranceId")!=null && request.getParameter("insuranceId").equals(""))
+				insuranceStr = request.getParameter("insuranceId");
+
+			if(request.getParameter("thirdPartyId")!=null && !request.getParameter("thirdPartyId").equals(""))
+			 thirdPartyStr = request.getParameter("thirdPartyId");
 			
-			 // parameters
 			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
 			
 			 Date startDate = (Date) params[0];
 			 Date endDate = (Date) params[1];
 			 User collector =  (User) params[2];
-
-			
-			 List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate,collector);
-			 BigDecimal totalRevenueAmount = new BigDecimal(0);
 			 
-			 try {
-					 List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments);
-					 
-					 List<Department> allDepartments = DepartementUtil.getAllHospitalDepartements();
-					 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.servicesReportColumns");
-					 List<String> columns = new ArrayList<String>();
-					 for (HopService hopService : reportColumns) {
-						 columns.add(hopService.getName());
-					}
-					 
-					 List<DepartmentRevenues> departRevenues =  new ArrayList<DepartmentRevenues>();
-					 for (Department depart : allDepartments) {
-						 DepartmentRevenues dr=ReportsUtil.getRevenuesByDepartment(paidItems, depart,columns);
-						 if(dr!=null){
-						     departRevenues.add(dr);
-						     totalRevenueAmount=totalRevenueAmount.add(dr.getAmount());
-						 }
-					}
+			 String transactionType = request.getParameter("transactionType");
 
-					 mav.addObject("departmentsRevenues", departRevenues);	 
-					 mav.addObject("services", departRevenues.get(0).getPaidServiceRevenues());
-					 mav.addObject("totalRevenueAmount",totalRevenueAmount);
-					 mav.addObject("resultMsg", "Revenue Amount From "+startDateStr+" To "+ endDateStr);
-					
-			} catch (Exception e) {
-				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-						"No payment found !");
-				log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
+			 String reason="";
+			 if(transactionType.equals("deposit"))
+				 reason = "Deposit";
+			 else if(transactionType.equals("withdrawal"))
+				 reason = "Withdrawal";
+			 else if(transactionType.equals("billPayment"))
+				 reason="Bill Payment";
+			 
+			List<Transaction> transactions = DepositUtil.getTransactions(startDate, endDate, collector, reason);
+
+			BigDecimal total = new BigDecimal(0);
+			 for (Transaction trans : transactions) {
+				 total=total.add(trans.getAmount());
 			}
 
+			 //try {
+				mav.addObject("transactions", transactions);
+				mav.addObject("total", total);
+				mav.addObject("reason", reason);
+				
+			/*} catch (Exception e) {
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+						"No transaction found !");
+				log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
+			}*/
+
 	}	
-			
+		mav.setViewName(getViewName());
 		return mav;
 	}
 
-	
 }

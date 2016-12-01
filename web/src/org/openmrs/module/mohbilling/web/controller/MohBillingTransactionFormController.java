@@ -72,8 +72,8 @@ public class MohBillingTransactionFormController extends
 			transaction.setCreator(Context.getAuthenticatedUser());
 			transaction.setPatientAccount(account);
 			transaction.setReason(request.getParameter("reason"));
-			transaction.setCollector(Context.getUserService().getUser(Integer.valueOf(request.getParameter("collector"))));	
-			
+			/*transaction.setCollector(Context.getUserService().getUser(Integer.valueOf(request.getParameter("collector"))));	*/
+			transaction.setCollector(Context.getAuthenticatedUser());	
 			PatientAccountUtil.createTransaction(transaction);	
 			
 			

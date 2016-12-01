@@ -45,8 +45,8 @@
 		<c:if test="${not globalBill.admission.isAdmitted}">
 		<td> : <b>OPD</b></td>
 		</c:if>
-		<td>Admission Date</td><td> : <b>${admissionDate}</b></td>
-		<td>Discharge Date</td><td> : <b>${dischargingDate}</b></td>
+		<td>Admission Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${admissionDate}" /></b></td> 
+		<td>Discharge Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${dischargingDate}" /></b></td>
 		</tr>
 
 	</table>
@@ -84,6 +84,7 @@
       	 <c:set var="totalInsurance" value="0"/>
          <c:set var="totalTM" value="0"/>
        <c:forEach items="${serviceRevenueList}" var="sr" varStatus="status">
+       <c:if test="${sr.dueAmount !=0 }">
        <tr>
        <td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
        <td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
@@ -97,12 +98,12 @@
            <c:set var="totalByCategory100" value="0"/>
       	   <c:set var="totalByCategoryInsurance" value="0"/>
            <c:set var="totalByCategoryTM" value="0"/>
-              
+          
          <c:forEach items="${sr.billItems}" var="item" varStatus="status">
          <c:set var="itemCost" value="${item.quantity*item.unitPrice}"/>
          <tr>
          <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
-         <td class="rowValue ${(status.count%2!=0)?'even':''}">${item.serviceDate }</td>
+         <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd" value="${item.serviceDate}" /></td>
          <td class="rowValue ${(status.count%2!=0)?'even':''}">${item.service.facilityServicePrice.name }</td>
          <td class="rowValue ${(status.count%2!=0)?'even':''}">${item.quantity }</td>
          <td class="rowValue ${(status.count%2!=0)?'even':''}">${item.unitPrice }</td>
@@ -130,6 +131,7 @@
            <td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategoryInsurance}" type="number" pattern="#.##"/></b></td>
            <td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategoryTM}" type="number" pattern="#.##"/></b></td>
            </tr>
+        </c:if>
        </c:forEach>
 	<tr>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}"><b>TOTAL</b></td>

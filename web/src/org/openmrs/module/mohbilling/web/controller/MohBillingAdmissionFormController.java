@@ -42,7 +42,7 @@ public class MohBillingAdmissionFormController extends
 			List<Admission> admissions =  AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
 			List<GlobalBill> globalBills = new ArrayList<GlobalBill>();
 			for (Admission ad : admissions) {
-				if(ad.getDischargingDate()==null)
+				//if(ad.getDischargingDate()==null)
 					globalBills.add(Context.getService(BillingService.class).getGlobalBillByAdmission(ad));
 			}
 			mav.addObject("globalBills", globalBills);
@@ -111,6 +111,7 @@ public class MohBillingAdmissionFormController extends
 		
 	    mav.addObject("discharge", discharge);
 		mav.addObject("insurancePolicy", ip);
+		log.info("uuuuuuuuuuuuuuuuuooooooooooooooooooooooooooooo "+ip.getAdmissions().size());
 		if(ip.getAdmissions()!=null)
 		mav.addObject("admissions", ip.getAdmissions());
 		mav.setViewName(getViewName());

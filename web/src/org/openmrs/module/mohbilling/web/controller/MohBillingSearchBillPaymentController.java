@@ -4,13 +4,16 @@
 package org.openmrs.module.mohbilling.web.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
@@ -18,6 +21,7 @@ import org.openmrs.module.mohbilling.businesslogic.PaymentRefundUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -43,12 +47,16 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 		BillPayment payment = null;
 		Consommation consommation = null;
 		
-     //try {
+//     try {
     	  if(request.getParameter("paymentId")!=null && !request.getParameter("paymentId").equals("") ){
        	   
        	   payment = BillPaymentUtil.getBillPaymentById(Integer.parseInt(request.getParameter("paymentId")));
        	   consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());    	   
        	   List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+       	   
+       	   if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+       		   paidItems=BillPaymentUtil.getOldPayments(payment);
+       	   }
 
        	   mav.addObject("paidItems", paidItems); 
        	   mav.addObject("payment", payment);
@@ -85,10 +93,7 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 
 	/*} catch (Exception e) {
 		log.error(e.getMessage());
-	}
- */
-
-	
-		return mav;
+	}*/
+ 		return mav;
 	}
 }

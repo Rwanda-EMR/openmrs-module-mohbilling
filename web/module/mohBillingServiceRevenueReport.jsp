@@ -1,6 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
-
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <openmrs:htmlInclude
 	file="/moduleResources/@MODULE_ID@/scripts/jquery-1.3.2.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
@@ -25,7 +25,7 @@
 
 
 <style>
- .insurances, .thirdParties,.time,.collector {
+ .insurances, .thirdParties,.time,.collector,.billCreator,.billStatus,.deposit,.paymentType {
     display: none;
 } 
 a.print {
@@ -47,7 +47,7 @@ a.print {
 <c:if test="${not empty departmentsRevenues }">
 <br/>
 <b class="boxHeader">
-${resultMsg } : <b style="color: black;font: bold;">${totalRevenueAmount }FRW</b>
+${resultMsg } : <b style="color: black;font: bold;"><fmt:formatNumber value="${totalRevenueAmount}" type="number" pattern="#.##"/> FRW</b>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
@@ -72,9 +72,9 @@ ${resultMsg } : <b style="color: black;font: bold;">${totalRevenueAmount }FRW</b
 	 <td>${status.count}.</td>
 	 <td>${dsr.department.name}</td>
 	  <c:forEach items="${dsr.paidServiceRevenues}" var="sr" varStatus="status">
-		 <td>${sr.paidAmount}</td>
+		 <td><fmt:formatNumber value="${sr.paidAmount}" type="number" pattern="#.##"/></td>
 	  </c:forEach>
-	  <td><b>${dsr.amount }</b></td>
+	  <td><b><fmt:formatNumber value="${dsr.amount}" type="number" pattern="#.##"/></b></td>
 	</tr>
 	</c:forEach>
 </table>

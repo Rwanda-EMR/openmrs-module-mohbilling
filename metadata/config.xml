@@ -270,18 +270,6 @@
         <name>Billing Reports - View Payments</name>
         <description>Allows users to view Payments Report</description>
     </privilege>
-    <privilege>
-        <name>Billing Reports - View Revenue</name>
-        <description>Allows users to view Revenue Report</description>
-    </privilege>
-    <privilege>
-        <name>Billing Reports - View Invoice</name>
-        <description>Allows users to view Invoice Report</description>
-    </privilege>
-    <privilege>
-        <name>Billing Reports - View Releve</name>
-        <description>Allows users to view Releve Report</description>
-    </privilege>
     
     <privilege>
         <name>Billing Report - View Cashier Report</name>
@@ -306,6 +294,11 @@
     <privilege>
         <name>Billing Report - View Third Party Report</name>
         <description>Allows users to view Third Party Report</description>
+    </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Deposit Report</name>
+        <description>Allows users to view Deposit Report</description>
     </privilege>
     
     <!-- Payment Refund -->
