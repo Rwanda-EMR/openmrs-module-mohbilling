@@ -47,7 +47,7 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 		BillPayment payment = null;
 		Consommation consommation = null;
 		
-//     try {
+     try {
     	  if(request.getParameter("paymentId")!=null && !request.getParameter("paymentId").equals("") ){
        	   
        	   payment = BillPaymentUtil.getBillPaymentById(Integer.parseInt(request.getParameter("paymentId")));
@@ -91,9 +91,9 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
           }
     	  
 
-	/*} catch (Exception e) {
+	} catch (Exception e) {
 		log.error(e.getMessage());
-	}*/
+	}
  		return mav;
 	}
 }

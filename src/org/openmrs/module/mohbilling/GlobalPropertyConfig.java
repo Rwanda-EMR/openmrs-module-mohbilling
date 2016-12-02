@@ -52,12 +52,17 @@ public class GlobalPropertyConfig {
 		 */
 		public static List<HopService> getHospitalServiceByCategory(String categ){
 			List<HopService> services = new ArrayList<HopService>();
-			  StringTokenizer tokenizer = new StringTokenizer(getHospitalServiceByCateg(categ),",");
-			  while (tokenizer.hasMoreTokens()) {
-			   Integer serviceId = Integer.parseInt(tokenizer.nextToken());
-			   HopService service =HopServiceUtil.getHopServiceById(serviceId);
-			   services.add(service);
-			        }
+			try {
+				  StringTokenizer tokenizer = new StringTokenizer(getHospitalServiceByCateg(categ),",");
+				  while (tokenizer.hasMoreTokens()) {
+				   Integer serviceId = Integer.parseInt(tokenizer.nextToken());
+				   HopService service =HopServiceUtil.getHopServiceById(serviceId);
+				   services.add(service);
+					System.out.println("rrrrrrrrrrrrrrrrrrrrrrrrrrrrruuuuuuuuuuuuuuuuuuuuuuuuuouyt "+services);
+				        }
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
 			  return services;
 		}
 		 /**

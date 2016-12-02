@@ -87,7 +87,8 @@ public class BillPaymentUtil {
 
 	public static List<PaidServiceBill> getPaidItemsByBillPayments(
 			List<BillPayment> payments) {
-		return  getService().getPaidItemsByBillPayments(payments);
+		List<PaidServiceBill> paidItems = getService().getPaidItemsByBillPayments(payments);
+		return paidItems;
 	}
 
 	public static List<PaymentRefund> getRefundsByBillPayment(BillPayment payment){
@@ -95,9 +96,8 @@ public class BillPaymentUtil {
 	}
 	
 	public static List<PaidServiceBill> getOldPayments(BillPayment payment){
-		List<PaidServiceBill> paidItems=null;
+		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();;
 		Consommation consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());
-       		   paidItems=new ArrayList<PaidServiceBill>();
        		   for (PatientServiceBill psb : consommation.getBillItems()) {
        			   PaidServiceBill paidSb = new PaidServiceBill();
        			   paidSb.setPaidQty(psb.getQuantity());
@@ -106,12 +106,32 @@ public class BillPaymentUtil {
        			   paidSb.setCreatedDate(payment.getCreatedDate());			
        			   paidSb.setVoided(payment.getVoided());
        			   paidSb.setBillItem(psb);
-       			   BillPaymentUtil.createPaidServiceBill(paidSb);
+       			  // BillPaymentUtil.createPaidServiceBill(paidSb);
        			   paidItems.add(paidSb);
        	   }
     	return paidItems;
 	}
-
+	
+/*	public static List<PaidServiceBill> getPaidItems(List<BillPayment> payments){
+		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
+		 for (BillPayment payment : payments) {
+			Consommation consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());
+			  for (PatientServiceBill psb : consommation.getBillItems()) {
+				 PaidServiceBill paidSb = new PaidServiceBill();
+   			   paidSb.setPaidQty(psb.getQuantity());
+   			   paidSb.setBillPayment(payment);
+   			   paidSb.setCreator(payment.getCreator());
+   			   paidSb.setCreatedDate(payment.getCreatedDate());			
+   			   paidSb.setVoided(payment.getVoided());
+   			   paidSb.setBillItem(psb);
+   			   BillPaymentUtil.createPaidServiceBill(paidSb);
+   			   paidItems.add(paidSb);
+			}
+			
+		}
+		 return paidItems;
+	}*/
+	
 	
 
 }
