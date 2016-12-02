@@ -207,10 +207,10 @@ public class FileExporter {
 		BigDecimal totalPaid = new BigDecimal(0.0);
 		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
 		
-    	   if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+/*    	   if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
        		   paidItems=BillPaymentUtil.getOldPayments(payment);
        	   }
-		 
+		 */
 		for (PaidServiceBill service: paidItems) {	
 			number++; 
 			
@@ -243,9 +243,9 @@ public class FileExporter {
 		
 		PdfPTable serviceTotPat = new PdfPTable(4);
 		PdfPCell c1 = new PdfPCell(boldFont.process("Due Amount: "+consommation.getPatientBill().getAmount()));
-		 if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+/*		 if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
 			 c1 = new PdfPCell(boldFont.process("Due Amount: "+consommation.getPatientBill().getAmount().multiply(patientRate).divide(new BigDecimal(100))));
-		 }
+		 }*/
 		c1.setBorder(Rectangle.NO_BORDER); 
 		serviceTotPat.addCell(c1);
 		
