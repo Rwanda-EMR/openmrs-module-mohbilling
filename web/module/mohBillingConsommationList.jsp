@@ -30,6 +30,7 @@
 		<tr>
 			<th>#.</th>
 			<th>Consom ID</th>
+			<th>Service</th>
 			<th>created By</th>
 			<th>card No</th>			
 			<th>Insurance due</th>
@@ -44,6 +45,7 @@
 			<tr>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.consommationId}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.department.name}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.creator.personName}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.beneficiary.policyIdNumber}</td>								
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.insuranceBill.amount}</td>
@@ -55,6 +57,7 @@
 				<c:if test="${not consommation.globalBill.closed }">
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&edit=true">Edit Qty</a></td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
+								<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&removeItem=true">Remove Item</a></td>
 				</c:if>
 			</tr>						
 		</c:forEach>

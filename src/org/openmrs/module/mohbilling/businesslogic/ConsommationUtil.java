@@ -4,6 +4,7 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -163,7 +164,8 @@ public class ConsommationUtil {
 			existingConsom = ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId")));
 			numberOfServicesClicked = billItems.length;
 			// Get 100% of the Ticket Moderateur
-			totalAmount=existingConsom.getPatientBill().getAmount().divide(patientRate);
+			//totalAmount=existingConsom.getPatientBill().getAmount().divide(patientRate);
+			totalAmount=existingConsom.getPatientBill().getAmount().divide(patientRate,2,RoundingMode.HALF_UP);
 		}
 
 		//add new consommation
@@ -195,6 +197,9 @@ public class ConsommationUtil {
 					voidedItemTotalAmount = voidedItemTotalAmount.add(voidedItemAmount);
 					addedItemTotalAmount=addedItemTotalAmount.add(newItemAmount);
 					message="Items' quantities have been changed succefully...";
+					
+					System.out.println("hhhhhhhhhhhhhhhhhhhoooooooooooooooooooooooooooooooooo "+request.getParameter("removeItem"));
+					
 				}
 				else if(billItems==null){
 					if(request.getParameter("billableServiceId_" + i)!=null&&request.getParameter("quantity_" + i)!=null&&request.getParameter("servicePrice_" + i)!=null){

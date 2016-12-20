@@ -112,6 +112,25 @@ public class BillPaymentUtil {
     	return paidItems;
 	}
 	
+	public static List<PaidServiceBill> getOldPaidItems(List<BillPayment> payments){
+		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
+		for (BillPayment bp : payments) {
+			Consommation consommation = ConsommationUtil.getConsommationByPatientBill(bp.getPatientBill());
+			 for (PatientServiceBill psb : consommation.getBillItems()) {
+     			   PaidServiceBill paidSb = new PaidServiceBill();
+     			   paidSb.setPaidQty(psb.getQuantity());
+     			   paidSb.setBillPayment(bp);
+     			   paidSb.setCreator(bp.getCreator());
+     			   paidSb.setCreatedDate(bp.getCreatedDate());			
+     			   paidSb.setVoided(bp.getVoided());
+     			   paidSb.setBillItem(psb);
+     			  // BillPaymentUtil.createPaidServiceBill(paidSb);
+     			   paidItems.add(paidSb);
+     	   }
+		}	  
+    	return paidItems;
+	}
+	
 /*	public static List<PaidServiceBill> getPaidItems(List<BillPayment> payments){
 		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
 		 for (BillPayment payment : payments) {

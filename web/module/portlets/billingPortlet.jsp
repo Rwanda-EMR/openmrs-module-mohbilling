@@ -16,9 +16,14 @@
 		<tr>
 			<c:forEach items="${policies}" var="policy">
 				<tr>
+				
 					<td>${policy[0]}:</td>
+					<!-- <td><b><a
+					href="${pageContext.request.contextPath}/module/mohbilling/billing.form?insurancePolicyId=&ipCardNumber=${policy[1]}">${policy[1]}</a></b>
+					</td> -->
 					<td><b><a
-							href="${pageContext.request.contextPath}/module/mohbilling/billing.form?insurancePolicyId=&ipCardNumber=${policy[1]}">${policy[1]}</a></b></td>
+					href="${pageContext.request.contextPath}/module/mohbilling/globalBill.list?insurancePolicyId=${policy[2]}&ipCardNumber=${policy[1]}">${policy[1]}</a></b>
+					</td>
 				</tr>
 			</c:forEach>
 	</table>

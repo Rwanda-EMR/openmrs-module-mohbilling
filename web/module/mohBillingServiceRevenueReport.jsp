@@ -55,7 +55,7 @@ ${resultMsg } : <b style="color: black;font: bold;"><fmt:formatNumber value="${t
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-<a href="#" class="print">PDF</a></b>
+<a href="serviceRevenueReport.form?print=true" class="print">PDF</a></b>
 <div class="box">
 <table style="width:70%">
 	<tr>

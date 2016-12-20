@@ -57,13 +57,13 @@ ${reportMsg} : <b style="color: black;font: bold;"><fmt:formatNumber value="${to
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-<a href="#" class="print">PDF</a></b>
+<a href="cashierReport.form?print=true" class="print">PDF</a></b>
 <div class="box">
 <table style="width:70%">
 	<tr>
 		<th class="columnHeader">#.</th>
 		<th class="columnHeader">Service Name</th>	
-		<th class="columnHeader">Due Amount</th>
+		<th class="columnHeader">Amount</th>
 	</tr>
 
 	<c:forEach items="${paidServiceRevenues}" var="psr" varStatus="status">

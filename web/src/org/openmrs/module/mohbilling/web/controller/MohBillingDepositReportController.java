@@ -15,9 +15,11 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.DepositUtil;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.DepartmentRevenues;
 import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
@@ -80,7 +82,7 @@ public class MohBillingDepositReportController extends
 				 reason="Bill Payment";
 			 
 			List<Transaction> transactions = DepositUtil.getTransactions(startDate, endDate, collector, reason);
-
+			request.getSession().setAttribute("transactions" , transactions);
 			BigDecimal total = new BigDecimal(0);
 			 for (Transaction trans : transactions) {
 				 total=total.add(trans.getAmount());
@@ -99,6 +101,12 @@ public class MohBillingDepositReportController extends
 
 	}	
 		mav.setViewName(getViewName());
+		if(request.getParameter("printPdf")!=null){
+			List<Transaction> transactions =  (List<Transaction>) request.getSession().getAttribute("transactions" );
+			 FileExporter fexp = new FileExporter();
+				String fileName = "cashier_daily_report.pdf";
+			    fexp.printDepositReport(request, response, transactions, fileName);
+		}	
 		return mav;
 	}
 

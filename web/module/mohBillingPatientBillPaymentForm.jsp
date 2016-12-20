@@ -280,6 +280,7 @@ function recalculateTotals() {
 			   </td>		
 			</tr>
 		
+			<openmrs:hasPrivilege privilege="Billing Reports - View Payments">
 			<tr>
 				<td><b>Pay with deposit</b></td>
 				<td><input type="checkbox" id="depositCheckbox" name="depositPayment" value="depositPayment"> </td>
@@ -300,7 +301,8 @@ function recalculateTotals() {
 			  </tr>
 			  </table>
 			  </td>				
-			</tr>			
+			</tr>	
+			</openmrs:hasPrivilege>
 			<tr>
 				<td colspan="7"><hr/></td>
 			</tr>			

@@ -110,7 +110,6 @@ public class MohBillingBillingFormController extends
 					Set<String> servicesByDepartment =null;
 					if(GlobalPropertyConfig.getListOfHopServicesByDepartment(depart)!=null){
 					servicesByDepartment = GlobalPropertyConfig.getListOfHopServicesByDepartment(depart);
-					log.info("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy111 "+servicesByDepartment.size());
 					 if(servicesByDepartment.size()!=0)
 						 request.getSession().setAttribute(
 									WebConstants.OPENMRS_MSG_ATTR,"Available service categories in "+depart.getName()+" department ");
