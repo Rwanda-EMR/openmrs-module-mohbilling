@@ -1,6 +1,7 @@
 package org.openmrs.module.mohbilling.web.controller;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,12 +17,14 @@ import org.openmrs.User;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.DepartmentRevenues;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -85,11 +88,13 @@ public class MohBillingServiceRevenueReportController extends
 						     totalRevenueAmount=totalRevenueAmount.add(dr.getAmount());
 						 }
 					}
-
+					 request.getSession().setAttribute("departRevenues" , departRevenues);
+						
 					 mav.addObject("departmentsRevenues", departRevenues);	 
 					 mav.addObject("services", departRevenues.get(0).getPaidServiceRevenues());
 					 mav.addObject("totalRevenueAmount",totalRevenueAmount);
 					 mav.addObject("resultMsg", "Revenue Amount From "+startDateStr+" To "+ endDateStr);
+					 
 					
 			} catch (Exception e) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
@@ -98,7 +103,14 @@ public class MohBillingServiceRevenueReportController extends
 			}
 
 	}	
-			
+		if(request.getParameter("print")!=null){
+			List<DepartmentRevenues> departRevenues  = (List<DepartmentRevenues>) request.getSession().getAttribute("departRevenues" );
+			 //String msg = (String) request.getSession().getAttribute("msg" );
+			 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			 FileExporter fexp = new FileExporter();
+				String fileName = "ServiceRep"+df.format(new Date())+".pdf";
+			    fexp.printServicesRevenuesReport(request, response, departRevenues, fileName);
+		}	
 		return mav;
 	}
 

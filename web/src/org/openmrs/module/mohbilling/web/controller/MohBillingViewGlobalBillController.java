@@ -13,6 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
@@ -68,11 +69,18 @@ public class MohBillingViewGlobalBillController extends
 			serviceRevenueList.add(autreRevenue);
 			
 			mav.addObject("globalBill", globalBill);
+			request.getSession().setAttribute("globalBill" , globalBill);
 
 		}
 		mav.addObject("serviceRevenueList", serviceRevenueList);
+		request.getSession().setAttribute("serviceRevenueList" , serviceRevenueList);
 		
-		
+		if(request.getParameter("print")!=null){
+			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.valueOf(request.getParameter("globalBillId" )));
+			FileExporter exp = new FileExporter();
+			List<ServiceRevenue> sr = (List<ServiceRevenue>) request.getSession().getAttribute("serviceRevenueList" );
+			exp.printGlobalBill(request, response, gb,sr, ""+gb.getBillIdentifier());
+		}
 
 		return mav;
 	}

@@ -1,12 +1,16 @@
 package org.openmrs.module.mohbilling.web.controller;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,6 +19,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.ParametersConversion;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
@@ -119,6 +124,9 @@ public class MohBillingCashierReportController extends
 	 			mav.addObject("totalReceivedAmount", totalReceivedAmount);
 				mav.addObject("paidServiceRevenues", paidServiceRevenues);
 				
+				request.getSession().setAttribute("paidServiceRevenues" , paidServiceRevenues);
+				request.getSession().setAttribute("totalReceivedAmount", totalReceivedAmount);
+				
 			} catch (Exception e) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 						"No payment found !");
@@ -129,6 +137,15 @@ public class MohBillingCashierReportController extends
 		mav.addObject("insurances",InsuranceUtil.getAllInsurances());
 		mav.addObject("thirdParties",Context.getService(BillingService.class).getAllThirdParties());
 		mav.setViewName(getViewName());
+		
+		if(request.getParameter("print")!=null){
+			 List<PaidServiceRevenue> paidServiceRevenues = (List<PaidServiceRevenue>) request.getSession().getAttribute("paidServiceRevenues" );
+			 BigDecimal amount = (BigDecimal)request.getSession().getAttribute("totalReceivedAmount");
+			 FileExporter fexp = new FileExporter();
+			 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+				String fileName = "cashier_daily_report_on_"+df.format(new Date())+".pdf";
+			    fexp.printCashierReport(request, response, amount,paidServiceRevenues, fileName);
+		}
 		return mav;
 }
 }

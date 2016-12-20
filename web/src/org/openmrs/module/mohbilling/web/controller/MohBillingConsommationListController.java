@@ -41,16 +41,12 @@ public class MohBillingConsommationListController extends	ParameterizableViewCon
 		String  insuranceCardNo =request.getParameter("ipCardNumber");
 		InsurancePolicy ip = Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNo);
 		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
-		
 		List<Consommation> consommations = ConsommationUtil.getConsommationsByGlobalBill(globalBill);
 		mav.addObject("insurancePolicy", ip);
 		mav.addObject("globalBill", globalBill);
 		mav.addObject("consommations", consommations);		
 		mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(ip.getOwner()));
 		
-		if(request.getParameter("consommation")!=null && !request.getParameter("consommation").equals("")){
-			log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+request.getParameter("consommation"));
-		}
 		mav.setViewName(getViewName());	
 		
 		return mav;

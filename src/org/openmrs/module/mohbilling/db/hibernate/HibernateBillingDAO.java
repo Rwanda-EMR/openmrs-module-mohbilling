@@ -43,6 +43,8 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
@@ -686,7 +688,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		return (List<String[]>) sessionFactory
 				.getCurrentSession()
 				.createSQLQuery(
-						"SELECT ins.name, b.policy_id_number"
+						"SELECT ins.name, b.policy_id_number,b.insurance_policy_id"
 								+ " FROM moh_bill_beneficiary b INNER JOIN moh_bill_insurance_policy ip"
 								+ " ON b.insurance_policy_id = ip.insurance_policy_id INNER JOIN moh_bill_insurance ins"
 								+ " ON ip.insurance_id = ins.insurance_id WHERE b.patient_id ="
@@ -1206,7 +1208,8 @@ public class HibernateBillingDAO implements BillingDAO {
 		@Override
 		public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill) {			
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Consommation.class);
-			               crit.add(Restrictions.eq("globalBill", globalBill));			
+			               crit.add(Restrictions.eq("globalBill", globalBill));	
+			               log.info("jjjjjjjjjjJJJJJJJJJJJJJJJJJJJJJJJJJJ "+crit.list());
 			return crit.list();
 		}
 		/* (non-Javadoc)
@@ -1364,7 +1367,19 @@ public class HibernateBillingDAO implements BillingDAO {
 		public List<PaidServiceBill> getPaidItemsByBillPayments(List<BillPayment> payments) {
 			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class);
 	      		criteria.add(Restrictions.in("billPayment", payments));
-			return criteria.list();
+	      		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
+	      		paidItems = criteria.list();
+
+	      		List<PaidServiceBill> oldItems = BillPaymentUtil.getOldPaidItems(payments);
+	      		if(oldItems!=null){
+	      				for (PaidServiceBill ps : oldItems) {
+	      					Consommation consommation = ps.getBillItem().getConsommation();
+	    	      			if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+	    	      				paidItems.add(ps);
+						     }
+	      			      }
+		         }
+			return paidItems;
 			
 		}
 
