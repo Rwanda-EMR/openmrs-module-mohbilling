@@ -26,6 +26,7 @@ import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.DepartmentRevenues;
 import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
@@ -223,10 +224,10 @@ public class FileExporter {
 		BigDecimal totalPaid = new BigDecimal(0.0);
 		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
 		
-/*    	   if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+  	   if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
        		   paidItems=BillPaymentUtil.getOldPayments(payment);
        	   }
-		 */
+		
 		for (PaidServiceBill service: paidItems) {	
 			number++; 
 			
@@ -1069,4 +1070,67 @@ public class FileExporter {
 		 
 		document.add(table);
 	}
+		//export to excel
+		public static void exportData(HttpServletRequest request, HttpServletResponse response, Insurance insurance, List<String> columns,List<AllServicesRevenue> listOfAllServicesRevenue)throws Exception,
+			    Exception {
+			    
+			Date date = new Date();
+			SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+				
+			PrintWriter op = response.getWriter();
+			
+			response.setContentType("text/plain");
+			response.setHeader("Content-Disposition", "attachment; filename=\"releve_"+f.format(date)+".csv\"");
+					
+			op.println(""+Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+			op.println(""+Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+			op.println(""+Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+			op.println();
+			op.println();
+
+			
+			op.println(","+","+","+"SUMMARY OF VOUCHERS FOR "+insurance.getName());
+			op.println();
+			op.println();
+			
+			op.print("#,Date,Card NUMBER,AGE,GENDER,BENEFICIARY'S NAMES");
+			for (String col : columns) {
+				op.print(","+col);
+			}
+			Float insRate = insurance.getCurrentRate().getRate();
+			
+			op.print(",100%");
+			op.print(","+insRate+"%");
+			op.println(","+(100-insRate.floatValue())+"%");
+			
+			
+			int i=0;
+			for (AllServicesRevenue asr : listOfAllServicesRevenue) {
+				Consommation c = asr.getConsommation();
+				Float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+				Float insuranceDue = asr.getAllDueAmounts().floatValue()*insuranceRate/100;
+				Float patientDue= asr.getAllDueAmounts().floatValue()*((100-insuranceRate)/100);
+				i++;
+				op.print(i
+						+","+f.format(c.getCreatedDate())
+						+","+c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+						+","+c.getBeneficiary().getPatient().getAge()
+						+","+c.getBeneficiary().getPatient().getGender()
+						+","+c.getBeneficiary().getPatient().getPersonName()
+						);
+				for (ServiceRevenue r : asr.getRevenues()) {
+					if(r!=null)
+					op.print(","+ReportsUtil.roundTwoDecimals(r.getDueAmount().floatValue()*100/(100-insuranceRate)));
+					else
+						op.print(","+0);
+				}
+				op.print(","+ReportsUtil.roundTwoDecimals(asr.getAllDueAmounts().doubleValue())+","+ReportsUtil.roundTwoDecimals(insuranceDue)+","+ReportsUtil.roundTwoDecimals(patientDue));
+				op.println();
+			}
+			op.println();
+			
+			op.flush();
+			op.close();
+
+        }
 	}

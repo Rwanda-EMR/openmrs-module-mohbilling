@@ -54,17 +54,17 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
        	   consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());    	   
        	   List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
        	   
-       	  /* if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+       	   if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
        		   paidItems=BillPaymentUtil.getOldPayments(payment);
        	   }
-*/
+
        	   mav.addObject("paidItems", paidItems); 
        	   mav.addObject("payment", payment);
        	   mav.addObject("consommation",consommation); 
        	   mav.addObject("insurancePolicy",consommation.getBeneficiary().getInsurancePolicy()); 
        	   mav.addObject("beneficiary",consommation.getBeneficiary()); 
        	   
-             List<PaymentRefund> submittedRefunds = PaymentRefundUtil.getAllSubmittedPaymentRefunds();
+            List<PaymentRefund> submittedRefunds = PaymentRefundUtil.getAllSubmittedPaymentRefunds();
       		List<PaymentRefund> pendingRefunds = new ArrayList<PaymentRefund>();
       		List<PaymentRefund> checkedRefundsByChief = new ArrayList<PaymentRefund>();
       		

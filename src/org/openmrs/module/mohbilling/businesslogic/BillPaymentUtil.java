@@ -3,6 +3,7 @@ package org.openmrs.module.mohbilling.businesslogic;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -107,6 +108,7 @@ public class BillPaymentUtil {
        			   paidSb.setVoided(payment.getVoided());
        			   paidSb.setBillItem(psb);
        			  // BillPaymentUtil.createPaidServiceBill(paidSb);
+       			   if(!paidItems.contains(paidSb))
        			   paidItems.add(paidSb);
        	   }
     	return paidItems;
@@ -115,6 +117,7 @@ public class BillPaymentUtil {
 	public static List<PaidServiceBill> getOldPaidItems(List<BillPayment> payments){
 		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
 		for (BillPayment bp : payments) {
+			//paidItems = new ArrayList<PaidServiceBill>();
 			Consommation consommation = ConsommationUtil.getConsommationByPatientBill(bp.getPatientBill());
 			 for (PatientServiceBill psb : consommation.getBillItems()) {
      			   PaidServiceBill paidSb = new PaidServiceBill();
@@ -131,25 +134,13 @@ public class BillPaymentUtil {
     	return paidItems;
 	}
 	
-/*	public static List<PaidServiceBill> getPaidItems(List<BillPayment> payments){
-		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
+	public static BigDecimal getTotalPaid(List<BillPayment> payments){
+		BigDecimal totalPaid = new BigDecimal(0);
 		 for (BillPayment payment : payments) {
-			Consommation consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());
-			  for (PatientServiceBill psb : consommation.getBillItems()) {
-				 PaidServiceBill paidSb = new PaidServiceBill();
-   			   paidSb.setPaidQty(psb.getQuantity());
-   			   paidSb.setBillPayment(payment);
-   			   paidSb.setCreator(payment.getCreator());
-   			   paidSb.setCreatedDate(payment.getCreatedDate());			
-   			   paidSb.setVoided(payment.getVoided());
-   			   paidSb.setBillItem(psb);
-   			   BillPaymentUtil.createPaidServiceBill(paidSb);
-   			   paidItems.add(paidSb);
+			 totalPaid=totalPaid.add(payment.getAmountPaid());
 			}
-			
-		}
-		 return paidItems;
-	}*/
+		 return totalPaid;
+	}
 	
 	
 

@@ -118,14 +118,14 @@ public class MohBillingCashierReportController extends
 	     			 PaidServiceRevenue psr= ReportsUtil.getPaidServiceRevenue(paidItems,hs.getName());
 					if(psr!=null){
 						paidServiceRevenues.add(psr);
-						totalReceivedAmount=totalReceivedAmount.add(psr.getPaidAmount());
+						//totalReceivedAmount=totalReceivedAmount.add(psr.getPaidAmount());
 					}
 				}
-	 			mav.addObject("totalReceivedAmount", totalReceivedAmount);
+	 			mav.addObject("totalReceivedAmount", BillPaymentUtil.getTotalPaid(payments));
 				mav.addObject("paidServiceRevenues", paidServiceRevenues);
 				
 				request.getSession().setAttribute("paidServiceRevenues" , paidServiceRevenues);
-				request.getSession().setAttribute("totalReceivedAmount", totalReceivedAmount);
+				request.getSession().setAttribute("totalReceivedAmount", BillPaymentUtil.getTotalPaid(payments));
 				
 			} catch (Exception e) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
