@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.AdmissionUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
@@ -67,6 +68,7 @@ public class MohBillingInsuranceReportController extends
 			 
 			 Insurance insurance = InsuranceUtil.getInsurance(Integer.valueOf(request.getParameter("insuranceId")));
 			 Float insuranceRate=insurance.getCurrentRate().getRate();
+			 Float patientRate = 100-insuranceRate;
 
          	BigDecimal total100 = new BigDecimal(0);
 
@@ -148,6 +150,10 @@ public class MohBillingInsuranceReportController extends
 					if(!columns.contains("PROCEDURES"))
 					 columns.add("PROCED.");
 		
+					request.getSession().setAttribute("columns" , columns);
+					request.getSession().setAttribute("listOfAllServicesRevenue" , listOfAllServicesRevenue);
+					request.getSession().setAttribute("insurance" , insurance);
+					
 					mav.addObject("columns", columns);
 					mav.addObject("totals", totals);
 		    		mav.addObject("listOfAllServicesRevenue", listOfAllServicesRevenue);
@@ -158,6 +164,12 @@ public class MohBillingInsuranceReportController extends
 	}
 		 mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 	
+		 if(request.getParameter("export")!=null){
+			 List<String> columns = (List<String>) request.getSession().getAttribute("columns");
+			 List<AllServicesRevenue> listOfAllServicesRevenue = (List<AllServicesRevenue>) request.getSession().getAttribute("listOfAllServicesRevenue" );
+			 Insurance insurance = (Insurance) request.getSession().getAttribute("insurance");
+			 FileExporter.exportData(request, response,insurance,columns, listOfAllServicesRevenue);
+		 }
 		return mav;
 	}
 

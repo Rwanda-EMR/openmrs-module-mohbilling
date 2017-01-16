@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
@@ -184,6 +185,12 @@ public class ConsommationUtil {
 				PatientServiceBill psb =null;
 				
 				if(billItems!=null){
+					if(request.getParameter("removeItem_"  + billItems[i])!=null){
+						PatientServiceBill itemToRemove = ConsommationUtil.getPatientServiceBill(Integer.valueOf(request.getParameter("removeItem_"  + billItems[i])));
+						retireItem(itemToRemove);
+						message="Item removed succefully...";
+					}
+					else{
 					PatientServiceBill existingPsb = ConsommationUtil.getPatientServiceBill(Integer.valueOf(billItems[i]));
 					quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("newQuantity_"  + billItems[i])));
 					unitPrice = existingPsb.getUnitPrice();
@@ -196,10 +203,9 @@ public class ConsommationUtil {
 					BigDecimal newItemAmount = quantity.multiply(unitPrice);
 					voidedItemTotalAmount = voidedItemTotalAmount.add(voidedItemAmount);
 					addedItemTotalAmount=addedItemTotalAmount.add(newItemAmount);
+					existingConsom.addBillItem(psb);
 					message="Items' quantities have been changed succefully...";
-					
-					System.out.println("hhhhhhhhhhhhhhhhhhhoooooooooooooooooooooooooooooooooo "+request.getParameter("removeItem"));
-					
+					}
 				}
 				else if(billItems==null){
 					if(request.getParameter("billableServiceId_" + i)!=null&&request.getParameter("quantity_" + i)!=null&&request.getParameter("servicePrice_" + i)!=null){
@@ -212,6 +218,7 @@ public class ConsommationUtil {
 					 addedItemTotalAmount=addedItemTotalAmount.add(quantity.multiply(unitPrice));
 					 message="A new consommation has been added to the global bill...";
 					}
+					existingConsom.addBillItem(psb);
 				}
 				
 				if(request.getParameter("consomationToAddOn")!=null && !request.getParameter("consomationToAddOn").equals("")){
@@ -223,9 +230,9 @@ public class ConsommationUtil {
 					 quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
 					 unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
 					 psb = new PatientServiceBill(bs,hopService, new Date(), unitPrice, quantity, creator, new Date());
+						existingConsom.addBillItem(psb);
 					 message="New Items have been added to the existing consommation succefully..";
 				}
-				existingConsom.addBillItem(psb);
 			}
 			totalAmount = totalAmount.add(addedItemTotalAmount);
 			totalAmount = totalAmount.subtract(voidedItemTotalAmount);
@@ -267,9 +274,14 @@ public class ConsommationUtil {
 	public static String getConsommationStatus(Integer id){
 		Consommation c = ConsommationUtil.getConsommation(id);
 		String status="";
-		if(c.getPatientBill().getAmountPaid().compareTo(c.getPatientBill().getAmount())==1)
+		int res = c.getPatientBill().getAmount().compareTo(c.getPatientBill().getAmountPaid());
+		BigDecimal diff=c.getPatientBill().getAmount().subtract(c.getPatientBill().getAmountPaid());
+
+		//if due and paid are equal and diff is less than 1
+		if (diff.compareTo(BigDecimal.ZERO) >= 0 && diff.floatValue()<1)
 			status="Fully Paid";
-		if(c.getPatientBill().getAmountPaid().compareTo(c.getPatientBill().getAmount())==-1)
+		//if due is greater than paid and paid greater than 1
+		if (res==1 && diff.compareTo(BigDecimal.ONE)==1)
 			status="Partially Paid";
 		if(c.getPatientBill().getAmountPaid().compareTo(BigDecimal.ZERO)==0)
 			status="Unpaid";
@@ -282,13 +294,13 @@ public class ConsommationUtil {
 		Boolean isTrue = false;
 		for (PatientServiceBill psb : c.getBillItems()) {
 			if(psb.getPaidQuantity()!=null){
-			if(psb.getPaidQuantity().compareTo(psb.getQuantity())==1)
+			if(psb.getPaidQuantity().compareTo(psb.getQuantity())==0)
 				isTrue=true;
 			else{
 				isTrue=false;
 			}
 			}
-			else if(c.getPatientBill().getAmountPaid().compareTo(c.getPatientBill().getAmount())==1){
+			else if(c.getPatientBill().getAmountPaid().compareTo(c.getPatientBill().getAmount())==0){
 				isTrue=true;
 			}
 		}
@@ -330,6 +342,14 @@ public class ConsommationUtil {
 			Date endDate, Insurance insurance, ThirdParty tp,
 			User billCreator,Department department){
 		 return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+	}
+	
+	public static void retireItem(PatientServiceBill psb){
+		psb.setVoided(true);
+		psb.setVoidedBy(Context.getAuthenticatedUser());
+		psb.setVoidReason("removed");
+		psb.setVoidedDate(new Date());
+		ConsommationUtil.saveConsommation(psb.getConsommation());
 	}
 
 }

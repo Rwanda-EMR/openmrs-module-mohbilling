@@ -18,10 +18,11 @@
 	<form action="billing.form?consommationId=${consommation.consommationId }&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId }&departmentId=${param.departmentId}&save=true" method="post" id="formSaveBillPayment">
 		<table width="70%" id="tableone">
 			<tr>
-				<th class="columnHeader"></th>
-				<th class="columnHeader">Service</th>
-				<th class="columnHeader center">Qty</th>
-				<th class="columnHeader right">Unit Price (Rwf)</th>
+				<th style="width: 3%" class="columnHeader">#</th>
+				<th style="width: 3%" class="columnHeader"><img src="/openmrs/images/trash.gif" title="Remove Item"/></th>
+				<th style="width: 30%" class="columnHeader">Service</th>
+				<th style="width: 10%" class="columnHeader center">Qty</th>
+				<th style="width: 20%" class="columnHeader right">Unit Price (Rwf)</th>
 				<th></th>
 			</tr>
 			<c:if test="${empty consommation.billItems}"><tr><td colspan="7"><center>No consommation found !</center></td></tr></c:if>
@@ -32,7 +33,8 @@
 			<c:set var="fieldName" value="item-${consommation.consommationId}-${billItem.patientServiceBillId}"/>
 			 <c:if test="${not billItem.voided}">
 				<tr>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
+				    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"><input type = "checkbox" name = "removeItem_${billItem.patientServiceBillId}" value = "${billItem.patientServiceBillId }"  style="background-color: red;" ></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><input type="text" size="5" name="newQuantity_${billItem.patientServiceBillId}" value="${billItem.quantity}"/></td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">${billItem.unitPrice}</td>				

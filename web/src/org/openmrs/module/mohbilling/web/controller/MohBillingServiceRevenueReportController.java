@@ -16,10 +16,12 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.DepartmentRevenues;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -73,6 +75,11 @@ public class MohBillingServiceRevenueReportController extends
 			 try {
 					 List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments);
 					 
+					 Consommation c = ConsommationUtil.getConsommationByPatientBill(payments.get(0).getPatientBill());
+			      		if(c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+			      			paidItems = BillPaymentUtil.getOldPaidItems(payments);
+			      		}
+					 
 					 List<Department> allDepartments = DepartementUtil.getAllHospitalDepartements();
 					 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.servicesReportColumns");
 					 List<String> columns = new ArrayList<String>();
@@ -85,14 +92,14 @@ public class MohBillingServiceRevenueReportController extends
 						 DepartmentRevenues dr=ReportsUtil.getRevenuesByDepartment(paidItems, depart,columns);
 						 if(dr!=null){
 						     departRevenues.add(dr);
-						     totalRevenueAmount=totalRevenueAmount.add(dr.getAmount());
+						     //totalRevenueAmount=totalRevenueAmount.add(dr.getAmount());
 						 }
 					}
 					 request.getSession().setAttribute("departRevenues" , departRevenues);
 						
 					 mav.addObject("departmentsRevenues", departRevenues);	 
 					 mav.addObject("services", departRevenues.get(0).getPaidServiceRevenues());
-					 mav.addObject("totalRevenueAmount",totalRevenueAmount);
+					 mav.addObject("totalRevenueAmount",BillPaymentUtil.getTotalPaid(payments));
 					 mav.addObject("resultMsg", "Revenue Amount From "+startDateStr+" To "+ endDateStr);
 					 
 					
