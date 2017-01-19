@@ -9,3 +9,7 @@ omod/.classpath
 omod/.gitignore
 omod/.project
 omod/.settings/
+api/target/
+omod/target/
+*.iml
+
