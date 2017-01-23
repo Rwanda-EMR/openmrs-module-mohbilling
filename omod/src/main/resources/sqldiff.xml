@@ -1,0 +1,690 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqldiff PUBLIC "-//OpenMRS//DTD OpenMRS SQL Diff Config 1.0//EN" "http://resources.openmrs.org/doctype/sqldiff-1.0.dtd">
+
+<sqldiff version="1.0">
+	<help>
+		USE:
+		The diffs are ordered by datamodel version number.
+		The script can be run in a top down fashion and is
+		expected to not failor overwrite old data
+
+		EXPECT:
+		- "use business-database-name;" was called prior to
+		calling this script
+	</help>
+
+	<diff>
+		<version>1.3.0.6</version>
+		<author>MoH Rwanda</author>
+		<date>Sept 14th 2011</date>
+		<description>
+
+		</description>
+		<sql>
+			CREATE TABLE `moh_bill_admission` (
+			`admission_id` int(11) NOT NULL AUTO_INCREMENT,
+			`insurance_policy_id` int(11) NOT NULL,
+			`is_admitted` tinyint(1) NOT NULL DEFAULT '0',
+			`admission_date` datetime NOT NULL,
+			`discharging_date` datetime DEFAULT NULL,
+			`discharged_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` tinyint(1) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`admission_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_beneficiary` (
+			`beneficiary_id` int(11) NOT NULL AUTO_INCREMENT,
+			`policy_id_number` varchar(250) DEFAULT NULL,
+			`created_date` date NOT NULL,
+			`retired` smallint(1) NOT NULL DEFAULT '0',
+			`retire_date` date DEFAULT NULL,
+			`retire_reason` varchar(250) DEFAULT NULL,
+			`patient_id` int(11) NOT NULL,
+			`insurance_policy_id` int(11) NOT NULL,
+			`retired_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`beneficiary_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_billable_service` (
+			`billable_service_id` int(11) NOT NULL AUTO_INCREMENT,
+			`insurance_id` int(11) DEFAULT NULL,
+			`maxima_to_pay` decimal(20,2) DEFAULT NULL,
+			`start_date` date NOT NULL,
+			`end_date` date DEFAULT NULL,
+			`facility_service_price_id` int(11) NOT NULL,
+			`service_category_id` int(11) DEFAULT NULL,
+			`created_date` date NOT NULL,
+			`retired` smallint(1) NOT NULL DEFAULT '0',
+			`retire_date` date DEFAULT NULL,
+			`retire_reason` varchar(250) DEFAULT NULL,
+			`retired_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`billable_service_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+			CREATE TABLE `moh_bill_cash_payment` (
+			`cash_payment_id` int(11) NOT NULL AUTO_INCREMENT,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` smallint(6) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`cash_payment_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_consommation` (
+			`consommation_id` int(11) NOT NULL AUTO_INCREMENT,
+			`global_bill_id` int(11) DEFAULT NULL,
+			`department_id` int(11) DEFAULT NULL,
+			`beneficiary_id` int(11) NOT NULL,
+			`patient_bill_id` int(11) NOT NULL,
+			`insurance_bill_id` int(11) DEFAULT NULL,
+			`third_party_bill_id` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` smallint(6) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`consommation_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+			CREATE TABLE `moh_bill_department` (
+			`department_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` varchar(50) DEFAULT NULL,
+			`description` varchar(50) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` tinyint(1) NOT NULL DEFAULT '0',
+			`voided_date` date DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`department_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_deposit_payment` (
+			`deposit_payment_id` int(11) NOT NULL,
+			`transaction_id` int(11) NOT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` smallint(6) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`deposit_payment_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+
+			CREATE TABLE `moh_bill_facility_service_price` (
+			`facility_service_price_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` varchar(150) NOT NULL,
+			`short_name` varchar(100) DEFAULT NULL,
+			`description` varchar(250) DEFAULT NULL,
+			`category` varchar(150) DEFAULT NULL,
+			`full_price` decimal(20,2) NOT NULL,
+			`start_date` date NOT NULL,
+			`end_date` date DEFAULT NULL,
+			`location_id` int(11) NOT NULL,
+			`concept_id` int(11) DEFAULT NULL,
+			`created_date` date NOT NULL,
+			`retired` smallint(1) NOT NULL DEFAULT '0',
+			`retire_date` date DEFAULT NULL,
+			`retire_reason` varchar(250) DEFAULT NULL,
+			`retired_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`facility_service_price_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_global_bill` (
+			`global_bill_id` int(11) NOT NULL AUTO_INCREMENT,
+			`admission_id` int(11) NOT NULL,
+			`bill_identifier` varchar(250) NOT NULL,
+			`global_amount` decimal(10,0) NOT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`closed_by` int(11) DEFAULT NULL,
+			`closing_date` datetime DEFAULT NULL,
+			`closed` smallint(1) NOT NULL DEFAULT '0',
+			`voided` tinyint(1) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`global_bill_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			CREATE TABLE `moh_bill_hop_service` (
+			`service_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` varchar(50) DEFAULT NULL,
+			`description` varchar(50) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` tinyint(1) NOT NULL DEFAULT '0',
+			`voided_date` date DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`service_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_insurance` (
+			`insurance_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` varchar(50) NOT NULL,
+			`address` varchar(150) DEFAULT NULL,
+			`phone` varchar(100) DEFAULT NULL,
+			`created_date` date NOT NULL,
+			`voided` smallint(1) NOT NULL DEFAULT '0',
+			`voided_date` date DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`concept_id` int(11) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			`category` varchar(150) NOT NULL,
+			PRIMARY KEY (`insurance_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+			CREATE TABLE `moh_bill_insurance_bill` (
+			`insurance_bill_id` int(11) NOT NULL AUTO_INCREMENT,
+			`amount` decimal(10,0) NOT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` tinyint(1) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`insurance_bill_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_insurance_policy` (
+			`insurance_policy_id` int(11) NOT NULL AUTO_INCREMENT,
+			`insurance_card_no` varchar(250) DEFAULT NULL,
+			`owner` int(11) NOT NULL,
+			`coverage_start_date` date NOT NULL,
+			`expiration_date` date DEFAULT NULL,
+			`created_date` date NOT NULL,
+			`retired` smallint(1) NOT NULL DEFAULT '0',
+			`retire_date` date DEFAULT NULL,
+			`retire_reason` varchar(250) DEFAULT NULL,
+			`insurance_id` int(11) NOT NULL,
+			`third_party_id` int(11) DEFAULT NULL,
+			`retired_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`insurance_policy_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_insurance_rate` (
+			`insurance_rate_id` int(11) NOT NULL AUTO_INCREMENT,
+			`rate` float NOT NULL,
+			`flatFee` decimal(20,2) DEFAULT NULL,
+			`start_date` date NOT NULL,
+			`end_date` date DEFAULT NULL,
+			`created_date` date NOT NULL,
+			`retired` smallint(1) NOT NULL DEFAULT '0',
+			`retire_date` date DEFAULT NULL,
+			`retire_reason` varchar(250) DEFAULT NULL,
+			`insurance_id` int(11) NOT NULL,
+			`retired_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`insurance_rate_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_paid_service_bill` (
+			`paid_service_bill_id` int(11) NOT NULL AUTO_INCREMENT,
+			`bill_payment_id` int(11) NOT NULL,
+			`patient_service_bill_id` int(11) NOT NULL,
+			`paid_quantity` decimal(10,0) NOT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` smallint(6) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`paid_service_bill_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_paid_service_bill_refund` (
+			`service_bill_refund_id` int(11) NOT NULL AUTO_INCREMENT,
+			`created_date` datetime NOT NULL,
+			`refund_id` int(11) NOT NULL,
+			`paid_item_id` int(11) NOT NULL,
+			`refund_quantity` int(11) NOT NULL,
+			`creator` int(11) NOT NULL,
+			`refund_reason` varchar(250) DEFAULT NULL,
+			`is_approved` smallint(6) NOT NULL DEFAULT '0',
+			`approval_date` datetime DEFAULT NULL,
+			`approved_by` int(11) DEFAULT NULL,
+			`is_declined` smallint(6) NOT NULL DEFAULT '0',
+			`declining_note` varchar(250) DEFAULT NULL,
+			`decline_date` datetime DEFAULT NULL,
+			`voided` smallint(6) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`service_bill_refund_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_patient_account` (
+			`patient_account_id` int(11) NOT NULL AUTO_INCREMENT,
+			`patient_id` int(11) NOT NULL,
+			`balance` decimal(20,2) NOT NULL DEFAULT '0.00',
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` tinyint(1) NOT NULL DEFAULT '0',
+			`voided_by` int(11) DEFAULT NULL,
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			PRIMARY KEY (`patient_account_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_patient_bill` (
+			`patient_bill_id` int(11) NOT NULL AUTO_INCREMENT,
+			`amount` decimal(20,2) NOT NULL,
+			`is_paid` smallint(1) DEFAULT '0',
+			`status` varchar(150) DEFAULT NULL,
+			`created_date` datetime DEFAULT NULL,
+			`voided` smallint(1) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`patient_bill_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_patient_service_bill` (
+			`patient_service_bill_id` int(11) NOT NULL AUTO_INCREMENT,
+			`service_date` date NOT NULL,
+			`unit_price` decimal(20,2) NOT NULL,
+			`quantity` decimal(20,2) DEFAULT NULL,
+			`paid_quantity` decimal(20,2) DEFAULT '0.00',
+			`service_other` varchar(100) DEFAULT NULL,
+			`service_other_description` varchar(250) DEFAULT NULL,
+			`created_date` date DEFAULT NULL,
+			`voided` smallint(1) NOT NULL DEFAULT '0',
+			`voided_date` date DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`billable_service_id` int(11) DEFAULT NULL,
+			`consommation_id` int(11) NOT NULL,
+			`service_id` int(11) DEFAULT NULL,
+			`is_paid` smallint(1) NOT NULL DEFAULT '0',
+			`voided_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`patient_service_bill_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_payment` (
+			`bill_payment_id` int(11) NOT NULL AUTO_INCREMENT,
+			`amount_paid` decimal(20,2) NOT NULL,
+			`date_received` date NOT NULL,
+			`created_date` datetime DEFAULT NULL,
+			`voided` smallint(1) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`collector` int(11) NOT NULL,
+			`patient_bill_id` int(11) NOT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`bill_payment_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_payment_refund` (
+			`refund_id` int(11) NOT NULL AUTO_INCREMENT,
+			`bill_payment_id` int(11) NOT NULL,
+			`amount_refunded` decimal(20,2) DEFAULT NULL,
+			`refunded_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` smallint(6) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`refund_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_recovery` (
+			`recovery_id` int(11) NOT NULL AUTO_INCREMENT,
+			`insurance_id` int(11) DEFAULT NULL,
+			`third_party_id` int(11) DEFAULT NULL,
+			`start_period` date NOT NULL,
+			`end_period` date NOT NULL,
+			`status` varchar(50) NOT NULL DEFAULT 'UNPAID',
+			`due_amount` decimal(20,2) NOT NULL,
+			`submission_date` date DEFAULT NULL,
+			`verification_date` date DEFAULT NULL,
+			`paid_amount` decimal(20,2) DEFAULT NULL,
+			`payement_date` date DEFAULT NULL,
+			`partly_pay_reason` varchar(250) DEFAULT NULL,
+			`no_payment_reason` varchar(250) DEFAULT NULL,
+			`observation` varchar(250) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` date NOT NULL,
+			`changed_by` int(11) DEFAULT NULL,
+			`retired` smallint(1) NOT NULL DEFAULT '0',
+			`retired_by` int(11) DEFAULT NULL,
+			`retire_date` date DEFAULT NULL,
+			`retire_reason` varchar(250) DEFAULT NULL,
+			PRIMARY KEY (`recovery_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_service_category` (
+			`service_category_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` varchar(150) NOT NULL,
+			`description` varchar(250) DEFAULT NULL,
+			`price` decimal(10,0) DEFAULT NULL,
+			`created_date` date NOT NULL,
+			`retired` smallint(1) NOT NULL DEFAULT '0',
+			`retire_date` date DEFAULT NULL,
+			`retire_reason` varchar(250) DEFAULT NULL,
+			`insurance_id` int(11) NOT NULL,
+			`department_id` int(11) DEFAULT NULL,
+			`service_id` int(11) DEFAULT NULL,
+			`retired_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`service_category_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+			CREATE TABLE `moh_bill_third_party` (
+			`third_party_id` int(11) NOT NULL AUTO_INCREMENT,
+			`name` varchar(150) NOT NULL,
+			`rate` float NOT NULL,
+			`created_date` date NOT NULL,
+			`voided` smallint(1) NOT NULL DEFAULT '0',
+			`voided_date` date DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`third_party_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_third_party_bill` (
+			`third_party_bill_id` int(11) NOT NULL AUTO_INCREMENT,
+			`amount` decimal(10,0) NOT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` tinyint(1) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`third_party_bill_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			CREATE TABLE `moh_bill_transaction` (
+			`transaction_id` int(11) NOT NULL AUTO_INCREMENT,
+			`patient_account_id` int(11) NOT NULL,
+			`amount` decimal(20,2) NOT NULL,
+			`collector` int(11) NOT NULL,
+			`transaction_reason` varchar(250) NOT NULL,
+			`transaction_date` datetime NOT NULL,
+			`creator` int(11) NOT NULL,
+			`created_date` datetime NOT NULL,
+			`voided` smallint(6) NOT NULL DEFAULT '0',
+			`voided_date` datetime DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			PRIMARY KEY (`transaction_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			ALTER TABLE `moh_bill_admission`
+			ADD CONSTRAINT `admission_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `admission_insurance_policy` FOREIGN KEY (`insurance_policy_id`) REFERENCES `moh_bill_insurance_policy` (`insurance_policy_id`),
+			ADD CONSTRAINT `admission_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+
+			ALTER TABLE `moh_bill_beneficiary`
+			ADD CONSTRAINT `benefeciary_insurance_policy` FOREIGN KEY (`insurance_policy_id`) REFERENCES `moh_bill_insurance_policy` (`insurance_policy_id`),
+			ADD CONSTRAINT `beneficiary_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `beneficiary_patient` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`patient_id`),
+			ADD CONSTRAINT `beneficiary_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_billable_service`
+			ADD CONSTRAINT `billable_service_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `billable_service_facility_service_price` FOREIGN KEY (`facility_service_price_id`) REFERENCES `moh_bill_facility_service_price` (`facility_service_price_id`),
+			ADD CONSTRAINT `billable_service_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`),
+			ADD CONSTRAINT `billable_service_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `billable_service_service_category` FOREIGN KEY (`service_category_id`) REFERENCES `moh_bill_service_category` (`service_category_id`);
+
+
+			ALTER TABLE `moh_bill_cash_payment`
+			ADD CONSTRAINT `cash_payment_bill_payment` FOREIGN KEY (`cash_payment_id`) REFERENCES `moh_bill_payment` (`bill_payment_id`) ON UPDATE CASCADE,
+			ADD CONSTRAINT `cash_payment_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `cash_payment_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+
+			ALTER TABLE `moh_bill_consommation`
+			ADD CONSTRAINT `consommation_beneficiary` FOREIGN KEY (`beneficiary_id`) REFERENCES `moh_bill_beneficiary` (`beneficiary_id`),
+			ADD CONSTRAINT `consommation_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `consommation_department` FOREIGN KEY (`department_id`) REFERENCES `moh_bill_department` (`department_id`),
+			ADD CONSTRAINT `consommation_global_bill` FOREIGN KEY (`global_bill_id`) REFERENCES `moh_bill_global_bill` (`global_bill_id`) ON UPDATE CASCADE,
+			ADD CONSTRAINT `consommation_insurance_bill` FOREIGN KEY (`insurance_bill_id`) REFERENCES `moh_bill_insurance_bill` (`insurance_bill_id`),
+			ADD CONSTRAINT `consommation_patient_bill` FOREIGN KEY (`patient_bill_id`) REFERENCES `moh_bill_patient_bill` (`patient_bill_id`) ON UPDATE CASCADE,
+			ADD CONSTRAINT `consommation_third_party_bill` FOREIGN KEY (`third_party_bill_id`) REFERENCES `moh_bill_third_party_bill` (`third_party_bill_id`),
+			ADD CONSTRAINT `consommation_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+
+			ALTER TABLE `moh_bill_department`
+			ADD CONSTRAINT `departement_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `departement_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+
+			ALTER TABLE `moh_bill_deposit_payment`
+			ADD CONSTRAINT `deposit_payment_bill_payment` FOREIGN KEY (`deposit_payment_id`) REFERENCES `moh_bill_payment` (`bill_payment_id`),
+			ADD CONSTRAINT `deposit_payment_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `deposit_payment_transaction` FOREIGN KEY (`transaction_id`) REFERENCES `moh_bill_transaction` (`transaction_id`),
+			ADD CONSTRAINT `deposit_payment_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+
+			ALTER TABLE `moh_bill_facility_service_price`
+			ADD CONSTRAINT `facility_service_price_concept` FOREIGN KEY (`concept_id`) REFERENCES `concept` (`concept_id`),
+			ADD CONSTRAINT `facility_service_price_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `facility_service_price_location` FOREIGN KEY (`location_id`) REFERENCES `location` (`location_id`),
+			ADD CONSTRAINT `facility_service_price_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_global_bill`
+			ADD CONSTRAINT `global_bill_admission` FOREIGN KEY (`admission_id`) REFERENCES `moh_bill_admission` (`admission_id`),
+			ADD CONSTRAINT `global_bill_closed_by` FOREIGN KEY (`closed_by`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `global_bill_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `global_bill_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_hop_service`
+			ADD CONSTRAINT `hop_service_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `hop_service_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_insurance`
+			ADD CONSTRAINT `insurance_concept` FOREIGN KEY (`concept_id`) REFERENCES `concept` (`concept_id`),
+			ADD CONSTRAINT `insurance_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `insurance_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_insurance_bill`
+			ADD CONSTRAINT `insurance_bill_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `insurance_bill_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_insurance_policy`
+			ADD CONSTRAINT `insurance_policy_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `insurance_policy_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`),
+			ADD CONSTRAINT `insurance_policy_owner` FOREIGN KEY (`owner`) REFERENCES `patient` (`patient_id`),
+			ADD CONSTRAINT `insurance_policy_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `insurance_policy_third_party` FOREIGN KEY (`third_party_id`) REFERENCES `moh_bill_third_party` (`third_party_id`);
+
+			ALTER TABLE `moh_bill_insurance_rate`
+			ADD CONSTRAINT `insurance_rate_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `insurance_rate_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`),
+			ADD CONSTRAINT `insurance_rate_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`);
+			ALTER TABLE `moh_bill_paid_service_bill`
+			ADD CONSTRAINT `paid_service_bill_bill_payment` FOREIGN KEY (`bill_payment_id`) REFERENCES `moh_bill_payment` (`bill_payment_id`),
+			ADD CONSTRAINT `paid_service_bill_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `paid_service_bill_patient_service_bill` FOREIGN KEY (`patient_service_bill_id`) REFERENCES `moh_bill_patient_service_bill` (`patient_service_bill_id`),
+			ADD CONSTRAINT `paid_service_bill_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_paid_service_bill_refund`
+			ADD CONSTRAINT `refunded_item_approved_by` FOREIGN KEY (`approved_by`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `refunded_item_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `service_bill_refund_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `service_bill_refund_paid_service_bill` FOREIGN KEY (`paid_item_id`) REFERENCES `moh_bill_paid_service_bill` (`paid_service_bill_id`),
+			ADD CONSTRAINT `service_bill_refund_refund` FOREIGN KEY (`refund_id`) REFERENCES `moh_bill_payment_refund` (`refund_id`);
+
+			ALTER TABLE `moh_bill_patient_account`
+			ADD CONSTRAINT `patient_account_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `patient_account_patient` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`patient_id`),
+			ADD CONSTRAINT `patient_account_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_patient_bill`
+			ADD CONSTRAINT `patient_bill_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `patient_bill_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_patient_service_bill`
+			ADD CONSTRAINT `patient_service_bill_billable_service` FOREIGN KEY (`billable_service_id`) REFERENCES `moh_bill_billable_service` (`billable_service_id`),
+			ADD CONSTRAINT `patient_service_bill_consommation` FOREIGN KEY (`consommation_id`) REFERENCES `moh_bill_consommation` (`consommation_id`),
+			ADD CONSTRAINT `patient_service_bill_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `patient_service_bill_hop_service` FOREIGN KEY (`service_id`) REFERENCES `moh_bill_hop_service` (`service_id`),
+			ADD CONSTRAINT `patient_service_bill_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_payment`
+			ADD CONSTRAINT `bill_payment_collector` FOREIGN KEY (`collector`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `bill_payment_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `bill_payment_patient_bill` FOREIGN KEY (`patient_bill_id`) REFERENCES `moh_bill_patient_bill` (`patient_bill_id`),
+			ADD CONSTRAINT `bill_payment_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_payment_refund`
+			ADD CONSTRAINT `payment_refunded_by` FOREIGN KEY (`refunded_by`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `refund_bill_payment` FOREIGN KEY (`bill_payment_id`) REFERENCES `moh_bill_payment` (`bill_payment_id`),
+			ADD CONSTRAINT `refund_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `refund_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_recovery`
+			ADD CONSTRAINT `insurance_recovery` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`),
+			ADD CONSTRAINT `recovery_changed_by` FOREIGN KEY (`changed_by`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `recovery_third_party_id` FOREIGN KEY (`third_party_id`) REFERENCES `moh_bill_third_party` (`third_party_id`);
+			ALTER TABLE `moh_bill_service_category`
+			ADD CONSTRAINT `service_category_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `service_category_department` FOREIGN KEY (`department_id`) REFERENCES `moh_bill_department` (`department_id`),
+			ADD CONSTRAINT `service_category_hop_service` FOREIGN KEY (`service_id`) REFERENCES `moh_bill_hop_service` (`service_id`),
+			ADD CONSTRAINT `service_category_insurance` FOREIGN KEY (`insurance_id`) REFERENCES `moh_bill_insurance` (`insurance_id`),
+			ADD CONSTRAINT `service_category_retired_by` FOREIGN KEY (`retired_by`) REFERENCES `users` (`user_id`);
+			ALTER TABLE `moh_bill_third_party`
+			ADD CONSTRAINT `third_party_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `third_party_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_third_party_bill`
+			ADD CONSTRAINT `third_party_bill_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `third_party_bill_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+			ALTER TABLE `moh_bill_transaction`
+			ADD CONSTRAINT `transaction_collector` FOREIGN KEY (`collector`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `transaction_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `transaction_patient_account` FOREIGN KEY (`patient_account_id`) REFERENCES `moh_bill_patient_account` (`patient_account_id`),
+			ADD CONSTRAINT `transaction_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+		</sql>
+
+	</diff>
+
+	<diff>
+		<version>1.3.0.7</version>
+		<author>MoH Rwanda</author>
+		<date>March 10th 2016</date>
+		<description>
+			alter moh_bill_patient_service_bill table
+		</description>
+		<sql>
+			ALTER TABLE `moh_bill_patient_service_bill`
+			MODIFY `quantity`  DECIMAL(20,2) NULL;
+		</sql>
+
+	</diff>
+
+	<!--<diff>
+		<version>1.3.0.8</version>
+		<author>MoH Rwanda</author>
+		<date>Jan 18th 2017</date>
+		<description>
+
+		</description>
+		<sql>
+
+			CREATE TABLE `moh_bill_deposit_withdrawal` (
+			`withdrawal_id` int(11) NOT NULL AUTO_INCREMENT,
+			`withdrawal_date` date NOT NULL,
+			`withdrawal_amount` decimal(20,2) NOT NULL,
+			`withdrawal_reason` varchar(250) DEFAULT NULL,
+			`voided` smallint(1) NOT NULL DEFAULT '0',
+			`voided_date` date DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`created_date` date NOT NULL,
+			`deposit_id` int(11) DEFAULT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			`cashier` int(11) NOT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`withdrawal_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			ALTER TABLE `moh_bill_deposit_withdrawal`
+			ADD CONSTRAINT `withdrawal_cashier` FOREIGN KEY (`cashier`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `withdrawal_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `withdrawal_deposit` FOREIGN KEY (`deposit_id`) REFERENCES `moh_bill_deposit` (`deposit_id`),
+			ADD CONSTRAINT `withdrawal_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+
+
+			CREATE TABLE `moh_bill_deposit` (
+			`deposit_id` int(11) NOT NULL AUTO_INCREMENT,
+			`amount` decimal(20,2) NOT NULL,
+			`deposit_date` date NOT NULL,
+			`deposit_reason` varchar(250) DEFAULT NULL,
+			`created_date` date NOT NULL,
+			`voided` smallint(1) NOT NULL DEFAULT '0',
+			`voided_date` date DEFAULT NULL,
+			`void_reason` varchar(250) DEFAULT NULL,
+			`cashier` int(11) NOT NULL,
+			`patient_id` int(11) NOT NULL,
+			`voided_by` int(11) DEFAULT NULL,
+			`creator` int(11) NOT NULL,
+			PRIMARY KEY (`deposit_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+			ALTER TABLE `moh_bill_deposit`
+			ADD CONSTRAINT `deposit_cashier` FOREIGN KEY (`cashier`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `deposit_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
+			ADD CONSTRAINT `deposit_patient` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`patient_id`),
+			ADD CONSTRAINT `deposit_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
+
+
+		</sql>
+	</diff>	-->
+
+</sqldiff>

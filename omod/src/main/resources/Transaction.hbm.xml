@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- Transaction -->
+
+	<class name="Transaction" table="moh_bill_transaction">
+
+		<id name="transactionId" type="int" column="transaction_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+		
+		<property name="amount" column="amount" type="big_decimal" />
+		<property name="reason" column="transaction_reason" type="text" />
+		<property name="transactionDate" column="transaction_date" type="java.util.Date" />
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+		
+		<property name="voided" column="voided" type="boolean" />
+		<property name="voidedDate" column="voided_date" />
+		<property name="voidReason" column="void_reason" type="text" />
+		
+		<many-to-one name="collector" class="org.openmrs.User" column="collector" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+
+		<many-to-one name="patientAccount" class="org.openmrs.module.mohbilling.model.PatientAccount" column="patient_account_id" />
+		
+		
+	</class>
+
+</hibernate-mapping>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- PaidServiceBillRefund -->
+	
+	
+	<class name="PaidServiceBillRefund" table="moh_bill_paid_service_bill_refund">
+
+		<id name="paidServiceBillRefundId" type="int" column="service_bill_refund_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="createdDate" column="created_date" />
+		<property name="refundReason" column="refund_reason" type="text" />
+		<property name="approved" column="is_approved" type="boolean" />
+		<property name="approvalDate" column="approval_date" />
+		<property name="declined" column="is_declined" type="boolean" />
+		<property name="decliningNote" column="declining_note" type="text" />	
+		<property name="declineDate" column="decline_date"  />			
+		<property name="voided" column="voided" type="java.lang.Boolean" />
+		<property name="voidedDate" column="voided_date"  />
+		<property name="voidReason" column="void_reason" type="text" />
+		<property name="refQuantity" column="refund_quantity" type="big_decimal" />	
+
+	
+		<many-to-one name="refund" class="org.openmrs.module.mohbilling.model.PaymentRefund" column="refund_id" />
+		<many-to-one name="paidItem" class="org.openmrs.module.mohbilling.model.PaidServiceBill" column="paid_item_id" />	
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="approvedBy" class="org.openmrs.User" column="approved_by" />
+		 
+    </class>
+
+</hibernate-mapping>

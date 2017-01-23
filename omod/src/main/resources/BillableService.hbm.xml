@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- BillableService -->
+
+	<class name="BillableService" table="moh_bill_billable_service">
+
+		<id name="serviceId" type="int" column="billable_service_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+		
+		<discriminator column="billable_service_id" insert="false" />
+
+		<property name="maximaToPay" column="maxima_to_pay" type="big_decimal" />
+		<property name="startDate" column="start_date" type="java.util.Date" />
+		<property name="endDate" column="end_date" type="java.util.Date" />
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+		<property name="retired" column="retired" type="boolean" />
+		<property name="retiredDate" column="retire_date" type="java.util.Date" />
+		<property name="retireReason" column="retire_reason" type="java.lang.String" />
+
+		<many-to-one name="insurance" class="org.openmrs.module.mohbilling.model.Insurance" column="insurance_id" />
+		<many-to-one name="facilityServicePrice" class="org.openmrs.module.mohbilling.model.FacilityServicePrice" column="facility_service_price_id" />		
+		<many-to-one name="serviceCategory" class="org.openmrs.module.mohbilling.model.ServiceCategory"
+			column="service_category_id" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
+	</class>
+
+</hibernate-mapping>

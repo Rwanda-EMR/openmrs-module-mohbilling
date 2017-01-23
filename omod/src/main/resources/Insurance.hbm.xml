@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- Insurance -->
+	
+	<class name="Insurance" table="moh_bill_insurance">
+
+		<id name="insuranceId" type="int" column="insurance_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="name" column="name" type="java.lang.String" />
+		<property name="address" column="address" type="java.lang.String" />
+		<property name="phone" column="phone" type="java.lang.String" />
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+		<property name="voided" column="voided" type="boolean" />
+		<property name="voidedDate" column="voided_date" type="java.util.Date" />
+		<property name="voidReason" column="void_reason" type="java.lang.String" />
+		
+		<property name="category" column="category" type="java.lang.String" />
+
+		<many-to-one name="concept" class="org.openmrs.Concept" column="concept_id" />
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		
+		<set name="rates" lazy="false" inverse="true"
+			cascade="all-delete-orphan" sort="natural"
+			order-by="start_date desc">
+			<key column="insurance_id" />
+			<one-to-many class="InsuranceRate" />
+		</set>
+		
+		<set name="categories" lazy="false" inverse="true"
+			cascade="all-delete-orphan" sort="natural"
+			order-by="name asc">
+			<key column="insurance_id" />
+			<one-to-many class="ServiceCategory" />
+		</set>
+
+	</class>
+
+</hibernate-mapping>

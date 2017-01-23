@@ -892,21 +892,30 @@ public class HibernateBillingDAO implements BillingDAO {
 		boolean alreadyExecuted  = false;
 //		if(!alreadyExecuted){
 		Insurance rama = Context.getService(BillingService.class).getInsurance(2);
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class).add(Restrictions.eq("insurance", rama));
+		//Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class).add(Restrictions.eq("insurance", rama));
 
-		List<ServiceCategory> ramaSC = crit.list();
-		
+		//List<ServiceCategory> ramaSC = crit.list();
+		List <Object[]> ramaSC=sessionFactory.getCurrentSession().createSQLQuery("select distinct name,description from moh_bill_service_category").list();
 		// map service category to insurance
-		for (ServiceCategory sc : ramaSC) {
+
+		List<ServiceCategory> serviceCategoryCheckList=Context.getService(BillingService.class).getAllServiceCategories();
+
+		for (Object[] sc : ramaSC) {
 			ServiceCategory scToMapToInsurance = new ServiceCategory();
-			scToMapToInsurance.setName(sc.getName());
-			scToMapToInsurance.setDescription(sc.getDescription());
+			//scToMapToInsurance.setName(sc.getName());
+			scToMapToInsurance.setName(sc[0].toString());
+			//scToMapToInsurance.setDescription(sc.getDescription());
+			scToMapToInsurance.setDescription(sc[1].toString());
 			scToMapToInsurance.setCreatedDate(new Date());
 			scToMapToInsurance.setRetired(false);
 			scToMapToInsurance.setInsurance(insurance);
 			scToMapToInsurance.setCreator(Context.getAuthenticatedUser());
-			
-			insurance.addServiceCategory(scToMapToInsurance);
+			for(ServiceCategory scExisting:serviceCategoryCheckList){
+				if(!scExisting.getName().equals(sc[0].toString())&& scExisting.getInsurance().getInsuranceId()!=insurance.getInsuranceId()) {
+					insurance.addServiceCategory(scToMapToInsurance);
+				}
+				}
+			//insurance.addServiceCategory(scToMapToInsurance);
 			Context.getService(BillingService.class).saveInsurance(insurance);
 		}
 		
@@ -959,9 +968,14 @@ public class HibernateBillingDAO implements BillingDAO {
 		bui.append("select i.insurance_id,");
 		bui.append(" CASE ");
 		bui.append("");
-		bui.append(" WHEN i.category = 'MUTUELLE' THEN (full_price/2)");
+		/*bui.append(" WHEN i.category = 'MUTUELLE' THEN (full_price/2)");
 		bui.append(" WHEN i.category = 'PRIVATE' THEN (full_price*1.25)");
-		bui.append(" WHEN i.category = 'NONE' THEN (full_price*1.5)");
+		bui.append(" WHEN i.category = 'NONE' THEN (full_price*1.5)");*/
+		bui.append(" WHEN i.category = 'MUTUELLE' THEN (CEIL(full_price/2))");
+		bui.append(" WHEN i.category = 'RSSB' THEN (CEIL(full_price*1.25))");
+		bui.append(" WHEN i.category = 'MMI_UR' THEN (CEIL(full_price*1.15))");
+		bui.append(" WHEN i.category = 'PRIVATE' THEN (CEIL(full_price*1.4375))");
+		bui.append(" WHEN i.category = 'NONE' THEN (CEIL(full_price*1.725))");
 		bui.append(" ELSE full_price END as maxima_to_pay,");
 		bui.append(" fsp.start_date, fsp.facility_service_price_id, sc.service_category_id, fsp.created_date, fsp.retired, fsp.creator ");
 		bui.append(" FROM moh_bill_facility_service_price fsp ");

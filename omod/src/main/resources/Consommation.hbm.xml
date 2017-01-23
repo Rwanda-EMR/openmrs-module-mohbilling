@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- Consommation -->
+	
+	<class name="Consommation" table="moh_bill_consommation">
+
+		<id name="consommationId" type="int" column="consommation_id" unsaved-value="0">
+			<generator class="native" />
+		</id>		
+		<property name="createdDate" column="created_date" />
+		<property name="voided" column="voided" type="boolean" />
+		<property name="voidedDate" column="voided_date" />
+		<property name="voidReason" column="void_reason" type="text" />
+
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="department" class="org.openmrs.module.mohbilling.model.Department" column="department_id" />
+		<many-to-one name="beneficiary" class="org.openmrs.module.mohbilling.model.Beneficiary" column="beneficiary_id" />
+		<many-to-one name="globalBill" class="org.openmrs.module.mohbilling.model.GlobalBill" column="global_bill_id" />
+		<many-to-one name="patientBill" class="org.openmrs.module.mohbilling.model.PatientBill" column="patient_bill_id" unique="true"/>
+		<many-to-one name="insuranceBill" class="org.openmrs.module.mohbilling.model.InsuranceBill" column="insurance_bill_id" unique="true"/>
+		<many-to-one name="thirdPartyBill" class="org.openmrs.module.mohbilling.model.ThirdPartyBill" column="third_party_bill_id" unique="true"/>
+
+		<set name="billItems" lazy="false" inverse="true"
+			cascade="all" sort="natural"
+			order-by="created_date asc">
+			<key column="consommation_id" />
+			<one-to-many class="PatientServiceBill" />
+		</set>
+	</class>	
+</hibernate-mapping>

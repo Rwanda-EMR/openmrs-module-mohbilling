@@ -12,4 +12,6 @@ omod/.settings/
 api/target/
 omod/target/
 *.iml
+.idea/
+.idea/libraries/*.*
 

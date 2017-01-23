@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- Recovery -->
+
+	<class name="Recovery" table="moh_bill_recovery">
+
+		<id name="recoveryId" type="int" column="recovery_id"
+			unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="startPeriod" column="start_period" type="java.util.Date" />
+		<property name="endPeriod" column="end_period" type="java.util.Date" />
+		<property name="status" column="status" type="java.lang.String" />
+		<property name="dueAmount" column="due_amount" type="big_decimal" />
+		<property name="submissionDate" column="submission_date" type="java.util.Date" />
+		<property name="verificationDate" column="verification_date" type="java.util.Date" />
+		<property name="paidAmount" column="paid_amount" type="big_decimal" />
+		<property name="paymentDate" column="payement_date" type="java.util.Date" />
+		<property name="partlyPayReason" column="partly_pay_reason" type="java.lang.String" />
+		<property name="noPaymentReason" column="no_payment_reason" type="java.lang.String" />
+		<property name="observation" column="observation" type="java.lang.String" />
+
+		<property name="createdDate" column="created_date" type="java.util.Date" />
+		<property name="retired" column="retired" type="boolean" />
+		<property name="retiredDate" column="retire_date" type="java.util.Date" />
+		<property name="retireReason" column="retire_reason" type="java.lang.String" />
+
+		<many-to-one name="insuranceId" class="org.openmrs.module.mohbilling.model.Insurance" column="insurance_id" />
+		<many-to-one name="thirdParty" class="org.openmrs.module.mohbilling.model.ThirdParty" column="third_party_id" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="changedBy" class="org.openmrs.User" column="changed_by" />
+		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
+
+	</class>
+
+</hibernate-mapping>
+	  
