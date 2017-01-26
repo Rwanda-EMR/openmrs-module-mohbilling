@@ -1,5 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
 <openmrs:require privilege="Manage Third Party" otherwise="/login.htm" redirect="/module/@MODULE_ID@/thirdParty.form" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>

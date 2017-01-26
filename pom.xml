@@ -58,7 +58,7 @@
 		<openMRSVersion>1.6.6</openMRSVersion>
 	</properties>
 
-	<profiles>
+	<!--<profiles>
 		<profile>
 			<id>1.9</id>
 			<properties>
@@ -72,7 +72,7 @@
 			</properties>
 		</profile>
 	</profiles>
-
+-->
 	<build>
 		<pluginManagement>
 			<plugins>

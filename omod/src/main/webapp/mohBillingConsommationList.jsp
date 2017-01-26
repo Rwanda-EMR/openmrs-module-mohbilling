@@ -1,5 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
