@@ -7,6 +7,10 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 
+<script type="text/javascript">
+			var $j = jQuery.noConflict();
+		</script>
+
  <script type="text/javascript">
         $j(function () {
             var total;

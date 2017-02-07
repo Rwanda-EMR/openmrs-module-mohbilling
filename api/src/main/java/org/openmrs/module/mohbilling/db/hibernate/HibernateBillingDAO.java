@@ -895,11 +895,10 @@ public class HibernateBillingDAO implements BillingDAO {
 		//Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class).add(Restrictions.eq("insurance", rama));
 
 		//List<ServiceCategory> ramaSC = crit.list();
-		List <Object[]> ramaSC=sessionFactory.getCurrentSession().createSQLQuery("select distinct name,description from moh_bill_service_category").list();
+		List <Object[]> ramaSC=sessionFactory.getCurrentSession().createSQLQuery("select distinct name,description from moh_bill_hop_service").list();
 		// map service category to insurance
 
 		List<ServiceCategory> serviceCategoryCheckList=Context.getService(BillingService.class).getAllServiceCategories();
-
 		for (Object[] sc : ramaSC) {
 			ServiceCategory scToMapToInsurance = new ServiceCategory();
 			//scToMapToInsurance.setName(sc.getName());
@@ -911,14 +910,15 @@ public class HibernateBillingDAO implements BillingDAO {
 			scToMapToInsurance.setInsurance(insurance);
 			scToMapToInsurance.setCreator(Context.getAuthenticatedUser());
 			for(ServiceCategory scExisting:serviceCategoryCheckList){
-				if(!scExisting.getName().equals(sc[0].toString())&& scExisting.getInsurance().getInsuranceId()!=insurance.getInsuranceId()) {
+				if(!(scExisting.getName().toString().equals(sc[0].toString())&& scExisting.getInsurance().getInsuranceId()==insurance.getInsuranceId())) {
 					insurance.addServiceCategory(scToMapToInsurance);
 				}
 				}
+			//System.out.println("Before Saving an Insurance :"+sc[0].toString());
 			//insurance.addServiceCategory(scToMapToInsurance);
 			Context.getService(BillingService.class).saveInsurance(insurance);
 		}
-		
+		System.out.println("After Saving an Insurance");
 		List<Object[]> baseBillableServices = getBaseBillableServices(insurance);
 		List<Object[]> basePharmacyItems = getPharmacyBaseBillableServices(insurance);
 		

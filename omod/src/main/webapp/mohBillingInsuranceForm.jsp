@@ -1,7 +1,7 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
-<openmrs:require privilege="Add Insurance" otherwise="/login.htm" redirect="/module/@MODULE_ID@/insurance.list" />
+<openmrs:require privilege="Add Insurance" otherwise="/login.htm" redirect="/module/mohbilling/insurance.list" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingAdminHeader.jsp"%>
