@@ -38,9 +38,13 @@ public class MohBillingBillingFormController extends
 		Consommation addNewTo = null;
 		
 		//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>edit a consommation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+		System.out.println("yyyyyyyyyyyyyyyyyyyyyyyyy"+request.getParameter("consommationId"));
 		try {
 			if((ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId"))).getPatientBill().getPayments().size()<=0)
 					|| (!ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId"))).getGlobalBill().isClosed())){
+
+
 				if(request.getParameter("edit")!=null){
 					consommation = ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId")));
 					mav.addObject("consommation", consommation);

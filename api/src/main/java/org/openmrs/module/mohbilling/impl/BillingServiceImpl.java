@@ -913,6 +913,7 @@ public class BillingServiceImpl implements BillingService {
 
 	@Override
 	public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t) {
+		System.out.print(" am getting in getinsurancepolicybythird party in billingserviceImplement "+t);
 		return billingDAO.getInsurancePolicyByThirdParty(t);
 	}
 

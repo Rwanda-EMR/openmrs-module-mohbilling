@@ -804,6 +804,9 @@ public class InsurancePolicyUtil {
 	}
 	
 	public static InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t){
+
+	   	System.out.print(" am getting in getinsurancepolicybythird party ttttttttttttttttttttt "+t);
+
 		return getService().getInsurancePolicyByThirdParty(t);
 	}
 

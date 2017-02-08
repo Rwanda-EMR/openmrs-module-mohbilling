@@ -15,7 +15,7 @@
 </div>
 
 <div class="box">
-	<form action="billing.form?consommationId=${consommation.consommationId }&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId }&departmentId=${param.departmentId}&save=true" method="post" id="formSaveBillPayment">
+	<form action="billing.form?consommationId=${consommation.consommationId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&departmentId=${param.departmentId}&save=true" method="post" id="formSaveBillPayment">
 		<table width="70%" id="tableone">
 			<tr>
 				<th style="width: 3%" class="columnHeader">#</th>
