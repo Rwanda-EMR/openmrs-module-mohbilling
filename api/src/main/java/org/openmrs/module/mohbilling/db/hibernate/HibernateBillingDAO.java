@@ -1440,9 +1440,15 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		@Override
 		public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t) {
-			return (InsurancePolicy) sessionFactory.getCurrentSession().createCriteria(InsurancePolicy.class)
-					.add(Restrictions.eq("thirdParty", t))
-					.uniqueResult();
+			System.out.print(" am getting in getinsurancepolicybythird party in hibernate "+t.getThirdPartyId());
+
+
+			InsurancePolicy insurancePolicy =  (InsurancePolicy) sessionFactory.getCurrentSession().createCriteria(InsurancePolicy.class)
+					.add(Restrictions.eq("thirdParty",t)).list().get(0);
+					//.uniqueResult();
+
+			System.out.print(" insurancePolicyinsurancePolicyinsurancePolicyinsurancePolicy ");
+			return insurancePolicy;
 		}
 
 		/* (non-Javadoc)
