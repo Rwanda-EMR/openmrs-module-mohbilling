@@ -70,7 +70,7 @@ public class MohBillingViewGlobalBillController extends
 			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.valueOf(request.getParameter("globalBillId")));
 			FileExporter exp = new FileExporter();
 			List<ServiceRevenue> sr = (List<ServiceRevenue>) request.getSession().getAttribute("serviceRevenueList" );
-			exp.printGlobalBill(request, response, gb,sr, ""+gb.getBillIdentifier());
+			exp.printGlobalBill(request, response, gb,sr, gb.getBillIdentifier()+".pdf");
 		}
 
 		return mav;

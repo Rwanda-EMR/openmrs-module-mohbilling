@@ -96,7 +96,7 @@ public class MohBillingCashierReportController extends
 					 }
 					 else{
 						 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments);
-						 mav.addObject("reportMsg", "Total Amount From "+startDateStr+" To "+endDateStr);
+						 mav.addObject("reportMsg", "Total Received Amount From "+startDateStr+" To "+endDateStr);
 					 }
 				 
 				 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
