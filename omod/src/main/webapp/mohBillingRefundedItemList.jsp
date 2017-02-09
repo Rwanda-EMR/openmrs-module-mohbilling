@@ -53,8 +53,8 @@ $j(function(){
 <div>
 <b class="boxHeader">Patient Details</b>
 <table>
-<tr><td>Patient:</td><td>test</td></tr>
-<tr><td>Insurance Policy:</td><td>test</td></tr>
+<tr><td>Patient:</td><td>${insurancePolicy.owner.personName}</td></tr>
+<tr><td>Insurance Policy:</td><td>${consommation.beneficiary.policyIdNumber}</td></tr>
 </table>
 </div>
 </div>
