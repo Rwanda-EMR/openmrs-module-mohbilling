@@ -171,7 +171,9 @@ function recalculateTotals() {
 				<th class="columnHeader">Service</th>
 				<th class="columnHeader center">Qty</th>
 				<th class="columnHeader center">Paid Qty</th>
+				<!--
 				<th class="columnHeader center">Paying Qty</th>
+				-->
 				<th class="columnHeader right">Unit Price (Rwf)</th>
 				<th class="columnHeader right">Price (Rwf)</th>
 				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</th>
@@ -198,13 +200,16 @@ function recalculateTotals() {
 					<c:set var="pendingQty" value="${billItem.quantity}"/>
 					</c:if>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${paidQty}</td>
+					<!--
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">
+					-->
 					<input type="hidden" value="${billItem.quantity}" id="reqQty_${billItem.patientServiceBillId}"/>
 					<c:if test="${pendingQty>0}">
 					<input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${pendingQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId});validateQties(${billItem.patientServiceBillId})" style="text-align: center;" class="paying"/>
 					</c:if>
 					<c:if test="${pendingQty<=0}">
-					<input type="text" size="4" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="F.PAID" style="text-align: center;border: none;" disabled="disabled"/>
+
+						<!--<input type="text" size="4" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="F.PAID" style="text-align: center;border: none;" disabled="disabled"/>-->
 					</c:if>
 					</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><input type="text"  size="10" id="up_${billItem.patientServiceBillId}"  value="${billItem.unitPrice}" style="border:none; text-align: center;"/></td>
@@ -264,19 +269,18 @@ function recalculateTotals() {
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Paid by Third Part</b></div></td>
 				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>
-				
 			<!-- 
 							<td><div style="text-align: right;"><b>Current Payment Amount</b></div></td>
 				<td><div class="amount">1800</div></td>	
-			 -->	
-								
+			 -->
 			</tr>
+
 			<tr>
 				<td></td>
 				<td colspan="2"></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Rest</b></div></td>
-				<!-- <td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td>	 -->
+				<!-- <td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td> -->
 				<td>
 				<div class="amount" style="text-align: right"><b>
 				 <input type="text" disabled="disabled" value="${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}" id="rest" style="border: none;background-color: #aabbcc"/>
