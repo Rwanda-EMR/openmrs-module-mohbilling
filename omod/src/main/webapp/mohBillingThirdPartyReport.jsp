@@ -1,6 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
-<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingReportHeader.jsp"%>
@@ -59,7 +58,6 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 	<tr>
 		<th class="columnHeader" style="width: 3%">#</th>
 		<th class="columnHeader" style="width: 8%">Date</th>
-		<th class="columnHeader">Ins. Name </th>
 		<th class="columnHeader">Card NUMBER </th>
 		<th class="columnHeader">AGE</th>
 		<th class="columnHeader">Gender</th>
@@ -74,9 +72,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 
 		</c:forEach>
 		<th class="columnHeader">100%</th>
-
 		<th class="columnHeader">Insurance: <b>${insuranceRate}%</b></th>
-
 		<th class="columnHeader">Third Party: <b>${thirdPartyRate }%</b></th>
 		<th class="columnHeader">Patient: <b>${patientRate}%</b></th>
 	</tr>
@@ -89,7 +85,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
 				<fmt:formatDate pattern="yyyy-MM-dd" value="${asr.consommation.createdDate}" />
-            <td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insurance.name}</td>
+            </td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insuranceCardNo}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.age}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.gender}</td>

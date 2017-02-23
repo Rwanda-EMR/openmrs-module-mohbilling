@@ -14,7 +14,8 @@ import java.util.TreeSet;
  * @author emr
  * 
  */
-public class Consommation {
+public class
+Consommation {
 
 	private Integer consommationId;
 	
