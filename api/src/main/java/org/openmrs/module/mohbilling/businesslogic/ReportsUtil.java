@@ -424,7 +424,8 @@ public class ReportsUtil {
 	 */
 	public static PaidServiceRevenue getPaidServiceRevenue(List<PaidServiceBill> paidItems, String categ){
 		BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
-		for (PaidServiceBill pi : paidItems) {	
+		for (PaidServiceBill pi : paidItems) {
+			if(!pi.getVoided())
 			if(categ.equals(pi.getBillItem().getHopService().getName())){
 				Float insuranceRate = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
 				float pRate = (100f - insuranceRate) / 100f;

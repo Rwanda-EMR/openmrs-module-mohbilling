@@ -94,6 +94,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
 			<fmt:formatDate pattern="yyyy-MM-dd" value="${asr.consommation.createdDate}" />
 			</td>
+
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.globalBill.billIdentifier}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insuranceCardNo}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.age}</td>

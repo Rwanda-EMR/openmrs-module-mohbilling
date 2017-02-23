@@ -35,8 +35,9 @@ public class MohBillingRefundedItemListController extends
   	  if(request.getParameter("refundId")!=null && !request.getParameter("refundId").equals("")){
 		  PaymentRefund refund = PaymentRefundUtil.getRefundById(Integer.valueOf(request.getParameter("refundId")));
 		  mav.addObject("refund", refund);
-		  Consommation consommation = ConsommationUtil.getConsommationByPatientBill(refund.getBillPayment().getPatientBill());
-		  mav.addObject("consommation",consommation);
+		  mav.addObject("consommation", ConsommationUtil.getConsommationByPatientBill(refund.getBillPayment().getPatientBill()));
+		  /*Consommation consommation = ConsommationUtil.getConsommationByPatientBill(refund.getBillPayment().getPatientBill());
+		  mav.addObject("consommation",consommation);*/
 	  }
   	  
 		return mav;

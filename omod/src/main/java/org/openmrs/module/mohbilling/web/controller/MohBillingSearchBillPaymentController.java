@@ -89,7 +89,11 @@ public class MohBillingSearchBillPaymentController extends ParameterizableViewCo
 				exp.printPayment(request, response, payment, consommation, "receipt.pdf");
               }
 			 System.out.println("11 11 11 11 11 11 11 11 11 11 11 11 11");
-
+			 String editPayStr = "";
+			 if(request.getParameter("editPay")!=null){
+				 editPayStr = request.getParameter("editPay");
+				 mav.addObject("editPayStr", editPayStr);
+				 }
 		 }
     	  
 

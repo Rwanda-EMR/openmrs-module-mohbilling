@@ -223,9 +223,9 @@ public class FileExporter {
 			
 			String itemDetails = number+")"+itemName +" "+unitPrice +" X "+paidQty+" = "+formatter.format(unitPrice.multiply(paidQty));
 		
-			 if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+			/* if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
 				 itemDetails = number+")"+itemName +" "+formatter.format(unitPrice) +" X "+formatter.format(paidQty)+" = "+formatter.format(unitPrice.multiply(paidQty));
-			 }
+			 }*/
 			
 			cell = new PdfPCell(fontSelector.process(""+itemDetails));
 			cell.setBorder(Rectangle.NO_BORDER);

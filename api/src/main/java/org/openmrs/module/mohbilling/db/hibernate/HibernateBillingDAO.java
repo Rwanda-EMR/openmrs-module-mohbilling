@@ -669,6 +669,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,	Date endDate, User collector) {
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class);
 				crit.add(Restrictions.between("dateReceived", startDate, endDate));
+		        crit.add(Restrictions.eq("voided", false));
 				if(collector!=null)
 				crit.add(Restrictions.eq("collector", collector));
 
@@ -1341,6 +1342,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		public List<PaidServiceBill> getPaidItemsByBillPayments(List<BillPayment> payments) {
 			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class);
 	      		criteria.add(Restrictions.in("billPayment", payments));
+			    criteria.add(Restrictions.eq("voided", false));
 	      		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
 	      		paidItems = criteria.list();
 
@@ -1422,6 +1424,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment) {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientServiceBill.class);
 				crit.add(Expression.eq("consommation", payment));
+			    crit.add(Restrictions.eq("voided", false));
 				return crit.list();
 		}
 
