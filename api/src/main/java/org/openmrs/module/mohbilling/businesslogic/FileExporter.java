@@ -244,12 +244,15 @@ public class FileExporter {
 		PdfPTable serviceTotPat = new PdfPTable(4);
 		
 		for (BillPayment pay : consommation.getPatientBill().getPayments()) {
-			totalPaid=totalPaid.add(pay.getAmountPaid());
+
+				totalPaid = totalPaid.add(pay.getAmountPaid());
+
 		}
-		
-		BigDecimal dueAmount = consommation.getPatientBill().getAmount();
+
+		BigDecimal dueAmount =consommation.getPatientBill().getAmount();
 		 if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
-			dueAmount = consommation.getPatientBill().getAmount().multiply(patientRate).divide(new BigDecimal(100)); 
+
+			dueAmount = consommation.getPatientBill().getAmount().multiply(patientRate).divide(new BigDecimal(100));
 		 }
 		
 		PdfPCell c1 = new PdfPCell(boldFont.process("Due Amount: "+formatter.format(dueAmount)));
