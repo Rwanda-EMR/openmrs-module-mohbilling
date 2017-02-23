@@ -33,9 +33,11 @@ public class MohBillingTagUtil {
 			     if (allPayments !=null) {
 			    	 for (BillPayment billPayment : allPayments) {
 			    		 
-			    		 amountPaid = amountPaid + billPayment.getAmountPaid().longValue();			    		 
-						
-					}
+			    		 // amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
+						 System.out.println("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD "+billPayment.getBillPaymentId()+">>>>>"+billPayment.getVoided());
+						   		 if(!billPayment.isVoided())
+						   		 	amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
+					 }
 					
 				}
 
@@ -83,6 +85,7 @@ public class MohBillingTagUtil {
 				}
 	
 				for (BillPayment bp : consomm.getPatientBill().getPayments()) {
+					if(!bp.isVoided())
 					amountPaid = amountPaid + bp.getAmountPaid().doubleValue();
 				}
 
@@ -161,7 +164,8 @@ public class MohBillingTagUtil {
 		Consommation c = ConsommationUtil.getConsommation(consommationId);
 		BigDecimal totalPaid = new BigDecimal(0);
 		for (BillPayment pay : c.getPatientBill().getPayments()) {
-			totalPaid=totalPaid.add(pay.getAmountPaid());
+			if(!pay.isVoided())
+				totalPaid=totalPaid.add(pay.getAmountPaid());
 		}
 		return ""+totalPaid;
 	}

@@ -69,9 +69,9 @@ public class MohBillingCashierReportController extends
 			 User collector =  (User) params[2];
 
 			 
-			 BigDecimal totalReceivedAmount = new BigDecimal(0);
+			//BigDecimal totalReceivedAmount = new BigDecimal(0);
 
-			 try {
+			 //try {
 				  
 					 List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate, collector);
 					 
@@ -98,6 +98,9 @@ public class MohBillingCashierReportController extends
 						 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments);
 						 mav.addObject("reportMsg", "Total Received Amount From "+startDateStr+" To "+endDateStr);
 					 }
+
+				 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments);
+				 mav.addObject("reportMsg1", "Total Received Amount From "+startDateStr+" To "+endDateStr);
 				 
 				 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
 	     		 for (HopService hs : reportColumns) {
@@ -113,13 +116,14 @@ public class MohBillingCashierReportController extends
 				request.getSession().setAttribute("paidServiceRevenues" , paidServiceRevenues);
 				request.getSession().setAttribute("totalReceivedAmount", BillPaymentUtil.getTotalPaid(payments));
 				
-			} catch (Exception e) {
+			/*} catch (Exception e) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 						"No payment found !");
 				log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
 			}
+*/
+	}
 
-	}	
 		mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 		mav.addObject("thirdParties", Context.getService(BillingService.class).getAllThirdParties());
 		mav.setViewName(getViewName());

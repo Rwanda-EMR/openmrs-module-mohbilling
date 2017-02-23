@@ -35,6 +35,7 @@
 			<c:forEach items="${consommation.billItems}" var="billItem" varStatus="status">
 			<c:set var="service" value="${billItem.service.facilityServicePrice}"/>
 			<c:set var="fieldName" value="item-${consommation.consommationId}-${billItem.patientServiceBillId}"/>
+				<c:if test="${not billItem.voided}">
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
@@ -51,6 +52,7 @@
 					</td>							
 				
 				</tr>
+				</c:if>
 			</c:forEach>		   
 
 			<tr>

@@ -30,12 +30,12 @@
 			<th>Consom ID</th>
 			<th>Service</th>
 			<th>created By</th>
-			<th>card No</th>			
+			<th>card No</th>
 			<th>Insurance due</th>
 			<th>Third party due</th>
 			<th>Patient due</th>
 			<th>Paid Amount</th>
-			<th>status</th>			
+			<th>status</th>
 			<th>Payment</th>
 			<th></th>
 		</tr>
@@ -45,25 +45,25 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.consommationId}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.department.name}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.creator.personName}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.beneficiary.policyIdNumber}</td>								
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.beneficiary.policyIdNumber}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.insuranceBill.amount}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.thirdPartyBill.amount}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.patientBill.amount}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${billingtag:amountPaidForPatientBill(consommation.consommationId)}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${billingtag:consommationStatus(consommation.consommationId)}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;<a href="patientBillPayment.form?consommationId=${consommation.consommationId}">view</a></td>				
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;<a href="patientBillPayment.form?consommationId=${consommation.consommationId}">view</a></td>
 				<c:if test="${empty consommation.patientBill.payments && not consommation.globalBill.closed }">
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&edit=true">Edit</a></td>
 				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td> -->
 				</c:if>
-			</tr>						
+			</tr>
 		</c:forEach>
 		<tr>
 		   <td></td>
 		</tr>
 			<tr>
-			     <td><div style="text-align: left;">Total Due Amount</div></td>	
-			     <c:set var="totalDueAmount" value="${(globalBill.globalAmount)*((100-insurancePolicy.insurance.currentRate.rate)/100)}"/>		
+			     <td><div style="text-align: left;">Total Due Amount</div></td>
+			     <c:set var="totalDueAmount" value="${(globalBill.globalAmount)*((100-insurancePolicy.insurance.currentRate.rate)/100)}"/>
 				<td><div class="amount"><fmt:formatNumber value="${totalDueAmount}" type="number" pattern="#.##"/></div></td>
 				<td></td><td></td> <td></td><td></td><td></td>
 				<td><div style="text-align: right;"><b>Total paid  Amount</b></div></td>

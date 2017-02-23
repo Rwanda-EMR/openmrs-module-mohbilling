@@ -307,7 +307,7 @@ var $j = jQuery.noConflict();
 	</div>
 </c:if>
 <c:if test="${consommation != null }">
-<c:import url="consommationItemList.jsp"/>
+<c:import url="mohBillingConsommationItemList.jsp"/>
 </c:if>
 
 

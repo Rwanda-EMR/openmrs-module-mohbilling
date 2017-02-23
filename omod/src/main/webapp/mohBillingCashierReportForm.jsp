@@ -47,7 +47,7 @@ a.print {
 <c:if test="${not empty paidServiceRevenues }">
 <br/>
 <b class="boxHeader">
-${reportMsg} : <b style="color: black;font: bold;"><fmt:formatNumber value="${totalReceivedAmount}" type="number" pattern="#.##"/> FRW</b>
+${reportMsg1} : <b style="color: black;font: bold;"><fmt:formatNumber value="${totalReceivedAmount}" type="number" pattern="#.##"/> FRW</b>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
@@ -73,6 +73,16 @@ ${reportMsg} : <b style="color: black;font: bold;"><fmt:formatNumber value="${to
 	</tr>
 	</c:if>
 	</c:forEach>
+
+	< c:set var="TOT" value="${0}"/>
+        <c:forEach items="${paidServiceRevenues}" var="s" >
+        <c:set var="TOT" value="${TOT + s.paidAmount}"/>
+    	</c:forEach>
+    <tr>
+    		<th class="columnHeader"> </th>
+    		<th class="columnHeader"><b style="color: black;font: bold;">${reportMsg}</b></th>
+    		<th class="columnHeader">${TOT}</th>
+    	</tr>
 </table>
 </div>
 </c:if>
