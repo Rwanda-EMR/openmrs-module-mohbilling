@@ -67,6 +67,7 @@ public class MohBillingThirdPartyReportController extends
 				Insurance insurance = InsurancePolicyUtil.getInsurancePolicyByThirdParty(thirdParty).getInsurance();
 			    System.out.print(" insurance insurance "+insurance);
 
+
 				Float insuranceRate=insurance.getCurrentRate().getRate();
 				
 				List<String> columns = new ArrayList<String>();	
@@ -140,7 +141,11 @@ public class MohBillingThirdPartyReportController extends
 							log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
 						}*/
 		    		}
-		    		
+		    		//requests sessions.
+			request.getSession().setAttribute("columns" , columns);
+			request.getSession().setAttribute("listOfAllServicesRevenue" , listOfAllServicesRevenue);
+			request.getSession().setAttribute("insurance" , insurance);
+
 					if(!columns.contains("IMAGING"))
 						 columns.add("IMAGING");
 					if(!columns.contains("PROCEDURES"))
@@ -157,9 +162,9 @@ public class MohBillingThirdPartyReportController extends
 		    		
 		    		
 		    		mav.addObject("thirdPartyRate", thirdParty.getRate());
-		    		mav.addObject("patientRate", (new BigDecimal(100).subtract(new BigDecimal(insuranceRate))));
+		    		mav.addObject("patientRate", (new BigDecimal(100).subtract(new BigDecimal(insuranceRate)).subtract(new BigDecimal(thirdParty.getRate()))));
 		    		mav.addObject("insuranceRate", insuranceRate);
-		    		
+		    		log.info("hhghghghdhfdfgfgfgfgdfgdfgdfgdgggsggsfsfdsffafafafafdf the insurance rate is"+insuranceRate);
 	}
 		 mav.addObject("thirdParties", Context.getService(BillingService.class).getAllThirdParties());
 

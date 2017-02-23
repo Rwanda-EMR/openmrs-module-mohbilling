@@ -1,3 +1,4 @@
+
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
@@ -59,10 +60,13 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 	<tr>
 		<th class="columnHeader" style="width: 3%">#</th>
 		<th class="columnHeader" style="width: 8%">Date</th>
+
+		<!-- <th class="columnHeader">Insurance name </th> -->
 		<th class="columnHeader">Card NUMBER </th>
 		<th class="columnHeader">AGE</th>
 		<th class="columnHeader">Gender</th>
 		<th class="columnHeader" style="width: 15%">BENEFICIARY'S NAMES</th>
+
 		<c:forEach items="${columns }" var="categ">
 		 <c:if test="${categ eq 'FORMALITES ADMINISTRATIVES' }">
 		  <th class="columnHeader">OTHERCONSUM. </th>
@@ -72,34 +76,40 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		 </c:if>
 
 		</c:forEach>
+     <c:forEach items="${listOfAllServicesRevenue}" var="asr" varStatus="status">
 		<th class="columnHeader">100%</th>
-		<th class="columnHeader">Insurance: <b>${insuranceRate}%</b></th>
+		<th class="columnHeader">Insurance: <b>${asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate}%</b></th>
 		<th class="columnHeader">Third Party: <b>${thirdPartyRate }%</b></th>
-		<th class="columnHeader">Patient: <b>${patientRate}%</b></th>
+		<th class="columnHeader">Patient: <b>${100-asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate}%</b></th>
 	</tr>
-    
-	<c:set var="patientRate" value="${100-insuranceRate}"/>
-	
-	
+	<c:set var="patientRate" value="${100-asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate}"/>
+</c:forEach>
+
 	<c:forEach items="${listOfAllServicesRevenue}" var="asr" varStatus="status">
 		<tr>	
 		    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
 				<fmt:formatDate pattern="yyyy-MM-dd" value="${asr.consommation.createdDate}" />
             </td>
+            <!-- <td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insurance.name}</td> -->
+
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insuranceCardNo}</td>
+
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.age}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.gender}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.personName}</td>
+
 			
 			<c:forEach items="${asr.revenues }" var="revenue">
 			 <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${revenue.dueAmount*100/patientRate}" type="number" pattern="#.##"/></td>
 			</c:forEach>
 		
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts}" type="number" pattern="#.##"/></td>
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*insuranceRate/100}" type="number" pattern="#.##"/></td>
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*(patientRate-thirdPartyRate)/100}" type="number" pattern="#.##"/></td>
+		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate/100}" type="number" pattern="#.##"/></td>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*thirdPartyRate/100}" type="number" pattern="#.##"/></td>
+		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*(100-asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate-thirdPartyRate)/100}" type="number" pattern="#.##"/></td>
+
+
 	    </tr>
 	</c:forEach>
 <tr>
@@ -109,9 +119,10 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		  <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total}" type="number" pattern="#.##"/></b> </td>
 		</c:forEach>
 <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100}" type="number" pattern="#.##"/></b></td>
-<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*insuranceRate/100}" type="number" pattern="#.##"/></b></td>
-<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*(patientRate-thirdPartyRate)/100}" type="number" pattern="#.##"/></b></td>
+<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate/100}" type="number" pattern="#.##"/></b></td>
 <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*thirdPartyRate/100}" type="number" pattern="#.##"/></b></td>
+<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*(100-asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate-thirdPartyRate)/100}" type="number" pattern="#.##"/></b></td>
+
 </tr>
 	
 	
