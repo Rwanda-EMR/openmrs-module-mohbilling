@@ -58,6 +58,13 @@ public class ParametersConversion {
 
 		Date endDate =null;
 		try {
+			endDate = sdf.parse(endDateStr.split("/")[2] + "-" + endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0] + " " + endTimeStr);
+		}catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		/*try {
 			if(!endHourStr.equals("") && endMinuteStr!=null){
 			endDate = sdf.parse(endDateStr.split("/")[2] + "-"
 					+ endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0]
@@ -73,6 +80,7 @@ public class ParametersConversion {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		*/
 		return endDate;
 		
 	}

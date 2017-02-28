@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -77,11 +78,23 @@ public class MohBillingCohortBuilderFormController extends
 				 }
 				 if(request.getParameter("thirdPartyId")!=null && !request.getParameter("thirdPartyId").equals(""))
 				 thirdParty = Context.getService(BillingService.class).getThirdParty(Integer.valueOf(request.getParameter("thirdPartyId")));
-				
-				 List<Consommation> cons = ConsommationUtil.getConsommations(startDate, endDate, insurance, thirdParty, creator, department);
-				 mav.addObject("consommations", cons);
-							
-		}
+
+				List<Consommation> cons = ConsommationUtil.getConsommations(startDate, endDate, insurance, thirdParty, creator, department);
+				List<Consommation> consFilteredByBillStatus=new ArrayList<Consommation>();
+				if(billStatus!=null){
+					for (Consommation con:cons){
+						if(con.getPatientBill().getStatus().toString().equals(billStatus.toString())){
+							consFilteredByBillStatus.add(con);
+						}
+					}
+					mav.addObject("consommations", consFilteredByBillStatus);
+				}
+				else {
+					mav.addObject("consommations", cons);
+				}
+				cons.get(0).getPatientBill().getStatus();
+
+			}
 			mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 			mav.addObject("thirdParties", InsurancePolicyUtil.getAllThirdParties());
 			mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
