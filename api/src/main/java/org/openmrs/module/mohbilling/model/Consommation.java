@@ -229,6 +229,7 @@ Consommation {
 		return voidedBy;
 	}
 
+	public Boolean getVoided(){return voided;}
 	/**
 	 * @param voidedBy
 	 *            the voidedBy to set

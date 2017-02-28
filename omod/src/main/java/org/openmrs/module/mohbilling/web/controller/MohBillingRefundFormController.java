@@ -77,6 +77,9 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 			//refund.setRefundedAmount(BigDecimal.valueOf(Double.parseDouble(refundAmountStr)));
 			refund.setRefundedAmount(refundAmount);
 			refund.setRefundedBy(Context.getAuthenticatedUser());
+
+
+
 			//void removed items
 			for (PaidServiceBillRefund ri : refund.getRefundedItems()) {
 				ri.getPaidItem().setVoided(true);
@@ -89,8 +92,13 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 			BigDecimal newPaidAmount = payment.getAmountPaid().subtract(refundAmount);
 			payment.setAmountPaid(newPaidAmount);
 			Context.getService(BillingService.class).saveBillPayment(payment);
+                //update due amount on Consommation
+			BigDecimal newDueAmount= payment.getPatientBill().getAmount().subtract(refundAmount);
+			consommation.getPatientBill().setAmount(newDueAmount);
+			ConsommationUtil.saveConsommation(consommation);
 
 							Context.getService(BillingService.class).savePaymentRefund(refund);
+
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"The refund has been confirmed !");
 			return new ModelAndView(new RedirectView(

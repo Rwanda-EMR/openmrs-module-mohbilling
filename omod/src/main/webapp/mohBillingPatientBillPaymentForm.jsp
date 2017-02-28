@@ -171,9 +171,7 @@ function recalculateTotals() {
 				<th class="columnHeader">Service</th>
 				<th class="columnHeader center">Qty</th>
 				<th class="columnHeader center">Paid Qty</th>
-				<!--
 				<th class="columnHeader center">Paying Qty</th>
-				-->
 				<th class="columnHeader right">Unit Price (Rwf)</th>
 				<th class="columnHeader right">Price (Rwf)</th>
 				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</th>
@@ -200,16 +198,14 @@ function recalculateTotals() {
 					<c:set var="pendingQty" value="${billItem.quantity}"/>
 					</c:if>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${paidQty}</td>
-					<!--
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">
-					-->
 					<input type="hidden" value="${billItem.quantity}" id="reqQty_${billItem.patientServiceBillId}"/>
 					<c:if test="${pendingQty>0}">
 					<input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${pendingQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId});validateQties(${billItem.patientServiceBillId})" style="text-align: center;" class="paying"/>
 					</c:if>
 					<c:if test="${pendingQty<=0}">
 
-						<!--<input type="text" size="4" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="F.PAID" style="text-align: center;border: none;" disabled="disabled"/>-->
+						<input type="text" size="4" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="F.PAID" style="text-align: center;border: none;" disabled="disabled"/>
 					</c:if>
 					</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><input type="text"  size="10" id="up_${billItem.patientServiceBillId}"  value="${billItem.unitPrice}" style="border:none; text-align: center;"/></td>
@@ -222,7 +218,7 @@ function recalculateTotals() {
 						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}" />
 					</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">							
-						 <!-- <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/> -->
+					<!-- <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/> -->
 						<input value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" id="patientCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="patientCol"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
@@ -264,12 +260,15 @@ function recalculateTotals() {
 				 -->			
 			</tr>
 			<tr>
-				<td><b>Received Date</b></td>
+				<td><b>Received Date<
+				/b></td>
 				<td colspan="2"><input type="text" autocomplete="off" name="dateBillReceived" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Paid by Third Part</b></div></td>
 				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>
-			<!-- 
+			<!--
+
+
 							<td><div style="text-align: right;"><b>Current Payment Amount</b></div></td>
 				<td><div class="amount">1800</div></td>	
 			 -->
@@ -280,7 +279,7 @@ function recalculateTotals() {
 				<td colspan="2"></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Rest</b></div></td>
-				<!-- <td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td> -->
+			<!-- <td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td> -->
 				<td>
 				<div class="amount" style="text-align: right"><b>
 				 <input type="text" disabled="disabled" value="${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}" id="rest" style="border: none;background-color: #aabbcc"/>
