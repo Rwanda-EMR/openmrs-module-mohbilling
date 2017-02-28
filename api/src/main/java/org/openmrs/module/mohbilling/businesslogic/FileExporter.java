@@ -242,7 +242,7 @@ public class FileExporter {
 		document.add(table);
 		
 		PdfPTable serviceTotPat = new PdfPTable(4);
-		
+
 		for (BillPayment pay : consommation.getPatientBill().getPayments()) {
 
 				totalPaid = totalPaid.add(pay.getAmountPaid());
@@ -250,7 +250,8 @@ public class FileExporter {
 		}
 
 		BigDecimal dueAmount =consommation.getPatientBill().getAmount();
-		 if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+
+		 if(!consommation.getVoided()&& consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
 
 			dueAmount = consommation.getPatientBill().getAmount().multiply(patientRate).divide(new BigDecimal(100));
 		 }
@@ -415,26 +416,24 @@ public class FileExporter {
 				 table.addCell(cell);
 				 BigDecimal totalByService=new BigDecimal(0);
 				 for (PatientServiceBill item : sr.getBillItems()) {
-					 if(!item.isVoided()){
-					 cell = new PdfPCell(fontSelector.process(""+df.format(item.getServiceDate())));
-					 table.addCell(cell);
-					 cell = new PdfPCell(fontSelector.process(""+item.getService().getFacilityServicePrice().getName()));
-					 table.addCell(cell);
-					 cell = new PdfPCell(fontSelector.process(""+item.getQuantity()));
-					 table.addCell(cell);
-					 
-					 cell = new PdfPCell(fontSelector.process(""+item.getUnitPrice()));
-					 table.addCell(cell);
-//					 cell = new PdfPCell(fontSelector.process(""+formatter.format(item.getQuantity().multiply(item.getUnitPrice().multiply(patientRate.divide(new BigDecimal(100) ))))));
-					 cell = new PdfPCell(fontSelector.process(""+formatter.format(item.getQuantity().multiply(item.getUnitPrice()))));
-					 table.addCell(cell);
-					 
-//					 totalByService=totalByService.add(item.getQuantity().multiply(item.getUnitPrice().multiply(patientRate.divide(new BigDecimal(100) ))));
-					 totalByService=totalByService.add(item.getQuantity().multiply(item.getUnitPrice()));
-					 }
-					
-					 total=total.add(item.getQuantity().multiply(item.getUnitPrice()));
+					 if(!item.isVoided()) {
+						 cell = new PdfPCell(fontSelector.process("" + df.format(item.getServiceDate())));
+						 table.addCell(cell);
+						 cell = new PdfPCell(fontSelector.process("" + item.getService().getFacilityServicePrice().getName()));
+						 table.addCell(cell);
+						 cell = new PdfPCell(fontSelector.process("" + item.getQuantity()));
+						 table.addCell(cell);
 
+						 cell = new PdfPCell(fontSelector.process("" + item.getUnitPrice()));
+						 table.addCell(cell);
+//					 cell = new PdfPCell(fontSelector.process(""+formatter.format(item.getQuantity().multiply(item.getUnitPrice().multiply(patientRate.divide(new BigDecimal(100) ))))));
+						 cell = new PdfPCell(fontSelector.process("" + formatter.format(item.getQuantity().multiply(item.getUnitPrice()))));
+						 table.addCell(cell);
+
+//					 totalByService=totalByService.add(item.getQuantity().multiply(item.getUnitPrice().multiply(patientRate.divide(new BigDecimal(100) ))));
+						 totalByService = totalByService.add(item.getQuantity().multiply(item.getUnitPrice()));
+						 total = total.add(item.getQuantity().multiply(item.getUnitPrice()));
+					 }
 				} 
 				 cell = new PdfPCell(fontSelector.process(""));
 				 table.addCell(cell);

@@ -96,7 +96,6 @@ public class ConsommationUtil {
 		
 	}
 
-
 	/**
 	 * Gets list of Conosmmation by global bill
 	 * @param globalBill
@@ -163,7 +162,9 @@ public class ConsommationUtil {
 		String message="";
 		BigDecimal voidedItemTotalAmount = new BigDecimal(0);
 		BigDecimal addedItemTotalAmount = new BigDecimal(0);
-			for (int i = 0; i < numberOfServicesClicked; i++) {
+		BigDecimal removedItemTotalAmount = new BigDecimal(0);
+
+		for (int i = 0; i < numberOfServicesClicked; i++) {
 				BigDecimal  quantity= null;
 				BigDecimal unitPrice = null;
 				BillableService bs = null;
@@ -173,6 +174,10 @@ public class ConsommationUtil {
 					if(request.getParameter("removeItem_"  + billItems[i])!=null){
 						PatientServiceBill itemToRemove = ConsommationUtil.getPatientServiceBill(Integer.valueOf(request.getParameter("removeItem_" + billItems[i])));
 						retireItem(itemToRemove);
+
+						BigDecimal removedItemAmount = itemToRemove .getQuantity().multiply(itemToRemove .getUnitPrice());
+						removedItemTotalAmount = removedItemTotalAmount.add(removedItemAmount);
+
 						message="Item removed succefully...";
 					}
 					else{
@@ -221,7 +226,8 @@ public class ConsommationUtil {
 			}
 			totalAmount = totalAmount.add(addedItemTotalAmount);
 			totalAmount = totalAmount.subtract(voidedItemTotalAmount);
-			
+		    totalAmount = totalAmount.subtract(removedItemTotalAmount);
+
 		PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());
 	    InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);
 		ThirdPartyBill	thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
