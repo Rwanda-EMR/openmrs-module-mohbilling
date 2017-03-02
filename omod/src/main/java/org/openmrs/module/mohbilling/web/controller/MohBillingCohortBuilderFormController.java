@@ -100,5 +100,4 @@ public class MohBillingCohortBuilderFormController extends
 			mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
 			return mav;
 	}
-
 }

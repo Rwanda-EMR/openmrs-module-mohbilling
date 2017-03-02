@@ -548,12 +548,14 @@ public class ReportsUtil {
 		List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
 		for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
 			for (PatientServiceBill item : c.getBillItems()) {
-				items.add(item);
+				if (!item.getVoided()) {
+					items.add(item);
+				}
 			}
 		}
 		return items;
 	}
-	
+
 	public static Consommation getConsommationByGlobalBill(GlobalBill gb){
 		Consommation c=null;
 		try {

@@ -78,7 +78,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		 </c:if>
 
 		</c:forEach>
-		<th class="columnHeader">Acts</th>
+	<!--	<th class="columnHeader">Acts</th> -->
 		<th class="columnHeader">100%</th>
 		<th class="columnHeader">Insurance:<b>${insuranceRate }%</b></th>
 		<th class="columnHeader">Patient:<b>${100-insuranceRate}%</b></th>
@@ -88,6 +88,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 	
 	
 	<c:forEach items="${listOfAllServicesRevenue}" var="asr" varStatus="status">
+
 		<tr>
 
 		    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
@@ -104,7 +105,6 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<c:forEach items="${asr.revenues }" var="revenue">
 			 <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${revenue.dueAmount*100/patientRate}" type="number" pattern="#.##"/></td>
 			</c:forEach>
-		
 		 <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts}" type="number" pattern="#.##"/></td>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*insuranceRate/100}" type="number" pattern="#.##"/></td>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*patientRate/100}" type="number" pattern="#.##"/></td>

@@ -81,7 +81,7 @@ public class MohBillingInsuranceReportController extends
 					BigDecimal globalBillAmount = new BigDecimal(0);
 					if(ReportsUtil.getConsommationByGlobalBill(gb)!=null)
 					initialConsom = ReportsUtil.getConsommationByGlobalBill(gb);
-					
+
 					List<ServiceRevenue> insuranceColumnsRevenues=new ArrayList<ServiceRevenue>();
 					if(gb.isClosed()){
 					List<PatientServiceBill> gbItems = ReportsUtil.getAllItemsByGlobalBill(gb);
@@ -90,30 +90,30 @@ public class MohBillingInsuranceReportController extends
 						 for (HopService hopService : reportColumns) {
 							 if(!columns.contains(hopService.getName()))
 							 columns.add(hopService.getName());
-							 
+
 							 insuranceColumnsRevenues.add(ReportsUtil.getServiceRevenues(gbItems, hopService));
-							 
+
 						}
-						 
+
 						 ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.IMAGING");
 						 insuranceColumnsRevenues.add(imagingRevenue);
-						 
-						 
+
+
 						 ServiceRevenue proceduresRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.PROCEDURES");
 						 insuranceColumnsRevenues.add(proceduresRevenue);
-						 
+
 						 globalBillAmount=globalBillAmount.add(ReportsUtil.getTotalByItems(gbItems));
-						 
+
 					 //populate asr
 					 AllServicesRevenue servicesRevenu = new AllServicesRevenue(new BigDecimal(0), new BigDecimal(0), "2016-09-11");
 					 servicesRevenu.setRevenues(insuranceColumnsRevenues);
 					 servicesRevenu.setAllDueAmounts(globalBillAmount);
 					 servicesRevenu.setConsommation(initialConsom);
-					 listOfAllServicesRevenue.add(servicesRevenu); 
+					 listOfAllServicesRevenue.add(servicesRevenu);
 			}
-					
+
 		  }
-		}		
+		}
 				List<PatientServiceBill> allItems = ReportsUtil.getBillItemsByAllGlobalBills(globalBillsByInsuranceType);
 				for (String category : columns) {
 					totals.add(ReportsUtil.getTotalByCategorizedItems(allItems, category));

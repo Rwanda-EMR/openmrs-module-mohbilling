@@ -105,7 +105,7 @@ a.print {
 				 <c:set var="patientRate" value="${(100-c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100}"/>
 				<c:set var="totalAmountByConsom" value="0"/>
 				<c:forEach items="${c.billItems}" var="item" varStatus="status">
-
+                    <c:if test="${not item.voided}">
 					<tr>
 					    <td>${status.count}-</td>
 						<td>
@@ -117,6 +117,7 @@ a.print {
 						<td colspan="1">${item.unitPrice*item.quantity}</td>
 						<c:set var="totalAmountByConsom" value="${totalAmountByConsom+(item.unitPrice*item.quantity)}" />
 					</tr>
+					</c:if>
 				</c:forEach>
 			</table>
 			</td>
