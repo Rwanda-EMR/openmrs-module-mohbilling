@@ -103,7 +103,16 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.personName}</td>
 			
 			<c:forEach items="${asr.revenues }" var="revenue">
-			 <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${revenue.dueAmount*100/patientRate}" type="number" pattern="#.##"/></td>
+				<c:if test="${patientRate > 0}">
+			 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${revenue.dueAmount*100/patientRate}" type="number" pattern="#.##"/></td>
+				</c:if>
+				<c:if test="${patientRate==0}">
+					<c:set var="amount" value="0" />
+					<c:forEach items="${revenue.billItems}" var="item">
+						<c:set var="amount" value="${amount + item.service.maximaToPay}" />
+					</c:forEach>
+                 	<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${amount}" type="number" pattern="#.##"/></td>
+                 </c:if>
 			</c:forEach>
 		 <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts}" type="number" pattern="#.##"/></td>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*insuranceRate/100}" type="number" pattern="#.##"/></td>

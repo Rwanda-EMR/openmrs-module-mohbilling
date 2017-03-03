@@ -294,7 +294,7 @@ public class ReportsUtil {
 		ServiceRevenue revenue=null;
 		//due Amount  by Service
 		List<PatientServiceBill> serviceItems = new ArrayList<PatientServiceBill>();
-		float pRate = 0;
+		float pRate = 0f;
 		for (PatientServiceBill psb : billItems) {
 			
 			if(psb.getHopService()==hopService){
@@ -310,8 +310,8 @@ public class ReportsUtil {
 			
 		}
 		// ||pRate==0 to fix mutuelle indigent which was not allowing the printout to display some items
-		if(dueAmount.compareTo(BigDecimal.ZERO)>0 || pRate==0){	
-	    revenue = new ServiceRevenue(hopService.getName(), dueAmount);
+		   if(dueAmount.compareTo(BigDecimal.ZERO)>0 || pRate==0.0){
+		revenue = new ServiceRevenue(hopService.getName(), dueAmount);
 	    revenue.setBillItems(serviceItems);
 		}
 		return revenue;
@@ -359,7 +359,7 @@ public class ReportsUtil {
 				   allRevenues.add(revenue);
 			   }	
 			}
-			AllServicesRevenue allServicesRevenue = new AllServicesRevenue(allDueAmounts, new BigDecimal(0), "2016-08-30");
+			AllServicesRevenue allServicesRevenue = new AllServicesRevenue(allDueAmounts, new BigDecimal(0), null);
 			                   allServicesRevenue.setRevenues(allRevenues);
 			                   allServicesRevenue.setConsommation(cons);
 			
@@ -574,11 +574,12 @@ public class ReportsUtil {
 		List<HopService> services =GlobalPropertyConfig.getHospitalServiceByCategory(groupedCategories);
 		List<PatientServiceBill> matchingItems = new ArrayList<PatientServiceBill>();
 		//due Amount  by Service
+		float pRate=0;
 		for (HopService hs : services) {
 			for (PatientServiceBill psb : billItems) {
 				if(hs.equals(psb.getHopService())){
 					Float insuranceRate = psb.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-					float pRate = (100f - insuranceRate) / 100f;
+					pRate = (100f - insuranceRate) / 100f;
 					BigDecimal patientRte = new BigDecimal(""+pRate);
 					
 					BigDecimal reqQty = psb.getQuantity();
@@ -589,7 +590,7 @@ public class ReportsUtil {
 			}
 		}
 		String category="";
-		if(amount.compareTo(BigDecimal.ZERO)>0){	
+		if(amount.compareTo(BigDecimal.ZERO)>0 || pRate==0.0){
 			String[]	parts =  groupedCategories.split("\\.");
 			category = parts[1]; 
 	        revenue = new ServiceRevenue(category.toUpperCase(), amount);

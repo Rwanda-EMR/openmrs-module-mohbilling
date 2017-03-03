@@ -403,8 +403,10 @@ public class FileExporter {
 		 NumberFormat formatter = new DecimalFormat("#0.00");		 
 		 if(revenueList!=null)
 		 for (ServiceRevenue sr : revenueList) {
-			if(sr!=null&& sr.getDueAmount().compareTo(BigDecimal.ZERO)!=0){
-				 cell = new PdfPCell(fontSelector.process(""));
+			//if(sr!=null&& sr.getDueAmount().compareTo(BigDecimal.ZERO)!=0){
+				if(sr!=null && sr.getBillItems().size()!=0){
+
+					cell = new PdfPCell(fontSelector.process(""));
 				 table.addCell(cell);
 				 cell = new PdfPCell(boldFont.process(""+sr.getService()));
 				 table.addCell(cell);
@@ -691,7 +693,9 @@ public class FileExporter {
 		BigDecimal totalBill = new BigDecimal(0);
 		
 		 for (ServiceRevenue r : sr) {
-			if(r!=null&& r.getDueAmount().compareTo(BigDecimal.ZERO)!=0){
+			 r.getBillItems();
+			//if(r!=null&& r.getDueAmount().compareTo(BigDecimal.ZERO)!=0){
+			 if(r!=null && r.getBillItems().size()!=0){
 				 cell = new PdfPCell(fontSelector.process(""));
 				 table.addCell(cell);
 				 cell = new PdfPCell(fontSelector.process(""));
