@@ -260,8 +260,8 @@ function recalculateTotals() {
 				 -->			
 			</tr>
 			<tr>
-				<td><b>Received Date<
-				/b></td>
+				<td><b>Received Date</b>
+				</td>
 				<td colspan="2"><input type="text" autocomplete="off" name="dateBillReceived" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Paid by Third Part</b></div></td>

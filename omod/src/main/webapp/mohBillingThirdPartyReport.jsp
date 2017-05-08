@@ -117,9 +117,9 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		  <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total}" type="number" pattern="#.##"/></b> </td>
 		</c:forEach>
 <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100}" type="number" pattern="#.##"/></b></td>
-<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate/100}" type="number" pattern="#.##"/></b></td>
-<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*thirdPartyRate/100}" type="number" pattern="#.##"/></b></td>
 <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*(100-asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate-thirdPartyRate)/100}" type="number" pattern="#.##"/></b></td>
+<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*thirdPartyRate/100}" type="number" pattern="#.##"/></b></td>
+<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*asr.consommation.beneficiary.insurancePolicy.insurance.currentRate.rate/100}" type="number" pattern="#.##"/></b></td>
 
 </tr>
 

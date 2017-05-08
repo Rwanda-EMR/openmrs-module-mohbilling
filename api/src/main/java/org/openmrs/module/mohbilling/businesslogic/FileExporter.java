@@ -166,7 +166,7 @@ public class FileExporter {
 		Float insuranceRate = consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
 		float patRate = 100f - insuranceRate;
 		BigDecimal patientRate = new BigDecimal(""+patRate);
-		 
+
 		Chunk chk = new Chunk("RECU POUR CONSOMMATION#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+consommation.getCreatedDate());
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
@@ -244,19 +244,31 @@ public class FileExporter {
 		PdfPTable serviceTotPat = new PdfPTable(4);
 
 		for (BillPayment pay : consommation.getPatientBill().getPayments()) {
+			if(pay.getVoidReason()==null) {
 
 				totalPaid = totalPaid.add(pay.getAmountPaid());
-
+			}
 		}
 
-		BigDecimal dueAmount =consommation.getPatientBill().getAmount();
+		BigDecimal totale = new BigDecimal(0);
+		BigDecimal dueAmountp = new BigDecimal(0);
+		for (PatientServiceBill itemp : consommation.getBillItems())
+		{
+			if(!itemp.isVoided()) {
 
-		 if(!consommation.getVoided()&& consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+				totale = totale.add(itemp.getQuantity().multiply(itemp.getUnitPrice()));
+				dueAmountp = totale.multiply(patientRate).divide(new BigDecimal(100));
+			}
+		}
 
-			dueAmount = consommation.getPatientBill().getAmount().multiply(patientRate).divide(new BigDecimal(100));
-		 }
+		//BigDecimal dueAmount =consommation.getPatientBill().getAmount();
+
+		 //if(!consommation.getVoided()&& consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+
+			//dueAmount = consommation.getPatientBill().getAmount().multiply(patientRate).divide(new BigDecimal(100));
+		 //}
 		
-		PdfPCell c1 = new PdfPCell(boldFont.process("Due Amount: "+formatter.format(dueAmount)));
+		PdfPCell c1 = new PdfPCell(boldFont.process("Due Amount: "+formatter.format(dueAmountp)));
 
 		c1.setBorder(Rectangle.NO_BORDER);
 		serviceTotPat.addCell(c1);
@@ -272,7 +284,7 @@ public class FileExporter {
 		c1.setBorder(Rectangle.NO_BORDER);
 		serviceTotPat.addCell(c1);
 		
-		String rest = formatter.format((dueAmount).subtract(totalPaid));
+		String rest = formatter.format((dueAmountp).subtract(totalPaid));
 		/*if(rest.compareTo(BigDecimal.ZERO)<0)
 		c1 = new PdfPCell(boldFont.process("Rest: "+0));
 		else
@@ -524,7 +536,7 @@ public class FileExporter {
 		
 		PdfPCell cell = new PdfPCell(fontselector.process(""));
 		if(user!=null){
-		cell = new PdfPCell(fontselector.process("Cashier Signature \n"+ Context.getAuthenticatedUser()+"\n\n........................."));
+		cell = new PdfPCell(fontselector.process("Cashier Signature \n"+ Context.getAuthenticatedUser().getPersonName()+"\n\n........................."));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table1.addCell(cell);
 		}

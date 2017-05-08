@@ -49,8 +49,5 @@ public class MohBillingConsommationListController extends ParameterizableViewCon
 		
 		return mav;
 	}
-	
-
-	
 
 }

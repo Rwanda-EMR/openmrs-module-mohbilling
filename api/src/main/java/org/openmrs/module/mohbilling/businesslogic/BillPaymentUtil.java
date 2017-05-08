@@ -141,8 +141,9 @@ public class BillPaymentUtil {
 	public static BigDecimal getTotalPaid(List<BillPayment> payments) {
 		BigDecimal totalPaid = new BigDecimal(0);
 		for (BillPayment payment : payments) {
-			if(payment.getVoidReason()==null)
-			totalPaid = totalPaid.add(payment.getAmountPaid());
+			if(payment.getVoidReason()==null) {
+				totalPaid = totalPaid.add(payment.getAmountPaid());
+			}
 		}
 		return totalPaid;
 	}

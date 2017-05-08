@@ -145,14 +145,17 @@ public class ConsommationUtil {
 		 BigDecimal patientRate = (new BigDecimal(100).subtract(insuranceRate)).divide(new BigDecimal(100));
 		 
 		//update quantity on the existing consommation/add new item on the existing consommation 
-		if(request.getParameter("consommationId")!=null || request.getParameter("addNew")!=null){
+		if(request.getParameter("consommationId")!=null || request.getParameter("addNew")!=null) {
 			existingConsom = ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId")));
 			numberOfServicesClicked = billItems.length;
 			// Get 100% of the Ticket Moderateur
 			//totalAmount=existingConsom.getPatientBill().getAmount().divide(patientRate);
-			totalAmount=existingConsom.getPatientBill().getAmount().divide(patientRate,2,RoundingMode.HALF_UP);
+			if (patientRate.compareTo(BigDecimal.ZERO) > 0) {
+				totalAmount = existingConsom.getPatientBill().getAmount().divide(patientRate, 2, RoundingMode.HALF_UP);
+			} else {
+				totalAmount = existingConsom.getPatientBill().getAmount();
+			}
 		}
-
 		//add new consommation
 		else if (request.getParameter("consommationId")==null){
 			existingConsom = new Consommation(globalBill, beneficiary, new Date(), creator, false);
