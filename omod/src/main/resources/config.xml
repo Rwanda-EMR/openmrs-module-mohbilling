@@ -272,6 +272,11 @@
     </privilege>
     
     <privilege>
+        <name>Edit Bill Payment</name>
+        <description>Allows users to Edit the amount paid by the patient by entering the new amount</description>
+    </privilege>
+    
+    <privilege>
         <name>Billing Report - View Cashier Report</name>
         <description>Allows users to view Cashier Report</description>
     </privilege>

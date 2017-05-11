@@ -22,8 +22,11 @@
 				<tr>
 					<!-- <td class="columnHeader"><a href="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">View</a></td> -->
 					<td class="columnHeader">
-                     <a href="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">View</a>|
+                     <a href="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">View</a>
+                     <openmrs:hasPrivilege privilege="Edit Bill Payment">
+                     |
                      <a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&editPay=true">Edit</a>
+                     </openmrs:hasPrivilege>
                      </td>
 
 
