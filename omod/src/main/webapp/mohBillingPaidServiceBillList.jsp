@@ -29,7 +29,6 @@
                      </openmrs:hasPrivilege>
                      </td>
 
-
 					<th class="columnHeader" style="font-size: 1em; font-weight: bold;" colspan="4"><center>Date: ${consommation.createdDate}, Total Amount : ${payment.amountPaid} Rwf, Insurance : ${consommation.beneficiary.insurancePolicy.insurance.name}, Policy Card No. : ${consommation.beneficiary.policyIdNumber}</center></th>
 					
 					<openmrs:hasPrivilege privilege="Submit a refund">
