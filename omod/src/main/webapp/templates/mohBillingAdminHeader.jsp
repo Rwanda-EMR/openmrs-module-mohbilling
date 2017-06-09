@@ -11,7 +11,7 @@
 	<a href="facilityService.list">Facility Service Price</a>
 	</li>
 	<li class="<c:if test='<%= request.getRequestURI().contains("InsuranceList")%>'> active</c:if>">
-	<a href="insurance.list">Insurance</a>
+	<a href="insurance.list"><spring:message code="mohbilling.insurance" /></a>
 	</li>
 	<li class="<c:if test='<%= request.getRequestURI().contains("Third")%>'> active</c:if>">
 	<a href="thirdParty.form">Third Party</a>

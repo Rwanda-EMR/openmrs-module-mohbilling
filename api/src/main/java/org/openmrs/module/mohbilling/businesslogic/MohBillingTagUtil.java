@@ -34,7 +34,6 @@ public class MohBillingTagUtil {
 			    	 for (BillPayment billPayment : allPayments) {
 			    		 
 			    		 // amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
-						 System.out.println("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD "+billPayment.getBillPaymentId()+">>>>>"+billPayment.getVoided());
 						   		 if(!billPayment.isVoided())
 						   		 	amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
 					 }

@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
+import org.jfree.util.Log;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.*;
@@ -11,6 +12,7 @@ import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
@@ -135,7 +137,6 @@ public class ConsommationUtil {
 				.getParameter("ipCardNumber"));
 		Insurance insurance = beneficiary.getInsurancePolicy().getInsurance();
 		//check whether the insurance does have a third party;
-		ThirdParty thirdParty = beneficiary.getInsurancePolicy().getThirdParty();
 		
 		User creator = Context.getAuthenticatedUser();
 		
@@ -199,21 +200,9 @@ public class ConsommationUtil {
 					existingConsom.addBillItem(psb);
 					message="Items' quantities have been changed succefully...";
 					}
+					
 				}
-				else if(billItems==null){
-					if(request.getParameter("billableServiceId_" + i)!=null&&request.getParameter("quantity_" + i)!=null&&request.getParameter("servicePrice_" + i)!=null){
-					 bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));
-					 HopService hopService = HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
-					 quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
-					 unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
-					 psb = new PatientServiceBill(bs,hopService, new Date(), unitPrice, quantity, creator, new Date());
-					// totalAmount = totalAmount.add(quantity.multiply(unitPrice));
-					 addedItemTotalAmount=addedItemTotalAmount.add(quantity.multiply(unitPrice));
-					 message="A new consommation has been added to the global bill...";
-					}
-					existingConsom.addBillItem(psb);
-				}
-				
+				else{
 				if(request.getParameter("consomationToAddOn")!=null && !request.getParameter("consomationToAddOn").equals("")){
 					existingConsom= ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consomationToAddOn")));
 					numberOfServicesClicked = Integer.valueOf(request
@@ -225,7 +214,20 @@ public class ConsommationUtil {
 					 psb = new PatientServiceBill(bs,hopService, new Date(), unitPrice, quantity, creator, new Date());
 						existingConsom.addBillItem(psb);
 					 message="New Items have been added to the existing consommation succefully..";
+					 
 				}
+				else {
+					 bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));
+					 HopService hopService = HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
+					 quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
+					 unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
+					 psb = new PatientServiceBill(bs,hopService, new Date(), unitPrice, quantity, creator, new Date());
+					// totalAmount = totalAmount.add(quantity.multiply(unitPrice));
+					 addedItemTotalAmount=addedItemTotalAmount.add(quantity.multiply(unitPrice));
+					 existingConsom.addBillItem(psb);
+					 message="A new consommation has been added to the global bill...";
+				}
+		}
 			}
 			totalAmount = totalAmount.add(addedItemTotalAmount);
 			totalAmount = totalAmount.subtract(voidedItemTotalAmount);
@@ -261,7 +263,6 @@ public class ConsommationUtil {
 	 */
 	public static Consommation getConsommationByPatientBill(
 			PatientBill patientBill) {
-		// TODO Auto-generated method stub
 		return getService().getConsommationByPatientBill(patientBill);
 	}
 	

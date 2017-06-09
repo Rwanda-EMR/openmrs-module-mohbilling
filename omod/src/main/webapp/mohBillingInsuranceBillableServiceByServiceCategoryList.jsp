@@ -6,6 +6,10 @@
 <%@page import="java.util.ArrayList"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
+<script type="text/javascript">
+			var $j = jQuery.noConflict();
+		</script>
+		
 <script type="text/javascript" charset="utf-8">
 $j(document).ready(function(){
 	  $j("a").click(function() {

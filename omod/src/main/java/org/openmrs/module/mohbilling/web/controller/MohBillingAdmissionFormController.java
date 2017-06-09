@@ -34,7 +34,6 @@ public class MohBillingAdmissionFormController extends
 		InsurancePolicy ip =null;
 		String discharge = request.getParameter("discharge");
 		GlobalBill gb =null;
-		
 		if(request.getParameter("insurancePolicyId")!=null){
 			ip= Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
 			List<Admission> admissions =  AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
@@ -83,7 +82,7 @@ public class MohBillingAdmissionFormController extends
 		else{
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					"Not Saved..The patient is already admitted [Some Global Bills are not yet closed.]");
-		}
+		}//
 		
 	}
 	if(request.getParameter("discharge")!=null){
@@ -103,13 +102,11 @@ public class MohBillingAdmissionFormController extends
 		mav.addObject("globalBill", gb);
 
 	}
-	
-	
 	 ip = Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
 		
 	    mav.addObject("discharge", discharge);
 		mav.addObject("insurancePolicy", ip);
-		log.info("uuuuuuuuuuuuuuuuuooooooooooooooooooooooooooooo "+ip.getAdmissions().size());
+		//log.info("uuuuuuuuuuuuuuuuuooooooooooooooooooooooooooooo "+ip.getAdmissions().size());
 		if(ip.getAdmissions()!=null)
 		mav.addObject("admissions", ip.getAdmissions());
 		mav.setViewName(getViewName());

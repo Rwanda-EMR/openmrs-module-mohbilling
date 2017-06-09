@@ -3,6 +3,10 @@
 <openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/mohbilling/patientBillPayment.form" />
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<script type="text/javascript">
+			var $j = jQuery.noConflict();
+		</script>
 <script>
 var $j = jQuery.noConflict();
 	function loadBillableServiceByCategory(serviceCategoryId,departmentId){
@@ -178,6 +182,24 @@ var $j = jQuery.noConflict();
 
 </script>
 
+<!-- Hide submit button when the user is adding items on existing consommation -->
+<script type="text/javascript">
+$j(document).ready(function(){   
+		  var dep = $j('#selectedDepId').val();
+		  var sCategories = $j('#categories').length;
+		  if(dep>0&&sCategories!=0){
+		   $j('#depSubmitBtn').hide();
+		   $j('#selectedDepIdx').html("(ADDING ITEMS)");
+		   $j('#departments').attr('disabled', true);
+	      }	
+		  else{
+			  $j('#depSubmitBtn').show();
+			   $j('#departments').attr('disabled', false);
+		  }
+			  
+});
+</script>
+
 
 <style>
 	.deleteBt{
@@ -264,19 +286,22 @@ var $j = jQuery.noConflict();
 		<b class="boxHeader">Search Services by Department</b>
 <div class="box">
 	<form
-		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&searchDpt=true"	method="post">
+		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&searchDpt=true"	method="post" id="depSearchForm">
 
 		<table>
 			<tr>				
-				<td><select name="departmentId">
+				<td><select name="departmentId" id="departments">
+						<!-- <option value="">--select--</option> -->
 						<c:forEach items="${departments }" var="dep">
-							<option value="${dep.departmentId}">${dep.name}</option>
+						<option value="${dep.departmentId}" ${dep.departmentId == param.departmentId ? 'selected':''}>${dep.name }</option> 
 						</c:forEach>
 				</select>
 				</td>
-				<td><input type="submit" value="search services" /></td>
+				<td><p align="center" style="color: red;font-weight: bold; " id="selectedDepIdx"></p></td>
+				<td><input type="submit" value="search services" id="depSubmitBtn"/></td>
 			</tr>
 		</table>
+		<input type="hidden" id="selectedDepId" value="${param.departmentId}"/>
 	</form>
 </div>
 </div>
@@ -287,7 +312,7 @@ var $j = jQuery.noConflict();
 					<c:forEach items="${categories}" var="serviceCategory" varStatus="status"> 
 				      					  
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
-				     
+				     <input type="hidden" value="${categories}" id="categories"/>
 					</c:forEach>
 				</ul>
 			</div>

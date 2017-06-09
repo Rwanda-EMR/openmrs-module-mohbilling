@@ -23,7 +23,7 @@
 
 
 <style>
-.insurances, .thirdParties,.time,.billCreator,.billStatus,.services,.deposit {
+.insurances, .thirdParties,.billCreator,.billStatus,.services,.deposit {
     display: none;
 }
 a.print {
@@ -40,14 +40,16 @@ a.print {
 
 <c:import url="mohBillingReportParameters.jsp" />
 
-<c:if test="${empty paidServiceRevenues }">
- <div style="text-align: center;color: red;"><p>No payments found!</p></div>
+<div>
+
+<c:if test="${empty paymentRevenues }">
+ <div style="text-align: center;color: red;"><p>No Data!</p></div>
 </c:if>
 
-<c:if test="${not empty paidServiceRevenues }">
+<c:if test="${not empty paymentRevenues }">
 <br/>
 <b class="boxHeader">
-${reportMsg1} : <b style="color: black;font: bold;"><fmt:formatNumber value="${totalReceivedAmount}" type="number" pattern="#.##"/> FRW</b>
+${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value="${totalRevenueAmount}" type="number" pattern="#.##"/> FRW</b>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
@@ -60,32 +62,37 @@ ${reportMsg1} : <b style="color: black;font: bold;"><fmt:formatNumber value="${t
 <table style="width:70%">
 	<tr>
 		<th class="columnHeader">#.</th>
-		<th class="columnHeader">Service Name</th>	
-		<th class="columnHeader">Amount</th>
+		<th class="columnHeader">DATE</th>
+		<th class="columnHeader">Patint Names</th>	
+		<c:forEach items="${services}" var="s" varStatus="status">
+		<th class="columnHeader">${s.service}</th>	
+		</c:forEach> 
+		<th class="columnHeader"><b>TOTAL</b></th>
 	</tr>
 
-	<c:forEach items="${paidServiceRevenues}" var="psr" varStatus="status">
-	<c:if test="${psr.paidAmount != 0 }">
+ 	<c:forEach items="${paymentRevenues}" var="pr" varStatus="status">
+	<tr class="rowValue ${(status.count%2!=0)?'even':''}">
+	 <td>${status.count}.</td>
+	 <td>${pr.payment.dateReceived}</td>
+	 <td>${pr.beneficiary.patient.personName }</td>
+	  <c:forEach items="${pr.paidServiceRevenues}" var="sr" varStatus="status">
+		 <td><fmt:formatNumber value="${sr.paidAmount}" type="number" pattern="#.##"/></td>
+	  </c:forEach>
+	  <td><b><fmt:formatNumber value="${pr.amount}" type="number" pattern="#.##"/></b></td>
+	</tr>
+	</c:forEach> 
 	<tr>
-	<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
-	<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${psr.service }</td>
-	<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${psr.paidAmount}" type="number" pattern="#.##"/></td>
+	<td class="rowValue"><b>TOT(Due)</b></td>
+	<td class="rowValue"></td><td class="rowValue"></td>
+	<c:forEach items="${subTotals}" var="st" varStatus="status">
+		<td class="rowValue"><b><fmt:formatNumber value="${st}" type="number" pattern="#.##"/></b></td>
+		</c:forEach> 
+		<td class="rowValue"><b><fmt:formatNumber value="${bigTotal}" type="number" pattern="#.##"/></b></td>
 	</tr>
-	</c:if>
-	</c:forEach>
-
-	< c:set var="TOT" value="${0}"/>
-        <c:forEach items="${paidServiceRevenues}" var="s" >
-        <c:set var="TOT" value="${TOT + s.paidAmount}"/>
-    	</c:forEach>
-    <tr>
-    		<th class="columnHeader"> </th>
-    		<th class="columnHeader"><b style="color: black;font: bold;">${reportMsg}</b></th>
-    		<th class="columnHeader">${TOT}</th>
-    	</tr>
 </table>
+
 </div>
 </c:if>
-
+</div>
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

@@ -167,8 +167,11 @@ public class MohBillingPatientBillPaymentFormController extends
 			else{
 				billPayment=new BillPayment();
 				billPayment.setCollector(Context.getAuthenticatedUser());
-				billPayment.setDateReceived(Context.getDateFormat().parse(
-						request.getParameter("dateBillReceived")));
+	/*			billPayment.setDateReceived(Context.getDateFormat().parse(
+						request.getParameter("dateBillReceived")));*/
+				billPayment.setDateReceived(new Date());
+				/*log.info("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH "+Context.getDateFormat().parse(
+						request.getParameter("dateBillReceived")));*/
 				billPayment.setPatientBill(pb);
 				billPayment.setCreatedDate(new Date());
 				billPayment.setCreator(Context.getAuthenticatedUser());

@@ -8,6 +8,7 @@ import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
@@ -19,6 +20,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -425,16 +427,23 @@ public class ReportsUtil {
 	public static PaidServiceRevenue getPaidServiceRevenue(List<PaidServiceBill> paidItems, String categ){
 		BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
 		for (PaidServiceBill pi : paidItems) {
-			if(!pi.getVoided())
+			if(!pi.getVoided()){
 			if(categ.equals(pi.getBillItem().getHopService().getName())){
-				Float insuranceRate = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+				InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
+				float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
 				float pRate = (100f - insuranceRate) / 100f;
+				
+				if(insurancePolicy.getThirdParty()!=null){
+					float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
+					pRate = (100f - insuranceRate-thirdPartyRate) / 100f;
+				}
 				BigDecimal patientRte = new BigDecimal(""+pRate);
 				
 				BigDecimal paidQty = pi.getPaidQty();
 				BigDecimal unitPrice =pi.getBillItem().getUnitPrice();
 				paidAmountOnThisCategory =paidAmountOnThisCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));	
 			}
+		}
 		}
 		PaidServiceRevenue paidRevenue = null;
 
@@ -584,7 +593,7 @@ public class ReportsUtil {
 					
 					BigDecimal reqQty = psb.getQuantity();
 					BigDecimal unitPrice =psb.getUnitPrice();
-					amount =amount.add(reqQty.multiply(unitPrice).multiply(patientRte));	
+					amount =amount.add(reqQty.multiply(unitPrice).multiply(patientRte));	 
 					matchingItems.add(psb);
 				}
 			}
@@ -661,4 +670,53 @@ public class ReportsUtil {
 		}
 		return allItems;
 	}
+	
+	/**
+	 * gets revenues by payment and category
+	 * @param payment
+	 * @param columns
+	 * @return revenues by payment and category
+	 */
+	public static PaymentRevenue getRevenuesByPayment(BillPayment payment,List<String> columns) {
+		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+		
+		List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
+		BigDecimal totalByPayment= new BigDecimal(0);
+		for (String col : columns) {
+			if(getPaidServiceRevenue(paidItems, col)!=null){
+			paidSr.add(getPaidServiceRevenue(paidItems, col));
+			totalByPayment=totalByPayment.add(getPaidServiceRevenue(paidItems, col).getPaidAmount());
+			}
+	    }
+		PaymentRevenue paymentRevenues = null;
+		if(totalByPayment.compareTo(BigDecimal.ZERO)>0){	
+			paymentRevenues = new PaymentRevenue();
+			paymentRevenues.setAmount(totalByPayment);
+			paymentRevenues.setPayment(payment);
+			paymentRevenues.setPaidServiceRevenues(paidSr);
+			paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
+		}
+		return paymentRevenues;
+	}
+	/**
+	 * calculates sub totals on reports
+	 * @param paidItems
+	 * @param category
+	 * @return total by category of items
+	 */
+	public static BigDecimal getTotalByCategorizedPaidItems(List<PaidServiceBill> paidItems,String category){
+		BigDecimal totalByCategory = new BigDecimal(0);
+			for (PaidServiceBill pi : paidItems) {
+				Float insuranceRate = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+				Float pRate = (100f - insuranceRate) / 100f;
+				BigDecimal patientRte = new BigDecimal(""+pRate);
+				if(pi.getBillItem().getHopService().getName().equals(category)){
+					BigDecimal reqQty = pi.getBillItem().getQuantity();
+					BigDecimal unitPrice =pi.getBillItem().getUnitPrice();
+					totalByCategory =totalByCategory.add(reqQty.multiply(unitPrice).multiply(patientRte));		
+				}
+			}
+		return totalByCategory;
+	}
+	
 }

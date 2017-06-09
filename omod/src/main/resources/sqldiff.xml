@@ -625,6 +625,20 @@
 		</sql>
 
 	</diff>
+		<diff>
+		<version>1.3.0.9</version>
+		<author>MoH Rwanda</author>
+		<date>Mai 13th 2017</date>
+		<description>
+			alter moh_bill_payment table
+		</description>
+		<sql>
+			ALTER TABLE `moh_bill_payment`
+			MODIFY `date_received` datetime DEFAULT NULL;
+		</sql>
+
+	</diff>
+	datetime DEFAULT NULL
 
 	<!--<diff>
 		<version>1.3.0.8</version>

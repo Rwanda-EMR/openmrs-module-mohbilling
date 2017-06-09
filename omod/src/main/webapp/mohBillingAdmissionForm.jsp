@@ -121,11 +121,13 @@ function  cancelClosingGlobalBill(){
 </form>
 
 
+<!-- 
 <c:if test="${empty globalBills }">
 <div class="box">
    <p style="text-align: center;color: red;">No Admission found!</p>
 </div>
 </c:if>
+ -->
 
 
 <c:if test="${not empty globalBills }">

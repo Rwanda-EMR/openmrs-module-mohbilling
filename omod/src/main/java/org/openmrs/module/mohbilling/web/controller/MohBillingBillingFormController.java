@@ -35,7 +35,6 @@ public class MohBillingBillingFormController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 		Consommation consommation = null;
-		Consommation addNewTo = null;
 		
 		//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>edit a consommation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -50,13 +49,6 @@ public class MohBillingBillingFormController extends
 					mav.addObject("consommation", consommation);
 
 				}
-/*				if(request.getParameter("addNew")!=null && !request.getParameter("addNew").equals("")){
-				addNewTo=ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
-				log.info("oooooooooooooooooooooooooooooooooooooooooooooooooooeeeeeeeeeee "+addNewTo.getConsommationId());
-				consommation = ConsommationUtil.handleAddItemToConsommation(addNewTo, request, mav);
-				request.getSession().setAttribute(
-				WebConstants.OPENMRS_MSG_ATTR,"updated succeffully...");
-				}*/
 				
 			}
 			else{
@@ -96,9 +88,19 @@ public class MohBillingBillingFormController extends
 		}
 
 		if (request.getParameter("searchDpt") != null) {
-		  Department depart = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+		  Department depart = null;
 	
-				if (depart !=null){
+		  if(request.getParameter("departmentId").equals("")){
+			  request.getSession().setAttribute(
+						WebConstants.OPENMRS_ERROR_ATTR,"Please select the Department/Service!");
+			  return new ModelAndView(new RedirectView(
+						"billing.form?insurancePolicyId="
+								+ request.getParameter("insurancePolicyId")
+								+ "&ipCardNumber="+request.getParameter("ipCardNumber")	
+								+ "&globalBillId="+request.getParameter("globalBillId")));
+		  }
+		  else{
+			   depart = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
 					Set<String> servicesByDepartment =null;
 					if(GlobalPropertyConfig.getListOfHopServicesByDepartment(depart)!=null){
 					servicesByDepartment = GlobalPropertyConfig.getListOfHopServicesByDepartment(depart);
@@ -117,7 +119,8 @@ public class MohBillingBillingFormController extends
 									+ "&globalBillId="+request.getParameter("globalBillId")	
 									+ "&departmentId="+depart.getDepartmentId()	));
 				}	
-		}
+					
+		  }
 		}
 		try {
 			if (request.getParameter("ipCardNumber") == null)

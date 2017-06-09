@@ -154,7 +154,8 @@ function recalculateTotals() {
 
 <table>
 <tr>
-<td>Consommation # : <b>${consommation.consommationId}(${consommation.department.name})</b></td>
+<td>Consommation # : <b>${consommation.consommationId}(${consommation.department.name})</b>
+</td>
 <td>Global Bill # : <b>${consommation.globalBill.billIdentifier}</b></td>
 <c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
 <td><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
@@ -213,7 +214,15 @@ function recalculateTotals() {
 	
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">					  
 						 <input type="hidden" id="insuranceRate" value="${(insurancePolicy.insurance.currentRate.rate)/100 }"/>
+				         <!-- <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate)/100}"/> -->
+				         
+				         <c:if test="${insurancePolicy.thirdParty!=null}">
+				          <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate-insurancePolicy.thirdParty.rate)/100}"/>
+				         </c:if>
+				         <c:if test="${insurancePolicy.thirdParty==null}">
 				         <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate)/100}"/>
+				         </c:if>
+				         
 						<input value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" id="insuranceCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="insuranceCol"/>
 						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}" />
 					</td>
@@ -318,6 +327,10 @@ function recalculateTotals() {
 					<td colspan="2"><input type="submit"  value="Confirm Payment" style="min-width: 200px;" class="submitBtn"/></td>
 				
 			 <td colspan="3"></td>
+			</tr>
+			<tr></tr>
+			<tr>
+			<td colspan="2"><div><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&type=epson">EPSON Printer</a></div></td>
 			</tr>			
 		</table>
 	</form>
