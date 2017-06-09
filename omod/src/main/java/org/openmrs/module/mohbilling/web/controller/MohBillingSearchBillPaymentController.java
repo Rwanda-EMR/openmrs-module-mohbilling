@@ -88,7 +88,7 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 					mav.addObject("pendingRefunds", pendingRefunds);
 					mav.addObject("checkedRefundsByChief", checkedRefundsByChief);
 				}
-				String receiptTitle = consommation.getBeneficiary().getPatient().getPersonName()+"BILL#"+consommation.getConsommationId()+"-payment#"+payment.getBillPaymentId();
+				String receiptTitle = consommation.getBeneficiary().getPatient().getPersonName()+"-BILL#"+consommation.getConsommationId()+"-payment#"+payment.getBillPaymentId();
 				if(request.getParameter("print")!=null){
 					FileExporter exp = new FileExporter();
 					exp.printPayment(request, response, payment, consommation, receiptTitle);
