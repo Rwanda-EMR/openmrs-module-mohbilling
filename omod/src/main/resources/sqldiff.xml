@@ -638,67 +638,7 @@
 		</sql>
 
 	</diff>
-	datetime DEFAULT NULL
-
-	<!--<diff>
-		<version>1.3.0.8</version>
-		<author>MoH Rwanda</author>
-		<date>Jan 18th 2017</date>
-		<description>
-
-		</description>
-		<sql>
-
-			CREATE TABLE `moh_bill_deposit_withdrawal` (
-			`withdrawal_id` int(11) NOT NULL AUTO_INCREMENT,
-			`withdrawal_date` date NOT NULL,
-			`withdrawal_amount` decimal(20,2) NOT NULL,
-			`withdrawal_reason` varchar(250) DEFAULT NULL,
-			`voided` smallint(1) NOT NULL DEFAULT '0',
-			`voided_date` date DEFAULT NULL,
-			`void_reason` varchar(250) DEFAULT NULL,
-			`created_date` date NOT NULL,
-			`deposit_id` int(11) DEFAULT NULL,
-			`voided_by` int(11) DEFAULT NULL,
-			`cashier` int(11) NOT NULL,
-			`creator` int(11) NOT NULL,
-			PRIMARY KEY (`withdrawal_id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-			ALTER TABLE `moh_bill_deposit_withdrawal`
-			ADD CONSTRAINT `withdrawal_cashier` FOREIGN KEY (`cashier`) REFERENCES `users` (`user_id`),
-			ADD CONSTRAINT `withdrawal_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
-			ADD CONSTRAINT `withdrawal_deposit` FOREIGN KEY (`deposit_id`) REFERENCES `moh_bill_deposit` (`deposit_id`),
-			ADD CONSTRAINT `withdrawal_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
-
-
-
-			CREATE TABLE `moh_bill_deposit` (
-			`deposit_id` int(11) NOT NULL AUTO_INCREMENT,
-			`amount` decimal(20,2) NOT NULL,
-			`deposit_date` date NOT NULL,
-			`deposit_reason` varchar(250) DEFAULT NULL,
-			`created_date` date NOT NULL,
-			`voided` smallint(1) NOT NULL DEFAULT '0',
-			`voided_date` date DEFAULT NULL,
-			`void_reason` varchar(250) DEFAULT NULL,
-			`cashier` int(11) NOT NULL,
-			`patient_id` int(11) NOT NULL,
-			`voided_by` int(11) DEFAULT NULL,
-			`creator` int(11) NOT NULL,
-			PRIMARY KEY (`deposit_id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-			ALTER TABLE `moh_bill_deposit`
-			ADD CONSTRAINT `deposit_cashier` FOREIGN KEY (`cashier`) REFERENCES `users` (`user_id`),
-			ADD CONSTRAINT `deposit_creator` FOREIGN KEY (`creator`) REFERENCES `users` (`user_id`),
-			ADD CONSTRAINT `deposit_patient` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`patient_id`),
-			ADD CONSTRAINT `deposit_voided_by` FOREIGN KEY (`voided_by`) REFERENCES `users` (`user_id`);
-
-
-		</sql>
-	</diff>	-->
 
 </sqldiff>
