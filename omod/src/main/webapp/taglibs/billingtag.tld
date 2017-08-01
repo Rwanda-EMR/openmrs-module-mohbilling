@@ -28,5 +28,30 @@
 		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
 		<function-signature>java.lang.String getAmountPaidByThirdPart(java.lang.Integer)</function-signature>
 	</function>
+	<function>
+		<description>Get All paid amount  for a given Global bill</description>
+		<name>amountPaidByGlobalBill</name>
+		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
+		<function-signature>java.lang.String getGlobalPaidAmountFromGlobalBill(java.lang.Integer)</function-signature>
+	</function>
+	<function>
+	<description>Get total number of services by department</description>
+		<name>servicesByDepartment</name>
+		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
+		<function-signature>java.lang.String getServicesByDepartment(java.lang.Integer)</function-signature>
+	</function>
+	
+	<function>
+	<description>Get Consommation status</description>
+		<name>consommationStatus</name>
+		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
+		<function-signature>java.lang.String getConsommationStatus(java.lang.Integer)</function-signature>
+	</function>
+		<function>
+		<description>Get total amount paid by a given consommation</description>
+		<name>amountPaidByConsommation</name>
+		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
+		<function-signature>java.lang.String getTotalPaidByConsommation(java.lang.Integer)</function-signature>
+	</function>
 	
 </taglib>

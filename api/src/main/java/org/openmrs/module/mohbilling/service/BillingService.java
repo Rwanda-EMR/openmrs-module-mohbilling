@@ -3,31 +3,19 @@
  */
 package org.openmrs.module.mohbilling.service;
 
-import java.math.BigDecimal;
+import org.openmrs.Concept;
+import org.openmrs.Patient;
+import org.openmrs.User;
+import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.model.*;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.openmrs.Concept;
-import org.openmrs.Patient;
-import org.openmrs.User;
-import org.openmrs.api.db.DAOException;
-import org.openmrs.module.mohbilling.model.Beneficiary;
-import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.BillableService;
-import org.openmrs.module.mohbilling.model.FacilityServicePrice;
-import org.openmrs.module.mohbilling.model.Insurance;
-import org.openmrs.module.mohbilling.model.InsurancePolicy;
-import org.openmrs.module.mohbilling.model.InsuranceRate;
-import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.model.Recovery;
-import org.openmrs.module.mohbilling.model.ServiceCategory;
-import org.openmrs.module.mohbilling.model.ThirdParty;
-
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  * 
  */
 public interface BillingService {
@@ -115,7 +103,7 @@ public interface BillingService {
 	 */
 	public void savePatientBill(PatientBill bill) throws DAOException;
 
-	public void saveRecovery(Recovery recovery);
+
 
 	/**
 	 * Saves the Insurance to the DB by passing the Object to be saved
@@ -181,10 +169,8 @@ public interface BillingService {
 	public List<BillableService> getAllBillableServices();
 
 	public Float getPaidAmountPerInsuranceAndPeriod(Insurance insurance,
-			Date startDate, Date endDate);
+													Date startDate, Date endDate);
 
-	public List<Recovery> getAllPaidAmountPerInsuranceAndPeriod(
-			Insurance insurance, Date startDate, Date endDate);
 
 	/**
 	 * Gets the InsurancePolicyCard by unique InsuranceCardNo
@@ -206,12 +192,12 @@ public interface BillingService {
 	 * @return
 	 */
 	public List<PatientBill> billCohortBuilder(Insurance insurance, Date startDate,
-			Date endDate, Integer patientId, String serviceName,
-			String billStatus, String billCollector);
+											   Date endDate, Integer patientId, String serviceName,
+											   String billStatus, String billCollector);
 	
 	public List<BillPayment> paymentsCohortBuilder(Insurance insurance, Date startDate,
-			Date endDate, Integer patientId, String serviceName,
-			String billStatus, String billCollector);
+												   Date endDate, Integer patientId, String serviceName,
+												   String billStatus, String billCollector);
 
 	/**
 	 * Gets a BillableService by selecting those having the provided
@@ -256,23 +242,6 @@ public interface BillingService {
 	public void saveThirdParty(ThirdParty thirdParty) throws DAOException;
 
 	/**
-	 * Gets all Recovery History
-	 * 
-	 * @return
-	 */
-	public List<Recovery> getAllRecoveries() throws DAOException;
-
-	/**
-	 * Gets a Recovery from the DB by recoveryId
-	 * 
-	 * @param recoveryId
-	 *            , the Recovery to retrieve
-	 * 
-	 * @throws DAOException
-	 */
-	public Recovery getRecovery(Integer recoveryId) throws DAOException;
-
-	/**
 	 * Gets a Beneficiary by passing its PolicyNumber
 	 * 
 	 * @param policyIdNumber
@@ -281,16 +250,6 @@ public interface BillingService {
 	 * @throws DAOException
 	 */
 	public Beneficiary getBeneficiaryByPolicyNumber(String policyIdNumber)
-			throws DAOException;
-
-	/**
-	 * Gets all Bills for a given beneficiary
-	 * 
-	 * @param beneficiary
-	 *            the one to match
-	 * @return bills for the given beneficiary
-	 */
-	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary)
 			throws DAOException;
 
 	/**
@@ -323,6 +282,7 @@ public interface BillingService {
 
 	/**
 	 * Gets all BillableServices that matches the provided Service Category
+	 * @param insurance 
 	 * 
 	 * @param sc
 	 *            the Service Category to match
@@ -375,7 +335,7 @@ public interface BillingService {
 	 * @param collector
 	 * @return
 	 */
-	public List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate,Date endDate,User collector);
+	public List<BillPayment> getBillPaymentsByDateAndCollector(Date createdDate, Date endDate, User collector);
 	
 	/**
 	 * 
@@ -398,21 +358,21 @@ public interface BillingService {
 	 */
 	public List<Date> getRevenueDatesBetweenDates(Date startDate, Date endDate);;
 	
-	public Map<String,Double> getRevenueByService(Date receivedDate,String[] serviceCategory, String collector,Insurance insurance);
+	public Map<String,Double> getRevenueByService(Date receivedDate, String[] serviceCategory, String collector, Insurance insurance);
 	
-	public  Object[]  getBills(Date startDate,Date endDate,User collector);
+	public  Object[]  getBills(Date startDate, Date endDate, User collector);
 	
 	public List<PatientBill> getPatientBillsByCollector(Date receivedDate, User collector);
 	
-	public PatientBill getBills(Patient patient,Date startDate,Date endDate);
+	public PatientBill getBills(Patient patient, Date startDate, Date endDate);
 	
 	public InsuranceRate getInsuranceRateByInsurance(Insurance insurance);
 	
 	public List<Beneficiary> getBeneficiaryByCardNumber(String cardNo);
 	
-	public List<InsurancePolicy> getInsurancePoliciesBetweenTwodates(Date startDate,Date endDate);
+	public List<InsurancePolicy> getInsurancePoliciesBetweenTwodates(Date startDate, Date endDate);
 	
-	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary,Date startDate,Date endDate);
+	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary, Date startDate, Date endDate);
 	
 	public void loadBillables(Insurance insurance);
 	
@@ -420,11 +380,6 @@ public interface BillingService {
 
 	public List<Object[]> getPharmacyBaseBillableServices(Insurance i);
 	
-	/**
-	 * get bills with problems
-	 * @return
-	 */
-	public List<PatientBill> getPendingBill();
 	
 	/**
 	 * gets refunded bills 
@@ -434,5 +389,289 @@ public interface BillingService {
 	 * @param collector
 	 * @return
 	 */
-	public Set<PatientBill> getRefundedBills(Date startDate,Date endDate,User collector);
+	public Set<PatientBill> getRefundedBills(Date startDate, Date endDate, User collector);
+
+	/**
+	 * saves the departement Object to the DB
+	 * @param departement to be saved	
+	 * @return Departement 
+	 */
+	public Department saveDepartement(Department departement);
+	
+	/**
+	 * Get encounter by idententifier departementid
+	 * @param departementId
+	 * @return departement with given identifier departementId
+	 */
+	public Department getDepartement(Integer departementId);
+	
+	/**
+	 * Get all departements in the Hospital
+	 * @return List<Department> departements including the voided ones
+	 */
+	public List<Department> getAllDepartements();
+	
+	/**
+	 * Saves the the hop services to the DB
+	 * @param service  the  hopital services to be saved
+	 * @return hopService
+	 */
+	public HopService saveHopService(HopService service);
+	
+	/**
+	 * Gets all Hospital services(LABO,Pharmacy) that can be served by any Departement
+	 * If Departement is null,it returns  all service
+	 * @return List<HopServices> services
+	 */
+	public List<HopService>getAllHopService();
+	
+
+	/**
+	 * Get Hop Service by id
+	 * @param serviceId
+	 * @return Hop Service
+	 */
+	public HopService getHopService(Integer serviceId);
+	
+	/**
+	 * saves Admission to the DB
+	 * @param admission the admission to be saved
+	 * @return admission
+	 */
+	public Admission saveAdmission(Admission admission);
+    
+	/**
+	 * Get patient admission
+	 * @param admissionid matching with admission
+	 * @return admission
+	 */
+	public Admission getPatientAdmission(Integer admissionid);
+	
+	/**
+	 * Get GlobalBill
+	 * @param globalBill 
+	 * @return GlobalBill
+	 */
+	public GlobalBill saveGlobalBill(GlobalBill globalBill);
+	
+	/**
+	 * @param globalBillId
+	 * @return
+	 */
+	public GlobalBill GetGlobalBill(Integer globalBillId);
+	
+	/**
+	 * Get GlobalBill by patient admission
+	 * @param admission
+	 * @return GlobalBill
+	 */
+	public GlobalBill getGlobalBillByAdmission(Admission admission);
+	
+	/**
+	 * Get admissions list by insurance
+	 * @param ip
+	 * @return List<Admission>
+	 */
+	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
+
+	/**
+	 * Save consommation to the DB
+	 * @param consommation consommat to be saved
+	 */
+	public void saveConsommation(Consommation consommation);
+
+	/**
+	 * save InsuranceBill to the DB
+	 * @param ib
+	 */
+	public void saveInsuranceBill(InsuranceBill ib);
+
+	/**
+	 * Save the ThirdPartyBill to the DB
+	 * @param thirdBill to be saved
+	 */
+	public void saveThirdPartyBill(ThirdPartyBill thirdBill);
+
+	/**
+	 * Get consommation by id
+	 * @param consommationId
+	 * @return consommation that  matches with consommationId
+	 */
+	public Consommation getConsommation(Integer consommationId);
+
+	public CashPayment saveCashPayment(CashPayment cashPayment);
+
+	public PatientServiceBill saveBilledItem(PatientServiceBill psb);
+
+	public PatientServiceBill getPatientServiceBill(Integer patientServiceBillId);
+
+	public void saveBillPayment(BillPayment bp);
+
+	public void savePaidServiceBill(PaidServiceBill paidSb);
+
+	/**
+	 * Gets all consommation  by globalBill
+	 * @param globalBill
+	 * @return List<Consommation>
+	 */
+	public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill);
+
+	/**
+	 * Gets Global bill  matching with a given bill identifier
+	 * @param billIdentifier
+	 * @return GlobalBill
+	 */
+	public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier);
+	/**
+	 * Gets List of consommations matching with a given beneficiary
+	 * @param beneficiary
+	 * @return List<Consommation>
+	 */
+	public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary);
+	/**
+	 * Gets Patient Account with a given accountId
+	 * @param accountId
+	 * @return PatientAccount
+	 */
+	public PatientAccount getPatientAccount(Integer accountId);
+	/**
+	 * Get patient account by patient
+	 * @param account
+	 * @return
+	 */
+	public PatientAccount getPatientAccount(Patient patient);
+	/**
+	 * saves patient account for cash deposit purpose
+	 * @param account
+	 */
+	public void savePatientAccount(PatientAccount account);
+
+	/**
+	 * Gets BillPayment by a given PaymentId
+	 * @param paymentId
+	 * @return Billpayment
+	 */
+	public BillPayment getBillPayment(Integer paymentId);
+
+	/**
+	 * Gets all paid bill services by BillPayment
+	 * @param payment
+	 * @return List<PaidServiceBill>  paidItems
+	 */
+	public List<PaidServiceBill> getPaidServices(BillPayment payment);
+
+	/**
+	 * Gets consommation by patientBill
+	 * @param patientBill
+	 * @return consommation
+	 */
+	public Consommation getConsommationByPatientBill(PatientBill patientBill);
+	/**
+	 * saves PaymentRefund
+	 * @param refund
+	 * @return PaymentRefund
+	 */
+	public PaymentRefund savePaymentRefund(PaymentRefund refund);
+
+	/**
+	 * gets paidSericeBill matching with agiven a paidServiceBillid
+	 * @param paidSviceBillid
+	 * @return paidItem
+	 */
+	public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid);
+
+	public Set<Transaction> getTransactions(PatientAccount acc, Date startDate, Date endDate, String reason);
+	
+
+	public DepositPayment saveDepositPayment(DepositPayment depositPayment);
+	/**
+	 * Gets hospital services by department
+	 * @param department
+	 * @return List<HopService>
+	 */
+	public List<HopService> getHospitalServicesByDepartment(Department department);
+	/**
+	 * gets Transaction with a given id
+	 * @param id
+	 * @return Transaction
+	 */
+	public Transaction getTransactionById(Integer id);
+	/**
+	 * gets hopservice by name
+	 * @param name
+	 * @return HopService
+	 */
+	public HopService getServiceByName(String name);
+
+	public List<PaidServiceBill> getPaidItemsByBillPayments(
+			List<BillPayment> payments);
+	public List<PatientServiceBill> getBillItemsByCategory(Consommation consommation, HopService service);
+	public List<PatientServiceBill> getBillItemsByGroupedCategories(Consommation consommation, List<HopService> services);
+	
+	/**
+	 * gets Global Bills between 2 dates
+	 * @param date1
+	 * @param date2
+	 * @return list of Global bills
+	 */
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2);
+
+	public List<Consommation> getConsommationByGlobalBills(
+			List<GlobalBill> globalBills);
+	
+	/**
+	 * gets all submitted payment refunds
+	 * @return
+	 */
+	public List<PaymentRefund> getAllSubmittedPaymentRefunds();
+	
+	/**
+	 * get refund by id
+	 * @param id
+	 * @return
+	 */
+	public PaymentRefund getRefundById(Integer id);
+	
+	public PaidServiceBillRefund getPaidServiceBillRefund(Integer paidSviceBillRefundid);
+	
+	public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment);
+	/**
+	 * get all confirmed refunds between two dates and by a given collector
+	 * @param startDate
+	 * @param endDate
+	 * @param collector
+	 * @return list of PaymentRefund
+	 */
+	public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(Date startDate, Date endDate, User collector);
+	
+	/**
+	 * get InsurancePolicy by a given third party
+	 * @param t
+	 * @return InsurancePolicy
+	 */
+	public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t);
+	
+	/**
+	 * get all consommations by provided parameters
+	 * @param startDate
+	 * @param endDate
+	 * @param insurance
+	 * @param tp
+	 * @param billCreator
+	 * @return consommation list
+	 */
+	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+	
+	public void updateOtherInsurances(ServiceCategory sc);
+	
+
+	/**
+	 * gets transactions by type,in a period and by cashier
+	 * @param startDate
+	 * @param endDate
+	 * @param collector
+	 * @param type
+	 * @return List<DepositPayment>
+	 */
+	public List<Transaction> getTransactions(Date startDate, Date endDate, User collector, String type);
 }

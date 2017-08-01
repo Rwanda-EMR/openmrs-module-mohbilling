@@ -13,20 +13,19 @@
  */
 package org.openmrs.module.mohbilling.advice;
 
-import java.lang.reflect.Method;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.directwebremoting.guice.RequestScoped;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.springframework.aop.AfterReturningAdvice;
+
+import java.lang.reflect.Method;
 
 /**
  * @author Kamonyo

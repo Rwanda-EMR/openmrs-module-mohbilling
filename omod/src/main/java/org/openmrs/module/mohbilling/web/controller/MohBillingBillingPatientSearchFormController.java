@@ -3,16 +3,16 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 /**
- * @author MOH
+ * @author rbcemr
  *
  */
 public class MohBillingBillingPatientSearchFormController extends
@@ -43,6 +43,8 @@ public class MohBillingBillingPatientSearchFormController extends
 		if (owner != null && bens.isEmpty()){
 		mav.addObject("messageIfNoInsuranceCardNoFound","The patient you have selected does not have any Insurance card Number");
 		}*/
+		if(request.getParameter("billIdentifier")!=null)
+		log.info("gggggggggggggggggggggggggggggg "+request.getParameter("billIdentifier"));
 		mav.setViewName(getViewName());
        
 		return mav;

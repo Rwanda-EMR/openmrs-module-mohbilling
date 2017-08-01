@@ -58,5 +58,25 @@ public class BillingConstants {
 	// public static final String MOTHER_NAME_ATTRIBUTE_TYPE = "Mother's name";
 	// public static final String FATHER_NAME_ATTRIBUTE_TYPE = "Father's name";
 	public static EncounterType ENCOUNTER_TYPE_REGISTRATION;
+	
+	 public static final String GLOBAL_PROPERTY_REVENUE= "mohbilling.REVENUE";
+	 public static final String GLOBAL_PROPERTY_IMAGERIE = "mohbilling.imagerie";
+	 public static final String GLOBAL_PROPERTY_MEDICAL_ACTS = "mohbilling.ACTS";
+	 public static final String GLOBAL_PROPERTY_VENTES_IMPRIMES = "mohbilling.venteImprimes";
+	 
+	 public static  String GLOBAL_PROPERTY_REPORT_TYPE ;
+	
+	 public  static final  String CONSOMMABLES ="CONSOM";
+	 public  static final  String MEDICAMENTS ="MEDIC";
+	 public  static final  String LABORATOIRE ="LABO";
+	 public  static final  String CONSULTATION ="CONSULT";
+	 public  static final  String HOSPITALISATION ="HOSPITAL";
+	 public  static final  String KINESITHERAPIE ="KINES";	
+	 public  static final  String MORGUE ="MORGUE";
+	 public  static final  String MATERNITE ="MATERN";
+	 public  static final  String OXYGENOTHERAPIE ="OXYGENO";
+	 public  static final  String MEDICALACTS ="ACTS";
+	 public static final   String IMAGERIE = "IMAGERIE";
+
 
 }

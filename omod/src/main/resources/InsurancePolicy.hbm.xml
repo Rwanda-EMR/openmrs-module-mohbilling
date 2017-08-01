@@ -33,7 +33,13 @@
 			<key column="insurance_policy_id" />
 			<one-to-many class="Beneficiary" />
 		</set>
-
+		 <set name="admissions" table="moh_bill_admission" 
+				inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="insurance_policy_id" not-null="true" />
+            </key>
+            <one-to-many class="org.openmrs.module.mohbilling.model.Admission" />
+        </set>
 	</class>
 
 </hibernate-mapping>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- PaymentRefund -->
+	
+	<class name="PaymentRefund" table="moh_bill_payment_refund">
+
+		<id name="refundId" type="int" column="refund_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+		<property name="refundedAmount" column="amount_refunded" type="big_decimal" />		
+		<property name="createdDate" column="created_date" />
+		<property name="voided" column="voided" type="boolean" />
+		<property name="voidedDate" column="voided_date" />
+		<property name="voidReason" column="void_reason" type="text" />		
+		
+		<many-to-one name="billPayment" class="org.openmrs.module.mohbilling.model.BillPayment" column="bill_payment_id" />	
+        <many-to-one name="refundedBy" class="org.openmrs.User" column="refunded_by" />
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />		
+
+		<set name="refundedItems" lazy="false" inverse="true"
+			cascade="all" sort="natural"
+			order-by="created_date asc">
+			<key column="refund_id" />
+			<one-to-many class="PaidServiceBillRefund" />
+		</set>
+	</class>	
+</hibernate-mapping>

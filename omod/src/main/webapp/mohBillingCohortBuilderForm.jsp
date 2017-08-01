@@ -1,227 +1,96 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
-<openmrs:require privilege="Manage Billing Reports" otherwise="/login.htm" redirect="/mohbilling/cohort.form" />
-<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery.PrintArea.js" />	
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
-
-<%@ taglib prefix="billingtag" uri="taglibs/billingtag.tld" %>
-
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<!--  
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
--->
-
-<!-- script to create a pop up windows for unpaid bills -->
-<openmrs:htmlInclude file="/moduleResources/mohbilling/pop_style.css" /> 
-<openmrs:htmlInclude file="/moduleResources/mohbilling/pop_script.js" />  
-
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-<!-- 
+<%@ include file="templates/mohBillingReportHeader.jsp"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
 <script type="text/javascript" language="JavaScript">
 	var $bill = jQuery.noConflict();
-
-	$bill(document).ready(function() {
+	$bill(document).ready(function(){
 		$bill('.meta').hide();
-		
+		$bill('#submitId').click(function() {
+			$bill('#formStatusId').val("clicked");
+		});
 		$bill("input#print_button").click(function() {
 			$bill('.meta').show();
 			$bill("div.printarea").printArea();
 			$bill('.meta').hide();
 		});
+
 	});
-	
-</script>
- -->
-<script type="text/javascript" language="JavaScript">
-var $b = jQuery.noConflict();
-$b(document).ready(function(){
-    $b('#select_all').on('click',function(){
-        if(this.checked){
-            $b('.checkbox').each(function(){
-                this.checked = true;
-            });
-        }else{
-             $b('.checkbox').each(function(){
-                this.checked = false;
-            });
-        }
-    });
-    
-    $b('.checkbox').on('click',function(){
-        if($b('.checkbox:checked').length == $b('.checkbox').length){
-            $b('#select_all').prop('checked',true);
-        }else{
-            $b('#select_all').prop('checked',false);
-        }
-    });
-});
 </script>
 
 
+<style>
+.collector,.time,.deposit,.paymentType {
+    display: none;
+}
+a.print {
+    border: 2px solid #009900;
+    background-color: #aabbcc;
+    color: #ffffff;
+    text-decoration: none;
+}
+</style>
 
-<h2><spring:message code="@MODULE_ID@.billing.report"/></h2>
+<h3>
+	Search Fiche de Consommations
+</h3>
 
-<ul id="menu">
-        <openmrs:hasPrivilege privilege="Billing Reports - View Find Bills">
-		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
-			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		
-		<openmrs:hasPrivilege privilege="Billing Reports - View Payments">
-	    <li>
-			<a href="received.form"><spring:message code="@MODULE_ID@.billing.received"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		
-		 <openmrs:hasPrivilege privilege="Billing Reports - View Revenue">
-		 <li>
-			<a href="recettes.form"><spring:message code="@MODULE_ID@.billing.revenue"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		
-		 <openmrs:hasPrivilege privilege="Billing Reports - View Invoice">
-		<li>
-			<a href="invoice.form"><spring:message code="@MODULE_ID@.billing.invoice"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		
-		 <openmrs:hasPrivilege privilege="Billing Reports - View Releve">
-		<li>
-			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
-		</li>
-		</openmrs:hasPrivilege>
-		<li>
-			<a href="refundBillReport.form">Refunding report</a>
-		</li>
-		
-		<!-- 
-		<li>
-			<a href="hmisReport.form">HMIS Reports</a>
-		</li>
-		 -->
-</ul>
-
-<b class="boxHeader">Search Form(Advanced)</b>
-<div class="box">
+<c:import url="mohBillingReportParameters.jsp" />
 
 
-<form action="cohort.form" method="post" name="">
-<input type="hidden" name="patientIdnew" value="${patientId}"/>	
-<table>
-	<tr>
-		<td width="10%">When?</td>
-		<td>
-		<table>
-			<tr>
-				<td>On Or After <input type="text" size="11" value="${startDate}"
-					name="startDate" onclick="showCalendar(this)" /></td>
-			</tr>
-			<tr>
-				<td>On Or Before <input type="text" size="11" value="${endDate}"
-					name="endDate" onclick="showCalendar(this)" /></td>
-			</tr>
-		</table>
-		</td>
-		<td>Bill Creator :</td>
-		<td><openmrs_tag:userField formFieldName="billCreator" initialValue="${billCreator}"/></td>
-		
-		<td></td><td></td><td></td><td></td><td><td></td><td></td>
-		<!-- <td><a class="topopup" id="alert" style="color: red" href="javascript:toggleDiv('myContent');" style="background-color: #ccc; padding: 5px 10px;"><strong>Alerts(${alertSize})</strong></a></td> -->
+<c:if test="${empty consommations }">
+ <div style="text-align: center;color: red;"><p>No bill found!</p></div>
+</c:if>
 
-	</tr>
-
-	<tr>
-		<td>Insurance:</td>
-		<td><select name="insurance">
-				<option selected="selected" value="${insurance.insuranceId}">
-					<c:choose>
-						<c:when test="${insurance!=null}">${insurance.name}</c:when>
-						<c:otherwise>--Select insurance--</c:otherwise>
-					</c:choose>
-				</option>
-				<c:forEach items="${allInsurances}" var="ins">
-					<option value="${ins.insuranceId}">${ins.name}</option>
-				</c:forEach>
-			</select>
-		</td>
-		<td>Bill Status</td>
-		<td>
-			<select name="billStatus">
-				<option value="">---</option>
-				<option value="FULLY PAID" ${billStatus== 'FULLY PAID' ? 'selected' : ''}>FULLY PAID</option>
-				<option value="UNPAID" ${billStatus== 'UNPAID' ? 'selected' : ''}>UNPAID</option>
-				<option value="PARTLY PAID" ${billStatus== 'PARTLY PAID' ? 'selected' : ''}>PARTLY PAID</option>
-			</select>
-		</td>
-
-	</tr>
-
-	<tr>
-		<td>Patient</td>
-		<td>
-			<openmrs_tag:patientField formFieldName="patientId" initialValue="${patientId}" />
-		</td>
-		<!--td>Facility Services</td>
-		<td>
-			<select name="serviceId">
-				<option selected="selected" value="${serviceId}">
-					<c:choose>
-						<c:when test="${serviceId!=null}">${serviceId}</c:when>             
-				    	<c:otherwise>--Select service--</c:otherwise>
-				    </c:choose>
-				</option>
-				<c:forEach items="${categories}" var="service">
-					<option value="${service}">${service}</option>
-				</c:forEach>
-			</select>
-		</td-->
-		
-	</tr>
-
-</table>
-<input type="submit" value="Search" />
-</form>
-
-</div>
+<c:if test="${not empty consommations }">
 <br/>
+<b class="boxHeader">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
-<br/>
-<c:if test="${fn:length(billObj)!=0}">
+
+<a href="#" class="print">PDF</a></b>
 <div class="box">
-<b class="boxHeader">Search results </b>
-
-<form action="cohort.form?print=true" method="post" style="display: inline;">
-	<!-- <input type="submit" class="list_exportBt" value="PDF" title="Export to PDF"/>
-	 -->
-
-<br />
-<br />
 <table width="99%">
 	<tr>
 		<td>No</td>
 		<td>Date</td>
+		<td>Department</td>
+		<td> Creator</td>
 		<td>Policy Id Number</td>
 		<td>Beneficiary</td>
 
 		<td>Billable Services</td>
 
 		<td>Insurance Name</td>
+		<td>Total</td>
 		<td>Insurance due</td>
 		<td>Patient Due</td>
-		<td>Received Amount</td>
-		<td>Amount</td>
+		<td>Paid Amount</td>
 		<td>Status</td>
 		<td></td>
-		
-	</tr>
+		<td>Collector</>
 
-	<c:forEach items="${billObj}" var="obj" varStatus="status">
+	</tr>
+	<c:set var="totalAmountAllConsom" value="0"/>
+	<c:set var="totalAmountPaidAllConsom" value="0"/>
+	<c:set var="totalInsurances" value="0"/>
+	<c:set var="totalPatients" value="0"/>
+	<c:forEach items="${consommations}" var="c" varStatus="status">
 		<tr>
 			<td class="rowValue">${status.count}</td>
-			<td class="rowValue">${obj[0]}</td>
-			<td class="rowValue"><b>${obj[1]}</b></td>
-			<td class="rowValue">${obj[2]}</td>
+			<td class="rowValue">
+			<fmt:formatDate pattern="yyyy-MM-dd" value="${c.createdDate}" />
+			</td>
+			<td class="rowValue">${c.department.name}</td>
+			<td class="rowValue">${c.creator.person.familyName}&nbsp;${c.creator.person.givenName}</td>
+			<td class="rowValue"><b>${c.beneficiary.policyIdNumber}</b></td>
+			<td class="rowValue">${c.beneficiary.patient.personName}</td>
 			<td class="rowValue">
 
 			<table>
@@ -233,48 +102,64 @@ $b(document).ready(function(){
 					<td colspan="6"><b>Quantity</b></td>
 					<td colspan="3"><b>Total</b></td>
 				</tr>
-				<c:forEach items="${obj[3]}" var="srvc" varStatus="status">
-
+				 <c:set var="insuranceRate" value="${(c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100 }"/>
+				 <c:set var="patientRate" value="${(100-c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100}"/>
+				<c:set var="totalAmountByConsom" value="0"/>
+				<c:forEach items="${c.billItems}" var="item" varStatus="status">
+                    <c:if test="${not item.voided}">
 					<tr>
 					    <td>${status.count}-</td>
 						<td>
-						${srvc.service.facilityServicePrice.name}
+						${item.service.facilityServicePrice.name}
 						</td>
 
-						<td colspan="4">${srvc.unitPrice }</td>
-						<td colspan="6">${srvc.quantity}</td>
-						<td colspan="1">${srvc.unitPrice*srvc.quantity}</td>
-
+						<td colspan="4">${item.unitPrice }</td>
+						<td colspan="6">${item.quantity}</td>
+						<td colspan="1">${item.unitPrice*item.quantity}</td>
+						<c:set var="totalAmountByConsom" value="${totalAmountByConsom+(item.unitPrice*item.quantity)}" />
 					</tr>
+					</c:if>
 				</c:forEach>
 			</table>
 			</td>
+			<c:set var="totalAmountPaidByCons" value="${billingtag:amountPaidByConsommation(c.consommationId)}"/>
+			<td class="rowValue">${c.beneficiary.insurancePolicy.insurance.name}</td>
+			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom}" type="number" pattern="#.##"/></td>
+			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*insuranceRate }" type="number" pattern="#.##"/></td>
+			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*patientRate }" type="number" pattern="#.##"/></td>
+			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountPaidByCons}" type="number" pattern="#.##"/></td>
+			<c:if test="${totalAmountPaidByCons >= (totalAmountByConsom*patientRate)}">
+			<td class="rowAmountValue" style="color: green; font-weight: bold;">FULLY PAID</td>
+			</c:if>
+			<c:if test="${(totalAmountPaidByCons!='0') && (totalAmountPaidByCons < (totalAmountByConsom*patientRate))}">
+			<td class="rowAmountValue" style="color: green; font-weight: bold;">PARTLY PAID</td>
+			</c:if>
+			<c:if test="${totalAmountPaidByCons=='0'&& (patientRate!='0')}">
+			<td class="rowAmountValue" style="color: red; font-weight: bold;">UNPAID</td>
+			</c:if>
 
-			<td class="rowValue">${obj[4]}</td>
-			<td class="rowAmountValue">${obj[5]}</td>
-			<td class="rowAmountValue">${obj[6]}</td>
-			<td class="rowAmountValue">${obj[7]}</td>
-			<td class="rowAmountValue"><b style="color: blue;">${obj[8]}</b></td>
-			<td class="rowAmountValue" style="color: green; font-weight: bold;">${obj[9]}</td>
-			<td class="rowTotalValue"><a href="patientBillPayment.form?patientBillId=${obj[10]}">View/</a></td>
-			<!--  
-			<td class="rowTotalValue"><input type="checkbox" class="checkbox" name="checked_bill" value="${obj[10]}"/></td>
-			-->
+			<td class="rowTotalValue"><a href="patientBillPayment.form?consommationId=${c.consommationId}">View/</a></td>
+             <c:forEach items="${c.patientBill.payments}" var="payment" varStatus="status">
+                                 <td class="rowValue">${payment.collector.person.familyName}&nbsp;</br>${payment.collector.person.givenName}</td>
+              </c:forEach>
+
 		</tr>
-
+	<c:set var="totalAmountAllConsom" value="${totalAmountAllConsom+totalAmountByConsom}" />
+	<c:set var="totalAmountPaidAllConsom" value="${totalAmountPaidAllConsom+totalAmountPaidByCons}" />
+	<c:set var="totalInsurances" value="${totalInsurances+(totalAmountByConsom*insuranceRate)}" />
+	<c:set var="totalPatients" value="${totalPatients+(totalAmountByConsom*patientRate)}" />
 	</c:forEach>
 	<tr>
-		<td class="rowTotalValue" colspan="6"><b style="color: blue;font-size: 14px;">TOTAL</b></td>
-		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${insuranceDueAmount}</b></td>
-		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${patientDueAmount}</b></td>
-		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">${totalAmountReceived}</b></td>		
-		<td class="rowTotalValue"><b style="color: red;font-size: 14px;"><u>${totalAmount}</u></b></td>
+		<td class="rowTotalValue" colspan="8"><b style="color: blue;font-size: 14px;">TOTAL</b></td>
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalAmountAllConsom}" type="number" pattern="#.##"/></b></td>
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalInsurances}" type="number" pattern="#.##"/></b></td>
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalPatients}" type="number" pattern="#.##"/></b></td>
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalAmountPaidAllConsom}" type="number" pattern="#.##"/></b></td>
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"></b></td>
+		<td class="rowTotalValue"><b style="color: red;font-size: 14px;"></b></td>
 	</tr>
 </table>
-<br />
-<br />
-</form>
-</div> 
+</div>
 </c:if>
 
 

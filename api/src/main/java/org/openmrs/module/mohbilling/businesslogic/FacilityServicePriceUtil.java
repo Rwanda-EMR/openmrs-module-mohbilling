@@ -1,17 +1,5 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Concept;
@@ -23,6 +11,13 @@ import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
 
+import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 /**
  * 
  * Class to contain all of the business logic helper classes for the creation of
@@ -31,7 +26,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
  * The parent class is FacilityServicePrice, and BillableServices are child
  * objects.
  * 
- * @author Kamonyo
+ * @author EMR-RBC
  * 
  */
 public class FacilityServicePriceUtil {
@@ -230,6 +225,8 @@ public class FacilityServicePriceUtil {
 	 * @param facilityServicePrice
 	 *            the facility service to be updated
 	 */
+	// @param facilityServicePrice
+	//  the facility service to be updated
 	public static void retireBillableService(BillableService billableService,
 			Date retiredDate, String retireReason) {
 
@@ -497,8 +494,8 @@ public class FacilityServicePriceUtil {
 		}
 	}
 	
-	public static boolean isBillableCreated(FacilityServicePrice facilityService, Insurance insurance) {		
-		BillableService billableService = getService().getBillableServiceByConcept(facilityService, insurance);		
+	public static boolean isBillableCreated(FacilityServicePrice facilityService, Insurance insurance) {
+		BillableService billableService = getService().getBillableServiceByConcept(facilityService, insurance);
 		if(billableService != null)
 			return true;		
 		return false;
@@ -554,15 +551,25 @@ public class FacilityServicePriceUtil {
 							bs.setCreator(Context.getAuthenticatedUser());
 							bs.setFacilityServicePrice(fsp);
 							
-							if(insurance.getCategory().toLowerCase().equals("base")) {
+							/*if(insurance.getCategory().toLowerCase().equals("base")) {
 								bs.setMaximaToPay(fsp.getFullPrice());
-							} else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
-								bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
-							} else if(insurance.getCategory().toLowerCase().equals("private")) {
+							}*/
+							if(insurance.getCategory().toLowerCase().equals("mmi_ur")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.15))).setScale(0, RoundingMode.CEILING));
+							}
+							else if(insurance.getCategory().toLowerCase().equals("rssb")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.25))).setScale(0, RoundingMode.CEILING));
+							}
+							else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+								bs.setMaximaToPay((fsp.getFullPrice().divide(new BigDecimal(2))).setScale(0, RoundingMode.CEILING));
+							} /*else if(insurance.getCategory().toLowerCase().equals("private")) {
 								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
-							} else if(insurance.getCategory().toLowerCase().equals("none")) {
-								BigDecimal initial = fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter));
-								bs.setMaximaToPay(initial.add(initial.multiply(fifth)));
+							}*/
+							else if(insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.4375))).setScale(0, RoundingMode.CEILING));
+							}else if(insurance.getCategory().toLowerCase().equals("none")) {
+								BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+								bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
 							}
 
 						} else {
@@ -574,15 +581,22 @@ public class FacilityServicePriceUtil {
 							bs.setRetired(false);
 							bs.setCreator(Context.getAuthenticatedUser());
 							bs.setFacilityServicePrice(fsp);
-							if(insurance.getCategory().toLowerCase().equals("base")) {
+							/*if(insurance.getCategory().toLowerCase().equals("base")) {
 								bs.setMaximaToPay(fsp.getFullPrice());
-							} else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
-								bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
+							}*/
+							if(insurance.getCategory().toLowerCase().equals("mmi_ur")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.15))).setScale(0, RoundingMode.CEILING));
+							}
+							else if(insurance.getCategory().toLowerCase().equals("rssb")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.25))).setScale(0, RoundingMode.CEILING));
+							}
+							else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+								bs.setMaximaToPay((fsp.getFullPrice().divide(new BigDecimal(2))).setScale(0, RoundingMode.CEILING));
 							} else if(insurance.getCategory().toLowerCase().equals("private")) {
-								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.4375))).setScale(0, RoundingMode.CEILING));
 							} else if(insurance.getCategory().toLowerCase().equals("none")) {
-								BigDecimal initial = fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter));
-								bs.setMaximaToPay(initial.add(initial.multiply(fifth)));
+								BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+								bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
 							}
 						}
 					} 
@@ -636,7 +650,7 @@ public class FacilityServicePriceUtil {
 		 if(!insurance.isVoided())	
 			 try{
 			  
-			for(BillableService bs:billableServices) {	
+			for(BillableService bs:billableServices) {
 				bs = getService().getBillableServiceByConcept(fsp, insurance);
 				bs.setStartDate(new Date());
 				bs.setInsurance(insurance);
@@ -647,15 +661,22 @@ public class FacilityServicePriceUtil {
 				bs.setFacilityServicePrice(fsp);
 				
 				if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
-				if(insurance.getCategory().toLowerCase().equals("base")) {
+				/*if(insurance.getCategory().toLowerCase().equals("base")) {
 					bs.setMaximaToPay(fsp.getFullPrice());
-				} else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+				}*/
+				if(insurance.getCategory().toLowerCase().equals("mmi_ur")) {
+						bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.15)));
+					}
+				else if(insurance.getCategory().toLowerCase().equals("rssb")) {
+						bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.25)));
+					}
+				else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
 					bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
-				} else if(insurance.getCategory().toLowerCase().equals("private")) {
-					bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+				} else if (insurance.getCategory().toLowerCase().equals("private")) {
+					bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.4375)));
 				} else if(insurance.getCategory().toLowerCase().equals("none")) {
-					BigDecimal initial = fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter));
-					bs.setMaximaToPay(initial.add(initial.multiply(fifth)));
+					BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+					bs.setMaximaToPay(initial);
 				}
 				fsp.addBillableService(bs);
 			} 

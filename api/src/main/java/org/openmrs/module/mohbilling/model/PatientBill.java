@@ -3,24 +3,21 @@
  */
 package org.openmrs.module.mohbilling.model;
 
+import org.openmrs.User;
+import org.openmrs.util.OpenmrsUtil;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.openmrs.User;
-import org.openmrs.util.OpenmrsUtil;
-
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  * 
  */
 public class PatientBill {
-	private Integer patientBillId;
-	private String description;
-	private Beneficiary beneficiary;
+	private Integer patientBillId;	
 	private BigDecimal amount = new BigDecimal(0);
-	private boolean printed;
 	private boolean isPaid;
 	private String status;
 	private User creator;
@@ -28,8 +25,7 @@ public class PatientBill {
 	private boolean voided = false;
 	private User voidedBy;
 	private Date voidedDate;
-	private String voidReason;
-	private Set<PatientServiceBill> billItems;
+	private String voidReason;	
 	private Set<BillPayment> payments;
 
 	/**
@@ -47,35 +43,6 @@ public class PatientBill {
 		this.patientBillId = patientBillId;
 	}
 
-	/**
-	 * @return the description
-	 */
-	public String getDescription() {
-		return description;
-	}
-
-	/**
-	 * @param description
-	 *            the description to set
-	 */
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	/**
-	 * @return the beneficiary
-	 */
-	public Beneficiary getBeneficiary() {
-		return beneficiary;
-	}
-
-	/**
-	 * @param beneficiary
-	 *            the beneficiary to set
-	 */
-	public void setBeneficiary(Beneficiary beneficiary) {
-		this.beneficiary = beneficiary;
-	}
 
 	/**
 	 * @return the amount
@@ -92,20 +59,7 @@ public class PatientBill {
 		this.amount = amount;
 	}
 
-	/**
-	 * @return the printed
-	 */
-	public Boolean isPrinted() {
-		return printed;
-	}
-
-	/**
-	 * @param printed
-	 *            the printed to set
-	 */
-	public void setPrinted(Boolean printed) {
-		this.printed = printed;
-	}
+	
 
 	/**
 	 * @return the isPaid
@@ -227,54 +181,6 @@ public class PatientBill {
 	}
 
 	/**
-	 * @return
-	 */
-	public Set<PatientServiceBill> getBillItems() {
-		return billItems;
-	}
-
-	/**
-	 * @param billItems
-	 */
-	public void setBillItems(Set<PatientServiceBill> billItems) {
-		this.billItems = billItems;
-	}
-
-	/**
-	 * @param serviceBill
-	 * @return
-	 */
-	public boolean addBillItem(PatientServiceBill serviceBill) {
-		if (serviceBill != null) {
-			serviceBill.setPatientBill(this);
-			if (billItems == null)
-				billItems = new TreeSet<PatientServiceBill>();
-			if (!OpenmrsUtil.collectionContains(billItems, serviceBill)) {
-				this.amount = this.amount.add(serviceBill.getAmount());
-//				System.out
-//						.println("***************** New Amount after ADDING ******** : "
-//								+ this.amount);
-				return billItems.add(serviceBill);
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * @param psb
-	 * @return
-	 */
-	public boolean removeBillItem(PatientServiceBill psb) {
-		if (billItems != null) {
-			this.amount = this.amount.subtract(psb.getAmount());
-			System.out.println("***************** New Amount after SUBTRACTING ******** : "	+ this.amount);
-			System.out.println("***************** Amount removed ******** : "	+ psb.getAmount());
-			return billItems.remove(psb);
-		}
-		return false;
-	}
-
-	/**
 	 * @return the list of payments
 	 */
 	public Set<BillPayment> getPayments() {
@@ -338,12 +244,7 @@ public class PatientBill {
 		return false;
 	}
 
-	/**
-	 * @return true when the bill is printed, false otherwise
-	 */
-	public Boolean getPrinted() {
-		return printed;
-	}
+	
 
 	/**
 	 * @return
@@ -390,13 +291,10 @@ public class PatientBill {
 	 */
 	@Override
 	public String toString() {
-		return "\n - Patient Bill Id : " + this.patientBillId
-				+ "\n - Bill Description : " + this.description
-				+ "\n - Benefeciary : "
-				+ this.beneficiary.getPatient().getFamilyName() + " "
-				+ this.beneficiary.getPatient().getGivenName()
+		return "\n - Patient Bill Id : " + this.patientBillId		
+						
 				+ "\n - Amount : " + this.amount + "\n - is Paid : "
-				+ this.isPaid + "\n - Is Printed : " + this.printed
+			
 				+ "\n - Creator : " + this.creator.getPerson().getFamilyName()
 				+ "\n - Creation date : " + this.createdDate;
 

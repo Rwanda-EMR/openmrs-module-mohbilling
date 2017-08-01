@@ -3,18 +3,18 @@
  */
 package org.openmrs.module.mohbilling.model;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.Set;
+import java.util.TreeSet;
+
 /**
- * @author Kamonyo
+ * @author rbcemr
  * 
  */
 public class FacilityServicePrice implements Comparable<FacilityServicePrice> {

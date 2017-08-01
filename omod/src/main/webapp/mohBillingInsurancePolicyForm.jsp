@@ -1,9 +1,10 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <openmrs:require privilege="Create Insurance Policy"
 	otherwise="/login.htm"
-	redirect="/module/mohbilling/insurancePolicy.form" />
+	redirect="/module/@MODULE_ID@/insurancePolicy.form" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
 <style type="text/css">
@@ -85,10 +86,10 @@
 
 <h2>
 	<c:if test="${null ne param.patientId}">
-		<spring:message code="@MODULE_ID@.insurance.policy.create" />
+		<spring:message code="mohbilling.insurance.policy.create" />
 	</c:if>
 	<c:if test="${null ne param.insurancePolicyId}">
-		<spring:message code="@MODULE_ID@.insurance.policy.edit" />
+		<spring:message code="mohbilling.insurance.policy.edit" />
 	</c:if>
 </h2>
 
@@ -105,8 +106,8 @@
 			</tr>
 		</table>
 	</div>
-	<br /> <input type="hidden" name="cardId"
-		value="${insurancePolicy.insurancePolicyId}" /> <b class="boxHeader">Section
+	<br /> 
+	 <b class="boxHeader">Section
 		II >> Insurance</b>
 	<div class="box">
 		<table>

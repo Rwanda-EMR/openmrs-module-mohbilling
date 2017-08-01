@@ -4,10 +4,10 @@
 <module configVersion="1.2">
 
 	<!-- Base Module Properties -->
-	<id>@MODULE_ID@</id>
-	<name>@MODULE_NAME@</name>
-	<version>@MODULE_VERSION@</version>
-	<package>@MODULE_PACKAGE@</package>
+	<id>mohbilling</id>
+	<name>MoH Billing Module</name>
+	<version>0.0.3.3-SNAPSHOT</version>
+	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
 		MoH-Billing Module. Useful for managing Rwanda Hospitals/HCs Billing system.
@@ -20,7 +20,7 @@
 	-->
 	<!-- /Base Module Properties -->
 
-	 <require_version>${openMRSVersion}</require_version>  
+	 <require_version>1.6.2.12911</require_version>  
 	 <!-- <require_version>1.6.1.12909</require_version> -->
 
 	<!-- Extensions -->
@@ -270,18 +270,97 @@
         <name>Billing Reports - View Payments</name>
         <description>Allows users to view Payments Report</description>
     </privilege>
+    
     <privilege>
-        <name>Billing Reports - View Revenue</name>
-        <description>Allows users to view Revenue Report</description>
+        <name>Edit Bill Payment</name>
+        <description>Allows users to Edit the amount paid by the patient by entering the new amount</description>
     </privilege>
+    
     <privilege>
-        <name>Billing Reports - View Invoice</name>
-        <description>Allows users to view Invoice Report</description>
+        <name>Billing Report - View Cashier Report</name>
+        <description>Allows users to view Cashier Report</description>
     </privilege>
+    
     <privilege>
-        <name>Billing Reports - View Releve</name>
-        <description>Allows users to view Releve Report</description>
+        <name>Billing Report - View Service Report</name>
+        <description>Allows users to view Service Report</description>
     </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Refund Report</name>
+        <description>Allows users to view Refund Report</description>
+    </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Insurance Report</name>
+        <description>Allows users to view Insurance Report</description>
+    </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Third Party Report</name>
+        <description>Allows users to view Third Party Report</description>
+    </privilege>
+    
+    <privilege>
+        <name>Billing Report - View Deposit Report</name>
+        <description>Allows users to view Deposit Report</description>
+    </privilege>
+    
+    <!-- Payment Refund -->
+     <privilege>
+        <name>Submit a refund</name>
+        <description>Allows cashiers to submit a refund to the chief cashier</description>
+    </privilege>
+    
+     <privilege>
+        <name>Approve a refund</name>
+        <description>Allows chief cashier to approve a submitted refund</description>
+    </privilege>
+    
+    <privilege>
+        <name>Confirm approved refunds</name>
+        <description>Allows cashier to confirm approved refunds</description>
+    </privilege>
+    
+    <!-- View billing admin page -->
+     <privilege>
+        <name>Billing Configuration - View Billing Admin</name>
+        <description>Allows user to configure billing module</description>
+    </privilege>
+    
+     <!-- Manage billing admission -->
+     <privilege>
+        <name>Manage Admission</name>
+        <description>Allows user to manage admission</description>
+     </privilege>
+     
+     <!-- Manage billing deposit -->
+     <privilege>
+        <name>Manage deposit</name>
+        <description>Allows user to manage admission</description>
+     </privilege>
+
+    <!-- Discharge a patient -->
+    <privilege>
+        <name>Discharge Patient</name>
+        <description>Allows the user to discharge a patient and close the global bill</description>
+    </privilege>
+
+    <!-- Add Consommation -->
+    <privilege>
+        <name>Add Consommation</name>
+        <description>Allows the user to add consommation on global bill</description>
+    </privilege>
+
+    <!--Add Item -->
+    <privilege>
+        <name>Add Item</name>
+        <description>Allow user to add item on the same consommation</description>
+    </privilege>
+     
+     
+    
+    
   
 	<!-- Internationalization -->
 	<!-- All message codes should start with @MODULE_ID@.* -->
@@ -309,7 +388,20 @@
 		FacilityServicePrice.hbm.xml
 		Recovery.hbm.xml
 		ThirdParty.hbm.xml
+		Departement.hbm.xml
+		HopService.hbm.xml
+		Admission.hbm.xml
+		GlobalBill.hbm.xml
+		Consommation.hbm.xml
+		ThirdPartyBill.hbm.xml
+		InsuranceBill.hbm.xml
+		CashPayment.hbm.xml
+		PaidServiceBill.hbm.xml
+		PatientAccount.hbm.xml
+		Transaction.hbm.xml
+		DepositPayment.hbm.xml
+		PaidServiceBillRefund.hbm.xml
+		PaymentRefund.hbm.xml
 	</mappingFiles>
 
 </module>
-

@@ -3,17 +3,6 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -25,10 +14,17 @@ import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Insurance;
-import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientInvoice;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class MohBillingrReceivedAmountController extends
 		ParameterizableViewController {
@@ -182,7 +178,7 @@ public class MohBillingrReceivedAmountController extends
 			FileExporter fexp = new FileExporter();
 			String fileName = "Deposit Report.pdf";
 
-			fexp.pdfPrintPaymentsReport(request, response, payments, fileName, "Deposit");	
+			//fexp.pdfPrintPaymentsReport(request, response, payments, fileName, "Deposit");	
 		}
 		mav.setViewName(getViewName());
 

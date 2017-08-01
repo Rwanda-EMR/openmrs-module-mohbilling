@@ -3,11 +3,6 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.exception.ConstraintViolationException;
@@ -22,8 +17,12 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+
 /**
- * @author Yves GAKUBA
+ * @author EMR@RBC
  * 
  *         This controller backs the
  *         /web/module/mohBillingInsurancePolicyForm.jsp page. This controller
@@ -205,7 +204,7 @@ public class MohBillingInsurancePolicyFormController extends
 			card.setCreator(Context.getAuthenticatedUser());
 			card.setRetired(false);			
             //if the insurance policy already  exist,display the  message
-			if (InsurancePolicyUtil.isInsurancePolicyExists(request	.getParameter("insurancePolicyOwnerCardNumber"))==true) {
+			if (InsurancePolicyUtil.isInsurancePolicyExists(request.getParameter("insurancePolicyOwnerCardNumber"))==true) {
 				
 				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 				"The insurance policy already with card no: "+request.getParameter("insurancePolicyOwnerCardNumber")+"  already exists!");				
@@ -239,5 +238,14 @@ public class MohBillingInsurancePolicyFormController extends
 
 		return true;
 	}
-
+	private void handleRetireInsurancePolicy(InsurancePolicy ip) {
+		if(ip!=null){
+			ip.setRetired(true);
+			ip.setRetiredBy(Context.getAuthenticatedUser());
+			ip.setRetiredDate(new Date());
+			ip.setRetireReason("void");
+			InsurancePolicyUtil.createInsurancePolicy(ip);
+		}
+		
+	}
 }

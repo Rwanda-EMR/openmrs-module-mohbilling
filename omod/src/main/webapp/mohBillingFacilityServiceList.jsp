@@ -2,6 +2,7 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
+<%@ include file="templates/mohBillingAdminHeader.jsp"%>
 
 <openmrs:require privilege="View Facility service" otherwise="/login.htm" redirect="/module/@MODULE_ID@/facilityService.list" />
 

@@ -1,99 +1,59 @@
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
-import org.openmrs.api.context.Context;
-
-import org.openmrs.module.mohbilling.businesslogic.FileExporter;
-import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.PaymentRefundUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
-import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
-public class MohBillingRefundReportController extends 	ParameterizableViewController {
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.List;
 
-	@SuppressWarnings("unchecked")
+public class MohBillingRefundReportController extends ParameterizableViewController {
+
+	protected final Log log = LogFactory.getLog(getClass());
+	/* (non-Javadoc)
+	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView();
-		
-
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		// Date startDate = null;
-
-		String insuranceStr = null, startDateStr = null, endDateStr = null, serviceId = null, cashCollector = null, startHourStr = null, startMinute = null, endHourStr = null, endMinuteStr = null;
-	
-				startHourStr = request.getParameter("startHour");
-				startMinute = request.getParameter("startMinute");
-				endHourStr = request.getParameter("endHour");
-				endMinuteStr = request.getParameter("endMinute");
-
-				String startTimeStr = startHourStr + ":" + startMinute + ":00";
-				String endTimeStr = endHourStr + ":" + endMinuteStr + ":59";
-				Date startDate = null, endDate = null;
-				if (request.getParameter("startDate") != null
-						&& !request.getParameter("startDate").equals("")) {
-					startDateStr = request.getParameter("startDate");
-					startDate = sdf.parse(startDateStr.split("/")[2] + "-"
-							+ startDateStr.split("/")[1] + "-"
-							+ startDateStr.split("/")[0] + " " + startTimeStr);
-				}
-
-				if (request.getParameter("endDate") != null
-						&& !request.getParameter("endDate").equals("")) {
-					endDateStr = request.getParameter("endDate");
-					endDate = sdf.parse(endDateStr.split("/")[2] + "-"
-							+ endDateStr.split("/")[1] + "-"
-							+ endDateStr.split("/")[0] + " " + endTimeStr);
-				}
-
-				User collector = null;
-
-				if (request.getParameter("cashCollector") != null
-						&& !request.getParameter("cashCollector").equals("")) {
-					cashCollector = request.getParameter("cashCollector");
-					collector = Context.getUserService().getUser(Integer.parseInt(cashCollector));
-				}
-				
-				if (startDate != null && endDate != null) {
-			     
-					Set<PatientBill> refundedBills = PatientBillUtil.getRefundedBill(startDate, endDate, collector);
-					request.getSession().setAttribute("refundedBills" , refundedBills);
-					
-					mav.addObject("collector", collector);
-					mav.addObject("refundedBills", refundedBills);	
-		 
-					//Math.abs(x)==>to get an absolute value
-					mav.addObject("totalRefundedAmount", Math.abs(ReportsUtil.roundTwoDecimals(ReportsUtil.getTotalRefundedAmount(refundedBills))));
-
-				}
-
-				
-
-		
-				if (request.getParameter("printed")!=null) {
-					HttpSession session = request.getSession(true);
-
-					Set<PatientBill> billsWithRefunds = (Set<PatientBill>) session.getAttribute("refundedBills");
-					
-					FileExporter fexp = new FileExporter();
-					String fileName = "Refund Report.pdf";
-
-					//System.out.println("ttttttttttttttttttttttttttttttttt "+billsWithRefunds.size());
-					fexp.pdfPrintRefundReport(request, response, billsWithRefunds, fileName, fileName);	
-				}
-	
 		mav.setViewName(getViewName());
+
+
+		if (request.getParameter("formStatus") != null
+				&& !request.getParameter("formStatus").equals("")) {
+			String startDateStr = request.getParameter("startDate");
+			String startHourStr = request.getParameter("startHour");
+			String startMinStr = request.getParameter("startMinute");
+			
+			String endDateStr = request.getParameter("endDate");
+			String endHourStr = request.getParameter("endHour");
+			String endMinuteStr = request.getParameter("endMinute");
+			
+			String collectorStr = null;
+			String insuranceStr = null;
+			String thirdPartyStr = null;
+			
+			
+			 // marameters
+			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
+			
+			 Date startDate = (Date) params[0];
+			 Date endDate = (Date) params[1];
+			 User collector = (User) params[2];
+			 
+             List<PaymentRefund> confirmedRefunds = PaymentRefundUtil.getRefundsBetweenDatesAndByCollector(startDate, endDate, collector);
+
+      		mav.addObject("confirmedRefunds", confirmedRefunds);
+			 
+	}
 
 		return mav;
 	}

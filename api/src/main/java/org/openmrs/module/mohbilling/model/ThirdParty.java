@@ -3,10 +3,10 @@
  */
 package org.openmrs.module.mohbilling.model;
 
-import java.util.Date;
-
 import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
+
+import java.util.Date;
 
 /**
  * @author Kamonyo
@@ -186,7 +186,7 @@ public class ThirdParty implements Comparable<ThirdParty> {
 
 
 	/**
-	 * @see java.lang.Object#equals(java.lang.Object)
+	 * @see Object#equals(Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -205,7 +205,7 @@ public class ThirdParty implements Comparable<ThirdParty> {
 	}
 
 	/**
-	 * @see java.lang.Object#hashCode()
+	 * @see Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
@@ -215,7 +215,7 @@ public class ThirdParty implements Comparable<ThirdParty> {
 	}
 
 	/**
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 * @see Comparable#compareTo(Object)
 	 */
 	@Override
 	public int compareTo(ThirdParty other) {

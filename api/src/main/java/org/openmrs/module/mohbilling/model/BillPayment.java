@@ -3,29 +3,60 @@
  */
 package org.openmrs.module.mohbilling.model;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
- * @author Kamonyo
+ * @author EMR-RBC
  * 
  */
 public class BillPayment implements Comparable<BillPayment> {
 
 	private Integer billPaymentId;
+	
 	private BigDecimal amountPaid;
+	
 	private Date dateReceived;
+	
 	private User collector;
+	
 	private PatientBill patientBill;
+	
+	private Set<PaidServiceBill> paidItems;
+	
 	private User creator;
+	
 	private Date createdDate;
+	
 	private Boolean voided = false;
+	
 	private User voidedBy;
+	
 	private Date voidedDate;
+	
 	private String voidReason;
+	
+	
+	//constructors
+	
+	public BillPayment(){
+		
+	}
+	
+
+	public BillPayment(BillPayment bPayment) {
+		billPaymentId =bPayment.getBillPaymentId();
+		amountPaid =bPayment.getAmountPaid();
+		dateReceived = bPayment.getDateReceived();
+		patientBill = bPayment.getPatientBill();
+		collector =bPayment.getCollector();
+	
+	}
 	
 
 	/**
@@ -49,7 +80,6 @@ public class BillPayment implements Comparable<BillPayment> {
 	public BigDecimal getAmountPaid() {
 		return amountPaid;
 	}
-
 	/**
 	 * @param amountPaid
 	 *            the amountPaid to set
@@ -79,7 +109,6 @@ public class BillPayment implements Comparable<BillPayment> {
 	public User getCollector() {
 		return collector;
 	}
-
 	/**
 	 * @param collector
 	 *            the collector to set
@@ -101,6 +130,21 @@ public class BillPayment implements Comparable<BillPayment> {
 	 */
 	public void setPatientBill(PatientBill patientBill) {
 		this.patientBill = patientBill;
+	}
+
+	/**
+	 * @return the voided
+	 */
+	public Boolean getVoided() {
+		return voided;
+	}
+
+
+	/**
+	 * @param voided the voided to set
+	 */
+	public void setVoided(Boolean voided) {
+		this.voided = voided;
 	}
 
 	/**
@@ -259,6 +303,30 @@ public class BillPayment implements Comparable<BillPayment> {
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other
 					.hashCode());
 		return ret;
+	}
+
+	/**
+	 * @return the paidItems
+	 */
+	public Set<PaidServiceBill> getPaidItems() {
+		Set<PaidServiceBill> ret = new HashSet<PaidServiceBill>();
+		return ret;
+	}
+	/**
+	 * @param paidItems the paidItems to set
+	 */
+	public void setPaidItems(Set<PaidServiceBill> paidItems) {
+		this.paidItems = paidItems;
+	}
+	/**
+	 * @param paidItem
+	 */
+	public void addPaidItem(PaidServiceBill paidItem){
+		if (paidItems == null)
+			paidItems = new HashSet<PaidServiceBill>();
+		if (paidItem != null) {
+			paidItem.setBillPayment(this);
+		}
 	}
 
 }

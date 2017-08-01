@@ -1,31 +1,28 @@
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
-import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Insurance;
-import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.List;
+
 /**
  * 
  */
 
 /**
- * @author Yves GAKUBA
+ * @author EMR-RBC
  * 
  */
 public class MohBillingBillableServiceListController extends
@@ -45,13 +42,12 @@ public class MohBillingBillableServiceListController extends
 			if(request.getParameter("insuranceId") != null && !request.getParameter("insuranceId").equals("")){
 				System.out.println("insurance id "+request.getParameter("insuranceId"));
 				Insurance insurance = Context.getService(BillingService.class).getInsurance(Integer.valueOf(request	.getParameter("insuranceId")));
-
 				mav.addObject("billableServices", (FacilityServicePriceUtil
 						.getBillableServicesByInsurance(insurance, new Date())));
 				mav.addObject("insurance", insurance);
-				
+
 				List<BillableService> currentBS = Context.getService(BillingService.class).getBillableServicesByInsurance(insurance);
-			
+
 				//to avoid loading billable services more than once
 				if(currentBS.size()==0){
 				Context.getService(BillingService.class).loadBillables(insurance);

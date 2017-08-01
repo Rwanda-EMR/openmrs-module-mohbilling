@@ -34,6 +34,7 @@
 			<td class="columnHeader"></td>
 			<td class="columnHeader">Name</td>
 			<td class="columnHeader">Description</td>
+			<td class="columnHeader"></td>
 			<!-- <td class="columnHeader">Price</td> -->
 		</tr>
 		<c:if test="${empty insurance.categories}"><tr><td colspan="4"><center>No Insurance Service Category found !</center></td></tr></c:if>
@@ -43,6 +44,9 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${isc.name}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${isc.description}</td>
 				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}">${isc.price} Rwf</td> -->
+				<c:if test="${insurance.insuranceId==1 }">
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="insurance.list?serviceCategoryId=${isc.serviceCategoryId}&update=true">update</a></td>
+				</c:if>
 			</tr>
 		</c:forEach>
 	</table>

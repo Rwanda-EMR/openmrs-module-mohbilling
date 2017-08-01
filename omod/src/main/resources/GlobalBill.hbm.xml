@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<!-- GlobalBill -->
+	
+	<class name="GlobalBill" table="moh_bill_global_bill">
+	
+		<id name="globalBillId" type="int" column="global_bill_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+		<property name="billIdentifier" column="bill_identifier" type="text" />		
+		<property name="globalAmount" column="global_amount" type="big_decimal" />		
+		<property name="closingDate" column="closing_date" />
+		<property name="createdDate" column="created_date" />
+		<property name="closed" column="closed" type="boolean"/>
+		<property name="voided" column="voided" type="boolean"/>
+		<property name="voidedDate" column="voided_date" />
+		<property name="voidReason" column="void_reason" type="text" />			
+		   
+        <many-to-one name="admission" class="org.openmrs.module.mohbilling.model.Admission"
+            column="admission_id" unique="true" not-null="true"        cascade="all" />
+	  
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<many-to-one name="closedBy" class="org.openmrs.User" column="closed_by"/>
+	</class>	
+</hibernate-mapping>

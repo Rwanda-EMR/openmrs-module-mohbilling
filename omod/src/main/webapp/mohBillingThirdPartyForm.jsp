@@ -1,8 +1,10 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
 <openmrs:require privilege="Manage Third Party" otherwise="/login.htm" redirect="/module/@MODULE_ID@/thirdParty.form" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
+<%@ include file="templates/mohBillingAdminHeader.jsp"%>
 
 <script type="text/javascript">
 		var $bill = jQuery.noConflict();
@@ -23,12 +25,16 @@
 
 <h2><spring:message code="@MODULE_ID@.billing.thirdParty"/></h2>
 
-<openmrs:hasPrivilege privilege="Add Insurance">
-	<a href="insurance.form"><spring:message code="@MODULE_ID@.insurance.add" /></a>
-</openmrs:hasPrivilege> | 
-<openmrs:hasPrivilege privilege="Manage Third Party">
-	<a href="thirdParty.form"><spring:message code="@MODULE_ID@.billing.thirdParty" /></a>
-</openmrs:hasPrivilege>
+<ul id="menu">
+
+		<li class="<c:if test='<%= request.getRequestURI().contains("InsuranceForm")%>'> active</c:if>">
+			<a href="insurance.form">Add an Insurance</a>
+		</li>
+		<li class="<c:if test='<%= request.getRequestURI().contains("Third")%>'> active</c:if>">
+			<a href="thirdParty.form">Manage Third Parties</a>
+		</li>
+		
+</ul>
 
 <br/><br/>
 

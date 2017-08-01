@@ -3,15 +3,14 @@
  */
 package org.openmrs.module.mohbilling.model;
 
-import java.util.Date;
-
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
 
+import java.util.Date;
+
 /**
- * @author Kamonyo
- * 
+ * @author rbcemr
  */
 public class Beneficiary implements Comparable<Beneficiary> {
 	private Integer beneficiaryId;

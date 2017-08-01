@@ -25,7 +25,7 @@
 		<many-to-one name="patientBill" class="org.openmrs.module.mohbilling.model.PatientBill" column="patient_bill_id" />	
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
-
-	</class>
+		
+	   </class>
 
 </hibernate-mapping>

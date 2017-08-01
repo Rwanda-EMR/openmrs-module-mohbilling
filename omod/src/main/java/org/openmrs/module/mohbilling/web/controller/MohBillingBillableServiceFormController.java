@@ -3,12 +3,6 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
@@ -21,8 +15,13 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
+import java.util.Date;
+
 /**
- * @author Yves GAKUBA
+ * @author EMR@RBC
  * 
  */
 public class MohBillingBillableServiceFormController extends
@@ -130,7 +129,7 @@ public class MohBillingBillableServiceFormController extends
 			billableService.setStartDate(Context.getDateFormat().parse(
 					request.getParameter("billableServiceStartDate")));
 
-			// This only works/displays for Drug and Consumable categories
+			// This only works for Drug and Consumable categories
 			if (request.getParameter("billableServiceMaximaToPay") != null
 					&& !request.getParameter("billableServiceMaximaToPay")
 							.equals(""))

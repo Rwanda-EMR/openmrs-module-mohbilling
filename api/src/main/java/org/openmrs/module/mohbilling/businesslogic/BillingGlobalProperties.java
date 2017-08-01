@@ -1,10 +1,11 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
+import org.openmrs.GlobalProperty;
+import org.openmrs.api.context.Context;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-
-import org.openmrs.api.context.Context;
 
 public class BillingGlobalProperties {
 	
@@ -37,4 +38,16 @@ public class BillingGlobalProperties {
 		        }
 		  return list;
         }
+	
+	public static List<String> getGpReasons() {
+		List<String> reasons = new ArrayList<String>();
+		GlobalProperty gp = Context
+				.getAdministrationService()
+				.getGlobalPropertyObject("billing.transactionReasons");
+		String[] gpReasons = gp.getPropertyValue().split(",");
+		for (String r : gpReasons) {
+			reasons.add(r);
+		}
+		return reasons;
+	}
 	}

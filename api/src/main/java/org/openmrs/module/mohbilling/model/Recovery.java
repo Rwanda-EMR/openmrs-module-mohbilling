@@ -1,10 +1,10 @@
 package org.openmrs.module.mohbilling.model;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 public class Recovery implements Comparable<Recovery> {
 
@@ -338,7 +338,7 @@ public class Recovery implements Comparable<Recovery> {
 	}
 
 	/**
-	 * @see java.lang.Object#equals(java.lang.Object)
+	 * @see Object#equals(Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -357,7 +357,7 @@ public class Recovery implements Comparable<Recovery> {
 	}
 
 	/**
-	 * @see java.lang.Object#hashCode()
+	 * @see Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
@@ -367,7 +367,7 @@ public class Recovery implements Comparable<Recovery> {
 	}
 
 	/**
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 * @see Comparable#compareTo(Object)
 	 */
 	@Override
 	public int compareTo(Recovery other) {

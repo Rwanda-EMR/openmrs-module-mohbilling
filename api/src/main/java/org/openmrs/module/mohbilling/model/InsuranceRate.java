@@ -3,11 +3,11 @@
  */
 package org.openmrs.module.mohbilling.model;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 import org.openmrs.User;
 import org.openmrs.util.OpenmrsUtil;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @author Kamonyo

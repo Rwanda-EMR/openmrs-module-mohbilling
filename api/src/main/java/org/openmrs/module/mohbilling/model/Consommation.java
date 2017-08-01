@@ -1,94 +1,285 @@
+/**
+ * 
+ */
 package org.openmrs.module.mohbilling.model;
 
-import java.math.BigDecimal;
-import java.util.Date;
+import org.openmrs.User;
 
-public class Consommation {
-	Date recordDate;
-	String libelle;
-	Double unitCost;
-	BigDecimal quantity;
-	Double cost;
-	Double patientCost;
-	Double insuranceCost;
-	/**
-	 * @return the libelle
-	 */
-	public String getLibelle() {
-		return libelle;
-	}
-	/**
-	 * @param libelle the libelle to set
-	 */
-	public void setLibelle(String libelle) {
-		this.libelle = libelle;
-	}
-	/**
-	 * @return the unitCost
-	 */
-	public Double getUnitCost() {
-		return unitCost;
-	}
-	/**
-	 * @param unitCost the unitCost to set
-	 */
-	public void setUnitCost(Double unitCost) {
-		this.unitCost = unitCost;
-	}
-	/**
-	 * @return the quantity
-	 */
-	public BigDecimal getQuantity() {
-		return quantity;
-	}
-	/**
-	 * @param quantity the quantity to set
-	 */
-	public void setQuantity(BigDecimal quantity) {
-		this.quantity = quantity;
-	}
-	/**
-	 * @return the cost
-	 */
-	public Double getCost() {
-		return cost;
-	}
-	/**
-	 * @param cost the cost to set
-	 */
-	public void setCost(Double cost) {
-		this.cost = cost;
-	}
-	/**
-	 * @return the patientCost
-	 */
-	public Double getPatientCost() {
-		return patientCost;
-	}
-	/**
-	 * @param patientCost the patientCost to set
-	 */
-	public void setPatientCost(Double patientCost) {
-		this.patientCost = patientCost;
-	}
-	/**
-	 * @return the insuranceCost
-	 */
-	public Double getInsuranceCost() {
-		return insuranceCost;
-	}
-	/**
-	 * @param insuranceCost the insuranceCost to set
-	 */
-	public void setInsuranceCost(Double insuranceCost) {
-		this.insuranceCost = insuranceCost;
+import java.util.Date;
+import java.util.Set;
+import java.util.TreeSet;
+
+
+/**
+ * @author emr
+ * 
+ */
+public class
+Consommation {
+
+	private Integer consommationId;
+	
+	private Department department;
+
+	private Beneficiary beneficiary;
+
+	private Set<PatientServiceBill> billItems;
+
+	private PatientBill patientBill;
+
+	private InsuranceBill insuranceBill;
+
+	private ThirdPartyBill thirdPartyBill;
+
+	private GlobalBill globalBill;
+
+	private User creator;
+
+	private Date createdDate;
+
+	private boolean voided = false;
+
+	private User voidedBy;
+
+	private Date voidedDate;
+
+	private String voidReason;
+	
+	public Consommation(){
+		
 	}
 	
-	public Date getRecordDate() {
-		return recordDate;
+	public Consommation(GlobalBill gb,Beneficiary ben,Date createDate,User creator,Boolean isVoided){
+		this.globalBill=gb;
+		this.beneficiary=ben;
+		this.createdDate=createDate;
+		this.creator=creator;
+		this.voided=isVoided();
 	}
-	public void setRecordDate(Date recordDate) {
-		this.recordDate = recordDate;
+
+	/**
+	 * @return the consommationId
+	 */
+	public Integer getConsommationId() {
+		return consommationId;
+	}
+
+	/**
+	 * @param consommationId
+	 *            the consommationId to set
+	 */
+	public void setConsommationId(Integer consommationId) {
+		this.consommationId = consommationId;
+	}
+
+	/**
+	 * @return the billItems
+	 */
+	public Set<PatientServiceBill> getBillItems() {
+		return billItems;
+	}
+
+	/**
+	 * @param billItems
+	 *            the billItems to set
+	 */
+	public void setBillItems(Set<PatientServiceBill> billItems) {
+		this.billItems = billItems;
+	}
+
+	/**
+	 * @return the globalBill
+	 */
+	public GlobalBill getGlobalBill() {
+		return globalBill;
+	}
+
+	/**
+	 * @param globalBill
+	 *            the globalBill to set
+	 */
+	public void setGlobalBill(GlobalBill globalBill) {
+		this.globalBill = globalBill;
+	}
+
+	/**
+	 * @return the bill
+	 */
+	public PatientBill getPatientBill() {
+		return patientBill;
+	}
+
+	/**
+	 * @return the department
+	 */
+	public Department getDepartment() {
+		return department;
+	}
+
+	/**
+	 * @param department the department to set
+	 */
+	public void setDepartment(Department department) {
+		this.department = department;
+	}
+
+	/**
+	 * @param bill
+	 *            the bill to set
+	 */
+	public void setPatientBill(PatientBill patientBill) {
+		this.patientBill = patientBill;
+	}
+
+	/**
+	 * @return the insuranceBill
+	 */
+	public InsuranceBill getInsuranceBill() {
+		return insuranceBill;
+	}
+
+	/**
+	 * @param insuranceBill
+	 *            the insuranceBill to set
+	 */
+	public void setInsuranceBill(InsuranceBill insuranceBill) {
+		this.insuranceBill = insuranceBill;
+	}
+
+	/**
+	 * @return the thirdPartyBill
+	 */
+	public ThirdPartyBill getThirdPartyBill() {
+		return thirdPartyBill;
+	}
+
+	/**
+	 * @param thirdPartyBill
+	 *            the thirdPartyBill to set
+	 */
+	public void setThirdPartyBill(ThirdPartyBill thirdPartyBill) {
+		this.thirdPartyBill = thirdPartyBill;
+	}
+
+
+	/**
+	 * @return the beneficiary
+	 */
+	public Beneficiary getBeneficiary() {
+		return beneficiary;
+	}
+
+	/**
+	 * @param beneficiary
+	 *            the beneficiary to set
+	 */
+	public void setBeneficiary(Beneficiary beneficiary) {
+		this.beneficiary = beneficiary;
+	}
+
+	/**
+	 * @return the creator
+	 */
+	public User getCreator() {
+		return creator;
+	}
+
+	/**
+	 * @param creator
+	 *            the creator to set
+	 */
+	public void setCreator(User creator) {
+		this.creator = creator;
+	}
+
+	/**
+	 * @return the createdDate
+	 */
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+
+	/**
+	 * @param createdDate
+	 *            the createdDate to set
+	 */
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	/**
+	 * @return the voided
+	 */
+	public boolean isVoided() {
+		return voided;
+	}
+
+	/**
+	 * @param voided
+	 *            the voided to set
+	 */
+	public void setVoided(boolean voided) {
+		this.voided = voided;
+	}
+
+	/**
+	 * @return the voidedBy
+	 */
+	public User getVoidedBy() {
+		return voidedBy;
+	}
+
+	public Boolean getVoided(){return voided;}
+	/**
+	 * @param voidedBy
+	 *            the voidedBy to set
+	 */
+	public void setVoidedBy(User voidedBy) {
+		this.voidedBy = voidedBy;
+	}
+
+	/**
+	 * @return the voidedDate
+	 */
+	public Date getVoidedDate() {
+		return voidedDate;
+	}
+
+	/**
+	 * @param voidedDate
+	 *            the voidedDate to set
+	 */
+	public void setVoidedDate(Date voidedDate) {
+		this.voidedDate = voidedDate;
+	}
+
+	/**
+	 * @return the voidReason
+	 */
+	public String getVoidReason() {
+		return voidReason;
+	}
+	/**
+	 * @param voidReason
+	 *            the voidReason to set
+	 */
+	public void setVoidReason(String voidReason) {
+		this.voidReason = voidReason;
+	}
+
+	/**
+	 * Add the given psb to the given list of bill items for this Consommation
+	 */
+	public void addBillItem(PatientServiceBill psb) {
+		// TODO Auto-generated method stub
+
+		if (billItems == null)
+			billItems = new TreeSet<PatientServiceBill>();
+		if (psb != null) {
+			psb.setConsommation(this);
+			billItems.add(psb);
+		}
+
 	}
 
 }

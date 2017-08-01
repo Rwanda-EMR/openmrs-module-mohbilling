@@ -3,24 +3,30 @@
  */
 package org.openmrs.module.mohbilling.model;
 
+import org.openmrs.User;
+import org.openmrs.util.OpenmrsUtil;
+
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.Date;
 
-import org.openmrs.User;
-import org.openmrs.util.OpenmrsUtil;
-
 /**
- * @author Kamonyo
+ * @author EMR/RBC
  * 
  */
 public class PatientServiceBill implements Comparable<PatientServiceBill> {
+	
 	private Integer patientServiceBillId;
+	
 	private Date serviceDate;
 	private BillableService service;
-	private PatientBill patientBill;
+	private HopService hopService;
 	private BigDecimal unitPrice;
 	private BigDecimal quantity;
+	private BigDecimal paidQuantity;
+	private Consommation consommation;
+	private Boolean paid = Boolean.FALSE;	
+	
 	// These following 2 attr. are alternative to have
 	// another billableService Object and using
 	// those fields should have special privileges
@@ -32,6 +38,43 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private User voidedBy;
 	private Date voidedDate;
 	private String voidReason;
+	
+	public PatientServiceBill(){
+		
+	}
+	/**
+	 * sets required parameters of PatientServiceBill
+	 * @param bs
+	 * @param serviceDate
+	 * @param unitPrice
+	 * @param quantity
+	 * @param creator
+	 * @param createdDate
+	 */
+
+	public PatientServiceBill(BillableService bs,HopService service,Date serviceDate,BigDecimal unitPrice,BigDecimal quantity,User creator,Date createdDate){
+		this.service = bs;
+		this.serviceDate=serviceDate;
+		this.unitPrice=unitPrice;
+		this.quantity=quantity;
+		this.creator=creator;
+		this.createdDate=createdDate;
+		this.setHopService(service);
+
+	}
+	/**
+	 * Creates a new instance of PatientServiceBill from existing
+	 * Copies required parameters except newQuantity
+	 * @param psbToCopy
+	 * @param newQuantity
+	 * @return
+	 */
+	public static PatientServiceBill newInstance(PatientServiceBill psbToCopy,BigDecimal newQuantity){
+
+		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getHopService()   ,psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date());
+
+		return newPsb;
+	}
 
 	/**
 	 * @return the patientServiceBillId
@@ -47,7 +90,6 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	public void setPatientServiceBillId(Integer patientServiceBillId) {
 		this.patientServiceBillId = patientServiceBillId;
 	}
-
 	/**
 	 * @return the serviceDate
 	 */
@@ -78,20 +120,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		this.service = service;
 	}
 
-	/**
-	 * @return the patientBill
-	 */
-	public PatientBill getPatientBill() {
-		return patientBill;
-	}
 
-	/**
-	 * @param patientBill
-	 *            the patientBill to set
-	 */
-	public void setPatientBill(PatientBill patientBill) {
-		this.patientBill = patientBill;
-	}
 
 	/**
 	 * @return the unitPrice
@@ -140,6 +169,18 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	}
 
 	/**
+	 * @return the paidQuantity
+	 */
+	public BigDecimal getPaidQuantity() {
+		return paidQuantity;
+	}
+	/**
+	 * @param paidQuantity the paidQuantity to set
+	 */
+	public void setPaidQuantity(BigDecimal paidQuantity) {
+		this.paidQuantity = paidQuantity;
+	}
+	/**
 	 * @return the serviceOther
 	 */
 	public String getServiceOther() {
@@ -159,6 +200,28 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	public String getServiceOtherDescription() {
 		return serviceOtherDescription;
+	}
+
+	/**
+	 * @return the consommation
+	 */
+	public Consommation getConsommation() {
+		return consommation;
+	}
+
+	/**
+	 * @param consommation the consommation to set
+	 */
+	public void setConsommation(Consommation consommation) {
+		this.consommation = consommation;
+	}
+
+
+	/**
+	 * @return the voided
+	 */
+	public Boolean getVoided() {
+		return voided;
 	}
 
 	/**
@@ -198,6 +261,24 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
 	}
+	
+	
+	public Boolean isPaid() {
+		return paid;
+	}
+	/**
+	 * @return the paid
+	 */
+	public Boolean getPaid() {
+		return isPaid();
+	}
+
+	/**
+	 * @param paid the paid to set
+	 */
+	public void setPaid(Boolean paid) {
+		this.paid = paid;
+	}
 
 	/**
 	 * @return the voided
@@ -234,6 +315,20 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	public Date getVoidedDate() {
 		return voidedDate;
+	}
+
+	/**
+	 * @return the hopService
+	 */
+	public HopService getHopService() {
+		return hopService;
+	}
+
+	/**
+	 * @param hopService the hopService to set
+	 */
+	public void setHopService(HopService hopService) {
+		this.hopService = hopService;
 	}
 
 	/**
@@ -303,24 +398,6 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		return this.getPatientServiceBillId().hashCode();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "\n - Patient Service Bill Id : " + this.patientServiceBillId
-				+ "\n - Service Date : " + this.serviceDate.toString()
-				+ "\n - Patient Bill : [#"
-				+ this.patientBill.getPatientBillId() + "] "
-				+ this.patientBill.getDescription() + "\n - Unit Price : "
-				+ this.unitPrice + "\n - Quantity : " + this.quantity
-				+ "\n - Amount : " + this.getAmount() + "\n - Service Other : "
-				+ this.serviceOther + " - " + this.serviceOtherDescription
-				+ "\n - Creator : " + this.creator.getName();
-
-	}
 
 	/**
 	 * @param insurance

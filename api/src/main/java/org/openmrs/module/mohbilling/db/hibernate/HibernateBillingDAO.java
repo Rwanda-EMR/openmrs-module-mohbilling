@@ -13,17 +13,6 @@
  */
 package org.openmrs.module.mohbilling.db.hibernate;
 
-import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -32,33 +21,26 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
-import org.openmrs.module.mohbilling.businesslogic.FacilityServicePriceUtil;
-import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
-import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
+import org.openmrs.module.mohbilling.businesslogic.*;
 import org.openmrs.module.mohbilling.db.BillingDAO;
-import org.openmrs.module.mohbilling.model.Beneficiary;
-import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.BillableService;
-import org.openmrs.module.mohbilling.model.FacilityServicePrice;
-import org.openmrs.module.mohbilling.model.Insurance;
-import org.openmrs.module.mohbilling.model.InsurancePolicy;
-import org.openmrs.module.mohbilling.model.InsuranceRate;
-import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.model.Recovery;
-import org.openmrs.module.mohbilling.model.ServiceCategory;
-import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
+
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 /**
- * @author Kamonyo
+ * @author EMR@RBC
  * 
  */
 @SuppressWarnings("unchecked")
@@ -104,7 +86,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurancePolicy(org.openmrs
 	 *      .module.mohbilling.model.InsurancePolicy)
 	 */
@@ -116,7 +98,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurancePolicyByCardNo(java.lang.String)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurancePolicyByCardNo(String)
 	 */
 	@Override
 	public InsurancePolicy getInsurancePolicyByCardNo(String insuranceCardNo) {
@@ -129,8 +111,8 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getFacilityServicePrice(java.lang.Integer)
+	 *
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getFacilityServicePrice(Integer)
 	 */
 	@Override
 	public FacilityServicePrice getFacilityServicePrice(Integer id) {
@@ -140,7 +122,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillableServiceByConcept(Concept
 	 *      concept, Insurance insurance)
 	 */
@@ -155,7 +137,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveFacilityServicePrice(org.openmrs.module.mohbilling.model.FacilityServicePrice)
 	 */
 	@Override
@@ -165,7 +147,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPatientBill(org.openmrs
 	 *      .module.mohbilling.model.PatientBill)
 	 */
@@ -178,7 +160,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPatientBill(org.openmrs
 	 *      .module.mohbilling.model.PatientBill)
 	 */
@@ -191,7 +173,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveThirdParty(org.openmrs
 	 *      .module.mohbilling.model.ThirdParty)
 	 */
@@ -203,7 +185,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveInsurance(org.openmrs
 	 *      .module.mohbilling.model.Insurance)
 	 */
@@ -215,7 +197,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveInsurancePolicy(org.openmrs
 	 *      .module.mohbilling.model.InsurancePolicy)
 	 */
@@ -228,7 +210,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#savePatientBill(org.openmrs
 	 *      .module.mohbilling.model.PatientBill)
 	 */
@@ -240,7 +222,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllInsurancePolicies()
 	 */
 	@Override
@@ -252,7 +234,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllInsurances()
 	 */
 	@Override
@@ -265,7 +247,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllPatientBills()
 	 */
 	@Override
@@ -277,7 +259,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllFacilityServicePrices()
 	 */
 	@Override
@@ -289,7 +271,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllFacilityServicePrices()
 	 */
 	@Override
@@ -319,33 +301,6 @@ public class HibernateBillingDAO implements BillingDAO {
 		return sessionFactory.getCurrentSession()
 				.createCriteria(ThirdParty.class)
 				.add(Restrictions.eq("voided", false)).list();
-	}
-
-	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveRecovery(org.openmrs.module.mohbilling.model.Recovery)
-	 */
-	@Override
-	public void saveRecovery(Recovery recovery) {
-		sessionFactory.getCurrentSession().saveOrUpdate(recovery);
-	}
-
-	@Override
-	public Recovery getRecovery(Integer recoveryId) {
-
-		return (Recovery) sessionFactory.getCurrentSession().get(
-				Recovery.class, recoveryId);
-	}
-
-	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllRecoveries()
-	 */
-	@Override
-	public List<Recovery> getAllRecoveries() {
-
-		return sessionFactory.getCurrentSession()
-				.createCriteria(Recovery.class)
-				.add(Restrictions.eq("retired", false))
-				.addOrder(Order.asc("startPeriod")).list();
 	}
 
 	@Override
@@ -406,9 +361,9 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#buildCohort(org.openmrs.module.mohbilling.model.Insurance,
-	 *      java.util.Date, java.util.Date, java.lang.Integer, java.lang.String)
+	 *      Date, Date, Integer, String)
 	 */
 	@Override
 	public List<PatientBill> billCohortBuilder(Insurance insurance,
@@ -528,14 +483,13 @@ public class HibernateBillingDAO implements BillingDAO {
 				.createSQLQuery(combinedSearch.toString())
 				.addEntity("pay", BillPayment.class).list();
 
-//		System.out.println("_____________________ BILL QUERY __________\n"
-//				+ combinedSearch.toString());
+
 		return billPayments;
 	}
 
 	/**
 	 * Gets all corresponding patient service bills matching the parameters
-	 * 
+	 *
 	 * @param patientBill
 	 * @param serviceName
 	 * @return
@@ -586,7 +540,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			psBill.setVoidedDate(null);
 			psBill.setVoidReason(null);
 			psBill.setService(getBillableService((Integer) obj[10]));
-			psBill.setPatientBill(getPatientBill((Integer) obj[11]));
+			//psBill.setPatientBill(getPatientBill((Integer) obj[11]));
 			psBill.setVoidedBy(null);
 			psBill.setCreator(Context.getUserService().getUser(
 					(Integer) obj[13]));
@@ -607,7 +561,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBeneficiaryByPolicyNumber(java.lang.String)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBeneficiaryByPolicyNumber(String)
 	 */
 	@Override
 	public Beneficiary getBeneficiaryByPolicyNumber(String policyIdNumber) {
@@ -617,18 +571,6 @@ public class HibernateBillingDAO implements BillingDAO {
 				.add(Restrictions.eq("policyIdNumber", policyIdNumber))
 				.uniqueResult();
 	}
-
-	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillsByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
-	 */
-	@Override
-	public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary)
-			throws DAOException {
-
-		return sessionFactory.getCurrentSession().createCriteria(PatientBill.class)				
-				.add(Restrictions.eq("beneficiary", beneficiary)).list();
-	}
-
 	/**
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurancePolicyByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
 	 */
@@ -645,7 +587,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getServiceCategory(java.lang.Integer)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getServiceCategory(Integer)
 	 */
 	@Override
 	public ServiceCategory getServiceCategory(Integer id) {
@@ -659,10 +601,10 @@ public class HibernateBillingDAO implements BillingDAO {
 	 */
 	@Override
 	public List<BillableService> getBillableServiceByCategory(ServiceCategory sc) {
-
 		return sessionFactory.getCurrentSession()
 				.createCriteria(BillableService.class)
 				.add(Restrictions.eq("serviceCategory", sc)).list();
+
 	}
 
 	/**
@@ -698,7 +640,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPolicyIdByPatient(java.lang.Integer)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPolicyIdByPatient(Integer)
 	 */
 	@Override
 	public List<String[]> getPolicyIdByPatient(Integer patientId) {
@@ -706,7 +648,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		return (List<String[]>) sessionFactory
 				.getCurrentSession()
 				.createSQLQuery(
-						"SELECT ins.name, b.policy_id_number"
+						"SELECT ins.name, b.policy_id_number,b.insurance_policy_id"
 								+ " FROM moh_bill_beneficiary b INNER JOIN moh_bill_insurance_policy ip"
 								+ " ON b.insurance_policy_id = ip.insurance_policy_id INNER JOIN moh_bill_insurance ins"
 								+ " ON ip.insurance_id = ins.insurance_id WHERE b.patient_id ="
@@ -721,94 +663,23 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	}
 
-	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,
-			Date endDate, User collector) {
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillPaymentsByDateAndCollector(java.util.Date, java.util.Date, org.openmrs.User)
+	 */
+	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,	Date endDate, User collector) {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class);
+				crit.add(Restrictions.between("dateReceived", startDate, endDate));
+		        crit.add(Restrictions.eq("voided", false));
+				if(collector!=null)
+				crit.add(Restrictions.eq("collector", collector));
 
-		List<BillPayment> paymentItems = new ArrayList<BillPayment>();
-		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		// DateFormat formatterTime = new SimpleDateFormat("HH:mm");
-		Session session = sessionFactory.getCurrentSession();
-		StringBuilder combinedSearch = new StringBuilder("");
+		return crit.list();
 
-		// works
-		combinedSearch
-				.append(" select amount_paid,date_received,collector from moh_bill_payment ");
-		// works
-		if (startDate != null && endDate != null && collector == null) {
-
-			combinedSearch.append(" where date_received >='"
-					+ formatter.format(startDate) + "' and date_received <='"
-					+ formatter.format(endDate) + "'");
-
-		}
-
-		if (startDate != null && endDate == null && collector == null) {
-
-			combinedSearch.append(" where date_received >='"
-					+ formatter.format(startDate) + "'");
-
-		}
-		if (startDate == null && endDate != null && collector == null) {
-			combinedSearch.append(" where date_received <='"
-					+ formatter.format(endDate) + "'");
-
-		}
-
-		if (startDate == null && endDate == null && collector != null) {
-
-			combinedSearch.append(" where collector =" + collector.getUserId()
-					+ " ");
-
-		}
-
-		if (startDate != null && endDate != null && collector != null) {
-
-			combinedSearch.append(" where date_received >='"
-					+ formatter.format(startDate) + "' and date_received <='"
-					+ formatter.format(endDate) + "' and collector ="
-					+ collector.getUserId() + " ");
-
-		}
-
-		if (startDate != null && endDate == null && collector != null) {
-
-			combinedSearch.append(" where date_received >='"
-					+ formatter.format(startDate) + "' and collector ="
-					+ collector.getUserId() + " ");
-
-		}
-		if (startDate == null && endDate != null && collector != null) {
-
-			combinedSearch.append(" where date_received <='"
-					+ formatter.format(endDate) + "' and collector ="
-					+ collector.getUserId() + " ");
-
-		}
-
-		combinedSearch.append(" ; ");
-		List<Object[]> paymentItem = session.createSQLQuery(
-				combinedSearch.toString()).list();
-
-		for (Object[] object : paymentItem) {
-
-			BillPayment billPayment = new BillPayment();
-
-			billPayment.setAmountPaid((BigDecimal) object[0]);
-
-			billPayment.setCreatedDate((Date) object[1]);
-			User user = Context.getUserService().getUser((Integer) object[2]);
-
-			billPayment.setCollector(user);
-			paymentItems.add(billPayment);
-
-		}
-
-		return paymentItems;
 	}
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillableServiceByConcept(Concept
 	 *      concept, Insurance insurance)
 	 */
@@ -825,7 +696,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	public List<Date> getRevenueDatesBetweenDates(Date startDate, Date endDate) {
 		// TODO Auto-generated method stub
 		  DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		  Session session = getSessionFactory().getCurrentSession();  
+		  Session session = getSessionFactory().getCurrentSession();
 		  SQLQuery query = session.createSQLQuery("SELECT date_received FROM moh_bill_payment" +
 		    " where date_received between '" +sdf.format(startDate)+"' and '" +sdf.format(endDate)+"' ");
 		  List<Date> dateList = query.list();  
@@ -909,7 +780,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			if (collector != null && !collector.equals(""))
 				strb.append(" AND pay.collector =  " + collector);
 		  
-		   SQLQuery query = session.createSQLQuery(strb.toString());  
+		   SQLQuery query = session.createSQLQuery(strb.toString());
 		 
 		   List<Object[]> categoryReports = query.list(); 
 		   
@@ -947,8 +818,8 @@ public class HibernateBillingDAO implements BillingDAO {
 		
 		//Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class).add(Restrictions.between("createdDate", startDate, endDate));
 		
-		List<BillPayment> payments = crit.list();		
-		List<PatientBill> bills = new ArrayList<PatientBill>();		
+		List<BillPayment> payments = crit.list();
+		List<PatientBill> bills = new ArrayList<PatientBill>();
 		for (BillPayment pay : payments) {
 			bills.add(pay.getPatientBill());
 		}
@@ -964,7 +835,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		String str = "SELECT pb.patient_bill_id FROM moh_bill_patient_bill pb " +
 				" inner join moh_bill_beneficiary b on b.beneficiary_id=pb.beneficiary_id " +
 				" and pb.created_date between '"+df.format(startDate)+" 00:00:00' and '"+df.format(endDate)+" 23:59:00' and b.patient_id="+patient.getPatientId();
-//		log.info("ssssssssssssssssssssssss "+str);
+
 		SQLQuery query = session.createSQLQuery(str);
 		List<Object> ob = query.list();
 		PatientBill pb = null;
@@ -978,10 +849,10 @@ public class HibernateBillingDAO implements BillingDAO {
 	public InsuranceRate getInsuranceRateByInsurance(Insurance insurance) {
 		// TODO Auto-generated method stub
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(InsuranceRate.class)
-                 .add(Restrictions.eq("insurance",insurance));		
+                 .add(Restrictions.eq("insurance", insurance));
 		        crit.add(Expression.eq("retired", false));
 		        
-		InsuranceRate insuranceRate = (InsuranceRate) crit.uniqueResult();		
+		InsuranceRate insuranceRate = (InsuranceRate) crit.uniqueResult();
 		return insuranceRate;
 	}
 
@@ -990,7 +861,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		// TODO Auto-generated method stub
 		
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Beneficiary.class)
-        .add(Restrictions.eq("policyIdNumber",cardNo));		
+        .add(Restrictions.eq("policyIdNumber", cardNo));
        
 		return crit.list();
 	}
@@ -1022,24 +893,33 @@ public class HibernateBillingDAO implements BillingDAO {
 		boolean alreadyExecuted  = false;
 //		if(!alreadyExecuted){
 		Insurance rama = Context.getService(BillingService.class).getInsurance(2);
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class).add(Restrictions.eq("insurance", rama));
+		//Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class).add(Restrictions.eq("insurance", rama));
 
-		List<ServiceCategory> ramaSC = crit.list();
-		
+		//List<ServiceCategory> ramaSC = crit.list();
+		List <Object[]> ramaSC=sessionFactory.getCurrentSession().createSQLQuery("select distinct name,description from moh_bill_hop_service").list();
 		// map service category to insurance
-		for (ServiceCategory sc : ramaSC) {
+
+		List<ServiceCategory> serviceCategoryCheckList=Context.getService(BillingService.class).getAllServiceCategories();
+		for (Object[] sc : ramaSC) {
 			ServiceCategory scToMapToInsurance = new ServiceCategory();
-			scToMapToInsurance.setName(sc.getName());
-			scToMapToInsurance.setDescription(sc.getDescription());
+			//scToMapToInsurance.setName(sc.getName());
+			scToMapToInsurance.setName(sc[0].toString());
+			//scToMapToInsurance.setDescription(sc.getDescription());
+			scToMapToInsurance.setDescription(sc[1].toString());
 			scToMapToInsurance.setCreatedDate(new Date());
 			scToMapToInsurance.setRetired(false);
 			scToMapToInsurance.setInsurance(insurance);
 			scToMapToInsurance.setCreator(Context.getAuthenticatedUser());
-			
-			insurance.addServiceCategory(scToMapToInsurance);
+			for(ServiceCategory scExisting:serviceCategoryCheckList){
+				if(!(scExisting.getName().toString().equals(sc[0].toString())&& scExisting.getInsurance().getInsuranceId()==insurance.getInsuranceId())) {
+					insurance.addServiceCategory(scToMapToInsurance);
+				}
+				}
+			//System.out.println("Before Saving an Insurance :"+sc[0].toString());
+			//insurance.addServiceCategory(scToMapToInsurance);
 			Context.getService(BillingService.class).saveInsurance(insurance);
 		}
-		
+		System.out.println("After Saving an Insurance");
 		List<Object[]> baseBillableServices = getBaseBillableServices(insurance);
 		List<Object[]> basePharmacyItems = getPharmacyBaseBillableServices(insurance);
 		
@@ -1089,9 +969,14 @@ public class HibernateBillingDAO implements BillingDAO {
 		bui.append("select i.insurance_id,");
 		bui.append(" CASE ");
 		bui.append("");
-		bui.append(" WHEN i.category = 'MUTUELLE' THEN (full_price/2)");
+		/*bui.append(" WHEN i.category = 'MUTUELLE' THEN (full_price/2)");
 		bui.append(" WHEN i.category = 'PRIVATE' THEN (full_price*1.25)");
-		bui.append(" WHEN i.category = 'NONE' THEN (full_price*1.5)");
+		bui.append(" WHEN i.category = 'NONE' THEN (full_price*1.5)");*/
+		bui.append(" WHEN i.category = 'MUTUELLE' THEN (CEIL(full_price/2))");
+		bui.append(" WHEN i.category = 'RSSB' THEN (CEIL(full_price*1.25))");
+		bui.append(" WHEN i.category = 'MMI_UR' THEN (CEIL(full_price*1.15))");
+		bui.append(" WHEN i.category = 'PRIVATE' THEN (CEIL(full_price*1.4375))");
+		bui.append(" WHEN i.category = 'NONE' THEN (CEIL(full_price*1.725))");
 		bui.append(" ELSE full_price END as maxima_to_pay,");
 		bui.append(" fsp.start_date, fsp.facility_service_price_id, sc.service_category_id, fsp.created_date, fsp.retired, fsp.creator ");
 		bui.append(" FROM moh_bill_facility_service_price fsp ");
@@ -1128,12 +1013,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		return ob;
 	}
 
-	@Override
-	public List<PatientBill> getPendingBill() {
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientBill.class).add(Restrictions.in("status", new String[]{"UNPAID","PARTLY PAID"}));
-//		Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientBill.class).add(Restrictions.eq("status", "UNPAID"));
-		return crit.list();
-	}
+
 
 	@Override
 	public Set<PatientBill> getRefundedBills(Date startDate, Date endDate, User collector) {
@@ -1145,19 +1025,516 @@ public class HibernateBillingDAO implements BillingDAO {
 			crit.add(Expression.eq("collector", collector));
 		}
 		
-		List<BillPayment> payments = crit.list();		
+		List<BillPayment> payments = crit.list();
 	
 		Set<PatientBill> refundedBills = new HashSet<PatientBill>();
 		
 		
-		for (BillPayment pay : payments) {			
+		for (BillPayment pay : payments) {
 			
 			PatientBill pb = pay.getPatientBill();
-			if(pb.getBillItems().size()==0)
+			//if(pb.getBillItems().size()==0)
 			  refundedBills.add(pb);
 					    
 		}	
 		
 		return refundedBills;
-	}	
-}
+	}
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#savesaveDepartement(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public Department saveDepartement(Department departement) {
+		
+		sessionFactory.getCurrentSession().saveOrUpdate(departement);
+		return departement;		
+	}
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getDepartement(java.lang.Integer)
+	 */
+	@Override
+	public Department getDepartement(Integer departementId) {
+		return (Department) sessionFactory.getCurrentSession().get(Department.class, departementId);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllDepartements()
+	 */
+	@Override
+	public List<Department> getAllDepartements() {
+		return sessionFactory.getCurrentSession().createCriteria(Department.class).list();
+	}
+
+	@Override
+	public HopService saveHopService(HopService service) {
+		// TODO Auto-generated method stub
+		sessionFactory.getCurrentSession().saveOrUpdate(service);
+		return service;		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllHopServicesByDepartement(org.openmrs.module.mohbilling.model.Department)
+	 */
+	@Override
+	public List<HopService> getAllHopService() {
+          Criteria criteria = sessionFactory.getCurrentSession().createCriteria(HopService.class);
+         return criteria.list();
+	}
+
+	@Override
+	public HopService getHopService(Integer serviceId) {
+		return (HopService) sessionFactory.getCurrentSession().get(HopService.class, serviceId);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveAdmission(org.openmrs.module.mohbilling.model.Admission)
+	 */
+	@Override
+	public Admission saveAdmission(Admission admission) {
+		
+		sessionFactory.getCurrentSession().saveOrUpdate(admission);
+		return admission;
+	}
+
+	public Admission getPatientAdmission(Integer admissionid) {
+		return (Admission) sessionFactory.getCurrentSession().get(Admission.class, admissionid);
+	}
+
+	@Override
+	public GlobalBill saveGlobalBill(GlobalBill globalBill) {
+		sessionFactory.getCurrentSession().saveOrUpdate(globalBill);
+		return globalBill;
+	}
+
+	@Override
+	public GlobalBill GetGlobalBill(Integer globalBillId) {
+		return (GlobalBill) sessionFactory.getCurrentSession().get(GlobalBill.class,globalBillId);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getGlobalBillByAdmission(org.openmrs.module.mohbilling.model.Admission)
+	 */
+	@Override
+	public GlobalBill getGlobalBillByAdmission(Admission admission) {
+	
+				Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+		                 .add(Restrictions.eq("admission", admission));
+				        
+				GlobalBill globalBill = (GlobalBill) crit.uniqueResult();		
+				return globalBill;
+	}
+	@Override
+	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class)
+			             .add(Expression.eq("insurancePolicy", ip));
+		return crit.list();
+	}
+
+	@Override
+	public void saveConsommation(Consommation consommation) {
+		sessionFactory.getCurrentSession().saveOrUpdate(consommation);		
+	}
+
+	@Override
+	public void saveInsuranceBill(InsuranceBill ib) {
+		sessionFactory.getCurrentSession().saveOrUpdate(ib);
+		
+	}
+	@Override
+	public void saveThirdPartyBill(ThirdPartyBill thirdBill) {
+		sessionFactory.getCurrentSession().saveOrUpdate(thirdBill);
+	}
+
+	@Override
+	public Consommation getConsommation(Integer consommationId) {
+		return (Consommation) sessionFactory.getCurrentSession().get(Consommation.class, consommationId);
+	}
+
+		@Override
+		public CashPayment saveCashPayment(CashPayment cashPayment) {
+			sessionFactory.getCurrentSession().saveOrUpdate(cashPayment);
+			return cashPayment;
+		}
+
+		@Override
+		public PatientServiceBill saveBilledItem(PatientServiceBill psb) {
+			sessionFactory.getCurrentSession().saveOrUpdate(psb);			
+			return psb;
+		}
+
+		@Override
+		public PatientServiceBill getPatientServiceBill(Integer patientServiceBillId) {
+			return (PatientServiceBill) sessionFactory.getCurrentSession().get(PatientServiceBill.class, patientServiceBillId);
+		}
+
+		@Override
+		public void getPatientServiceBill(BillPayment bp) {
+			sessionFactory.getCurrentSession().saveOrUpdate(bp);
+			
+		}
+		@Override
+		public void savePaidServiceBill(PaidServiceBill paidSb) {
+			sessionFactory.getCurrentSession().saveOrUpdate(paidSb);
+			
+		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllConsommationByGlobalBill(org.openmrs.module.mohbilling.model.GlobalBill)
+		 */
+		@Override
+		public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Consommation.class);
+			               crit.add(Restrictions.eq("globalBill", globalBill));
+			               log.info("jjjjjjjjjjJJJJJJJJJJJJJJJJJJJJJJJJJJ "+crit.list());
+			return crit.list();
+		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getGlobalBillByBillIdentifier(java.lang.String)
+		 */
+		@Override
+		public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+	                      .add(Restrictions.eq("billIdentifier", billIdentifier));
+			
+			        GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
+			        return globalBill;
+		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getConsommationsByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
+		 */
+		@Override
+		public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary) {
+			return sessionFactory.getCurrentSession().createCriteria(Consommation.class)
+					.add(Restrictions.eq("beneficiary", beneficiary)).list();
+		}
+
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#savePatientAccount(org.openmrs.module.mohbilling.model.PatientAccount)
+		 */
+		@Override
+		public void savePatientAccount(PatientAccount account) {
+			sessionFactory.getCurrentSession().saveOrUpdate(account);
+		}
+
+		@Override
+		public PatientAccount getPatientAccount(Integer accountId) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientAccount.class)
+                    .add(Restrictions.eq("patientAccountId", accountId));
+		
+		        PatientAccount account = (PatientAccount) crit.uniqueResult();
+				return account;
+		}
+
+		@Override
+		public PatientAccount getPatientAccount(Patient patient) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientAccount.class)
+                    .add(Restrictions.eq("patient", patient));
+		
+		        PatientAccount account = (PatientAccount) crit.uniqueResult();
+				return account;
+		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillPayment(java.lang.Integer)
+		 */
+		@Override
+		public BillPayment getBillPayment(Integer paymentId) {
+			return (BillPayment) sessionFactory.getCurrentSession().get(BillPayment.class, paymentId);
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPaidServices(org.openmrs.module.mohbilling.model.BillPayment)
+		 */
+		@Override
+		public List<PaidServiceBill> getPaidServices(BillPayment payment) {
+			return sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class)				
+					.add(Restrictions.eq("billPayment", payment))
+					.add(Restrictions.eq("voided", false))
+			.list();
+		}		
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getConsommationByPatientBill(org.openmrs.module.mohbilling.model.PatientBill)
+		 */
+		@Override
+		public Consommation getConsommationByPatientBill(PatientBill patientBill) {
+			
+		return 	(Consommation) sessionFactory.getCurrentSession()
+			.createCriteria(Consommation.class)
+			.add(Restrictions.eq("patientBill", patientBill))
+			.uniqueResult();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#savePaymentRefund(org.openmrs.module.mohbilling.model.PaymentRefund)
+		 */
+		@Override
+		public PaymentRefund savePaymentRefund(PaymentRefund refund) {
+			sessionFactory.getCurrentSession().saveOrUpdate(refund);
+			return refund;
+		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPaidServiceBill(java.lang.Integer)
+		 */
+		@Override
+		public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid) {
+			return (PaidServiceBill) sessionFactory.getCurrentSession().get(PaidServiceBill.class, paidSviceBillid);
+		}
+
+		@Override
+		public DepositPayment saveDepositPayment(DepositPayment depositPayment) {
+			sessionFactory.getCurrentSession().saveOrUpdate(depositPayment);
+			return depositPayment;
+		}
+
+		@Override
+		public List<HopService> getHospitalServicesByDepartment(
+				Department department) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class)
+		             .add(Expression.eq("department", department));
+			 crit.setProjection(Projections.distinct(Projections.property("hopService")));
+			return crit.list();
+		}
+
+		public Set<Transaction> getTransactions(PatientAccount acc,
+				Date startDate, Date endDate, String reason) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Transaction.class);
+			
+			if (acc != null) {
+				crit.add(Expression.eq("patientAccount", acc));
+			}
+			if (reason != null) {
+				crit.add(Expression.eq("reason", reason));
+			}
+			if (startDate != null) {
+				crit.add(Expression.ge("transactionDate", startDate));
+			}
+			if (endDate != null) {
+				crit.add(Expression.le("transactionDate", endDate));
+			}
+			crit.addOrder(Order.desc("transactionDate"));
+			//crit.list() is a set, the following codes serve to convert the set to the list
+			//a set cannot be ordered on display
+			//List<Transaction> list = new ArrayList<Transaction>(crit.list());
+			return (Set<Transaction>) crit.list();
+
+		}
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getTransactionById(java.lang.Integer)
+		 */
+		@Override
+		public Transaction getTransactionById(Integer id) {
+			return (Transaction) sessionFactory.getCurrentSession().get(Transaction.class, id);
+		}
+		
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getServiceByName(java.lang.String)
+		 */
+		public HopService getServiceByName(String name) {
+			return 	(HopService) sessionFactory.getCurrentSession()
+					.createCriteria(HopService.class)
+					.add(Restrictions.eq("name", name))
+					.uniqueResult();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPaidItemsByBillPayments(java.util.List)
+		 */
+		@Override
+		public List<PaidServiceBill> getPaidItemsByBillPayments(List<BillPayment> payments) {
+			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class);
+	      		criteria.add(Restrictions.in("billPayment", payments));
+			    criteria.add(Restrictions.eq("voided", false));
+	      		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
+	      		paidItems = criteria.list();
+
+	      		Consommation c = ConsommationUtil.getConsommationByPatientBill(payments.get(0).getPatientBill());
+	      		if(c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+	      			paidItems = BillPaymentUtil.getOldPaidItems(payments);
+	      		}
+	      		//List<PaidServiceBill> oldItems = BillPaymentUtil.getOldPaidItems(payments);
+//	      		if(oldItems!=null){
+//	      				for (PaidServiceBill ps : oldItems) {
+//	      					Consommation consommation = ps.getBillItem().getConsommation();
+//	    	      			if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+//	    	      				paidItems.add(ps);
+//						     }
+//	      			     }
+//		         }
+			return paidItems;
+			
+		}
+
+		@Override
+		public List<PatientServiceBill> getBillItemsByCategory(
+				Consommation consommation, HopService service) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientServiceBill.class);
+			if(consommation!=null)
+				crit.add(Expression.eq("consommation", consommation));
+			if(service !=null)
+			    crit.add(Expression.eq("hopService", service));
+			
+			return crit.list();
+		}
+
+		@Override
+		public List<PatientServiceBill> getBillItemsByGroupedCategories(
+				Consommation consommation, List<HopService> services) {
+			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientServiceBill.class);
+			criteria.add(Restrictions.eq("consommation", consommation));
+      		criteria.add(Restrictions.in("hopService", services));
+      		return  criteria.list();
+		}
+
+		@Override
+		public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+					.add(Restrictions.between("createdDate", date1, date2))
+					.add(Restrictions.eq("closed", true));
+		return crit.list();
+		}
+
+		@Override
+		public List<Consommation> getConsommationByGlobalBills(
+				List<GlobalBill> globalBills) {
+			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Consommation.class);
+      			criteria.add(Restrictions.in("globalBill", globalBills));
+	        return  criteria.list();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllSubmittedPaymentRefunds()
+		 */
+		@Override
+		public List<PaymentRefund> getAllSubmittedPaymentRefunds() {
+		       Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PaymentRefund.class);
+		       return criteria.list();
+		}
+
+		@Override
+		public PaymentRefund getRefundById(Integer id) {
+			return (PaymentRefund) sessionFactory.getCurrentSession().get(PaymentRefund.class, id);
+		}
+
+		@Override
+		public PaidServiceBillRefund getPaidServiceBillRefund(
+				Integer paidSviceBillRefundid) {
+			return (PaidServiceBillRefund) sessionFactory.getCurrentSession().get(PaidServiceBillRefund.class, paidSviceBillRefundid);
+		}
+
+		@Override
+		public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientServiceBill.class);
+				crit.add(Expression.eq("consommation", payment));
+			    crit.add(Restrictions.eq("voided", false));
+				return crit.list();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getRefundsBetweenDatesAndByCollector(java.util.Date, java.util.Date, org.openmrs.User)
+		 */
+		@Override
+		public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(
+				Date startDate, Date endDate, User collector) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PaymentRefund.class)
+					.add(Restrictions.between("createdDate", startDate, endDate));
+					if(collector!=null)
+					crit.add(Restrictions.eq("creator", collector));
+			return crit.list();
+		}
+
+		@Override
+		public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t) {
+			System.out.print(" am getting in getinsurancepolicybythird party in hibernate "+t.getThirdPartyId());
+
+
+			InsurancePolicy insurancePolicy =  (InsurancePolicy) sessionFactory.getCurrentSession().createCriteria(InsurancePolicy.class)
+					.add(Restrictions.eq("thirdParty",t)).list().get(0);
+					//.uniqueResult();
+
+			System.out.print(" insurancePolicyinsurancePolicyinsurancePolicyinsurancePolicy ");
+			return insurancePolicy;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getConsommations(java.util.Date, java.util.Date, org.openmrs.module.mohbilling.model.Insurance, org.openmrs.module.mohbilling.model.ThirdParty, org.openmrs.User)
+		 */
+		@Override
+		public List<Consommation> getConsommations(Date startDate,
+				Date endDate, Insurance insurance, ThirdParty tp,
+				User billCreator,Department department) {
+			Session session = sessionFactory.getCurrentSession();
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			StringBuilder combinedSearch = new StringBuilder("");
+
+			combinedSearch.append("SELECT c.* FROM moh_bill_consommation c "
+					+" inner join moh_bill_patient_bill pb on pb.patient_bill_id=c.patient_bill_id"
+					+ " and c.created_date between '"+df.format(startDate)+" 00:00:00 "+"' AND '"+df.format(endDate)+" 23:59:59'");
+
+			if(insurance!=null || tp!=null){
+				combinedSearch
+				.append(" inner join moh_bill_beneficiary b on b.beneficiary_id=c.beneficiary_id "
+						+ " inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=b.insurance_policy_id "
+						+ " inner join moh_bill_insurance i on i.insurance_id = ip.insurance_id "
+						);
+				
+				if (insurance != null)
+					combinedSearch.append(" and i.insurance_id ='"+insurance.getInsuranceId()+"'");
+				
+				if (tp != null)
+					combinedSearch.append(" and ip.third_party_id ='"+tp.getThirdPartyId()+"'");
+			}
+			
+			if (billCreator != null)
+				combinedSearch.append(" and c.creator ='"+billCreator.getUserId()+"'");
+				
+			if (department != null)
+				combinedSearch.append(" and c.department_id ='"+department.getDepartmentId()+"'");
+			
+			List<Consommation> consommations = session
+					.createSQLQuery(combinedSearch.toString())
+					.addEntity("c", Consommation.class).list();
+
+			return consommations;
+		}
+
+		@Override
+		public void updateOtherInsurances(ServiceCategory sc) {
+			Session session = sessionFactory.getCurrentSession();
+			
+			try {
+				for (Insurance ins : InsuranceUtil.getAllInsurances()) {
+					StringBuilder queryStr = new StringBuilder("");
+					if(ins.getInsuranceId()!=1){
+						ServiceCategory serviceCategory = getServiceCategoryByName(sc.getName(), ins);
+						if(serviceCategory==null){
+						queryStr.append("insert ignore into moh_bill_service_category(name,description,created_date,retired,insurance_id,creator)");
+						queryStr.append(" SELECT name,description,created_date,retired,"+ins.getInsuranceId()+" as insurance_id,creator FROM moh_bill_service_category "
+								+ " where service_category_id="+sc.getServiceCategoryId()+";");
+						session.createSQLQuery(queryStr.toString()).executeUpdate();
+						}
+							
+					}
+					
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+			
+		}
+
+		/* (non-Javadoc)
+		 * @see org.openmrs.module.mohbilling.db.BillingDAO#getTransactions(java.util.Date, java.util.Date, org.openmrs.User, java.lang.String)
+		 */
+		@Override
+		public List<Transaction> getTransactions(Date startDate,
+				Date endDate, User collector, String type) {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Transaction.class)
+					.add(Restrictions.between("createdDate", startDate, endDate));
+					if(collector!=null)
+					crit.add(Restrictions.eq("collector", collector));
+					if(type!=null)
+					crit.add(Restrictions.eq("reason", type));
+			return crit.list();
+		}
+
+
+	}

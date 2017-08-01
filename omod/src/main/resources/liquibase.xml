@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
- 
+
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
     <!--
         See http://www.liquibase.org/manual/home#available_database_refactorings
         for a list of supported elements and attributes
     -->
-    <changeSet id="2016Mar31-2245" author="k-joseph">
+   <!-- <changeSet id="2016Mar31-2245" author="k-joseph">
         <preConditions onFail="MARK_RAN">
             <not><columnExists tableName="moh_bill_facility_service_price" columnName="category"/></not>
         </preConditions>
         <comment>add category column to moh_bill_facility_service_price table</comment>
         <addColumn tableName="moh_bill_facility_service_price">
-			<column name="category" type="varchar(150)" />
-		</addColumn>
-    </changeSet>
-    
+            <column name="category" type="varchar(150)" />
+        </addColumn>
+    </changeSet>-->
+
 </databaseChangeLog>
