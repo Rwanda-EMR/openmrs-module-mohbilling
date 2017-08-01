@@ -163,7 +163,8 @@ public class MohBillingTagUtil {
 		Consommation c = ConsommationUtil.getConsommation(consommationId);
 		BigDecimal totalPaid = new BigDecimal(0);
 		for (BillPayment pay : c.getPatientBill().getPayments()) {
-			if(!pay.isVoided())
+			//if(!pay.isVoided())
+			if(pay.getVoidReason()==null)
 				totalPaid=totalPaid.add(pay.getAmountPaid());
 		}
 		return ""+totalPaid;

@@ -8,7 +8,9 @@
 <td>Consommation # : <b>${consommation.consommationId}(${consommation.department.name})</b></td>
 <td>Global Bill # : <b>${consommation.globalBill.billIdentifier}</b></td>
 <c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
+<openmrs:hasPrivilege privilege="Add Item">
 <td><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
+</openmrs:hasPrivilege>
 </c:if>
 </tr>
 </table>

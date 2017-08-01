@@ -339,6 +339,24 @@
         <name>Manage deposit</name>
         <description>Allows user to manage admission</description>
      </privilege>
+
+    <!-- Discharge a patient -->
+    <privilege>
+        <name>Discharge Patient</name>
+        <description>Allows the user to discharge a patient and close the global bill</description>
+    </privilege>
+
+    <!-- Add Consommation -->
+    <privilege>
+        <name>Add Consommation</name>
+        <description>Allows the user to add consommation on global bill</description>
+    </privilege>
+
+    <!--Add Item -->
+    <privilege>
+        <name>Add Item</name>
+        <description>Allow user to add item on the same consommation</description>
+    </privilege>
      
      
     

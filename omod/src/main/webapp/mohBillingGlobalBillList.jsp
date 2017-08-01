@@ -72,7 +72,9 @@
 		    <td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;
 		   
 		    <c:if test="${not globalBill.closed}">
+            <openmrs:hasPrivilege privilege="Add Consommation">
 		    <a href="billing.form?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">Add</a>
+		    </openmrs:hasPrivilege>
 		    </c:if>
 		    <a href="consommation.list?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">View</a>
 		    </td>
