@@ -18,9 +18,13 @@
 
  <!--  see http://www.quackit.com/html/codes/html_close_window_code.cfm  -->
  <c:if test="${not globalBill.closed}">
- <a href="javascript:window.open('admission.form?globalBillId=${globalBill.globalBillId}&insurancePolicyId=${insurancePolicy.insurancePolicyId }&ipCardNumber=${insurancePolicy.insuranceCardNo}&discharge=true', 'dischargeWindow', 'height=300,width=450,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=yes').focus()">Dischage the Patient | </a>
 
+ <openmrs:hasPrivilege privilege="Discharge Patient">
+ <a href="javascript:window.open('admission.form?globalBillId=${globalBill.globalBillId}&insurancePolicyId=${insurancePolicy.insurancePolicyId }&ipCardNumber=${insurancePolicy.insuranceCardNo}&discharge=true', 'dischargeWindow', 'height=300,width=450,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=yes').focus()">Dischrage the Patient |</a>
+ </openmrs:hasPrivilege>
+ <openmrs:hasPrivilege privilege="Add Consommation">
 <a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add Consommation</a></div>
+ </openmrs:hasPrivilege>
 </c:if>
 <b class="boxHeader">Consommations List for Global Bill id # ${globalBill.billIdentifier}</b>
 <div class="box">
@@ -53,7 +57,9 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${billingtag:consommationStatus(consommation.consommationId)}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;<a href="patientBillPayment.form?consommationId=${consommation.consommationId}">view</a></td>
 				<c:if test="${empty consommation.patientBill.payments && not consommation.globalBill.closed }">
+				<openmrs:hasPrivilege privilege="Edit Bill">
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&edit=true">Edit</a></td>
+				</openmrs:hasPrivilege>
 				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td> -->
 				</c:if>
 			</tr>

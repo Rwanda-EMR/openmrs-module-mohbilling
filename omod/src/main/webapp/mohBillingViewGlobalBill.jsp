@@ -53,9 +53,12 @@
 
 <c:if test="${!globalBill.closed}">
 <div style="float: left;">
-<a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">Add Consommation | </a>
-
-<a href="javascript:window.open('admission.form?globalBillId=${globalBill.globalBillId}&insurancePolicyId=${insurancePolicy.insurancePolicyId }&ipCardNumber=${insurancePolicy.insuranceCardNo}&discharge=true', 'dischargeWindow', 'height=300,width=450,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=yes').focus()">Dischage the Patient</a>
+<openmrs:hasPrivilege privilege="Add Consommation">
+<a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">Add Consommation |</a>
+</openmrs:hasPrivilege>
+<openmrs:hasPrivilege privilege="Discharge Patient">
+<a href="javascript:window.open('admission.form?globalBillId=${globalBill.globalBillId}&insurancePolicyId=${insurancePolicy.insurancePolicyId }&ipCardNumber=${insurancePolicy.insuranceCardNo}&discharge=true', 'dischargeWindow', 'height=300,width=450,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=yes').focus()">Discharge the Patient</a>
+</openmrs:hasPrivilege>
 </div>
 </c:if>
 

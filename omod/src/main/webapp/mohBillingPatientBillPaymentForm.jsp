@@ -158,7 +158,9 @@ function recalculateTotals() {
 </td>
 <td>Global Bill # : <b>${consommation.globalBill.billIdentifier}</b></td>
 <c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
+<openmrs:hasPrivilege privilege="Add Item">
 <td><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
+</openmrs:hasPrivilege>
 </c:if>
 </tr>
 </table>
@@ -331,7 +333,7 @@ function recalculateTotals() {
 			<tr></tr>
 			<tr>
 			<td colspan="2"><div><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&type=epson">EPSON Printer</a></div></td>
-			</tr>			
+			</tr>
 		</table>
 	</form>
 	<div style="text-align: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div>
