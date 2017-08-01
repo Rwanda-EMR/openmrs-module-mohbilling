@@ -6,7 +6,7 @@ package org.openmrs.module.mohbilling.extension.html;
 import org.openmrs.module.web.extension.LinkExt;
 
 /**
- * @author rbcemr
+ * @author Yves GAKUBA
  *
  */
 public class BillingGutterLink extends LinkExt {
@@ -25,8 +25,7 @@ public class BillingGutterLink extends LinkExt {
 	 */
 	@Override
 	public String getRequiredPrivilege() {
-		//return "Check Patient Bill Payment";
-		return "Search Insurance Policy";
+		return "Check Patient Bill Payment";
 	}
 
 	/* (non-Javadoc)
@@ -34,8 +33,7 @@ public class BillingGutterLink extends LinkExt {
 	 */
 	@Override
 	public String getUrl() {
-		//return "module/mohbilling/patientSearchBill.form";
-		return "module/mohbilling/insurancePolicySearch.form";
+		return "module/mohbilling/checkPatientBillPayment.form";
 	}
 
 }

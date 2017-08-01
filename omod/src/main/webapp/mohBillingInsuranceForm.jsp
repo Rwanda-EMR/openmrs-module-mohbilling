@@ -1,10 +1,8 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
-<openmrs:require privilege="Add Insurance" otherwise="/login.htm" redirect="/module/mohbilling/insurance.list" />
-
+<openmrs:require privilege="Add Insurance" otherwise="/login.htm" redirect="/module/@MODULE_ID@/insurance.list" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-<%@ include file="templates/mohBillingAdminHeader.jsp"%>
 
 <h2><spring:message code="@MODULE_ID@.insurance.${(param.identifierId ne null)?'edit':'new'}" /></h2>
 <openmrs:hasPrivilege privilege="View Current Insurances">

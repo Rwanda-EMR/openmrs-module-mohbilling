@@ -1,4 +1,3 @@
-
 <div class="box">
 	
 	<div style="float: left; width: 65%">
@@ -18,7 +17,11 @@
 						<td>Age</td>
 						<td> : <b>${insurancePolicy.owner.age}</b> yrs</td>
 					</tr>
-					
+					<tr>
+						<td>Validity</td>
+						<td colspan="3"> : <b><openmrs:formatDate date="${insurancePolicy.coverageStartDate}" type="medium" /></b> / 
+								<b><openmrs:formatDate date="${insurancePolicy.expirationDate}" type="medium" /></b></td>
+					</tr>
 				</table>
 			</div>
 		</div>
@@ -43,12 +46,6 @@
 						<td>Policy Number</td>
 						<td colspan="3"> : <b>${beneficiary.policyIdNumber}</b></td>
 					</tr>
-					<tr>
-						<td>Validity</td>
-						<td colspan="3"> : <b><openmrs:formatDate date="${insurancePolicy.coverageStartDate}" type="medium" /></b> / 
-								<b><openmrs:formatDate date="${insurancePolicy.expirationDate}" type="medium" /></b></td>
-					</tr>
-					
 				</table>
 			</div>
 		</div>
@@ -75,14 +72,8 @@
 				</tr>
 			</table>
 		</div>
-		  <div>
-    <table><tr>
-    <td><div style="text-align: right;"><b style="font-weight: bold;"> Deposit Balance : </b></div></td>
-    <td><div class="balance">${(patientAccount.balance gt 0)?patientAccount.balance:0}</div></td>
-    </tr>
-    </table>
-    </div>
 	</div>
 	
 	<div style="clear: both;"></div>
+	
 </div>
