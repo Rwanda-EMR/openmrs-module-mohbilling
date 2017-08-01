@@ -1,13 +1,22 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import org.openmrs.Concept;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.model.*;
+import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Category;
+import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceCategory;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
+import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 /**
  * This is a helper class for the Insurance domain, to contain all business
@@ -479,41 +488,33 @@ public class InsuranceUtil {
 
 			// This means the Maxima to Pay is not set in the service
 			if (service.getMaximaToPay() == null) {
-				/*if (service.getInsurance().getCategory()
-						.equalsIgnoreCase(InsuranceCategory.BASE.toString())) {
+				if (service.getInsurance().getCategory()
+						.equalsIgnoreCase(InsuranceCategory.BASE.toString()))
 					service.setMaximaToPay(amount);
-				}*/
+
 				if (service
 						.getInsurance()
 						.getCategory()
-						.equalsIgnoreCase(InsuranceCategory.MUTUELLE.toString())) {
+						.equalsIgnoreCase(InsuranceCategory.MUTUELLE.toString()))
 
 					if (!service.getServiceCategory().getName()
 							.equalsIgnoreCase("MEDICAMENTS")
 							&& !service.getServiceCategory().getName()
-							.equalsIgnoreCase("CONSOMABLE")) {
+									.equalsIgnoreCase("CONSOMABLE")) {
 						service.setMaximaToPay(amount.divide(new BigDecimal(2)));
 
 					} else {
 						service.setMaximaToPay(amount);
 					}
-				}
+
 				if (service.getInsurance().getCategory()
-						.equalsIgnoreCase(InsuranceCategory.RSSB.toString())) {
-					service.setMaximaToPay(amount.multiply(new BigDecimal(1.25)));
-				}
-				if (service.getInsurance().getCategory()
-						.equalsIgnoreCase(InsuranceCategory.MMI_UR.toString())) {
-					service.setMaximaToPay(amount.multiply(new BigDecimal(1.15)));
-				}
-				if (service.getInsurance().getCategory()
-						.equalsIgnoreCase(InsuranceCategory.PRIVATE.toString())) {
-					service.setMaximaToPay(amount.multiply(new BigDecimal(1.4375)));
-				}
+						.equalsIgnoreCase(InsuranceCategory.PRIVATE.toString()))
+					service.setMaximaToPay(amount.add(amount.multiply(quarter)));
+
 				if (service.getInsurance().getCategory()
 						.equalsIgnoreCase(InsuranceCategory.NONE.toString())) {
-					BigDecimal initial = amount.multiply(new BigDecimal(1.725));
-					service.setMaximaToPay(initial);
+					BigDecimal initial = amount.add(amount.multiply(quarter));
+					service.setMaximaToPay(initial.add(initial.multiply(fifth)));
 				}
 			} else
 				//This happens when Maxima to Pay is set in the service
@@ -680,9 +681,6 @@ public class InsuranceUtil {
 		categories.add(Category.STOMATOLOGIE.getDescription());
 		categories.add(Category.NEUROLOGIE.getDescription());
 		categories.add(Category.AUTRES.getDescription());
-		categories.add(Category.AMBULANCE.getDescription());
-		categories.add(Category.GYNECO_OBSTETRIQUE.getDescription());
-		categories.add(Category.POLYCLINIQUE.getDescription());
 
 		return categories;
 	}
@@ -705,11 +703,6 @@ public class InsuranceUtil {
 	public static List<Insurance> getAllInsurances() {
 		
 		return getService().getAllInsurances();
-	}
-	
-	public static ServiceCategory getServiceCategoryById(Integer id) {
-
-		return getService().getServiceCategory(id);
 	}
 
 }

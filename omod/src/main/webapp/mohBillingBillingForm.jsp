@@ -1,29 +1,23 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/headerFull.jsp"%>
-<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
+<%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/mohbilling/patientBillPayment.form" />
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-
-<script type="text/javascript">
-			var $j = jQuery.noConflict();
-		</script>
 <script>
-var $j = jQuery.noConflict();
-	function loadBillableServiceByCategory(serviceCategoryId,departmentId){
-			$j("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
+
+	function loadBillableServiceByCategory(serviceCategoryId){
+		$("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
 	}
 
 	var index=0;
-
+	
 	function addServiceToCart(serviceId, serviceName, servicePrice){
-      //alert(servicePrice);
+      // alert(servicePrice);
 		var isTheServiceExists=checkIfTheServiceAlreadyInTheList(serviceId);
 
 		if(isTheServiceExists)
 			return;
-
+		
 		var table = document.getElementById("cartOfServices");
-
+		
 	    var rowCount = table.rows.length;
 	    var row = table.insertRow(rowCount);
 	    row.style.verticalAlign="top";
@@ -36,33 +30,33 @@ var $j = jQuery.noConflict();
 
 	    var cell3 = row.insertCell(2);
 	    cell3.innerHTML="<input type='text' size='3' name='quantity_"+index+"' id='quantity_"+index+"' style='text-align: center;' value='1' onblur='calculateTheBill();'/>";
-
+	    
 	    var cell4 = row.insertCell(3);
 	    cell4.style.textAlign="right";
 	    cell4.innerHTML="<span id='price_"+index+"'><b>"+servicePrice+"</b></span>";
 	    var price=createHiddenElement('servicePrice',index,5);
 	    price.value=servicePrice;
 	    cell4.appendChild(price);
-
+	    
 	    var cell5 = row.insertCell(4);
 	    cell5.innerHTML="<span title='Remove Service' onclick=deleteRow('"+serviceId+"') class='deleteBt' id='delete_"+index+"'><b>X</b></span>";
 
 	    var cell6 = row.insertCell(5);
 	    cell6.innerHTML="<input type='hidden' size='5' name='billableServiceId_"+index+"' id='billableServiceId_"+index+"' value='"+serviceId+"'/>";
-
+	    
 	    index++;
 
 	    calculateTheBill();
 
-	    $j("#billableService_"+serviceId).removeClass("unselectedService");
-	    $j("#billableService_"+serviceId).addClass("selectedService");
+	    $("#billableService_"+serviceId).removeClass("unselectedService");
+	    $("#billableService_"+serviceId).addClass("selectedService");
 
 	    recountServiceInTheCart();
 	}
 
 	function recountServiceInTheCart(){
 		var table = document.getElementById("cartOfServices");
-
+	    
 	    var rowCount = table.rows.length;
 	    var counter=0;
 	    for(var i=1; i<rowCount; i++){
@@ -72,7 +66,7 @@ var $j = jQuery.noConflict();
 			    	counter=(j+1);
 			    	break;
 				}
-
+				    
 			}
 		}
 	}
@@ -80,9 +74,9 @@ var $j = jQuery.noConflict();
 	function checkIfTheServiceAlreadyInTheList(serviceId){
 		try {
 		    var table = document.getElementById("cartOfServices");
-
+		    			    
 		    var rowCount = table.rows.length;
-
+			
 		    for(var i=1; i<rowCount; i++) {
 		        var row = table.rows[i];
 
@@ -96,7 +90,7 @@ var $j = jQuery.noConflict();
 		    }
 
 		    return false;
-
+		    
 	    }catch(e) {
 	        alert(e);
 	    }
@@ -115,20 +109,20 @@ var $j = jQuery.noConflict();
         if(confirm("Are you sure you want to remove selected service?")){
 		    try {
 			    var table = document.getElementById("cartOfServices");
-
+			    			    
 			    var rowCount = table.rows.length;
-
+				
 			    for(var i=1; i<rowCount; i++) {
 			        var row = table.rows[i];
-
+			        
 			        var hiddenElmnt=row.cells[5].childNodes[0];
 			        if(null != hiddenElmnt && serviceId == hiddenElmnt.value) {
 				    	table.deleteRow(i);
 			            rowCount--;
 			            i--;
 
-			            $j("#billableService_"+serviceId).removeClass("selectedService");
-			    	    $j("#billableService_"+serviceId).addClass("unselectedService");
+			            $("#billableService_"+serviceId).removeClass("selectedService");
+			    	    $("#billableService_"+serviceId).addClass("unselectedService");
 			        }
 
 			    }
@@ -136,7 +130,7 @@ var $j = jQuery.noConflict();
 			    calculateTheBill();
 
 			    recountServiceInTheCart();
-
+			    
 		    }catch(e) {
 		        alert(e);
 		    }
@@ -147,18 +141,18 @@ var $j = jQuery.noConflict();
 		try {
 			var bill=0.00;
 			var j=0;
-
+			
 		    while(j<index){
 			   	if(document.getElementById("servicePrice_"+j)!=null && document.getElementById("servicePrice_"+j)!="undefined"){
 					var price=parseFloat(document.getElementById("servicePrice_"+j).value);
 					bill+=(price*parseFloat(document.getElementById("quantity_"+j).value));
 			   	}
-
+				
 				j++;
 			}
 
 		    document.getElementById("pBill").innerHTML=bill.toFixed(2)+" RWF";
-		    $j("#totalAmount").val(bill.toFixed(2));
+		    $("#totalAmount").val(bill.toFixed(2));
 	    }catch(e) {
 	        alert(e);
 	    }
@@ -166,9 +160,9 @@ var $j = jQuery.noConflict();
 
 	function  savePatientBill(){
 		if(confirm("Are you sure you want to save?")){
-
+			
 			//set the number of services which has been clicked
-			$j("#numberOfServicesClicked").val(index);
+			$("#numberOfServicesClicked").val(index);
 
 			//submit the patient bill form
 			document.getElementById("form_save_patient_bill").submit();
@@ -181,25 +175,6 @@ var $j = jQuery.noConflict();
 	}
 
 </script>
-
-<!-- Hide submit button when the user is adding items on existing consommation -->
-<script type="text/javascript">
-$j(document).ready(function(){   
-		  var dep = $j('#selectedDepId').val();
-		  var sCategories = $j('#categories').length;
-		  if(dep>0&&sCategories!=0){
-		   $j('#depSubmitBtn').hide();
-		   $j('#selectedDepIdx').html("(ADDING ITEMS)");
-		   $j('#departments').attr('disabled', true);
-	      }	
-		  else{
-			  $j('#depSubmitBtn').show();
-			   $j('#departments').attr('disabled', false);
-		  }
-			  
-});
-</script>
-
 
 <style>
 	.deleteBt{
@@ -215,30 +190,21 @@ $j(document).ready(function(){
 	.selectedService{
 		background-color: #56CC81;
 	}
-	#patientTabs{
-	margin-top: 10px;
-		margin-left: auto;
-		margin-right: auto;
-		padding-top: 5px;
-		border-top: 1px solid #dddddd;
-	}
-	
 </style>
 
-<%@ include file="templates/mohBillingBillHeader.jsp"%>
+<%@ include file="templates/mohBillingLocalHeader.jsp"%>
+
 <h2><spring:message code="@MODULE_ID@.billing.calculation"/></h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
 
 <br/>
-<c:if test="${editStr==null }">
-<div id="billingForm">
+
 <div class="box">
-	<div style="float: left; width: 30%">
+	<div style="float: left; width: 29%">
 		<b class="boxHeader">Calculator</b>
 		<div class="box">
-			<form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&departmentId=${param.departmentId }&save=true" method="post" id="form_save_patient_bill">
-			<input type="hidden" name="consomationToAddOn" value="${addNew.consommationId}"/>
+			<form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="form_save_patient_bill">
 				<div style="max-width: 99%; overflow: auto;">
 					<table width="99%; !important;" id="cartOfServices">
 						<tr>
@@ -281,44 +247,18 @@ $j(document).ready(function(){
 			
 		</div>
 	</div>
-	
-	<div style="float: right; width: 70%">		
-		<b class="boxHeader">Search Services by Department</b>
-<div class="box">
-	<form
-		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&searchDpt=true"	method="post" id="depSearchForm">
-
-		<table>
-			<tr>				
-				<td><select name="departmentId" id="departments">
-						<!-- <option value="">--select--</option> -->
-						<c:forEach items="${departments }" var="dep">
-						<option value="${dep.departmentId}" ${dep.departmentId == param.departmentId ? 'selected':''}>${dep.name }</option> 
-						</c:forEach>
-				</select>
-				</td>
-				<td><p align="center" style="color: red;font-weight: bold; " id="selectedDepIdx"></p></td>
-				<td><input type="submit" value="search services" id="depSubmitBtn"/></td>
-			</tr>
-		</table>
-		<input type="hidden" id="selectedDepId" value="${param.departmentId}"/>
-	</form>
-</div>
-</div>
-		<c:if test="${param.departmentId !=null}">
-		<div>
+	<div style="float: right; width: 70%">
+		<b class="boxHeader">Services</b>
+		<div class="box">
 			<div id="patientTabs">
 				<ul>
-					<c:forEach items="${categories}" var="serviceCategory" varStatus="status"> 
-				      					  
+					<c:forEach items="${insurancePolicy.insurance.categories}" var="serviceCategory" varStatus="status">
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
-				     <input type="hidden" value="${categories}" id="categories"/>
 					</c:forEach>
 				</ul>
 			</div>
 			
-			<c:forEach items="${categories}" var="sc" varStatus="counter">
-			
+			<c:forEach items="${insurancePolicy.insurance.categories}" var="sc" varStatus="counter">
 				<div id="serviceCategory_${sc.serviceCategoryId}" <c:if test='${counter.count>1}'>style='display: none;'</c:if>>
 					<script>
 						loadBillableServiceByCategory("${sc.serviceCategoryId}");
@@ -326,16 +266,9 @@ $j(document).ready(function(){
 				</div>
 			</c:forEach>
 		</div>
-	 </c:if>
 	</div>
 	<div style="clear: both;"></div>
-	</div>
-</c:if>
-<c:if test="${consommation != null }">
-<c:import url="mohBillingConsommationItemList.jsp"/>
-</c:if>
-
-
+</div>
 
 <script type="text/javascript">
 
@@ -365,10 +298,7 @@ $j(document).ready(function(){
 		}
 		return false;
 	}
-
-	function setTabCookie(value) {
-		document.cookie = value;
-	}
+	
 </script>
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

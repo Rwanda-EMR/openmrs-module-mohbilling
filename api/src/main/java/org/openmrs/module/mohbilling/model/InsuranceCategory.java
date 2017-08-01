@@ -9,12 +9,12 @@ package org.openmrs.module.mohbilling.model;
  */
 public enum InsuranceCategory {
 
-	MUTUELLE,RSSB,MMI_UR,PRIVATE,NONE,BASE;
+	MUTUELLE, BASE, PRIVATE, NONE;
 
 	/**
 	 * (non-Javadoc)
 	 * 
-	 * @see Enum#toString()
+	 * @see java.lang.Enum#toString()
 	 */
 	@Override
 	public String toString() {

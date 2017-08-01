@@ -3,14 +3,14 @@
  */
 package org.openmrs.module.mohbilling.model;
 
-import org.openmrs.User;
-import org.openmrs.util.OpenmrsUtil;
-
 import java.math.BigDecimal;
 import java.util.Date;
 
+import org.openmrs.User;
+import org.openmrs.util.OpenmrsUtil;
+
 /**
- * @author rbcemr
+ * @author Kamonyo
  * 
  */
 public class BillableService implements Comparable<BillableService> {

@@ -3,16 +3,16 @@
  */
 package org.openmrs.module.mohbilling.model;
 
-import org.openmrs.Patient;
-import org.openmrs.User;
-import org.openmrs.util.OpenmrsUtil;
-
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.openmrs.Patient;
+import org.openmrs.User;
+import org.openmrs.util.OpenmrsUtil;
+
 /**
- * @author @EMRRBC
+ * @author Kamonyo
  * 
  */
 public class InsurancePolicy {
@@ -23,6 +23,7 @@ public class InsurancePolicy {
 	private String insuranceCardNo;
 	private Date coverageStartDate;
 	private Date expirationDate;
+	
 	private ThirdParty thirdParty;
 	
 	private User creator;
@@ -32,7 +33,6 @@ public class InsurancePolicy {
 	private Date retiredDate;
 	private String retireReason;
 	private Set<Beneficiary> beneficiaries;
-	private Set<Admission> admissions;
 
 	/**
 	 * @return the insurancePolicyId
@@ -99,20 +99,6 @@ public class InsurancePolicy {
 	 */
 	public Date getCoverageStartDate() {
 		return coverageStartDate;
-	}
-
-	/**
-	 * @return the admissions
-	 */
-	public Set<Admission> getAdmissions() {
-		return admissions;
-	}
-
-	/**
-	 * @param admissions the admissions to set
-	 */
-	public void setAdmissions(Set<Admission> admissions) {
-		this.admissions = admissions;
 	}
 
 	/**

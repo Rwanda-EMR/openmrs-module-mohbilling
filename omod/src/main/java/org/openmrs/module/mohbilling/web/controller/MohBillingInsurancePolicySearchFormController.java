@@ -3,6 +3,9 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.GlobalProperty;
@@ -11,11 +14,8 @@ import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /**
- * @author EMR@RBC
+ * @author Yves GAKUBA
  * 
  *         This controller backs the
  *         /web/module/mohBillingInsurancePolicySearchForm.jsp page. This

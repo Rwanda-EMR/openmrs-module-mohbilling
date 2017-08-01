@@ -6,7 +6,7 @@ package org.openmrs.module.mohbilling.extension.html;
 import org.openmrs.module.web.extension.PatientDashboardTabExt;
 
 /**
- * @author rbcemr
+ * @author Kamonyo
  * 
  */
 public class BillingDashboardTab extends PatientDashboardTabExt {

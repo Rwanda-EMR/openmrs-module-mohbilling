@@ -1,11 +1,23 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
-import org.openmrs.*;
-import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.model.*;
-import org.openmrs.module.mohbilling.service.BillingService;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
-import java.util.*;
+import org.openmrs.Location;
+import org.openmrs.Patient;
+import org.openmrs.PatientIdentifier;
+import org.openmrs.PatientIdentifierType;
+import org.openmrs.Person;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceCategory;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.service.BillingService;
 
 /**
  * Helper class to support the InsurancePolicy domain. (in other words, the
@@ -13,7 +25,7 @@ import java.util.*;
  * 
  * Parent class is InsurancePolicy, child class is Beneficiary
  * 
- * @author EMR-RBC
+ * @author Kamonyo
  * 
  */
 public class InsurancePolicyUtil {
@@ -802,12 +814,4 @@ public class InsurancePolicyUtil {
 		}
 		else return false;		
 	}
-	
-	public static InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t){
-
-	   	System.out.print(" am getting in getinsurancepolicybythird party ttttttttttttttttttttt "+t);
-
-		return getService().getInsurancePolicyByThirdParty(t);
-	}
-
 }

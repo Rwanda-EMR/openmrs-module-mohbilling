@@ -3,6 +3,12 @@
  */
 package org.openmrs.module.mohbilling.web.controller;
 
+import java.math.BigDecimal;
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
@@ -16,13 +22,8 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.math.BigDecimal;
-import java.util.Date;
-
 /**
- * @author rbcemr
+ * @author Yves GAKUBA
  * 
  *         This controller backs the /web/module/mohBillingInsuranceForm.jsp
  *         page. This controller is tied to that jsp page in the

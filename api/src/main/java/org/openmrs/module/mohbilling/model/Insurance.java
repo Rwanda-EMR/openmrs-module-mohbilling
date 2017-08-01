@@ -3,16 +3,16 @@
  */
 package org.openmrs.module.mohbilling.model;
 
-import org.openmrs.Concept;
-import org.openmrs.User;
-import org.openmrs.util.OpenmrsUtil;
-
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.openmrs.Concept;
+import org.openmrs.User;
+import org.openmrs.util.OpenmrsUtil;
+
 /**
- * @author rbcemr
+ * @author Kamonyo
  * 
  */
 public class Insurance implements Comparable<Insurance> {
