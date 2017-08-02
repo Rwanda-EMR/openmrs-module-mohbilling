@@ -15,6 +15,8 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -63,8 +65,17 @@ public class MohBillingAdmissionFormController extends
 		}	
 		admission.setCreator(Context.getAuthenticatedUser());
 		admission.setCreatedDate(new Date());
-	
-		if(!isPatientAdmitted(ip)){
+
+		//
+		Date exp = ip.getExpirationDate();
+		Date now = new Date();
+
+		Long diffPeriod=exp.getTime()-now.getTime();
+
+		//
+
+
+		if(!isPatientAdmitted(ip) && diffPeriod>=0){
 		Admission savedAdmission = AdmissionUtil.savePatientAdmission(admission);
 		
 		//create new Global bill
@@ -78,6 +89,10 @@ public class MohBillingAdmissionFormController extends
 		request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 				"The patient admission has been saved succefully !");
 		mav.addObject("globalBill", gb);
+		}
+		else if(diffPeriod<0){
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					"The insurance is Expired. Reception desk can help this patient");
 		}
 		else{
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,

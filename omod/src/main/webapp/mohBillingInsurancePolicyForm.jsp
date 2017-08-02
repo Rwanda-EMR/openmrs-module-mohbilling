@@ -94,7 +94,9 @@
 </h2>
 
 <form action="insurancePolicy.form?save=true" method="post">
-
+	<c:if test="${null ne param.insurancePolicyId}">
+		<input type="hidden" value="${param.insurancePolicyId}" name="insurancePolicyId" />
+	</c:if>
 	<b class="boxHeader">Section I >> Owner</b>
 	<div class="box">
 		<table>
@@ -114,6 +116,7 @@
 			<tr>
 				<td>Insurance Name</td>
 				<td><select name="insurancePolicyInsurance">
+						<option value=""></op
 						<c:forEach items="${insurances}" var="insurance">
 							<option value="${insurance.insuranceId}"
 								<c:if test="${insurance.insuranceId==insurancePolicy.insurance.insuranceId}">selected='selected'</c:if>>${insurance.name}</option>

@@ -163,7 +163,7 @@ public class MohBillingCashierReportController extends
 					 mav.addObject("bigTotal", bigTotal);
 					 
 					 request.getSession().setAttribute("paymentRevenues" , paymentRevenues);
-					 request.getSession().setAttribute("services" , services); 
+					 request.getSession().setAttribute("services" , services);
 					 request.getSession().setAttribute("subTotals" , subTotals); 
 					 request.getSession().setAttribute("bigTotal" , bigTotal); 
 					 request.getSession().setAttribute("totalRevenueAmount" , BillPaymentUtil.getTotalPaid(payments)); 
