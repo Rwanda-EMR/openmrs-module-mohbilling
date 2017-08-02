@@ -2,6 +2,7 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <openmrs:require privilege="Create Insurance Policy"
 	otherwise="/login.htm"
 	redirect="/module/@MODULE_ID@/insurancePolicy.form" />
@@ -116,7 +117,7 @@
 			<tr>
 				<td>Insurance Name</td>
 				<td><select name="insurancePolicyInsurance">
-						<option value=""></op
+						<option value=""><b>Please select Insurance</b></option>
 						<c:forEach items="${insurances}" var="insurance">
 							<option value="${insurance.insuranceId}"
 								<c:if test="${insurance.insuranceId==insurancePolicy.insurance.insuranceId}">selected='selected'</c:if>>${insurance.name}</option>
@@ -140,7 +141,16 @@
 				<td><input
 					value="<openmrs:formatDate date='${insurancePolicy.expirationDate}' type="string"/>"
 					type="text" name="insurancePolicyExpirationDate" size="11"
-					onclick="showCalendar(this);" autocomplete="off" /></td>
+					onclick="showCalendar(this);" autocomplete="off" />
+
+					<jsp:useBean id="now" class="java.util.Date" />
+                    <fmt:formatDate var="year1" value="${now}" pattern="yyyy-MM-dd" />
+                    <fmt:formatDate var="year2" value="${insurancePolicy.expirationDate}" pattern="yyyy-MM-dd" />
+                    <c:if test="${year2 lt year1}">
+                    <font color="red"><b>Expired</b></font>
+                    </c:if>
+
+					</td>
 			</tr>
 
 			<tr>
