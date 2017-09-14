@@ -184,19 +184,19 @@ var $j = jQuery.noConflict();
 
 <!-- Hide submit button when the user is adding items on existing consommation -->
 <script type="text/javascript">
-$j(document).ready(function(){   
+$j(document).ready(function(){
 		  var dep = $j('#selectedDepId').val();
 		  var sCategories = $j('#categories').length;
 		  if(dep>0&&sCategories!=0){
 		   $j('#depSubmitBtn').hide();
 		   $j('#selectedDepIdx').html("(ADDING ITEMS)");
 		   $j('#departments').attr('disabled', true);
-	      }	
+	      }
 		  else{
 			  $j('#depSubmitBtn').show();
 			   $j('#departments').attr('disabled', false);
 		  }
-			  
+
 });
 </script>
 
@@ -207,11 +207,11 @@ $j(document).ready(function(){
 		background-color: red;
 		padding: 2px;
 		cursor: pointer;
-		-moz-border-radius: 2px; 
+		-moz-border-radius: 2px;
 		border-right: 2px solid #dddddd;
 		border-bottom: 2px solid #dddddd;
 	}
-	
+
 	.selectedService{
 		background-color: #56CC81;
 	}
@@ -222,7 +222,7 @@ $j(document).ready(function(){
 		padding-top: 5px;
 		border-top: 1px solid #dddddd;
 	}
-	
+
 </style>
 
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
@@ -260,12 +260,12 @@ $j(document).ready(function(){
 						</table>
 					</div>
 					<br/>
-					
+
 					<input type="hidden" name="numberOfServicesClicked" id="numberOfServicesClicked" value=""/>
 				</div>
-				
+
 			</form>
-			
+
 			<table width="99%">
 				<tr>
 					<td style="width: 49%;">
@@ -278,22 +278,22 @@ $j(document).ready(function(){
 					</td>
 				</tr>
 			</table>
-			
+
 		</div>
 	</div>
-	
-	<div style="float: right; width: 70%">		
+
+	<div style="float: right; width: 70%">
 		<b class="boxHeader">Search Services by Department</b>
 <div class="box">
 	<form
 		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&searchDpt=true"	method="post" id="depSearchForm">
 
 		<table>
-			<tr>				
+			<tr>
 				<td><select name="departmentId" id="departments">
 						<!-- <option value="">--select--</option> -->
 						<c:forEach items="${departments }" var="dep">
-						<option value="${dep.departmentId}" ${dep.departmentId == param.departmentId ? 'selected':''}>${dep.name }</option> 
+						<option value="${dep.departmentId}" ${dep.departmentId == param.departmentId ? 'selected':''}>${dep.name }</option>
 						</c:forEach>
 				</select>
 				</td>
@@ -309,16 +309,16 @@ $j(document).ready(function(){
 		<div>
 			<div id="patientTabs">
 				<ul>
-					<c:forEach items="${categories}" var="serviceCategory" varStatus="status"> 
-				      					  
+					<c:forEach items="${categories}" var="serviceCategory" varStatus="status">
+
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
 				     <input type="hidden" value="${categories}" id="categories"/>
 					</c:forEach>
 				</ul>
 			</div>
-			
+
 			<c:forEach items="${categories}" var="sc" varStatus="counter">
-			
+
 				<div id="serviceCategory_${sc.serviceCategoryId}" <c:if test='${counter.count>1}'>style='display: none;'</c:if>>
 					<script>
 						loadBillableServiceByCategory("${sc.serviceCategoryId}");
@@ -343,7 +343,7 @@ $j(document).ready(function(){
 		if (!document.getElementById || !document.createTextNode) {return;}
 		if (typeof tabObj == "string")
 			tabObj = document.getElementById(tabObj);
-		
+
 		if (tabObj) {
 			var tabs = tabObj.parentNode.parentNode.getElementsByTagName('a');
 			for (var i=0; i<tabs.length; i++) {
@@ -360,7 +360,7 @@ $j(document).ready(function(){
 				}
 			}
 			addClass(tabObj, 'current');
-			
+
 			setTabCookie(tabObj.id);
 		}
 		return false;

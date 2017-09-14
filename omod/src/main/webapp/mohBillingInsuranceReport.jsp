@@ -63,11 +63,15 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 
 	<th class="columnHeader" style="width: 3%">#</th>
 		<th class="columnHeader" style="width: 3%">Date</th>
+		<th class="columnHeader">BENEFICIARY's NAMES'</th>
+		<th class="columnHeader">HEAD HOUSEHOLD'S NAMES </th>
+		<th class="columnHeader">FAMILY'S CODE </th>
+		<th class="columnHeader">LEVEL </th>
 		<th class="columnHeader" style="width: 6%">GB#</th>
 		<th class="columnHeader" style="width: 6%">Card NUMBER</th>
 		<th class="columnHeader">AGE</th>
 		<th class="columnHeader">Gender</th>
-		<th class="columnHeader">BENEFICIARY's NAMES'</th>
+
 
 		<c:forEach items="${columns }" var="categ">
         		 <c:if test="${categ eq 'FORMALITES ADMINISTRATIVES' }">
@@ -95,12 +99,15 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
 			<fmt:formatDate pattern="yyyy-MM-dd" value="${asr.consommation.createdDate}" />
 			</td>
-
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.personName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.ownerName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.ownerCode}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.level}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.globalBill.billIdentifier}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insuranceCardNo}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.age}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.gender}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.personName}</td>
+
 			
 			<c:forEach items="${asr.revenues }" var="revenue">
 				<c:if test="${patientRate > 0}">
@@ -122,7 +129,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 	
 <tr>
 <td><b style="color: blue;">TOTAL</b></td>
-<td></td><td></td><td></td><td></td><td></td><td></td>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 		<c:forEach items="${totals }" var="total">
 		  <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total}" type="number" pattern="#.##"/></b> </td>
 		</c:forEach>

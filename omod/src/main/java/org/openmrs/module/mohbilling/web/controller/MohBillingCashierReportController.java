@@ -44,6 +44,7 @@ public class MohBillingCashierReportController extends
 		
 		String startDateStr = null, endDateStr = null, startHourStr = null, startMinuteStr = null, 
 				endHourStr = null, endMinuteStr = null;
+		User cashier=null;
 		
 		if (request.getParameter("formStatus") != null && !request.getParameter("formStatus").equals("")) {
 
@@ -93,7 +94,7 @@ public class MohBillingCashierReportController extends
 			// Date startDate = (Date) params[0];
 			// Date endDate = (Date) params[1];
 			 User collector =  (User) params[2];
-
+			 cashier=collector;
 //			 try {
 				  
 					 List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate, collector);
@@ -161,13 +162,15 @@ public class MohBillingCashierReportController extends
 					 mav.addObject("resultMsg", "Revenue Amount From "+startDateStr+" To "+ endDateStr);
 					 mav.addObject("subTotals", subTotals);
 					 mav.addObject("bigTotal", bigTotal);
-					 
+					 mav.addObject("collector", cashier);
+
 					 request.getSession().setAttribute("paymentRevenues" , paymentRevenues);
 					 request.getSession().setAttribute("services" , services);
 					 request.getSession().setAttribute("subTotals" , subTotals); 
 					 request.getSession().setAttribute("bigTotal" , bigTotal); 
-					 request.getSession().setAttribute("totalRevenueAmount" , BillPaymentUtil.getTotalPaid(payments)); 
-					
+					 request.getSession().setAttribute("totalRevenueAmount" , BillPaymentUtil.getTotalPaid(payments));
+			         request.getSession().setAttribute("collector" , cashier);
+
 		/*	} catch (Exception e) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 						"No payment found !");
@@ -195,8 +198,10 @@ public class MohBillingCashierReportController extends
 				 BigDecimal amount = (BigDecimal)request.getSession().getAttribute("totalReceivedAmount");
 				 FileExporter fexp = new FileExporter();
 				 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			User cashierUser=(User) request.getSession().getAttribute("collector");
 					String fileName = "cashierReport-"+df.format(new Date())+".pdf";
-				    fexp.printCashierReport(request, response, amount,paymentRevenues,subTotals,bigTotal,totalPaid,fileName);
+			System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC:"+cashierUser.getPersonName().getFullName());
+				    fexp.printCashierReport(request, response, amount,paymentRevenues,subTotals,bigTotal,totalPaid,fileName,cashierUser);
 			
 		}
 		return mav;

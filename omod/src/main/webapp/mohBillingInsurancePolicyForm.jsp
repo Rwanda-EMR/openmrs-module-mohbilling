@@ -180,7 +180,50 @@
 	<br />
 
 
+
+
 <!-- Adding Beneficiaries -->
+
+<b class="boxHeader">Section III >> Ownership Info</b>
+	<div class="box">
+		<table>
+			<tr>
+            				<td>Head Of Family/Insurance Owner</td>
+            				<td><input type="text" name="ownerName" size="30" value="${insurancePolicy.beneficiaries.iterator().next().ownerName}"/>
+<!--
+<c:if test="${insurancePolicy.beneficiaries.size() == 1 }">
+        ${insurancePolicy.beneficiaries.iterator().next().ownerName}
+</c:if>
+-->
+
+            				<!-- <c:if test="${fn:length(insurancePolicy.beneficiaries) > 0}">
+                                <c:forEach var="berficiary" items="${insurancePolicy.beneficiaries}" varStatus="Count">
+                                    <c:out value="${berficiary.ownerName}" />
+                                </c:forEach>
+                            </c:if>
+							-->
+            				</td>
+            </tr>
+            <tr>
+                        				<td>Family/Beneficiary code</td>
+                        				<td><input type="text" name="ownerCode" size="30" value="${insurancePolicy.beneficiaries.iterator().next().ownerCode}" /></td>
+            </tr>
+            <tr>
+                        				<td>Level</td>
+                        				<td><select name="level">
+                        				<option value="">Select level please</option>
+                        				<c:if test="${insurancePolicy.beneficiaries.size() == 1 }">
+                                                <option value="${insurancePolicy.beneficiaries.iterator().next().level}" Selected>${insurancePolicy.beneficiaries.iterator().next().level}</option>
+                                        </c:if>
+                        				<option value="1">1</option>
+                        				<option value="2">2</option>
+                        				<option value="3">3</option>
+                        				<option value="4">4</option>
+                        				</select></td>
+             </tr>
+		</table>
+	</div>
+	<br />
 
 
 	<br /> <input type="submit" value="Save Insurance Policy"

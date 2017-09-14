@@ -180,6 +180,61 @@ public class InsurancePolicyUtil {
 		return null;
 	}
 
+	public static InsurancePolicy createInsurancePolicy(InsurancePolicy card,Beneficiary ben) {
+
+		if (card != null) {
+
+			if (card.getInsurancePolicyId() != null)
+				getService().saveInsurancePolicy(card);
+
+			else {
+
+				card.setCreatedDate(new Date());
+				card.setCreator(Context.getAuthenticatedUser());
+				card.setRetired(false);
+
+				if (card.getInsurance().getCategory().toString()
+						.equalsIgnoreCase(InsuranceCategory.NONE.toString())
+						&& getPrimaryPatientIdentiferType()
+						.equals(Context
+								.getPatientService()
+								.getPatientIdentifierType(
+										Integer.valueOf(Context
+												.getAdministrationService()
+												.getGlobalProperty(
+														BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
+
+					/** Getting the Patient Identifier from the system **/
+					PatientIdentifier pi = InsurancePolicyUtil
+							.getPrimaryPatientIdentifierForLocation(
+									card.getOwner(),
+									InsurancePolicyUtil.getLocationLoggedIn());
+
+					card.setInsuranceCardNo(pi.getIdentifier().toString());
+					card.setCoverageStartDate(new Date());
+				}
+
+				getService().saveInsurancePolicy(card);
+
+
+				ben.setInsurancePolicy(card);
+				ben.setPatient(card.getOwner());
+
+				ben.setPolicyIdNumber(card.getInsuranceCardNo());
+
+
+				card.addBeneficiary(ben);
+
+				getService().saveInsurancePolicy(card);
+			}
+
+			return card;
+		}
+
+		return null;
+	}
+
+
 	/**
 	 * Updates the Insurance policy that has been changed
 	 * 

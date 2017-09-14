@@ -112,7 +112,12 @@ public class MohBillingInsurancePolicyFormController extends
 					b.setPolicyIdNumber(request.getParameter("insurancePolicyOwnerCardNumber"));
 					b.setCreator(Context.getAuthenticatedUser());
 					b.setCreatedDate(new Date());
+					b.setOwnerName(request.getParameter("ownerName"));
+					b.setOwnerCode(request.getParameter("ownerCode"));
+					b.setLevel(Integer.parseInt(request.getParameter("level")));
+
 					card.addBeneficiary(b);
+
 				}
 
 			}
@@ -248,13 +253,14 @@ try {
 			
 
 			// beneficiaries
+			//Beneficiary b=null;
 			for (int i = 1; i < 11; i++) {
 				if (request.getParameter("insurancePolicyBeneficiary_" + i) != null
 						&& request
 								.getParameter("insurancePolicyBeneficiary_" + i)
 								.trim().compareTo("") != 0) {
-					
-					Beneficiary b = new Beneficiary();
+
+					Beneficiary	b = new Beneficiary();
 
 					b.setPatient(Context.getPatientService().getPatient(
 							Integer.valueOf(request
@@ -267,9 +273,16 @@ try {
 					b.setCreatedDate(new Date());
 					b.setCreator(Context.getAuthenticatedUser());
 					b.setRetired(false);
+					b.setOwnerName(request.getParameter("ownerName"));
+					b.setOwnerCode(request.getParameter("ownerCode"));
+					b.setLevel(Integer.parseInt(request.getParameter("level")));
 
 					// check if it does not exists already...
+
 					card.addBeneficiary(b);
+
+					System.out.println(request.getParameter("ownerName"));
+
 				}
 			}
 
@@ -283,7 +296,29 @@ try {
 				"The insurance policy already with card no: "+request.getParameter("insurancePolicyOwnerCardNumber")+"  already exists!");				
 			}
 			else {
-				InsurancePolicyUtil.createInsurancePolicy(card);
+
+				//==================== Beneficiary ============================
+
+				Beneficiary	b = new Beneficiary();
+
+				b.setCreatedDate(new Date());
+				b.setCreator(Context.getAuthenticatedUser());
+				b.setRetired(false);
+				if(!(request.getParameter("ownerName").trim()).isEmpty() && !(request.getParameter("ownerCode").trim()).isEmpty() && !(request.getParameter("ownerCode").trim()).isEmpty())
+				{
+					b.setOwnerName(request.getParameter("ownerName"));
+					b.setOwnerCode(request.getParameter("ownerCode"));
+					b.setLevel(Integer.parseInt(request.getParameter("level")));
+				}
+				// check if it does not exists already...
+
+				//card.addBeneficiary(b);
+
+				//===================== End Beneficiary =======================
+
+				//InsurancePolicyUtil.createInsurancePolicy(card);
+				//Context.getService(BillingService.class).saveInsurancePolicy(card);
+				InsurancePolicyUtil.createInsurancePolicy(card,b);
 				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 				"The insurance policy has been saved successfully !");		
 			}

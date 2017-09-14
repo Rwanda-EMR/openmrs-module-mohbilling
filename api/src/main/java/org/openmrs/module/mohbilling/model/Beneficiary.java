@@ -23,6 +23,37 @@ public class Beneficiary implements Comparable<Beneficiary> {
 	private User retiredBy;
 	private Date retiredDate;
 	private String retireReason;
+	private String ownerName;
+	private String ownerCode;
+	private int level;
+
+
+	public String getOwnerName() {
+		return ownerName;
+	}
+
+	public void setOwnerName(String ownerName) {
+		this.ownerName = ownerName;
+	}
+
+	public String getOwnerCode() {
+		return ownerCode;
+	}
+
+	public void setOwnerCode(String ownerCode) {
+		this.ownerCode = ownerCode;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+
+
 
 	/**
 	 * @return the beneficiaryId
