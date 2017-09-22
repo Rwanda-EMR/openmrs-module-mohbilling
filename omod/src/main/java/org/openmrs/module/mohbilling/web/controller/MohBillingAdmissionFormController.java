@@ -65,6 +65,7 @@ public class MohBillingAdmissionFormController extends
 		}	
 		admission.setCreator(Context.getAuthenticatedUser());
 		admission.setCreatedDate(new Date());
+		admission.setDiseaseType(request.getParameter("diseaseType"));
 
 		//
 		Date exp = ip.getExpirationDate();
@@ -73,9 +74,9 @@ public class MohBillingAdmissionFormController extends
 		Long diffPeriod=exp.getTime()-now.getTime();
 
 		//
+String diseaseType=request.getParameter("diseaseType");
 
-
-		if(!isPatientAdmitted(ip) && diffPeriod>=0){
+		if(!isPatientAdmitted(ip) && diffPeriod>=0 && diseaseType!=null && !diseaseType.equals("")){
 		Admission savedAdmission = AdmissionUtil.savePatientAdmission(admission);
 		
 		//create new Global bill
@@ -88,11 +89,28 @@ public class MohBillingAdmissionFormController extends
 		gb =   GlobalBillUtil.saveGlobalBill(gb);
 		request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 				"The patient admission has been saved succefully !");
+
+
+
+			if(request.getParameter("insurancePolicyId")!=null){
+				ip= Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
+				List<Admission> admissions =  AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
+				List<GlobalBill> globalBills = new ArrayList<GlobalBill>();
+				for (Admission ad : admissions) {
+					globalBills.add(Context.getService(BillingService.class).getGlobalBillByAdmission(ad));
+				}
+				mav.addObject("globalBills", globalBills);
+			}
+
 		mav.addObject("globalBill", gb);
 		}
 		else if(diffPeriod<0){
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					"The insurance is Expired. Reception desk can help this patient");
+		}
+		else if(diseaseType==null || diseaseType.equals("")){
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					"Disease Type is required");
 		}
 		else{
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,

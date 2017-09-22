@@ -647,11 +647,34 @@
 			alter moh_bill_beneficiary table
 		</description>
 		<sql>
-			ALTER TABLE moh_bill_beneficiary ADD owner_name varchar(150);
-			ALTER TABLE moh_bill_beneficiary ADD owner_code varchar(150);
+			ALTER TABLE moh_bill_beneficiary ADD owner_name varchar(150) DEFAULT " ";
+			ALTER TABLE moh_bill_beneficiary ADD owner_code varchar(150) DEFAULT " ";
 			ALTER TABLE moh_bill_beneficiary ADD level int(1) DEFAULT '0';
 		</sql>
 	</diff>
 
+	<diff>
+		<version>1.3.1.1</version>
+		<author>Rwanda EMR</author>
+		<date>Sep 14th 2017</date>
+		<description>
+			alter moh_bill_admission table
+		</description>
+		<sql>
+			ALTER TABLE moh_bill_admission ADD disease_type varchar(100) DEFAULT " ";
+		</sql>
+	</diff>
+
+	<diff>
+		<version>1.3.1.2</version>
+		<author>Rwanda EMR</author>
+		<date>Sep 14th 2017</date>
+		<description>
+			alter moh_bill_beneficiary table
+		</description>
+		<sql>
+			ALTER TABLE moh_bill_beneficiary ADD company varchar(100) DEFAULT " ";
+		</sql>
+	</diff>
 
 </sqldiff>

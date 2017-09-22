@@ -6,9 +6,8 @@
 
 <script type="text/javascript">
 			var $j = jQuery.noConflict();
-		</script>
+</script>
 <script>
-var $j = jQuery.noConflict();
 	function loadBillableServiceByCategory(serviceCategoryId,departmentId){
 			$j("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
 	}

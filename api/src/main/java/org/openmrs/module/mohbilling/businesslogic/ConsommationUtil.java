@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
@@ -22,27 +22,27 @@ import java.util.List;
  *
  */
 public class ConsommationUtil {
-	
+
 	/**
 	 * Offers the BillingService to be use to talk to the DB
-	 * 
+	 *
 	 * @return the BillingService
 	 */
 	private static BillingService getService() {
 
 		return Context.getService(BillingService.class);
 	}
-	
+
 
 	public static Consommation saveConsommation(Consommation consom) {
 		getService().saveConsommation(consom);
 		return consom;
 	}
-	
+
 	/**
 	 * Creates a PatientServiceBill object and saves it in the DB through
 	 * Consommation which is its parent
-	 * 
+	 *
 	 * @param psb
 	 *            the PatientServiceBill to be saved
 	 * @return psb the PatientServiceBill that has been saved
@@ -62,8 +62,8 @@ public class ConsommationUtil {
 		return null;
 	}
 	public static Consommation createConsommation(Consommation consommation){
-		
-		GlobalBill globalBill = new GlobalBill(); 
+
+		GlobalBill globalBill = new GlobalBill();
 
 		if (consommation != null) {
 			consommation.setVoided(false);
@@ -76,25 +76,25 @@ public class ConsommationUtil {
 		}
 
 		return null;
-		
-		
+
+
 	}
-	
+
 	public static Consommation getConsommation(Integer consommationId){
 		return getService().getConsommation(consommationId);
-		
+
 	}
 	public static PatientServiceBill saveBilledItem(PatientServiceBill psb){
-		
-		
+
+
 		return  getService().saveBilledItem(psb);
-		
+
 	}
 
 
 	public static PatientServiceBill getPatientServiceBill(	Integer patientServiceBillId) {
 		return  getService().getPatientServiceBill(patientServiceBillId);
-		
+
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class ConsommationUtil {
 	 */
 	public static List<Consommation> getConsommationsByGlobalBill(
 			GlobalBill globalBill) {
-		
+
 		return getService().getAllConsommationByGlobalBill(globalBill);
 	}
 	/**
@@ -114,10 +114,10 @@ public class ConsommationUtil {
 	 */
 	public static List<Consommation> getConsommationsByBeneficiary(
 			Beneficiary beneficiary) {
-		
+
 		return getService().getConsommationsByBeneficiary(beneficiary);
 	}
-	
+
 	public static Consommation handleSavePatientConsommation(
 			HttpServletRequest request, ModelAndView mav) {
 
@@ -126,25 +126,25 @@ public class ConsommationUtil {
 
 		Integer globalBillId =Integer.valueOf(request.getParameter("globalBillId"));
 		Integer departmentId =Integer.valueOf(request.getParameter("departmentId"));
-		
+
 		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
 		Department department = DepartementUtil.getDepartement(departmentId);
-		
+
 		BigDecimal globalAmount = globalBill.getGlobalAmount();
 		BigDecimal totalAmount = new BigDecimal(0);
 		Beneficiary beneficiary = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request
 				.getParameter("ipCardNumber"));
 		Insurance insurance = beneficiary.getInsurancePolicy().getInsurance();
 		//check whether the insurance does have a third party;
-		
+
 		User creator = Context.getAuthenticatedUser();
-		
+
 		int numberOfServicesClicked=0;
 		String[] billItems = request.getParameterValues("billItem");
 		 BigDecimal insuranceRate = (new BigDecimal(beneficiary.getInsurancePolicy().getInsurance().getCurrentRate().getRate()));
 		 BigDecimal patientRate = (new BigDecimal(100).subtract(insuranceRate)).divide(new BigDecimal(100));
-		 
-		//update quantity on the existing consommation/add new item on the existing consommation 
+
+		//update quantity on the existing consommation/add new item on the existing consommation
 		if(request.getParameter("consommationId")!=null || request.getParameter("addNew")!=null) {
 			existingConsom = ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId")));
 			numberOfServicesClicked = billItems.length;
@@ -160,7 +160,7 @@ public class ConsommationUtil {
 		else if (request.getParameter("consommationId")==null){
 			existingConsom = new Consommation(globalBill, beneficiary, new Date(), creator, false);
 			numberOfServicesClicked = Integer.valueOf(request
-					.getParameter("numberOfServicesClicked"));	
+					.getParameter("numberOfServicesClicked"));
 		}
 		String message="";
 		BigDecimal voidedItemTotalAmount = new BigDecimal(0);
@@ -172,7 +172,7 @@ public class ConsommationUtil {
 				BigDecimal unitPrice = null;
 				BillableService bs = null;
 				PatientServiceBill psb =null;
-				
+
 				if(billItems!=null){
 					if(request.getParameter("removeItem_"  + billItems[i])!=null){
 						PatientServiceBill itemToRemove = ConsommationUtil.getPatientServiceBill(Integer.valueOf(request.getParameter("removeItem_" + billItems[i])));
@@ -199,13 +199,13 @@ public class ConsommationUtil {
 					existingConsom.addBillItem(psb);
 					message="Items' quantities have been changed succefully...";
 					}
-					
+
 				}
 				else{
 				if(request.getParameter("consomationToAddOn")!=null && !request.getParameter("consomationToAddOn").equals("")){
 					existingConsom= ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consomationToAddOn")));
 					numberOfServicesClicked = Integer.valueOf(request
-							.getParameter("numberOfServicesClicked"));	
+							.getParameter("numberOfServicesClicked"));
 					bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));
 					 HopService hopService = HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
 					 quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
@@ -213,7 +213,7 @@ public class ConsommationUtil {
 					 psb = new PatientServiceBill(bs,hopService, new Date(), unitPrice, quantity, creator, new Date());
 						existingConsom.addBillItem(psb);
 					 message="New Items have been added to the existing consommation succefully..";
-					 
+
 				}
 				else {
 					 bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));
@@ -235,13 +235,13 @@ public class ConsommationUtil {
 		PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());
 	    InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);
 		ThirdPartyBill	thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
-							
-		existingConsom.setDepartment(department);					
+
+		existingConsom.setDepartment(department);
 		existingConsom.setPatientBill(pb);
 		existingConsom.setDepartment(department);
 		existingConsom.setInsuranceBill(ib);
 		existingConsom.setThirdPartyBill(thirdPartyBill);
-		
+
 		saveConsommation = ConsommationUtil.saveConsommation(existingConsom);
 		globalAmount = globalAmount.subtract(voidedItemTotalAmount).add(addedItemTotalAmount);
 		//globalAmount =globalAmount.add(totalAmount);
@@ -251,7 +251,7 @@ public class ConsommationUtil {
 		request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR, message);
 
 		return saveConsommation;
-		
+
 
 	}
 
@@ -264,7 +264,7 @@ public class ConsommationUtil {
 			PatientBill patientBill) {
 		return getService().getConsommationByPatientBill(patientBill);
 	}
-	
+
 	public static String getConsommationStatus(Integer id){
 		Consommation c = ConsommationUtil.getConsommation(id);
 		String status="";
@@ -280,7 +280,7 @@ public class ConsommationUtil {
 		if(c.getPatientBill().getAmountPaid().compareTo(BigDecimal.ZERO)==0)
 			status="Unpaid";
 		return status;
-		
+
 	}
 
 	// all items are paid
@@ -300,7 +300,7 @@ public class ConsommationUtil {
 		}
 		return isTrue;
 	}
-	
+
 	//none of items is paid
 	public static Boolean isConsommationUnpaid(Consommation c){
 		Boolean found = false;
@@ -337,7 +337,7 @@ public class ConsommationUtil {
 			User billCreator,Department department){
 		 return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
 	}
-	
+
 	public static void retireItem(PatientServiceBill psb){
 		psb.setVoided(true);
 		psb.setVoidedBy(Context.getAuthenticatedUser());

@@ -69,8 +69,11 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		<th class="columnHeader">LEVEL </th>
 		<th class="columnHeader" style="width: 6%">GB#</th>
 		<th class="columnHeader" style="width: 6%">Card NUMBER</th>
+		<th class="columnHeader">COMPANY</th>
 		<th class="columnHeader">AGE</th>
+		<th class="columnHeader">BIRTH DATE</th>
 		<th class="columnHeader">Gender</th>
+		<th class="columnHeader">DOCTOR</th>
 
 
 		<c:forEach items="${columns }" var="categ">
@@ -97,7 +100,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 
 		    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
-			<fmt:formatDate pattern="yyyy-MM-dd" value="${asr.consommation.createdDate}" />
+			<fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.createdDate}" />
 			</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.personName}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.ownerName}</td>
@@ -105,8 +108,11 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.level}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.globalBill.billIdentifier}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insuranceCardNo}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.company}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.age}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.beneficiary.patient.getBirthdate()}" />  </td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.gender}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.consommation.getCreator().getPerson().getPersonName().getFamilyName()}  ${asr.consommation.getCreator().getPerson().getPersonName().getGivenName()}</td>
 
 			
 			<c:forEach items="${asr.revenues }" var="revenue">

@@ -26,6 +26,18 @@ public class Beneficiary implements Comparable<Beneficiary> {
 	private String ownerName;
 	private String ownerCode;
 	private int level;
+	private String company;
+
+
+	public String getCompany() {
+		return company;
+	}
+
+	public void setCompany(String company) {
+		this.company = company;
+	}
+
+
 
 
 	public String getOwnerName() {

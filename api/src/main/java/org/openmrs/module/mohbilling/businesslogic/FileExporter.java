@@ -11,6 +11,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
+import org.openmrs.Person;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil.HeaderFooter;
@@ -32,7 +33,9 @@ import java.util.List;
 import java.util.Set;
 
 public class FileExporter {
-	private Log log = LogFactory.getLog(this.getClass());
+	//private Log log = LogFactory.getLog(this.getClass());
+
+	protected final Log log = LogFactory.getLog(getClass());
 
 	public void printTransaction(HttpServletRequest request,	HttpServletResponse response, Transaction transaction,String filename) throws Exception{
 		response.setContentType("application/pdf");
@@ -304,6 +307,38 @@ public class FileExporter {
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
+		PdfPCell head3= new PdfPCell(fontSelector.process(""));
+		head3.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head3);
+
+		head3= new PdfPCell(fontSelector.process(""));
+		head3.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head3);
+
+		head3= new PdfPCell(fontSelector.process(""));
+		head3.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head3);
+
+		head3= new PdfPCell(fontSelector.process("Disease Type: "+consommation.getGlobalBill().getAdmission().getDiseaseType()+"\n"));
+		head3.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head3);
+
+		head3= new PdfPCell(fontSelector.process(""));
+		head3.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head3);
+
+		head3= new PdfPCell(fontSelector.process(""));
+		head3.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head3);
+
+		head3= new PdfPCell(fontSelector.process(""));
+		head3.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head3);
+
+		head3= new PdfPCell(fontSelector.process(""));
+		head3.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head3);
+
 		PdfPCell head2 = new PdfPCell(fontSelector.process("Card: "+consommation.getBeneficiary().getInsurancePolicy().getInsurance().getName()+"/"+consommation.getBeneficiary().getPolicyIdNumber()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
@@ -320,24 +355,53 @@ public class FileExporter {
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
+		// After RSSB meeting
 
-if(!(consommation.getBeneficiary().getOwnerName()==null) && !(consommation.getBeneficiary().getOwnerCode()==null) && !(consommation.getBeneficiary().getLevel()==0)) {
+		head2 = new PdfPCell(fontSelector.process("Province: "+consommation.getBeneficiary().getPatient().getPersonAddress().getStateProvince()+"\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+
+		head2 = new PdfPCell(fontSelector.process("District: "+consommation.getBeneficiary().getPatient().getPersonAddress().getCountyDistrict()+"\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+
+		head2 = new PdfPCell(fontSelector.process("Sector: "+consommation.getBeneficiary().getPatient().getPersonAddress().getCityVillage()+"\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+
+		head2 = new PdfPCell(fontSelector.process("Cell/Village: "+consommation.getBeneficiary().getPatient().getPersonAddress().getAddress3()+"/"+consommation.getBeneficiary().getPatient().getPersonAddress().getAddress1()+"\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
+
+		/*head2 = new PdfPCell(fontSelector.process("Village: "+consommation.getBeneficiary().getPatient().getPersonAddress().getAddress1()+"\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);*/
+
+
+
+
+//if(!(consommation.getBeneficiary().getOwnerName()==null) && !(consommation.getBeneficiary().getOwnerCode()==null)) {
 	head2 = new PdfPCell(fontSelector.process("Head household's manes: " + consommation.getBeneficiary().getOwnerName() + "\n"));
 	head2.setBorder(Rectangle.NO_BORDER);
 	heading2Tab.addCell(head2);
 
-	head2 = new PdfPCell(fontSelector.process("Family's code: " + consommation.getBeneficiary().getOwnerCode() + "\n"));
+	head2 = new PdfPCell(fontSelector.process("Family's/Affiliation code: " + consommation.getBeneficiary().getOwnerCode()+" / Company:" + consommation.getBeneficiary().getCompany()+ "\n"));
 	head2.setBorder(Rectangle.NO_BORDER);
 	heading2Tab.addCell(head2);
 
-	head2 = new PdfPCell(fontSelector.process("Level: " + consommation.getBeneficiary().getLevel() + "\n"));
+	head2 = new PdfPCell(fontSelector.process("Category: " + consommation.getBeneficiary().getLevel() + "\n"));
 	head2.setBorder(Rectangle.NO_BORDER);
 	heading2Tab.addCell(head2);
 
-	head2 = new PdfPCell(fontSelector.process("    "));
+
+	head2 = new PdfPCell(fontSelector.process("Phone number "+consommation.getBeneficiary().getPatient().getAttribute("Phone number")+"\n"));
 	head2.setBorder(Rectangle.NO_BORDER);
 	heading2Tab.addCell(head2);
-}
+
+	/*head2 = new PdfPCell(fontSelector.process("    "));
+	head2.setBorder(Rectangle.NO_BORDER);
+	heading2Tab.addCell(head2);*/
+//}
 
 
 
@@ -549,7 +613,7 @@ if(!(consommation.getBeneficiary().getOwnerName()==null) && !(consommation.getBe
 	}
 	public void displayFooter(Document document,Patient patient,User user,String other,FontSelector fontselector,Consommation consommation,BillPayment payment) throws DocumentException {
 		// Table of signatures;
-		PdfPTable table1 = new PdfPTable(3);
+		PdfPTable table1 = new PdfPTable(4);
 		table1.setWidthPercentage(100f);
 
 		PdfPCell cell = new PdfPCell(fontselector.process(""));
@@ -565,13 +629,18 @@ if(!(consommation.getBeneficiary().getOwnerName()==null) && !(consommation.getBe
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);*/
 
-			cell = new PdfPCell(fontselector.process("Beneficiary Signature \n"+patient.getPersonName()+"\n\n........................."));
+			cell = new PdfPCell(fontselector.process("Beneficiary Names/Signature: \n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 
 			cell = new PdfPCell(fontselector.process("Clinician/Doctor \n"+consommation.getCreator().getPersonName()+"\n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
+
+			cell = new PdfPCell(fontselector.process(" Insurance's Staff: \n"+"\n\n......................"));
+			cell.setBorder(Rectangle.NO_BORDER);
+			table1.addCell(cell);
+
 		}
 
 		if(other!=null){
@@ -1160,7 +1229,7 @@ if(!(consommation.getBeneficiary().getOwnerName()==null) && !(consommation.getBe
 		op.println();
 		op.println();
 
-		op.print("#,Date,BENEFICIARY'S NAMES,HEAD HOUSEHOLD'S NAMES,FAMILY'S CODE,LEVEL,Card NUMBER,AGE,GENDER");
+		op.print("#,Date,BENEFICIARY'S NAMES,HEAD HOUSEHOLD'S NAMES,FAMILY'S CODE,LEVEL,Card NUMBER,COMPANY,AGE,BIRTH DATE,GENDER,DOCTOR");
 		for (String col : columns) {
 			op.print(","+col);
 		}
@@ -1178,24 +1247,36 @@ if(!(consommation.getBeneficiary().getOwnerName()==null) && !(consommation.getBe
 			Float insuranceDue = asr.getAllDueAmounts().floatValue()*insuranceRate/100;
 			Float patientDue= asr.getAllDueAmounts().floatValue()*((100-insuranceRate)/100);
 			i++;
+
+			/*if(c.getCreator()!=null) {
+				System.out.println("DOCTORDOCTORDOCTORDOCTORDOCTOR" + c.getCreator().getUsername());
+*/
+
+
+
+			Person doctor=Context.getService(BillingService.class).getConsommation(c.getConsommationId()).getCreator().getPerson();
 			op.print(i
-							+","+f.format(c.getCreatedDate())
-							+","+c.getBeneficiary().getPatient().getPersonName()
-							+","+c.getBeneficiary().getOwnerName()
-							+","+c.getBeneficiary().getOwnerCode()
-							+","+c.getBeneficiary().getLevel()
-							+","+c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
-							+","+c.getBeneficiary().getPatient().getAge()
-							+","+c.getBeneficiary().getPatient().getGender()
+							+ "," + f.format(c.getCreatedDate())
+							+ "," + c.getBeneficiary().getPatient().getPersonName()
+							+ "," + c.getBeneficiary().getOwnerName()
+							+ "," + c.getBeneficiary().getOwnerCode()
+							+ "," + c.getBeneficiary().getLevel()
+							+ "," + c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+							+ "," + c.getBeneficiary().getCompany()
+							+ "," + c.getBeneficiary().getPatient().getAge()
+							+ "," + f.format(c.getBeneficiary().getPatient().getBirthdate())
+							+ "," + c.getBeneficiary().getPatient().getGender()
+							+ "," + doctor.getPersonName().getFamilyName()+" "+doctor.getPersonName().getGivenName()
 
 			);
+			//}
 			for (ServiceRevenue r : asr.getRevenues()) {
 				if(r!=null)
 					op.print(","+ ReportsUtil.roundTwoDecimals(r.getDueAmount().floatValue() * 100 / (100 - insuranceRate)));
 				else
 					op.print(","+0);
 			}
-			op.print(","+ ReportsUtil.roundTwoDecimals(asr.getAllDueAmounts().doubleValue())+","+ ReportsUtil.roundTwoDecimals(insuranceDue)+","+ ReportsUtil.roundTwoDecimals(patientDue));
+			op.print("," + ReportsUtil.roundTwoDecimals(asr.getAllDueAmounts().doubleValue()) + "," + ReportsUtil.roundTwoDecimals(insuranceDue) + "," + ReportsUtil.roundTwoDecimals(patientDue));
 			op.println();
 		}
 		op.println();

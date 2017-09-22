@@ -187,29 +187,20 @@
 <b class="boxHeader">Section III >> Ownership Info</b>
 	<div class="box">
 		<table>
+					<tr>
+                    				<td>Company Name</td>
+                    				<td><input type="text" name="company" size="30" value="${insurancePolicy.beneficiaries.iterator().next().company}"/></td>
+                    </tr>
 			<tr>
-            				<td>Head Of Family/Insurance Owner</td>
-            				<td><input type="text" name="ownerName" size="30" value="${insurancePolicy.beneficiaries.iterator().next().ownerName}"/>
-<!--
-<c:if test="${insurancePolicy.beneficiaries.size() == 1 }">
-        ${insurancePolicy.beneficiaries.iterator().next().ownerName}
-</c:if>
--->
-
-            				<!-- <c:if test="${fn:length(insurancePolicy.beneficiaries) > 0}">
-                                <c:forEach var="berficiary" items="${insurancePolicy.beneficiaries}" varStatus="Count">
-                                    <c:out value="${berficiary.ownerName}" />
-                                </c:forEach>
-                            </c:if>
-							-->
-            				</td>
+            				<td>Head Household Name/Insurance Owner</td>
+            				<td><input type="text" name="ownerName" size="30" value="${insurancePolicy.beneficiaries.iterator().next().ownerName}"/></td>
             </tr>
             <tr>
-                        				<td>Family/Beneficiary code</td>
+                        				<td>Family/Affiliation code</td>
                         				<td><input type="text" name="ownerCode" size="30" value="${insurancePolicy.beneficiaries.iterator().next().ownerCode}" /></td>
             </tr>
             <tr>
-                        				<td>Level</td>
+                        				<td>Category</td>
                         				<td><select name="level">
                         				<option value="">Select level please</option>
                         				<c:if test="${insurancePolicy.beneficiaries.size() == 1 }">

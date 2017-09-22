@@ -72,7 +72,8 @@ a.print {
 		<td>Insurance due</td>
 		<td>Patient Due</td>
 		<td>Paid Amount</td>
-		<td>Status</td>
+		<td>Bill Status</td>
+		<td>Admission Status</td>
 		<td></td>
 		<td>Collector</>
 
@@ -128,15 +129,29 @@ a.print {
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*insuranceRate }" type="number" pattern="#.##"/></td>
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*patientRate }" type="number" pattern="#.##"/></td>
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountPaidByCons}" type="number" pattern="#.##"/></td>
-			<c:if test="${totalAmountPaidByCons >= (totalAmountByConsom*patientRate)}">
+			<c:if test="${totalAmountPaidByCons >= (totalAmountByConsom*patientRate) && not empty c.getPatientBill().getPayments()}">
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">FULLY PAID</td>
 			</c:if>
-			<c:if test="${(totalAmountPaidByCons!='0') && (totalAmountPaidByCons < (totalAmountByConsom*patientRate))}">
+			<c:if test="${(totalAmountPaidByCons!='0') && (totalAmountPaidByCons < (totalAmountByConsom*patientRate)) && not empty c.getPatientBill().getPayments()}">
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">PARTLY PAID</td>
 			</c:if>
-			<c:if test="${totalAmountPaidByCons=='0'&& (patientRate!='0')}">
+			<!-- <c:if test="${totalAmountPaidByCons=='0'&& (patientRate!='0') && fn:length(c.getPatientBill().getPayments()) eq 0} ">
 			<td class="rowAmountValue" style="color: red; font-weight: bold;">UNPAID</td>
 			</c:if>
+			-->
+			<c:if test="${empty c.getPatientBill().getPayments()}">
+				<td class="rowAmountValue" style="color: red; font-weight: bold;">UNPAID</td>
+            </c:if>
+
+            <c:choose>
+                     <c:when test = "${c.getGlobalBill().getClosingDate()!=null}">
+                        <td class="rowAmountValue" style="color: green; font-weight: bold;">DISCHARGED</td>
+                     </c:when>
+
+                    <c:otherwise>
+                        <td class="rowAmountValue" style="color: red; font-weight: bold;">NOT DISCHARGED</td>
+                     </c:otherwise>
+            </c:choose>
 
 			<td class="rowTotalValue"><a href="patientBillPayment.form?consommationId=${c.consommationId}">View/</a></td>
              <c:forEach items="${c.patientBill.payments}" var="payment" varStatus="status">

@@ -115,6 +115,7 @@ public class MohBillingInsurancePolicyFormController extends
 					b.setOwnerName(request.getParameter("ownerName"));
 					b.setOwnerCode(request.getParameter("ownerCode"));
 					b.setLevel(Integer.parseInt(request.getParameter("level")));
+					b.setCompany(request.getParameter("company"));
 
 					card.addBeneficiary(b);
 
@@ -276,12 +277,11 @@ try {
 					b.setOwnerName(request.getParameter("ownerName"));
 					b.setOwnerCode(request.getParameter("ownerCode"));
 					b.setLevel(Integer.parseInt(request.getParameter("level")));
+					b.setCompany(request.getParameter("company"));
 
 					// check if it does not exists already...
 
 					card.addBeneficiary(b);
-
-					System.out.println(request.getParameter("ownerName"));
 
 				}
 			}
@@ -309,6 +309,12 @@ try {
 					b.setOwnerName(request.getParameter("ownerName"));
 					b.setOwnerCode(request.getParameter("ownerCode"));
 					b.setLevel(Integer.parseInt(request.getParameter("level")));
+					b.setCompany(request.getParameter("company"));
+				}else{
+					b.setOwnerName(request.getParameter(" "));
+					b.setOwnerCode(request.getParameter(" "));
+					b.setLevel(0);
+					b.setCompany(request.getParameter(" "));
 				}
 				// check if it does not exists already...
 
