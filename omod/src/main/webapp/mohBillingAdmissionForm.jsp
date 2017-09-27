@@ -118,7 +118,7 @@ function  cancelClosingGlobalBill(){
             				<td>Disease Type</td>
             				<td><select name="diseaseType">
             				<option value="">Please select disease type</option>
-            				<option value="Naturel Disease">Naturel Disease</option>
+            				<option value="Natural Disease">Natural Disease</option>
             				<option value="Professional Disease">Professional Disease</option>
             				<option value="Work Accident">Work Accident</option>
             				<option value="Road Traffic Accident">Road Traffic Accident</option>
