@@ -3,16 +3,21 @@ package org.openmrs.module.mohbilling.web.controller;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.PaymentRefundUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
+import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
 import org.openmrs.module.mohbilling.model.PaymentRefund;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MohBillingRefundReportController extends ParameterizableViewController {
 
@@ -40,9 +45,8 @@ public class MohBillingRefundReportController extends ParameterizableViewControl
 			String collectorStr = null;
 			String insuranceStr = null;
 			String thirdPartyStr = null;
-			
-			
-			 // marameters
+
+			  // marameters
 			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
 			
 			 Date startDate = (Date) params[0];
@@ -52,7 +56,7 @@ public class MohBillingRefundReportController extends ParameterizableViewControl
              List<PaymentRefund> confirmedRefunds = PaymentRefundUtil.getRefundsBetweenDatesAndByCollector(startDate, endDate, collector);
 
       		mav.addObject("confirmedRefunds", confirmedRefunds);
-			 
+
 	}
 
 		return mav;
