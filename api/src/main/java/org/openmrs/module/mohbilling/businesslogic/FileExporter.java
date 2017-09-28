@@ -305,6 +305,9 @@ public class FileExporter {
 		PdfPTable heading2Tab = new PdfPTable(colsWidt);
 		heading2Tab.setWidthPercentage(100f);
 
+		fontSelector = new FontSelector();
+		fontSelector.addFont(new Font(FontFamily.COURIER,8,Font.BOLD));
+
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
 		PdfPCell head3= new PdfPCell(fontSelector.process(""));
@@ -319,7 +322,7 @@ public class FileExporter {
 		head3.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head3);
 
-		head3= new PdfPCell(fontSelector.process("Disease Type: "+consommation.getGlobalBill().getAdmission().getDiseaseType()+"\n"));
+		head3= new PdfPCell(fontSelector.process("DISEASE TYPE: "+consommation.getGlobalBill().getAdmission().getDiseaseType()+"\n"));
 		head3.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head3);
 
@@ -339,11 +342,11 @@ public class FileExporter {
 		head3.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head3);
 
-		PdfPCell head2 = new PdfPCell(fontSelector.process("Card: "+consommation.getBeneficiary().getInsurancePolicy().getInsurance().getName()+"/"+consommation.getBeneficiary().getPolicyIdNumber()+"\n"));
+		PdfPCell head2 = new PdfPCell(fontSelector.process("CARD: "+consommation.getBeneficiary().getInsurancePolicy().getInsurance().getName()+"/"+consommation.getBeneficiary().getPolicyIdNumber()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
-		head2 = new PdfPCell(fontSelector.process("Beneficiary Names: "+consommation.getBeneficiary().getPatient().getPersonName()+"\n"));
+		head2 = new PdfPCell(fontSelector.process("BENEFICIARY'S NAMES: "+consommation.getBeneficiary().getPatient().getPersonName()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
@@ -351,25 +354,25 @@ public class FileExporter {
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
-		head2 = new PdfPCell(fontSelector.process("Sex: "+consommation.getBeneficiary().getPatient().getGender()+"\n"));
+		head2 = new PdfPCell(fontSelector.process("SEX: "+consommation.getBeneficiary().getPatient().getGender()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
 		// After RSSB meeting
 
-		head2 = new PdfPCell(fontSelector.process("Province: "+consommation.getBeneficiary().getPatient().getPersonAddress().getStateProvince()+"\n"));
+		head2 = new PdfPCell(fontSelector.process("PROVINCE: "+consommation.getBeneficiary().getPatient().getPersonAddress().getStateProvince()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
-		head2 = new PdfPCell(fontSelector.process("District: "+consommation.getBeneficiary().getPatient().getPersonAddress().getCountyDistrict()+"\n"));
+		head2 = new PdfPCell(fontSelector.process("DISTRICT: "+consommation.getBeneficiary().getPatient().getPersonAddress().getCountyDistrict()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
-		head2 = new PdfPCell(fontSelector.process("Sector: "+consommation.getBeneficiary().getPatient().getPersonAddress().getCityVillage()+"\n"));
+		head2 = new PdfPCell(fontSelector.process("SECTOR: "+consommation.getBeneficiary().getPatient().getPersonAddress().getCityVillage()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
-		head2 = new PdfPCell(fontSelector.process("Cell/Village: "+consommation.getBeneficiary().getPatient().getPersonAddress().getAddress3()+"/"+consommation.getBeneficiary().getPatient().getPersonAddress().getAddress1()+"\n"));
+		head2 = new PdfPCell(fontSelector.process("CELL/VILLAGE: "+consommation.getBeneficiary().getPatient().getPersonAddress().getAddress3()+"/"+consommation.getBeneficiary().getPatient().getPersonAddress().getAddress1()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
@@ -381,20 +384,20 @@ public class FileExporter {
 
 
 //if(!(consommation.getBeneficiary().getOwnerName()==null) && !(consommation.getBeneficiary().getOwnerCode()==null)) {
-	head2 = new PdfPCell(fontSelector.process("Head household's manes: " + consommation.getBeneficiary().getOwnerName() + "\n"));
+	head2 = new PdfPCell(fontSelector.process("NAME(S) OF HOUSEHOLD HEAD: " + consommation.getBeneficiary().getOwnerName() + "\n"));
 	head2.setBorder(Rectangle.NO_BORDER);
 	heading2Tab.addCell(head2);
 
-	head2 = new PdfPCell(fontSelector.process("Family's/Affiliation code: " + consommation.getBeneficiary().getOwnerCode()+" / Company:" + consommation.getBeneficiary().getCompany()+ "\n"));
+	head2 = new PdfPCell(fontSelector.process("FAMILY'S/AFFILIATION CODE: " + consommation.getBeneficiary().getOwnerCode()+" / Company:" + consommation.getBeneficiary().getCompany()+ "\n"));
 	head2.setBorder(Rectangle.NO_BORDER);
 	heading2Tab.addCell(head2);
 
-	head2 = new PdfPCell(fontSelector.process("Category: " + consommation.getBeneficiary().getLevel() + "\n"));
+	head2 = new PdfPCell(fontSelector.process("CATEGORY: " + consommation.getBeneficiary().getLevel() + "\n"));
 	head2.setBorder(Rectangle.NO_BORDER);
 	heading2Tab.addCell(head2);
 
 
-	head2 = new PdfPCell(fontSelector.process("Phone number "+consommation.getBeneficiary().getPatient().getAttribute("Phone number")+"\n"));
+	head2 = new PdfPCell(fontSelector.process("PHONE NO: "+consommation.getBeneficiary().getPatient().getAttribute("Phone number")+"\n"));
 	head2.setBorder(Rectangle.NO_BORDER);
 	heading2Tab.addCell(head2);
 
@@ -408,7 +411,7 @@ public class FileExporter {
 
 
 
-		head2 = new PdfPCell(fontSelector.process("Service: "+consommation.getDepartment().getName()+"\n"));
+		head2 = new PdfPCell(fontSelector.process("SERVICE: "+consommation.getDepartment().getName()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
@@ -418,11 +421,11 @@ public class FileExporter {
 		else
 			admissionMode = "Qui";
 
-		head2 = new PdfPCell(fontSelector.process("Ambulant: "+admissionMode+"\n"));
+		head2 = new PdfPCell(fontSelector.process("AMBULANT: "+admissionMode+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
-		head2 = new PdfPCell(fontSelector.process("Date d'entree: "+df.format(consommation.getGlobalBill().getAdmission().getAdmissionDate())+"\n"));
+		head2 = new PdfPCell(fontSelector.process("DATE D'ENTREE: "+df.format(consommation.getGlobalBill().getAdmission().getAdmissionDate())+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 		String dischargeDate = "";
@@ -431,7 +434,7 @@ public class FileExporter {
 		else
 			dischargeDate = "-";
 
-		head2 = new PdfPCell(fontSelector.process("Date de sortie: "+dischargeDate+"\n"));
+		head2 = new PdfPCell(fontSelector.process("DATE DE SORTIE: "+dischargeDate+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
 
