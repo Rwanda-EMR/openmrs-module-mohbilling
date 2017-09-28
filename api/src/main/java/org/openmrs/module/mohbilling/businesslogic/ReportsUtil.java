@@ -694,6 +694,7 @@ public class ReportsUtil {
 			paymentRevenues.setAmount(totalByPayment);
 			paymentRevenues.setPayment(payment);
 			paymentRevenues.setPaidServiceRevenues(paidSr);
+			if ((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill()))!=null)
 			paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
 		}
 		return paymentRevenues;

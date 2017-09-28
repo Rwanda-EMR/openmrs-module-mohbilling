@@ -1274,8 +1274,15 @@ public class FileExporter {
 			);
 			//}
 			for (ServiceRevenue r : asr.getRevenues()) {
-				if(r!=null)
+				if(r!=null && (100 - insuranceRate)!=0.0)
 					op.print(","+ ReportsUtil.roundTwoDecimals(r.getDueAmount().floatValue() * 100 / (100 - insuranceRate)));
+				else if(r!=null && (100 - insuranceRate)==0.0){
+					BigDecimal amount=new BigDecimal(0);
+					for (PatientServiceBill item:r.getBillItems()){
+						amount=amount.add(item.getService().getMaximaToPay()).multiply(item.getQuantity());
+					}
+					op.print(","+ ReportsUtil.roundTwoDecimals(amount.floatValue()));
+				}
 				else
 					op.print(","+0);
 			}

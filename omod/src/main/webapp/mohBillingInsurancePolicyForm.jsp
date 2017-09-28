@@ -186,26 +186,37 @@
 
 <b class="boxHeader">Section III >> Ownership Info</b>
 	<div class="box">
+	<c:forEach items='${insurancePolicy.beneficiaries}' var='bn'>
+                                        <c:set var="company" value="${bn.company}"/>
+                                        <c:set var="ownerName" value="${bn.ownerName}"/>
+                                        <c:set var="ownerCode" value="${bn.ownerCode}"/>
+                                        <c:set var="level" value="${bn.level}"/>
+     </c:forEach>
 		<table>
 					<tr>
                     				<td>Company Name</td>
-                    				<td><input type="text" name="company" size="30" value="${insurancePolicy.beneficiaries.iterator().next().company}"/></td>
+                    				<td>
+                    				<input type="text" name="company" size="30" value="${company}"/></td>
                     </tr>
 			<tr>
             				<td>Head Household Name/Insurance Owner</td>
-            				<td><input type="text" name="ownerName" size="30" value="${insurancePolicy.beneficiaries.iterator().next().ownerName}"/></td>
+            				<td><input type="text" name="ownerName" size="30" value="${ownerName}"/></td>
+
+
+
+
             </tr>
             <tr>
                         				<td>Family/Affiliation code</td>
-                        				<td><input type="text" name="ownerCode" size="30" value="${insurancePolicy.beneficiaries.iterator().next().ownerCode}" /></td>
+                        				<td><input type="text" name="ownerCode" size="30" value="${ownerCode}"/></td>
+
+
             </tr>
             <tr>
                         				<td>Category</td>
                         				<td><select name="level">
                         				<option value="">Select level please</option>
-                        				<c:if test="${insurancePolicy.beneficiaries.size() == 1 }">
-                                                <option value="${insurancePolicy.beneficiaries.iterator().next().level}" Selected>${insurancePolicy.beneficiaries.iterator().next().level}</option>
-                                        </c:if>
+                        				<option value="${level}" Selected >${level}</option>
                         				<option value="1">1</option>
                         				<option value="2">2</option>
                         				<option value="3">3</option>

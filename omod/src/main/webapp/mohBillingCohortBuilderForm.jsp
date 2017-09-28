@@ -129,22 +129,18 @@ a.print {
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*insuranceRate }" type="number" pattern="#.##"/></td>
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*patientRate }" type="number" pattern="#.##"/></td>
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountPaidByCons}" type="number" pattern="#.##"/></td>
-			<c:if test="${totalAmountPaidByCons >= (totalAmountByConsom*patientRate) && not empty c.getPatientBill().getPayments()}">
+			<c:if test="${totalAmountPaidByCons >= (totalAmountByConsom*patientRate) && not empty c.patientBill.payments}">
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">FULLY PAID</td>
 			</c:if>
-			<c:if test="${(totalAmountPaidByCons!='0') && (totalAmountPaidByCons < (totalAmountByConsom*patientRate)) && not empty c.getPatientBill().getPayments()}">
+			<c:if test="${(totalAmountPaidByCons!='0') && (totalAmountPaidByCons < (totalAmountByConsom*patientRate)) && not empty not empty c.patientBill.payments}">
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">PARTLY PAID</td>
 			</c:if>
-			<!-- <c:if test="${totalAmountPaidByCons=='0'&& (patientRate!='0') && fn:length(c.getPatientBill().getPayments()) eq 0} ">
-			<td class="rowAmountValue" style="color: red; font-weight: bold;">UNPAID</td>
-			</c:if>
-			-->
-			<c:if test="${empty c.getPatientBill().getPayments()}">
+			<c:if test="${empty c.patientBill.payments}">
 				<td class="rowAmountValue" style="color: red; font-weight: bold;">UNPAID</td>
             </c:if>
 
             <c:choose>
-                     <c:when test = "${c.getGlobalBill().getClosingDate()!=null}">
+                     <c:when test = "${c.globalBill.closingDate!=null}">
                         <td class="rowAmountValue" style="color: green; font-weight: bold;">DISCHARGED</td>
                      </c:when>
 

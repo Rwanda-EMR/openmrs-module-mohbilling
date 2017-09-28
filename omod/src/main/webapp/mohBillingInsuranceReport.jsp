@@ -110,9 +110,9 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insuranceCardNo}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.company}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.age}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.beneficiary.patient.getBirthdate()}" />  </td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.beneficiary.patient.birthdate}" />  </td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.gender}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.consommation.getCreator().getPerson().getPersonName().getFamilyName()}  ${asr.consommation.getCreator().getPerson().getPersonName().getGivenName()}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.consommation.creator.familyName}  ${asr.consommation.creator.givenName}</td>
 
 			
 			<c:forEach items="${asr.revenues }" var="revenue">
@@ -122,7 +122,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 				<c:if test="${patientRate==0}">
 					<c:set var="amount" value="0" />
 					<c:forEach items="${revenue.billItems}" var="item">
-						<c:set var="amount" value="${amount + item.service.maximaToPay}" />
+						<c:set var="amount" value="${amount + (item.service.maximaToPay)*(item.quantity)}" />
 					</c:forEach>
                  	<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${amount}" type="number" pattern="#.##"/></td>
                  </c:if>
