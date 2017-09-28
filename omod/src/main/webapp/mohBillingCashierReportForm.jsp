@@ -68,6 +68,7 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 		<th class="columnHeader">${s.service}</th>	
 		</c:forEach> 
 		<th class="columnHeader"><b>TOTAL</b></th>
+		<th class="columnHeader"><b>AUTHER TOTAL</b></th>
 	</tr>
 
  	<c:forEach items="${paymentRevenues}" var="pr" varStatus="status">
@@ -79,6 +80,8 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 		 <td><fmt:formatNumber value="${sr.paidAmount}" type="number" pattern="#.##"/></td>
 	  </c:forEach>
 	  <td><b><fmt:formatNumber value="${pr.amount}" type="number" pattern="#.##"/></b></td>
+	 <c:set var="pt" value="${pr.payment}"/>
+	  <td><b><fmt:formatNumber value="${pt.amountPaid}" type="number" pattern="#.##"/></b></td>
 	</tr>
 	</c:forEach> 
 	<tr>
@@ -88,6 +91,7 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 		<td class="rowValue"><b><fmt:formatNumber value="${st}" type="number" pattern="#.##"/></b></td>
 		</c:forEach> 
 		<td class="rowValue"><b><fmt:formatNumber value="${bigTotal}" type="number" pattern="#.##"/></b></td>
+		<td class="rowValue"><b><fmt:formatNumber value="${totalRevenueAmount}" type="number" pattern="#.##"/></b></td>
 	</tr>
 </table>
 

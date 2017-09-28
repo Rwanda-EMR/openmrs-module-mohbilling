@@ -200,7 +200,7 @@ public class MohBillingCashierReportController extends
 				 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 			User cashierUser=(User) request.getSession().getAttribute("collector");
 					String fileName = "cashierReport-"+df.format(new Date())+".pdf";
-			System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC:"+cashierUser.getPersonName().getFullName());
+			//System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC:"+cashierUser.getPersonName().getFullName());
 				    fexp.printCashierReport(request, response, amount,paymentRevenues,subTotals,bigTotal,totalPaid,fileName,cashierUser);
 			
 		}

@@ -31,6 +31,7 @@
 	<table>
 		<tr>
 			<th>#.</th>
+			<th>Created Date</>
 			<th>Consom ID</th>
 			<th>Service</th>
 			<th>created By</th>
@@ -46,6 +47,7 @@
 		<c:forEach items="${consommations}" var="consommation" varStatus="status">
 			<tr>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.createdDate}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.consommationId}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.department.name}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.creator.personName}</td>
