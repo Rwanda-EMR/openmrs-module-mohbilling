@@ -15,7 +15,12 @@ package org.openmrs.module.mohbilling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.Activator;
+import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.service.BillingService;
+
+import java.util.List;
 
 /**
  * This class contains the logic that is run every time this module is either
@@ -29,7 +34,9 @@ public class MohBillingActivator implements Activator {
 	 * @see org.openmrs.module.Activator#startup()
 	 */
 	public void startup() {
+
 		log.info("Starting MoH-Billing Module");
+
 	}
 
 	/**

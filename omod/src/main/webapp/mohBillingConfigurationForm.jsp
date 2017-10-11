@@ -8,6 +8,8 @@
 <openmrs:htmlInclude file="/dwr/interface/DWRAdministrationService.js" />
 <openmrs:htmlInclude file="/dwr/util.js" />
 
+<a href="billingConfig.form?updateInsurance=true">Update Insurance on Global bill</a>
+
 
 <openmrs:portlet url="globalProperties" parameters="title=${title}|propertyPrefix=mohbilling.|excludePrefix=mohbilling.started|hidePrefix=true"/>
 

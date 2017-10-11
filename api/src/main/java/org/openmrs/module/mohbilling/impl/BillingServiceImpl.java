@@ -872,6 +872,24 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	@Override
+	public List<GlobalBill> getGlobalBills() {
+		// TODO Auto-generated method stub
+		return billingDAO.getGlobalBills();
+	}
+
+
+	@Override
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2,Insurance insurance) {
+		// TODO Auto-generated method stub
+		return billingDAO.getGlobalBills(date1, date2,insurance);
+	}
+
+	@Override
+	public List<GlobalBill> getGlobalBillsWithNullInsurance(){
+		return billingDAO.getGlobalBillsWithNullInsurance();
+	}
+
+	@Override
 	public List<Consommation> getConsommationByGlobalBills(
 			List<GlobalBill> globalBills) {
 		return billingDAO.getConsommationByGlobalBills(globalBills);

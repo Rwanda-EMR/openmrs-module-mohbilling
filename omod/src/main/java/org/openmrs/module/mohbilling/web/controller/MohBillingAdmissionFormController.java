@@ -31,7 +31,8 @@ public class MohBillingAdmissionFormController extends
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
-		
+
+
 		ModelAndView mav = new ModelAndView();
 		InsurancePolicy ip =null;
 		String discharge = request.getParameter("discharge");
@@ -85,6 +86,7 @@ String diseaseType=request.getParameter("diseaseType");
 		gb.setBillIdentifier(ip.getInsuranceCardNo()+savedAdmission.getAdmissionId());
 		gb.setCreatedDate(new Date());
 		gb.setCreator(Context.getAuthenticatedUser());
+		gb.setInsurance((Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")))).getInsurance());
 		
 		gb =   GlobalBillUtil.saveGlobalBill(gb);
 		request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
@@ -119,9 +121,16 @@ String diseaseType=request.getParameter("diseaseType");
 		
 	}
 	if(request.getParameter("discharge")!=null){
+
+
+
+
 		discharge = request.getParameter("discharge");
 		gb = GlobalBillUtil.getGlobalBill(Integer.valueOf(request.getParameter("globalBillId")));
 		if(request.getParameter("edit")!=null){
+			if(gb.getAdmission().getInsurancePolicy().getInsurance()==null) {
+				gb.setInsurance(gb.getAdmission().getInsurancePolicy().getInsurance());
+			}
 		 gb.setAdmission(gb.getAdmission());
 		 gb.setBillIdentifier(gb.getBillIdentifier());
 		 gb.setGlobalAmount(gb.getGlobalAmount());

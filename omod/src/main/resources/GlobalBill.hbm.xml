@@ -27,5 +27,8 @@
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 		<many-to-one name="closedBy" class="org.openmrs.User" column="closed_by"/>
+
+		<many-to-one name="insurance" class="org.openmrs.module.mohbilling.model.Insurance"
+					 column="insurance_id" unique="false" not-null="true"        cascade="all" />
 	</class>	
 </hibernate-mapping>

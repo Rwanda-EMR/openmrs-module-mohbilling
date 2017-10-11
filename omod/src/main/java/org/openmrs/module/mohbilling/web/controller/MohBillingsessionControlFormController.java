@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
-public class MohBillingConfigurationFormController extends
+public class MohBillingsessionControlFormController extends
 		ParameterizableViewController {
 	protected final Log log = LogFactory.getLog(getClass());
 
@@ -30,20 +30,6 @@ public class MohBillingConfigurationFormController extends
 		ModelAndView mav = new ModelAndView();
 		
 		mav.setViewName(getViewName());
-
-
-		if(request.getParameter("updateInsurance")!=null){
-			// check null
-			List<GlobalBill> globalBillsWithNullInsurance= Context.getService(BillingService.class).getGlobalBills();
-			for (GlobalBill g:globalBillsWithNullInsurance){
-				if(g.getInsurance()==null) {
-				g.setInsurance(g.getAdmission().getInsurancePolicy().getInsurance());
-				Context.getService(BillingService.class).saveGlobalBill(g);
-				}
-			}
-			// end check null
-		}
-
 
 		return mav;
 	}

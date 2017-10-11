@@ -54,7 +54,7 @@ public class GlobalPropertyConfig {
 				   Integer serviceId = Integer.parseInt(tokenizer.nextToken());
 				   HopService service = HopServiceUtil.getHopServiceById(serviceId);
 				   services.add(service);
-					System.out.println("rrrrrrrrrrrrrrrrrrrrrrrrrrrrruuuuuuuuuuuuuuuuuuuuuuuuuouyt "+service.getName().toString());
+					//System.out.println("rrrrrrrrrrrrrrrrrrrrrrrrrrrrruuuuuuuuuuuuuuuuuuuuuuuuuouyt "+service.getName().toString());
 				        }
 			} catch (Exception e) {
 				// TODO: handle exception

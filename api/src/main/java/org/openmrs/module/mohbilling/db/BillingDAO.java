@@ -628,7 +628,19 @@ public interface BillingDAO {
 	 * @return list of Global bills
 	 */
 	public List<GlobalBill> getGlobalBills(Date date1, Date date2);
-	
+
+	/**
+	 * gets Global Bills between 2 dates
+	 * @param date1
+	 * @param date2
+	 * @param insurance
+	 * @return list of Global bills	 */
+
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2,Insurance insurance);
+
+	public List<GlobalBill> getGlobalBills();
+
+	public List<GlobalBill> getGlobalBillsWithNullInsurance();
 	/**
 	 * gets a list of consommations matching with a given global bill list
 	 * @param gb

@@ -405,6 +405,10 @@ public class ReportsUtil {
 	}
 	
 
+	public static List<GlobalBill> getGlobalBills(Date date1, Date date2,Insurance insurance){
+		return getService().getGlobalBills(date1,date2,insurance);
+	}
+
 	public static List<GlobalBill> getGlobalBills(Date date1, Date date2){
 		return getService().getGlobalBills(date1,date2);
 	}

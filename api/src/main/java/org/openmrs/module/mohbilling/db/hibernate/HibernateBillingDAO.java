@@ -1184,7 +1184,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill) {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Consommation.class);
 			               crit.add(Restrictions.eq("globalBill", globalBill));
-			               log.info("jjjjjjjjjjJJJJJJJJJJJJJJJJJJJJJJJJJJ "+crit.list());
+			              // log.info("jjjjjjjjjjJJJJJJJJJJJJJJJJJJJJJJJJJJ "+crit.list());
 			return crit.list();
 		}
 		/* (non-Javadoc)
@@ -1385,12 +1385,33 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 
 		@Override
-		public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
+		public List<GlobalBill> getGlobalBills(Date date1, Date date2,Insurance insurance) {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
 					.add(Restrictions.between("createdDate", date1, date2))
-					.add(Restrictions.eq("closed", true));
+					.add(Restrictions.eq("closed", true))
+					.add(Restrictions.eq("insurance", insurance));
 		return crit.list();
 		}
+
+	@Override
+	public List<GlobalBill> getGlobalBills() {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class);
+		return crit.list();
+	}
+
+	@Override
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+				.add(Restrictions.between("createdDate", date1, date2))
+				.add(Restrictions.eq("closed", true));
+		return crit.list();
+	}
+	@Override
+	public List<GlobalBill> getGlobalBillsWithNullInsurance() {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+				.add(Restrictions.eq("insurance", null));
+		return crit.list();
+	}
 
 		@Override
 		public List<Consommation> getConsommationByGlobalBills(

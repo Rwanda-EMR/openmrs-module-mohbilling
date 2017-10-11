@@ -40,6 +40,9 @@ a.print {
 
 <c:import url="mohBillingReportParameters.jsp" />
 
+
+<b>Big Report ? </b> <a href="billingsessionControl.form" target="_blank" > Click here</a> for auto reflesh after running a report
+
 <c:if test="${empty listOfAllServicesRevenue }">
  <div style="text-align: center;color: red;"><p>No Patient Bill found!</p></div>
 </c:if>
@@ -92,8 +95,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 	</tr>
     
 	<c:set var="patientRate" value="${100-insuranceRate}"/>
-	
-	
+
 	<c:forEach items="${listOfAllServicesRevenue}" var="asr" varStatus="status">
 
 		<tr>
@@ -142,8 +144,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100}" type="number" pattern="#.##"/></b> </td>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*insuranceRate/100}" type="number" pattern="#.##"/></b> </td>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*patientRate/100}" type="number" pattern="#.##"/></b> </td>
-</tr>	
-	
+</tr>
 
 </table>
 </div>
