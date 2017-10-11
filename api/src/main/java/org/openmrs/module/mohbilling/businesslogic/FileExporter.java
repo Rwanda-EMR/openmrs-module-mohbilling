@@ -204,17 +204,38 @@ public class FileExporter {
 		PdfPTable tableRight = new PdfPTable(1);
 		tableRight.setHorizontalAlignment(Element.ALIGN_RIGHT);
 
-		String itemName;
+		String itemNamep;
+		BigDecimal unitPricep;
+
+		for(PatientServiceBill psbitems : consommation.getBillItems()) {
+			if (!psbitems.isVoided()) {
+				number = number + 1;
+				BigDecimal itemCostp = psbitems.getQuantity().multiply(psbitems.getUnitPrice()).multiply(patientRate).divide(new BigDecimal(100));
+				itemNamep = psbitems.getService().getFacilityServicePrice().getName();
+				unitPricep = psbitems.getUnitPrice().multiply(patientRate).divide(new BigDecimal(100));
+				String itemDetailsp = number + ")" + itemNamep + " " + formatter.format(unitPricep) + " X " + psbitems.getQuantity() + " = " + formatter.format(itemCostp);
+
+				cell = new PdfPCell(fontSelector.process("" + itemDetailsp));
+				cell.setBorder(Rectangle.NO_BORDER);
+				if (number % 2 != 0) tableRight.addCell(cell);
+				else tableLeft.addCell(cell);
+			}
+		}
+
+
+		/*String itemName;
 		BigDecimal unitPrice,paidQty,itemPaidCost=new BigDecimal(0.0);
 		BigDecimal totalToBePaidByPatient = new BigDecimal(0.0);
+		*/
 		BigDecimal totalPaid = new BigDecimal(0.0);
+
 		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
 
 		if(consommation.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
 			paidItems= BillPaymentUtil.getOldPayments(payment);
 		}
 
-		for (PaidServiceBill service: paidItems) {
+		/*for (PaidServiceBill service: paidItems) {
 			number++;
 
 			BigDecimal itemCost = service.getBillItem().getQuantity().multiply(service.getBillItem().getUnitPrice().multiply(patientRate).divide(new BigDecimal(100)));
@@ -235,6 +256,7 @@ public class FileExporter {
 			cell.setBorder(Rectangle.NO_BORDER);
 			if(number%2!=0)tableRight.addCell(cell);else tableLeft.addCell(cell);
 		}
+		*/
 		PdfPCell c = new PdfPCell(tableRight);
 		c.setBorder(Rectangle.NO_BORDER);
 		table.addCell(c);
@@ -384,22 +406,22 @@ public class FileExporter {
 
 
 //if(!(consommation.getBeneficiary().getOwnerName()==null) && !(consommation.getBeneficiary().getOwnerCode()==null)) {
-	head2 = new PdfPCell(fontSelector.process("NAME(S) OF HOUSEHOLD HEAD: " + consommation.getBeneficiary().getOwnerName() + "\n"));
-	head2.setBorder(Rectangle.NO_BORDER);
-	heading2Tab.addCell(head2);
+		head2 = new PdfPCell(fontSelector.process("NAME(S) OF HOUSEHOLD HEAD: " + consommation.getBeneficiary().getOwnerName() + "\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
 
-	head2 = new PdfPCell(fontSelector.process("FAMILY'S/AFFILIATION CODE: " + consommation.getBeneficiary().getOwnerCode()+" / Company:" + consommation.getBeneficiary().getCompany()+ "\n"));
-	head2.setBorder(Rectangle.NO_BORDER);
-	heading2Tab.addCell(head2);
+		head2 = new PdfPCell(fontSelector.process("FAMILY'S/AFFILIATION CODE: " + consommation.getBeneficiary().getOwnerCode()+" / Company:" + consommation.getBeneficiary().getCompany()+ "\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
 
-	head2 = new PdfPCell(fontSelector.process("CATEGORY: " + consommation.getBeneficiary().getLevel() + "\n"));
-	head2.setBorder(Rectangle.NO_BORDER);
-	heading2Tab.addCell(head2);
+		head2 = new PdfPCell(fontSelector.process("CATEGORY: " + consommation.getBeneficiary().getLevel() + "\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
 
 
-	head2 = new PdfPCell(fontSelector.process("PHONE NO: "+consommation.getBeneficiary().getPatient().getAttribute("Phone number")+"\n"));
-	head2.setBorder(Rectangle.NO_BORDER);
-	heading2Tab.addCell(head2);
+		head2 = new PdfPCell(fontSelector.process("PHONE NO: "+consommation.getBeneficiary().getPatient().getAttribute("Phone number")+"\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
 
 	/*head2 = new PdfPCell(fontSelector.process("    "));
 	head2.setBorder(Rectangle.NO_BORDER);
@@ -1259,17 +1281,17 @@ public class FileExporter {
 
 			Person doctor=Context.getService(BillingService.class).getConsommation(c.getConsommationId()).getCreator().getPerson();
 			op.print(i
-							+ "," + f.format(c.getCreatedDate())
-							+ "," + c.getBeneficiary().getPatient().getPersonName()
-							+ "," + c.getBeneficiary().getOwnerName()
-							+ "," + c.getBeneficiary().getOwnerCode()
-							+ "," + c.getBeneficiary().getLevel()
-							+ "," + c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
-							+ "," + c.getBeneficiary().getCompany()
-							+ "," + c.getBeneficiary().getPatient().getAge()
-							+ "," + f.format(c.getBeneficiary().getPatient().getBirthdate())
-							+ "," + c.getBeneficiary().getPatient().getGender()
-							+ "," + doctor.getPersonName().getFamilyName()+" "+doctor.getPersonName().getGivenName()
+					+ "," + f.format(c.getCreatedDate())
+					+ "," + c.getBeneficiary().getPatient().getPersonName()
+					+ "," + c.getBeneficiary().getOwnerName()
+					+ "," + c.getBeneficiary().getOwnerCode()
+					+ "," + c.getBeneficiary().getLevel()
+					+ "," + c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+					+ "," + c.getBeneficiary().getCompany()
+					+ "," + c.getBeneficiary().getPatient().getAge()
+					+ "," + f.format(c.getBeneficiary().getPatient().getBirthdate())
+					+ "," + c.getBeneficiary().getPatient().getGender()
+					+ "," + doctor.getPersonName().getFamilyName()+" "+doctor.getPersonName().getGivenName()
 
 			);
 			//}

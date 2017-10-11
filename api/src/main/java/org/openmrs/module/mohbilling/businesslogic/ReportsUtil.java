@@ -431,23 +431,24 @@ public class ReportsUtil {
 	public static PaidServiceRevenue getPaidServiceRevenue(List<PaidServiceBill> paidItems, String categ){
 		BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
 		for (PaidServiceBill pi : paidItems) {
-			if(!pi.getVoided()){
-			if(categ.equals(pi.getBillItem().getHopService().getName())){
-				InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
-				float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
-				float pRate = (100f - insuranceRate) / 100f;
-				
-				if(insurancePolicy.getThirdParty()!=null){
-					float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
-					pRate = (100f - insuranceRate-thirdPartyRate) / 100f;
+			if (!pi.getVoided()) {
+				if (categ.equals(pi.getBillItem().getHopService().getName())) {
+					InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
+					if (insurancePolicy.getInsurance().getCurrentRate() != null) {
+						float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
+						float pRate = (100f - insuranceRate) / 100f;
+
+						if (insurancePolicy.getThirdParty() != null) {
+							float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
+							pRate = (100f - insuranceRate - thirdPartyRate) / 100f;
+						}
+						BigDecimal patientRte = new BigDecimal("" + pRate);
+						BigDecimal paidQty = pi.getPaidQty();
+						BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
+						paidAmountOnThisCategory = paidAmountOnThisCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));
+					}
 				}
-				BigDecimal patientRte = new BigDecimal(""+pRate);
-				
-				BigDecimal paidQty = pi.getPaidQty();
-				BigDecimal unitPrice =pi.getBillItem().getUnitPrice();
-				paidAmountOnThisCategory =paidAmountOnThisCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));	
 			}
-		}
 		}
 		PaidServiceRevenue paidRevenue = null;
 
@@ -712,13 +713,15 @@ public class ReportsUtil {
 	public static BigDecimal getTotalByCategorizedPaidItems(List<PaidServiceBill> paidItems,String category){
 		BigDecimal totalByCategory = new BigDecimal(0);
 			for (PaidServiceBill pi : paidItems) {
-				Float insuranceRate = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-				Float pRate = (100f - insuranceRate) / 100f;
-				BigDecimal patientRte = new BigDecimal(""+pRate);
-				if(pi.getBillItem().getHopService().getName().equals(category) && pi.getBillItem().getConsommation().getThirdPartyBill()==null){
-					BigDecimal reqQty = pi.getBillItem().getQuantity();
-					BigDecimal unitPrice =pi.getBillItem().getUnitPrice();
-					totalByCategory =totalByCategory.add(reqQty.multiply(unitPrice).multiply(patientRte));		
+				if (pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate() != null) {
+					Float insuranceRate = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+					Float pRate = (100f - insuranceRate) / 100f;
+					BigDecimal patientRte = new BigDecimal("" + pRate);
+					if (pi.getBillItem().getHopService().getName().equals(category) && pi.getBillItem().getConsommation().getThirdPartyBill() == null) {
+						BigDecimal reqQty = pi.getBillItem().getQuantity();
+						BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
+						totalByCategory = totalByCategory.add(reqQty.multiply(unitPrice).multiply(patientRte));
+					}
 				}
 			}
 		return totalByCategory;

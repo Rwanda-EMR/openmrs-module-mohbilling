@@ -98,7 +98,7 @@ public class BillPaymentUtil {
 
 	public static List<PaidServiceBill> getOldPayments(BillPayment payment) {
 		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
-		;
+
 		Consommation consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());
 		for (PatientServiceBill psb : consommation.getBillItems()) {
 			PaidServiceBill paidSb = new PaidServiceBill();
@@ -121,18 +121,19 @@ public class BillPaymentUtil {
 			//paidItems = new ArrayList<PaidServiceBill>();
 			//Consommation consommation = ConsommationUtil.getConsommationByPatientBill(bp.getPatientBill());
 			Consommation consommation = null;
-			if(!bp.getVoided())
+			if(!bp.getVoided() && ConsommationUtil.getConsommationByPatientBill(bp.getPatientBill())!=null) {
 				consommation = ConsommationUtil.getConsommationByPatientBill(bp.getPatientBill());
-			for (PatientServiceBill psb : consommation.getBillItems()) {
-				PaidServiceBill paidSb = new PaidServiceBill();
-				paidSb.setPaidQty(psb.getQuantity());
-				paidSb.setBillPayment(bp);
-				paidSb.setCreator(bp.getCreator());
-				paidSb.setCreatedDate(bp.getCreatedDate());
-				paidSb.setVoided(bp.getVoided());
-				paidSb.setBillItem(psb);
-				// BillPaymentUtil.createPaidServiceBill(paidSb);
-				paidItems.add(paidSb);
+				for (PatientServiceBill psb : consommation.getBillItems()) {
+					PaidServiceBill paidSb = new PaidServiceBill();
+					paidSb.setPaidQty(psb.getQuantity());
+					paidSb.setBillPayment(bp);
+					paidSb.setCreator(bp.getCreator());
+					paidSb.setCreatedDate(bp.getCreatedDate());
+					paidSb.setVoided(bp.getVoided());
+					paidSb.setBillItem(psb);
+					// BillPaymentUtil.createPaidServiceBill(paidSb);
+					paidItems.add(paidSb);
+				}
 			}
 		}
 		return paidItems;
