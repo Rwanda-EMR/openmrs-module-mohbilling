@@ -15,9 +15,11 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -69,12 +71,15 @@ public class MohBillingAdmissionFormController extends
 		admission.setDiseaseType(request.getParameter("diseaseType"));
 
 		//
+
+		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		Date now=sdf.parse(sdf.format(cal.getTime()));
 		Date exp = ip.getExpirationDate();
-		Date now = new Date();
+
 
 		Long diffPeriod=exp.getTime()-now.getTime();
 
-		//
 String diseaseType=request.getParameter("diseaseType");
 
 		if(!isPatientAdmitted(ip) && diffPeriod>=0 && diseaseType!=null && !diseaseType.equals("")){

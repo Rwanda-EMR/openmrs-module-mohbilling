@@ -137,7 +137,7 @@
 					onclick="showCalendar(this);" autocomplete="off" /></td>
 			</tr>
 			<tr>
-				<td>Expiration Date</td>
+				<td>Coverage EndDate</td>
 				<td><input
 					value="<openmrs:formatDate date='${insurancePolicy.expirationDate}' type="string"/>"
 					type="text" name="insurancePolicyExpirationDate" size="11"

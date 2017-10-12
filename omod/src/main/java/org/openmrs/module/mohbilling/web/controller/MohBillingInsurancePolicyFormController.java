@@ -337,8 +337,8 @@ try {
 Date exp=Context.getDateFormat().parse(request.getParameter("insurancePolicyExpirationDate"));
 Date now=Context.getDateFormat().parse(sdf.format(cal.getTime()));
 
-				System.out.println("Nowwwwwwwwwwwwwwwwwwwwww: "+now.toString());
-				System.out.println("Expiiiiiiiiiiiiiiiiiiiii: " + exp.toString());
+				//System.out.println("Nowwwwwwwwwwwwwwwwwwwwww: "+now.toString());
+				//System.out.println("Expiiiiiiiiiiiiiiiiiiiii: " + exp.toString());
 
 				if(exp.before(now)){
 					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
