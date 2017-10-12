@@ -19,7 +19,10 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -325,8 +328,26 @@ try {
 				//InsurancePolicyUtil.createInsurancePolicy(card);
 				//Context.getService(BillingService.class).saveInsurancePolicy(card);
 				InsurancePolicyUtil.createInsurancePolicy(card,b);
-				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
-				"The insurance policy has been saved successfully !");		
+
+				DateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+				Calendar cal = Calendar.getInstance();
+				System.out.println(sdf.format(cal.getTime()));
+
+Date exp=Context.getDateFormat().parse(request.getParameter("insurancePolicyExpirationDate"));
+Date now=Context.getDateFormat().parse(sdf.format(cal.getTime()));
+
+				System.out.println("Nowwwwwwwwwwwwwwwwwwwwww: "+now.toString());
+				System.out.println("Expiiiiiiiiiiiiiiiiiiiii: " + exp.toString());
+
+				if(exp.before(now)){
+					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+							"Attention!!!!!!!!! The insurance policy has been saved successfully! But you select past date");
+				}else {
+					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,"The insurance policy has been saved successfully !");
+				}
+
+
 			}
 			
 						

@@ -35,11 +35,11 @@ a.print {
 </style>
 
 <h2>
-	Cashier Daily Report
+	Detailed Cashier Daily Report
 </h2>
 
 <c:import url="mohBillingReportParameters.jsp" />
-
+<a href="beforeMigrationcashierReport.form">Click here</a> for summarized report
 <div>
 
 <c:if test="${empty paymentRevenues }">

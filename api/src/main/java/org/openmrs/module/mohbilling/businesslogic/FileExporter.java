@@ -954,7 +954,7 @@ public class FileExporter {
 
 		document.setPageSize(PageSize.A4.rotate());
 
-		Chunk chk = new Chunk("CASHIER DAILY REPORT");
+		Chunk chk = new Chunk("DETAILED CASHIER DAILY REPORT");
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();

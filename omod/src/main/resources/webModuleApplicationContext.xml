@@ -65,7 +65,7 @@
 				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortBuilderFormController</prop>
 				<prop key="module/@MODULE_ID@/depositReport.form">mohBillingDepositReportController</prop>
 				<prop key="module/@MODULE_ID@/billingsessionControl.form">mohBillingsessionControlFormController</prop>
-
+				<prop key="module/@MODULE_ID@/beforeMigrationcashierReport.form">beforemigrationmohBillingCashierReportController</prop>
 
 			</props>
 		</property>
@@ -233,6 +233,10 @@
 	<bean id="mohBillingsessionControlFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingsessionControlFormController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingsessionControlForm</value></property>
 	</bean>
+	<bean id="beforemigrationmohBillingCashierReportController" class="org.openmrs.module.mohbilling.web.controller.BeforeMigrationMohBillingCashierReportController">
+		<property name="viewName"><value>/module/mohbilling/beforeMigrationmohBillingCashierReportForm</value></property>
+	</bean>
+
 	<!-- /Controllers -->
 
 </beans>
