@@ -137,7 +137,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 	
 <tr>
 <td><b style="color: blue;">TOTAL</b></td>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 		<c:forEach items="${totals }" var="total">
 		  <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total}" type="number" pattern="#.##"/></b> </td>
 		</c:forEach>

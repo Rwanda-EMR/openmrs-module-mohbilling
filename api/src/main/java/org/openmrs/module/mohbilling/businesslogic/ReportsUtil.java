@@ -488,7 +488,9 @@ public class ReportsUtil {
 		for (String col : columns) {
 			if(getPaidServiceRevenue(itemsByDepart, col)!=null){
 			paidSr.add(getPaidServiceRevenue(itemsByDepart, col));
+			//totalByDepartment=totalByDepartment.add(getPaidServiceRevenue(itemsByDepart, col).getPaidAmount());
 			totalByDepartment=totalByDepartment.add(getPaidServiceRevenue(itemsByDepart, col).getPaidAmount());
+
 			}
 	    }
 		

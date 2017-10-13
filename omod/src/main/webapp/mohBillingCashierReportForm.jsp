@@ -67,8 +67,8 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 		<c:forEach items="${services}" var="s" varStatus="status">
 		<th class="columnHeader">${s.service}</th>	
 		</c:forEach> 
-		<th class="columnHeader"><b>TOTAL</b></th>
-		<th class="columnHeader"><b>AUTHER TOTAL</b></th>
+		<th class="columnHeader"><b>TOTAL Due</b></th>
+		<th class="columnHeader"><b>TOTAL Paid</b></th>
 	</tr>
 
  	<c:forEach items="${paymentRevenues}" var="pr" varStatus="status">

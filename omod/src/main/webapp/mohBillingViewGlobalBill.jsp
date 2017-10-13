@@ -78,8 +78,8 @@
 		  <th>Quantity</th>
 		  <th>Unit Price</th>
 		  <th>100%</th>
-		  <th><b>${insuranceRate}</b>%</th>
-		  <th><b>${patientRate}</b> %</th>			
+		  <th><b>Insurance rate: ${insuranceRate}</b>%</th>
+		  <th><b>Patient rate: ${patientRate}</b> %</th>
 		</tr>
           <c:set var="total100" value="0"/>
       	 <c:set var="totalInsurance" value="0"/>
