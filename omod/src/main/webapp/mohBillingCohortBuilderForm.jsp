@@ -75,7 +75,7 @@ a.print {
 		<td>Bill Status</td>
 		<td>Admission Status</td>
 		<td></td>
-		<td>Collector</>
+		<td>Collector<td/>
 
 	</tr>
 	<c:set var="totalAmountAllConsom" value="0"/>

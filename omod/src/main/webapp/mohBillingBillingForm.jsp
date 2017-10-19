@@ -188,7 +188,7 @@ $j(document).ready(function(){
 		  var sCategories = $j('#categories').length;
 		  if(dep>0&&sCategories!=0){
 		   $j('#depSubmitBtn').hide();
-		   $j('#selectedDepIdx').html("(ADDING ITEMS)");
+		   $j('#selectedDepIdx').html("(Please!!! Add 1 item at time)");
 		   $j('#departments').attr('disabled', true);
 	      }
 		  else{
