@@ -35,12 +35,26 @@ public class MohBillingConfigurationFormController extends
 		if(request.getParameter("updateInsurance")!=null){
 			// check null
 			List<GlobalBill> globalBillsWithNullInsurance= Context.getService(BillingService.class).getGlobalBills();
-			for (GlobalBill g:globalBillsWithNullInsurance){
+			int i;
+			if(globalBillsWithNullInsurance.size()>0) {
+				for (i = globalBillsWithNullInsurance.size(); i > 0; i--) {
+					GlobalBill g = globalBillsWithNullInsurance.get(i - 1);
+					if (g.getInsurance() == null) {
+						g.setInsurance(g.getAdmission().getInsurancePolicy().getInsurance());
+						Context.getService(BillingService.class).saveGlobalBill(g);
+					}
+				}
+			}
+
+
+
+
+		/*	for (GlobalBill g:globalBillsWithNullInsurance){
 				if(g.getInsurance()==null) {
 				g.setInsurance(g.getAdmission().getInsurancePolicy().getInsurance());
 				Context.getService(BillingService.class).saveGlobalBill(g);
 				}
-			}
+			}*/
 			// end check null
 		}
 
