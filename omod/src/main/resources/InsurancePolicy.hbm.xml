@@ -31,7 +31,7 @@
 			cascade="all-delete-orphan" sort="natural"
 			order-by="created_date asc">
 			<key column="insurance_policy_id" />
-			<one-to-many class="Beneficiary" />
+			<one-to-many class="org.openmrs.module.mohbilling.model.Beneficiary" />
 		</set>
 		 <set name="admissions" table="moh_bill_admission" 
 				inverse="true" lazy="true" fetch="select">

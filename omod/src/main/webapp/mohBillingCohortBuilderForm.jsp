@@ -48,13 +48,11 @@ a.print {
 <c:if test="${not empty consommations }">
 <br/>
 <b class="boxHeader">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+
 <a href="#" class="print">PDF</a></b>
 <div class="box">
 <table width="99%">
@@ -62,6 +60,7 @@ a.print {
 		<td>No</td>
 		<td>Date</td>
 		<td>Department</td>
+		<td> Creator</td>
 		<td>Policy Id Number</td>
 		<td>Beneficiary</td>
 
@@ -72,9 +71,11 @@ a.print {
 		<td>Insurance due</td>
 		<td>Patient Due</td>
 		<td>Paid Amount</td>
-		<td>Status</td>
+		<td>Bill Status</td>
+		<td>Admission Status</td>
 		<td></td>
-		
+		<td>Collector<td/>
+
 	</tr>
 	<c:set var="totalAmountAllConsom" value="0"/>
 	<c:set var="totalAmountPaidAllConsom" value="0"/>
@@ -87,6 +88,7 @@ a.print {
 			<fmt:formatDate pattern="yyyy-MM-dd" value="${c.createdDate}" />
 			</td>
 			<td class="rowValue">${c.department.name}</td>
+			<td class="rowValue">${c.creator.person.familyName}&nbsp;${c.creator.person.givenName}</td>
 			<td class="rowValue"><b>${c.beneficiary.policyIdNumber}</b></td>
 			<td class="rowValue">${c.beneficiary.patient.personName}</td>
 			<td class="rowValue">
@@ -104,7 +106,7 @@ a.print {
 				 <c:set var="patientRate" value="${(100-c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100}"/>
 				<c:set var="totalAmountByConsom" value="0"/>
 				<c:forEach items="${c.billItems}" var="item" varStatus="status">
-
+                    <c:if test="${not item.voided}">
 					<tr>
 					    <td>${status.count}-</td>
 						<td>
@@ -116,6 +118,7 @@ a.print {
 						<td colspan="1">${item.unitPrice*item.quantity}</td>
 						<c:set var="totalAmountByConsom" value="${totalAmountByConsom+(item.unitPrice*item.quantity)}" />
 					</tr>
+					</c:if>
 				</c:forEach>
 			</table>
 			</td>
@@ -125,30 +128,44 @@ a.print {
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*insuranceRate }" type="number" pattern="#.##"/></td>
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*patientRate }" type="number" pattern="#.##"/></td>
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountPaidByCons}" type="number" pattern="#.##"/></td>
-			<c:if test="${totalAmountPaidByCons >= (totalAmountByConsom*patientRate)}">
+			<c:if test="${totalAmountPaidByCons >= (totalAmountByConsom*patientRate) && not empty c.patientBill.payments}">
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">FULLY PAID</td>
 			</c:if>
-			<c:if test="${(totalAmountPaidByCons!='0') && (totalAmountPaidByCons < (totalAmountByConsom*patientRate))}">
+			<c:if test="${(totalAmountPaidByCons!='0') && (totalAmountPaidByCons < (totalAmountByConsom*patientRate)) && not empty not empty c.patientBill.payments}">
 			<td class="rowAmountValue" style="color: green; font-weight: bold;">PARTLY PAID</td>
 			</c:if>
-			<c:if test="${totalAmountPaidByCons=='0'}">
-			<td class="rowAmountValue" style="color: red; font-weight: bold;">UNPAID</td>
-			</c:if>
-			
+			<c:if test="${empty c.patientBill.payments}">
+				<td class="rowAmountValue" style="color: red; font-weight: bold;">UNPAID</td>
+            </c:if>
+
+            <c:choose>
+                     <c:when test = "${c.globalBill.closingDate!=null}">
+                        <td class="rowAmountValue" style="color: green; font-weight: bold;">DISCHARGED</td>
+                     </c:when>
+
+                    <c:otherwise>
+                        <td class="rowAmountValue" style="color: red; font-weight: bold;">NOT DISCHARGED</td>
+                     </c:otherwise>
+            </c:choose>
+
 			<td class="rowTotalValue"><a href="patientBillPayment.form?consommationId=${c.consommationId}">View/</a></td>
+             <c:forEach items="${c.patientBill.payments}" var="payment" varStatus="status">
+                                 <td class="rowValue">${payment.collector.person.familyName}&nbsp;</br>${payment.collector.person.givenName}</td>
+              </c:forEach>
+
 		</tr>
-	<c:set var="totalAmountAllConsom" value="${totalAmountAllConsom+totalAmountByConsom}" /> 
-	<c:set var="totalAmountPaidAllConsom" value="${totalAmountPaidAllConsom+totalAmountPaidByCons}" /> 
-	<c:set var="totalInsurances" value="${totalInsurances+(totalAmountByConsom*insuranceRate)}" /> 
-	<c:set var="totalPatients" value="${totalPatients+(totalAmountByConsom*patientRate)}" /> 
+	<c:set var="totalAmountAllConsom" value="${totalAmountAllConsom+totalAmountByConsom}" />
+	<c:set var="totalAmountPaidAllConsom" value="${totalAmountPaidAllConsom+totalAmountPaidByCons}" />
+	<c:set var="totalInsurances" value="${totalInsurances+(totalAmountByConsom*insuranceRate)}" />
+	<c:set var="totalPatients" value="${totalPatients+(totalAmountByConsom*patientRate)}" />
 	</c:forEach>
 	<tr>
-		<td class="rowTotalValue" colspan="7"><b style="color: blue;font-size: 14px;">TOTAL</b></td>
+		<td class="rowTotalValue" colspan="8"><b style="color: blue;font-size: 14px;">TOTAL</b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalAmountAllConsom}" type="number" pattern="#.##"/></b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalInsurances}" type="number" pattern="#.##"/></b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalPatients}" type="number" pattern="#.##"/></b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalAmountPaidAllConsom}" type="number" pattern="#.##"/></b></td>
-		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"></b></td>		
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"></b></td>
 		<td class="rowTotalValue"><b style="color: red;font-size: 14px;"></b></td>
 	</tr>
 </table>

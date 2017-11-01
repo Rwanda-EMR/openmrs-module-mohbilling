@@ -17,10 +17,10 @@
 							<td>On Or After <input type="text" size="11"
 								value="${startDate}" name="startDate"
 								onclick="showCalendar(this)" /></td>
-							<td>
+						<!--	<td>
 							<select name="startHour" class="time">
-							<option value="00">00</option>
-							<c:forEach var="counter" begin="1" end="9">
+							<option value="">hh</option>
+							<c:forEach var="counter" begin="0" end="9">
    								  <option value="0${counter}">0${counter}</option>
 							 </c:forEach>
 							 
@@ -32,8 +32,8 @@
 							</td>
 						 <td>
 							<select name="startMinute" class="time">
-							<option value="00">00</option>
-							 <c:forEach var="i" begin="1" end="9">
+							<option value="">mm</option>
+							 <c:forEach var="i" begin="0" end="9">
 							 <option value="0${i}">0${i}</option>
 							 </c:forEach>
 							 
@@ -42,7 +42,7 @@
 							 </c:forEach>
 							 
 				             </select>
-						  </td>
+						  </td>  -->
 						  <td class="deposit">Type</td>
 						  <td class="deposit">
 						  <select name="transactionType">
@@ -57,10 +57,10 @@
 						<tr>
 							<td>On Or Before <input type="text" size="11"
 								value="${endDate}" name="endDate" onclick="showCalendar(this)" /></td>
-							<td>
+						<!--	<td>
 							<select name="endHour" class="time">
-							<option value="00">00</option>
-							 <c:forEach var="counter" begin="1" end="9">
+							<option value="">hh</option>
+							 <c:forEach var="counter" begin="0" end="9">
 							 <option value="0${counter}">0${counter}</option>
 							 </c:forEach>
 							 
@@ -73,8 +73,8 @@
 
                            <td>
 							<select name="endMinute" class="time">
-							<option value="00">00</option>
-							 <c:forEach var="i" begin="1" end="9">
+							<option value="">mm</option>
+							 <c:forEach var="i" begin="0" end="9">
 							 <option value="0${i}">0${i}</option>
 							 </c:forEach>
 							 
@@ -83,7 +83,7 @@
 							 </c:forEach>
 							 
 				             </select>
-						  </td>
+						  </td> -->
 						  
 						  	<td class="billStatus">Bill Status</td>
 							<td class="billStatus">

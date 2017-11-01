@@ -45,7 +45,7 @@ public class InsuranceBillUtil {
 		 
 		InsuranceRate validRate = insurance.getRateOnDate(new Date());
 		 
-	    InsuranceBill  ib = new InsuranceBill();
+	    InsuranceBill ib = new InsuranceBill();
 		  BigDecimal ibAmount =totalAmount.multiply(BigDecimal.valueOf((validRate.getRate())/100));
 		  ib.setAmount(ibAmount);
 		  ib.setCreatedDate(new Date());

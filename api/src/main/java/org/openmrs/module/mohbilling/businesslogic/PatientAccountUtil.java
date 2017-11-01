@@ -52,7 +52,7 @@ public class PatientAccountUtil {
 		else return false;		
 	}
 	public static Transaction createTransaction(Transaction transaction){
-		PatientAccount pAccount = new  PatientAccount();
+		PatientAccount pAccount = new PatientAccount();
 
 		if (transaction != null) {
 			pAccount = transaction.getPatientAccount();

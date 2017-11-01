@@ -1,6 +1,7 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <openmrs:require privilege="Create Insurance Policy"
 	otherwise="/login.htm"
 	redirect="/module/@MODULE_ID@/insurancePolicy.form" />
@@ -93,7 +94,9 @@
 </h2>
 
 <form action="insurancePolicy.form?save=true" method="post">
-
+	<c:if test="${null ne param.insurancePolicyId}">
+		<input type="hidden" value="${param.insurancePolicyId}" name="insurancePolicyId" />
+	</c:if>
 	<b class="boxHeader">Section I >> Owner</b>
 	<div class="box">
 		<table>
@@ -113,6 +116,7 @@
 			<tr>
 				<td>Insurance Name</td>
 				<td><select name="insurancePolicyInsurance">
+						<option value=""><b>Please select Insurance</b></option>
 						<c:forEach items="${insurances}" var="insurance">
 							<option value="${insurance.insuranceId}"
 								<c:if test="${insurance.insuranceId==insurancePolicy.insurance.insuranceId}">selected='selected'</c:if>>${insurance.name}</option>
@@ -132,11 +136,20 @@
 					onclick="showCalendar(this);" autocomplete="off" /></td>
 			</tr>
 			<tr>
-				<td>Expiration Date</td>
+				<td>Coverage EndDate</td>
 				<td><input
 					value="<openmrs:formatDate date='${insurancePolicy.expirationDate}' type="string"/>"
 					type="text" name="insurancePolicyExpirationDate" size="11"
-					onclick="showCalendar(this);" autocomplete="off" /></td>
+					onclick="showCalendar(this);" autocomplete="off" />
+
+					<jsp:useBean id="now" class="java.util.Date" />
+                    <fmt:formatDate var="year1" value="${now}" pattern="yyyy-MM-dd" />
+                    <fmt:formatDate var="year2" value="${insurancePolicy.expirationDate}" pattern="yyyy-MM-dd" />
+                    <c:if test="${year2 lt year1}">
+                    <font color="red"><b>Expired</b></font>
+                    </c:if>
+
+					</td>
 			</tr>
 
 			<tr>
@@ -166,7 +179,52 @@
 	<br />
 
 
+
+
 <!-- Adding Beneficiaries -->
+
+<b class="boxHeader">Section III >> Ownership Info</b>
+	<div class="box">
+	<c:forEach items='${insurancePolicy.beneficiaries}' var='bn'>
+                                        <c:set var="company" value="${bn.company}"/>
+                                        <c:set var="ownerName" value="${bn.ownerName}"/>
+                                        <c:set var="ownerCode" value="${bn.ownerCode}"/>
+                                        <c:set var="level" value="${bn.level}"/>
+     </c:forEach>
+		<table>
+					<tr>
+                    				<td>Company Name</td>
+                    				<td>
+                    				<input type="text" name="company" size="30" value="${company}"/></td>
+                    </tr>
+			<tr>
+            				<td>Head Household Name/Insurance Owner</td>
+            				<td><input type="text" name="ownerName" size="30" value="${ownerName}"/></td>
+
+
+
+
+            </tr>
+            <tr>
+                        				<td>Family/Affiliation code</td>
+                        				<td><input type="text" name="ownerCode" size="30" value="${ownerCode}"/></td>
+
+
+            </tr>
+            <tr>
+                        				<td>Category</td>
+                        				<td><select name="level">
+                        				<option value="">Select level please</option>
+                        				<option value="${level}" Selected >${level}</option>
+                        				<option value="1">1</option>
+                        				<option value="2">2</option>
+                        				<option value="3">3</option>
+                        				<option value="4">4</option>
+                        				</select></td>
+             </tr>
+		</table>
+	</div>
+	<br />
 
 
 	<br /> <input type="submit" value="Save Insurance Policy"

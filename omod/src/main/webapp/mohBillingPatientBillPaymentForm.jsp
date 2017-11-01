@@ -6,6 +6,10 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 
+<script type="text/javascript">
+			var $j = jQuery.noConflict();
+		</script>
+
  <script type="text/javascript">
         $j(function () {
             var total;
@@ -149,10 +153,13 @@ function recalculateTotals() {
 
 <table>
 <tr>
-<td>Consommation # : <b>${consommation.consommationId}(${consommation.department.name})</b></td>
+<td>Consommation # : <b>${consommation.consommationId}(${consommation.department.name})</b>
+</td>
 <td>Global Bill # : <b>${consommation.globalBill.billIdentifier}</b></td>
 <c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
+<openmrs:hasPrivilege privilege="Add Item">
 <td><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
+</openmrs:hasPrivilege>
 </c:if>
 </tr>
 </table>
@@ -199,7 +206,8 @@ function recalculateTotals() {
 					<input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${pendingQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId});validateQties(${billItem.patientServiceBillId})" style="text-align: center;" class="paying"/>
 					</c:if>
 					<c:if test="${pendingQty<=0}">
-					<input type="text" size="4" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="F.PAID" style="text-align: center;border: none;" disabled="disabled"/>
+
+						<input type="text" size="4" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="F.PAID" style="text-align: center;border: none;" disabled="disabled"/>
 					</c:if>
 					</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><input type="text"  size="10" id="up_${billItem.patientServiceBillId}"  value="${billItem.unitPrice}" style="border:none; text-align: center;"/></td>
@@ -207,12 +215,20 @@ function recalculateTotals() {
 	
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">					  
 						 <input type="hidden" id="insuranceRate" value="${(insurancePolicy.insurance.currentRate.rate)/100 }"/>
+				         <!-- <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate)/100}"/> -->
+				         
+				         <c:if test="${insurancePolicy.thirdParty!=null}">
+				          <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate-insurancePolicy.thirdParty.rate)/100}"/>
+				         </c:if>
+				         <c:if test="${insurancePolicy.thirdParty==null}">
 				         <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate)/100}"/>
+				         </c:if>
+				         
 						<input value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" id="insuranceCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="insuranceCol"/>
 						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}" />
 					</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}">							
-						 <!-- <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/> -->
+					<!-- <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/> -->
 						<input value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" id="patientCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="patientCol"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
 					</td>							
@@ -254,24 +270,26 @@ function recalculateTotals() {
 				 -->			
 			</tr>
 			<tr>
-				<td><b>Received Date</b></td>
+				<td><b>Received Date</b>
+				</td>
 				<td colspan="2"><input type="text" autocomplete="off" name="dateBillReceived" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Paid by Third Part</b></div></td>
 				<td><div class="amount">${consommation.thirdPartyBill.amount}</div></td>
-				
-			<!-- 
+			<!--
+
+
 							<td><div style="text-align: right;"><b>Current Payment Amount</b></div></td>
 				<td><div class="amount">1800</div></td>	
-			 -->	
-								
+			 -->
 			</tr>
+
 			<tr>
 				<td></td>
 				<td colspan="2"></td>
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Rest</b></div></td>
-				<!-- <td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td>	 -->
+			<!-- <td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td> -->
 				<td>
 				<div class="amount" style="text-align: right"><b>
 				 <input type="text" disabled="disabled" value="${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}" id="rest" style="border: none;background-color: #aabbcc"/>
@@ -310,7 +328,11 @@ function recalculateTotals() {
 					<td colspan="2"><input type="submit"  value="Confirm Payment" style="min-width: 200px;" class="submitBtn"/></td>
 				
 			 <td colspan="3"></td>
-			</tr>			
+			</tr>
+			<tr></tr>
+			<tr>
+			<td colspan="2"><div><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&type=epson">EPSON Printer</a></div></td>
+			</tr>
 		</table>
 	</form>
 	<div style="text-align: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div>

@@ -681,6 +681,8 @@ public class InsuranceUtil {
 		categories.add(Category.NEUROLOGIE.getDescription());
 		categories.add(Category.AUTRES.getDescription());
 		categories.add(Category.AMBULANCE.getDescription());
+		categories.add(Category.GYNECO_OBSTETRIQUE.getDescription());
+		categories.add(Category.POLYCLINIQUE.getDescription());
 
 		return categories;
 	}

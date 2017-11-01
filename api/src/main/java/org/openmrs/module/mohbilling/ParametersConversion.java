@@ -48,14 +48,23 @@ public class ParametersConversion {
 		
 	}
 	public static  Date getEndDate(String endDateStr,String endHourStr,String endMinuteStr){
-		
+
 		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		DateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
 		
-		String endTimeStr = endHourStr + ":" + endMinuteStr + ":59";
+		//String endTimeStr = endHourStr + ":" + endMinuteStr + ":59";
+		String endTimeStr = "23:59:59";
+
 
 		Date endDate =null;
 		try {
+			endDate = sdf.parse(endDateStr.split("/")[2] + "-" + endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0] + " " + endTimeStr);
+		}catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		/*try {
 			if(!endHourStr.equals("") && endMinuteStr!=null){
 			endDate = sdf.parse(endDateStr.split("/")[2] + "-"
 					+ endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0]
@@ -71,6 +80,7 @@ public class ParametersConversion {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		*/
 		return endDate;
 		
 	}

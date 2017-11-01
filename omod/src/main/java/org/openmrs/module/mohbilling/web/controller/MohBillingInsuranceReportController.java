@@ -59,13 +59,13 @@ public class MohBillingInsuranceReportController extends
          	BigDecimal total100 = new BigDecimal(0);
 
 			// get all consommation with globalbill closed
-				List<GlobalBill> globalBills = ReportsUtil.getGlobalBills(startDate, endDate);
-				List<GlobalBill> globalBillsByInsuranceType = new ArrayList<GlobalBill>();
+				List<GlobalBill> globalBills = ReportsUtil.getGlobalBills(startDate, endDate, insurance);
+				/*List<GlobalBill> globalBillsByInsuranceType = new ArrayList<GlobalBill>();
 				for (GlobalBill gb : globalBills) {
 					if(gb.getAdmission().getInsurancePolicy().getInsurance().getInsuranceId()==insurance.getInsuranceId())
-						if(gb.isClosed())
+						//if(gb.isClosed())
 						globalBillsByInsuranceType.add(gb);
-				}
+				}*/
 				
 				List<AllServicesRevenue> listOfAllServicesRevenue = new ArrayList<AllServicesRevenue>();
 				
@@ -76,12 +76,13 @@ public class MohBillingInsuranceReportController extends
 
 			try {					 
 			if(startDate!=null && endDate!=null){
-				
-				for (GlobalBill gb : globalBillsByInsuranceType) {
+				int countGlobalBill=1;
+				//for (GlobalBill gb : globalBillsByInsuranceType) {
+				for (GlobalBill gb : globalBills) {
 					BigDecimal globalBillAmount = new BigDecimal(0);
 					if(ReportsUtil.getConsommationByGlobalBill(gb)!=null)
 					initialConsom = ReportsUtil.getConsommationByGlobalBill(gb);
-					
+
 					List<ServiceRevenue> insuranceColumnsRevenues=new ArrayList<ServiceRevenue>();
 					if(gb.isClosed()){
 					List<PatientServiceBill> gbItems = ReportsUtil.getAllItemsByGlobalBill(gb);
@@ -90,31 +91,35 @@ public class MohBillingInsuranceReportController extends
 						 for (HopService hopService : reportColumns) {
 							 if(!columns.contains(hopService.getName()))
 							 columns.add(hopService.getName());
-							 
+
 							 insuranceColumnsRevenues.add(ReportsUtil.getServiceRevenues(gbItems, hopService));
-							 
+
 						}
-						 
+
 						 ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.IMAGING");
 						 insuranceColumnsRevenues.add(imagingRevenue);
-						 
-						 
+
+
 						 ServiceRevenue proceduresRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.PROCEDURES");
 						 insuranceColumnsRevenues.add(proceduresRevenue);
-						 
+
 						 globalBillAmount=globalBillAmount.add(ReportsUtil.getTotalByItems(gbItems));
-						 
+
 					 //populate asr
 					 AllServicesRevenue servicesRevenu = new AllServicesRevenue(new BigDecimal(0), new BigDecimal(0), "2016-09-11");
 					 servicesRevenu.setRevenues(insuranceColumnsRevenues);
 					 servicesRevenu.setAllDueAmounts(globalBillAmount);
 					 servicesRevenu.setConsommation(initialConsom);
-					 listOfAllServicesRevenue.add(servicesRevenu); 
+					 listOfAllServicesRevenue.add(servicesRevenu);
+						//System.out.println("Global bill: " + countGlobalBill+" / "+globalBills.size());
+
+						System.out.println("Progressssssssss: " + (countGlobalBill*100) / globalBills.size()+"%");
+						//log.info("Global bill: " + countGlobalBill+" / "+globalBills.size());
 			}
-					
+					countGlobalBill++;
 		  }
-		}		
-				List<PatientServiceBill> allItems = ReportsUtil.getBillItemsByAllGlobalBills(globalBillsByInsuranceType);
+		}
+				List<PatientServiceBill> allItems = ReportsUtil.getBillItemsByAllGlobalBills(globalBills);
 				for (String category : columns) {
 					totals.add(ReportsUtil.getTotalByCategorizedItems(allItems, category));
 					total100=total100.add(ReportsUtil.getTotalByCategorizedItems(allItems, category));

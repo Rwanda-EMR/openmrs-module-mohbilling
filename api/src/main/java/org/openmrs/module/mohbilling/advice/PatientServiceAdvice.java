@@ -32,7 +32,7 @@ public class PatientServiceAdvice implements AfterReturningAdvice {
 	private Log log = LogFactory.getLog(this.getClass());
 
 	/**
-	 * @see org.springframework.aop.AfterReturningAdvice#afterReturning(Object,
+	 * @see AfterReturningAdvice#afterReturning(Object,
 	 *      Method, Object[], Object)
 	 */
 	@Override

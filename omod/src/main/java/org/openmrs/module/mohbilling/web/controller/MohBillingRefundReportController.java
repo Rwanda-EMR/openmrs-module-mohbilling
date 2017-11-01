@@ -40,9 +40,8 @@ public class MohBillingRefundReportController extends ParameterizableViewControl
 			String collectorStr = null;
 			String insuranceStr = null;
 			String thirdPartyStr = null;
-			
-			
-			 // marameters
+
+			  // marameters
 			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
 			
 			 Date startDate = (Date) params[0];
@@ -52,7 +51,7 @@ public class MohBillingRefundReportController extends ParameterizableViewControl
              List<PaymentRefund> confirmedRefunds = PaymentRefundUtil.getRefundsBetweenDatesAndByCollector(startDate, endDate, collector);
 
       		mav.addObject("confirmedRefunds", confirmedRefunds);
-			 
+
 	}
 
 		return mav;

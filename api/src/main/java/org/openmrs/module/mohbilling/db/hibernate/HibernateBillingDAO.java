@@ -608,7 +608,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	/**
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getFacilityServiceByConcept(org.openmrs.Concept)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getFacilityServiceByConcept(Concept)
 	 */
 	@Override
 	public FacilityServicePrice getFacilityServiceByConcept(Concept concept) {
@@ -669,6 +669,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	public List<BillPayment> getBillPaymentsByDateAndCollector(Date startDate,	Date endDate, User collector) {
 		Criteria crit = sessionFactory.getCurrentSession().createCriteria(BillPayment.class);
 				crit.add(Restrictions.between("dateReceived", startDate, endDate));
+		        crit.add(Restrictions.eq("voided", false));
 				if(collector!=null)
 				crit.add(Restrictions.eq("collector", collector));
 
@@ -895,11 +896,10 @@ public class HibernateBillingDAO implements BillingDAO {
 		//Criteria crit = sessionFactory.getCurrentSession().createCriteria(ServiceCategory.class).add(Restrictions.eq("insurance", rama));
 
 		//List<ServiceCategory> ramaSC = crit.list();
-		List <Object[]> ramaSC=sessionFactory.getCurrentSession().createSQLQuery("select distinct name,description from moh_bill_service_category").list();
+		List <Object[]> ramaSC=sessionFactory.getCurrentSession().createSQLQuery("select distinct name,description from moh_bill_hop_service").list();
 		// map service category to insurance
 
 		List<ServiceCategory> serviceCategoryCheckList=Context.getService(BillingService.class).getAllServiceCategories();
-
 		for (Object[] sc : ramaSC) {
 			ServiceCategory scToMapToInsurance = new ServiceCategory();
 			//scToMapToInsurance.setName(sc.getName());
@@ -911,14 +911,15 @@ public class HibernateBillingDAO implements BillingDAO {
 			scToMapToInsurance.setInsurance(insurance);
 			scToMapToInsurance.setCreator(Context.getAuthenticatedUser());
 			for(ServiceCategory scExisting:serviceCategoryCheckList){
-				if(!scExisting.getName().equals(sc[0].toString())&& scExisting.getInsurance().getInsuranceId()!=insurance.getInsuranceId()) {
+				if(!(scExisting.getName().toString().equals(sc[0].toString())&& scExisting.getInsurance().getInsuranceId()==insurance.getInsuranceId())) {
 					insurance.addServiceCategory(scToMapToInsurance);
 				}
 				}
+			//System.out.println("Before Saving an Insurance :"+sc[0].toString());
 			//insurance.addServiceCategory(scToMapToInsurance);
 			Context.getService(BillingService.class).saveInsurance(insurance);
 		}
-		
+		System.out.println("After Saving an Insurance");
 		List<Object[]> baseBillableServices = getBaseBillableServices(insurance);
 		List<Object[]> basePharmacyItems = getPharmacyBaseBillableServices(insurance);
 		
@@ -1119,7 +1120,7 @@ public class HibernateBillingDAO implements BillingDAO {
 				Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
 		                 .add(Restrictions.eq("admission", admission));
 				        
-				GlobalBill globalBill = (GlobalBill) crit.uniqueResult();		
+				GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
 				return globalBill;
 	}
 	@Override
@@ -1183,7 +1184,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		public List<Consommation> getAllConsommationByGlobalBill(GlobalBill globalBill) {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(Consommation.class);
 			               crit.add(Restrictions.eq("globalBill", globalBill));
-			               log.info("jjjjjjjjjjJJJJJJJJJJJJJJJJJJJJJJJJJJ "+crit.list());
+			              // log.info("jjjjjjjjjjJJJJJJJJJJJJJJJJJJJJJJJJJJ "+crit.list());
 			return crit.list();
 		}
 		/* (non-Javadoc)
@@ -1245,7 +1246,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		 */
 		@Override
 		public List<PaidServiceBill> getPaidServices(BillPayment payment) {
-			return sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class)				
+			return sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class)
 					.add(Restrictions.eq("billPayment", payment))
 					.add(Restrictions.eq("voided", false))
 			.list();
@@ -1341,6 +1342,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		public List<PaidServiceBill> getPaidItemsByBillPayments(List<BillPayment> payments) {
 			Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PaidServiceBill.class);
 	      		criteria.add(Restrictions.in("billPayment", payments));
+			    criteria.add(Restrictions.eq("voided", false));
 	      		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
 	      		paidItems = criteria.list();
 
@@ -1383,12 +1385,33 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 
 		@Override
-		public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
+		public List<GlobalBill> getGlobalBills(Date date1, Date date2,Insurance insurance) {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
 					.add(Restrictions.between("createdDate", date1, date2))
-					.add(Restrictions.eq("closed", true));
+					.add(Restrictions.eq("closed", true))
+					.add(Restrictions.eq("insurance", insurance));
 		return crit.list();
 		}
+
+	@Override
+	public List<GlobalBill> getGlobalBills() {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class);
+		return crit.list();
+	}
+
+	@Override
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+				.add(Restrictions.between("createdDate", date1, date2))
+				.add(Restrictions.eq("closed", true));
+		return crit.list();
+	}
+	@Override
+	public List<GlobalBill> getGlobalBillsWithNullInsurance() {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+				.add(Restrictions.eq("insurance", null));
+		return crit.list();
+	}
 
 		@Override
 		public List<Consommation> getConsommationByGlobalBills(
@@ -1422,6 +1445,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment) {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(PatientServiceBill.class);
 				crit.add(Expression.eq("consommation", payment));
+			    crit.add(Restrictions.eq("voided", false));
 				return crit.list();
 		}
 
@@ -1440,9 +1464,15 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		@Override
 		public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t) {
-			return (InsurancePolicy) sessionFactory.getCurrentSession().createCriteria(InsurancePolicy.class)
-					.add(Restrictions.eq("thirdParty", t))
-					.uniqueResult();
+			System.out.print(" am getting in getinsurancepolicybythird party in hibernate "+t.getThirdPartyId());
+
+
+			InsurancePolicy insurancePolicy =  (InsurancePolicy) sessionFactory.getCurrentSession().createCriteria(InsurancePolicy.class)
+					.add(Restrictions.eq("thirdParty",t)).list().get(0);
+					//.uniqueResult();
+
+			System.out.print(" insurancePolicyinsurancePolicyinsurancePolicyinsurancePolicy ");
+			return insurancePolicy;
 		}
 
 		/* (non-Javadoc)

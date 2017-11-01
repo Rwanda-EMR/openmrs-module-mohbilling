@@ -42,13 +42,12 @@ public class MohBillingBillableServiceListController extends
 			if(request.getParameter("insuranceId") != null && !request.getParameter("insuranceId").equals("")){
 				System.out.println("insurance id "+request.getParameter("insuranceId"));
 				Insurance insurance = Context.getService(BillingService.class).getInsurance(Integer.valueOf(request	.getParameter("insuranceId")));
-
 				mav.addObject("billableServices", (FacilityServicePriceUtil
 						.getBillableServicesByInsurance(insurance, new Date())));
 				mav.addObject("insurance", insurance);
-				
+
 				List<BillableService> currentBS = Context.getService(BillingService.class).getBillableServicesByInsurance(insurance);
-			
+
 				//to avoid loading billable services more than once
 				if(currentBS.size()==0){
 				Context.getService(BillingService.class).loadBillables(insurance);

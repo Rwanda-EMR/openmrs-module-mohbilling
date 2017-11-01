@@ -38,7 +38,9 @@ public class MohBillingViewGlobalBillController extends
 			List<PatientServiceBill> allItems = new ArrayList<PatientServiceBill>();
 			for (Consommation c : consommations) {
 				for (PatientServiceBill item : c.getBillItems()) {
-					allItems.add(item);
+					if (!item.getVoided()) {
+						allItems.add(item);
+					}
 				}
 			}
 			List<HopService> revenuesCategories = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.REVENUE");
@@ -70,7 +72,7 @@ public class MohBillingViewGlobalBillController extends
 			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.valueOf(request.getParameter("globalBillId")));
 			FileExporter exp = new FileExporter();
 			List<ServiceRevenue> sr = (List<ServiceRevenue>) request.getSession().getAttribute("serviceRevenueList" );
-			exp.printGlobalBill(request, response, gb,sr, ""+gb.getBillIdentifier());
+			exp.printGlobalBill(request, response, gb,sr, gb.getBillIdentifier()+".pdf");
 		}
 
 		return mav;

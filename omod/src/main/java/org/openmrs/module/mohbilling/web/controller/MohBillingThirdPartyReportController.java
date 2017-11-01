@@ -37,7 +37,9 @@ public class MohBillingThirdPartyReportController extends
 			String startDateStr = request.getParameter("startDate");
 			String startHourStr = request.getParameter("startHour");
 			String startMinStr = request.getParameter("startMinute");
-			
+
+			System.out.print("fffffffffffffffff   a, reaching if in the controller  fffffffffffffffff");
+
 			String endDateStr = request.getParameter("endDate");
 			String endHourStr = request.getParameter("endHour");
 			String endMinuteStr = request.getParameter("endMinute");
@@ -45,7 +47,8 @@ public class MohBillingThirdPartyReportController extends
 			String collectorStr = null;
 			String insuranceStr = null;
 			String thirdPartyStr = null;
-			
+
+			System.out.print("ffffffffffffffffffffffffffffffffffi endDatetestr"+endDateStr+" and end hourstr equals "+endHourStr+" and end end minutes equals "+endMinuteStr);
 			
 			 // parameters
 			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
@@ -60,7 +63,11 @@ public class MohBillingThirdPartyReportController extends
 				List<AllServicesRevenue> listOfAllServicesRevenue = new ArrayList<AllServicesRevenue>();
 				BigDecimal total100 = new BigDecimal(0);
 				
+				System.out.print("  thirdParty  object here  "+thirdParty.getName()+" the iddddddddddddddddddddddddddddddddddd of this "+thirdParty.getThirdPartyId());
 				Insurance insurance = InsurancePolicyUtil.getInsurancePolicyByThirdParty(thirdParty).getInsurance();
+			    System.out.print(" insurance insurance "+insurance);
+
+
 				Float insuranceRate=insurance.getCurrentRate().getRate();
 				
 				List<String> columns = new ArrayList<String>();	
@@ -80,7 +87,7 @@ public class MohBillingThirdPartyReportController extends
 										globalBillsByInsuranceAndThirdParty.add(gb);
 							}
 							if(startDate!=null && endDate!=null){
-								
+						System.out.print(" globalBillsByInsuranceAndThirdParty globalBillsByInsuranceAndThirdParty "+globalBillsByInsuranceAndThirdParty.size());
 								for (GlobalBill gb : globalBillsByInsuranceAndThirdParty) {
 									BigDecimal globalBillAmount = new BigDecimal(0);
 									if(ReportsUtil.getConsommationByGlobalBill(gb)!=null)
@@ -134,7 +141,11 @@ public class MohBillingThirdPartyReportController extends
 							log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
 						}*/
 		    		}
-		    		
+		    		//requests sessions.
+			request.getSession().setAttribute("columns" , columns);
+			request.getSession().setAttribute("listOfAllServicesRevenue" , listOfAllServicesRevenue);
+			request.getSession().setAttribute("insurance" , insurance);
+
 					if(!columns.contains("IMAGING"))
 						 columns.add("IMAGING");
 					if(!columns.contains("PROCEDURES"))
@@ -151,11 +162,13 @@ public class MohBillingThirdPartyReportController extends
 		    		
 		    		
 		    		mav.addObject("thirdPartyRate", thirdParty.getRate());
-		    		mav.addObject("patientRate", (new BigDecimal(100).subtract(new BigDecimal(insuranceRate))));
+		    		mav.addObject("patientRate", (new BigDecimal(100).subtract(new BigDecimal(insuranceRate)).subtract(new BigDecimal(thirdParty.getRate()))));
 		    		mav.addObject("insuranceRate", insuranceRate);
-		    		
+		    		log.info("hhghghghdhfdfgfgfgfgdfgdfgdfgdgggsggsfsfdsffafafafafdf the insurance rate is"+insuranceRate);
 	}
 		 mav.addObject("thirdParties", Context.getService(BillingService.class).getAllThirdParties());
+
+		System.out.print("ffffffffffffffffffffffffffffffffff my last value of third parties is :  "+Context.getService(BillingService.class).getAllThirdParties());
 		return mav;
 	}
 }

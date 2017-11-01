@@ -72,11 +72,33 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 		if(request.getParameter("refundingDate")!=null){
 			//String refundDateStr = request.getParameter("refundingDate");
 			String refundAmountStr = request.getParameter("refundedAmount");
+			BigDecimal refundAmount = BigDecimal.valueOf(Double.parseDouble(refundAmountStr));
 			refund = PaymentRefundUtil.getRefundById(Integer.parseInt(request.getParameter("refundId")));
-			refund.setRefundedAmount(BigDecimal.valueOf(Double.parseDouble(refundAmountStr)));
+			//refund.setRefundedAmount(BigDecimal.valueOf(Double.parseDouble(refundAmountStr)));
+			refund.setRefundedAmount(refundAmount);
 			refund.setRefundedBy(Context.getAuthenticatedUser());
-			
-			Context.getService(BillingService.class).savePaymentRefund(refund);
+
+
+
+			//void removed items
+			for (PaidServiceBillRefund ri : refund.getRefundedItems()) {
+				ri.getPaidItem().setVoided(true);
+				ri.getPaidItem().setVoidedBy(Context.getAuthenticatedUser());
+				ri.getPaidItem().setVoidReason("Item Refunded");
+				BillPaymentUtil.createPaidServiceBill(ri.getPaidItem());
+				ConsommationUtil.retireItem(ri.getPaidItem().getBillItem());
+			}
+					//update amount paid
+			BigDecimal newPaidAmount = payment.getAmountPaid().subtract(refundAmount);
+			payment.setAmountPaid(newPaidAmount);
+			Context.getService(BillingService.class).saveBillPayment(payment);
+                //update due amount on Consommation
+			BigDecimal newDueAmount= payment.getPatientBill().getAmount().subtract(refundAmount);
+			consommation.getPatientBill().setAmount(newDueAmount);
+			ConsommationUtil.saveConsommation(consommation);
+
+							Context.getService(BillingService.class).savePaymentRefund(refund);
+
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"The refund has been confirmed !");
 			return new ModelAndView(new RedirectView(

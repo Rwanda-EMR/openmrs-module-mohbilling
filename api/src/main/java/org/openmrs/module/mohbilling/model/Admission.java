@@ -36,6 +36,17 @@ public class Admission {
 	
 	private String voidReason;
 
+	private String diseaseType;
+
+
+	public String getDiseaseType() {
+		return diseaseType;
+	}
+
+	public void setDiseaseType(String diseaseType) {
+		this.diseaseType = diseaseType;
+	}
+
 	/**
 	 * @return the admissionId
 	 */

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
@@ -16,7 +16,7 @@ import java.util.Set;
 
 /**
  * @author @EMR RBC
- * 
+ *
  */
 public class MohBillingTagUtil {
 
@@ -27,16 +27,17 @@ public class MohBillingTagUtil {
 		else {
 			try {
 				Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
-				
+
 				PatientBill pb = consomm.getPatientBill();
-			     Set<BillPayment> allPayments =pb.getPayments();
-			     if (allPayments !=null) {
-			    	 for (BillPayment billPayment : allPayments) {
-			    		 
-			    		 amountPaid = amountPaid + billPayment.getAmountPaid().longValue();			    		 
-						
+				Set<BillPayment> allPayments =pb.getPayments();
+				if (allPayments !=null) {
+					for (BillPayment billPayment : allPayments) {
+
+						// amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
+						if(billPayment.getVoidReason()==null)
+							amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
 					}
-					
+
 				}
 
 
@@ -48,10 +49,10 @@ public class MohBillingTagUtil {
 
 		return "" + amountPaid;
 	}
-	
+
 	/**
 	 * Gets the REST of the whole Patient Bill
-	 * 
+	 *
 	 * @param patientBillId
 	 *            the patient bill ID
 	 * @return the REST that is in String
@@ -69,33 +70,34 @@ public class MohBillingTagUtil {
 				Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
 				Float insuranceRate = consomm.getBeneficiary().getInsurancePolicy()
 						.getInsurance().getCurrentRate().getRate();
-				Float patientRate = (100f - insuranceRate) / 100f;			
-				
-				double amountDueByPatient = 0.0; //get the due Amount from patientBill				
-			
+				Float patientRate = (100f - insuranceRate) / 100f;
+
+				double amountDueByPatient = 0.0; //get the due Amount from patientBill
+
 				for (PatientServiceBill psb : consomm.getBillItems()) {
 					Double cost = null;
-					
+
 					if(psb.getVoided()==false){
-					         cost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
-					        amountDueByPatient+=cost*patientRate.doubleValue();
+						cost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
+						amountDueByPatient+=cost*patientRate.doubleValue();
 					}
 				}
-	
+
 				for (BillPayment bp : consomm.getPatientBill().getPayments()) {
-					amountPaid = amountPaid + bp.getAmountPaid().doubleValue();
+					if(bp.getVoidReason()==null)
+						amountPaid = amountPaid + bp.getAmountPaid().doubleValue();
 				}
 
 				if (consomm.getBeneficiary().getInsurancePolicy().getThirdParty() == null) {
 					amountNotPaid = amountDueByPatient - amountPaid;
 
 				} else {
-					
-					double amountPaidByThirdPart = consomm.getThirdPartyBill().getAmount().doubleValue();	
+
+					double amountPaidByThirdPart = consomm.getThirdPartyBill().getAmount().doubleValue();
 
 					amountNotPaid = amountDueByPatient - (amountPaidByThirdPart + amountPaid);
 
-					}
+				}
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -108,62 +110,64 @@ public class MohBillingTagUtil {
 		roundedAmountNotPaid = roundedAmountNotPaid / 100;
 
 		return "" + roundedAmountNotPaid;
-	}	
+	}
 
 	public static String getAmountPaidByThirdPart(Integer consommationId) {
 
 		Double amountPaidByThirdPart = 0d;
 		if(consommationId == null)
 			return "";
-	else {
-		try {
-			
-			Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
-			amountPaidByThirdPart =+consomm.getThirdPartyBill().getAmount().doubleValue();
-		} catch (Exception e) {
-			// TODO: handle exception
+		else {
+			try {
+
+				Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
+				amountPaidByThirdPart =+consomm.getThirdPartyBill().getAmount().doubleValue();
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
 		}
-	}
 		return ""+ amountPaidByThirdPart;
 	}
 	public static String getGlobalPaidAmountFromGlobalBill(Integer globalBillId){
-		
+
 		double allPaidAmount = 0d;
 		GlobalBill globalBill = Context.getService(BillingService.class).GetGlobalBill(globalBillId);
-		
+
 		List<Consommation> consommations = Context.getService(BillingService.class).getAllConsommationByGlobalBill(globalBill);
-		
+
 		for (Consommation consommation : consommations) {
-			
-		allPaidAmount =allPaidAmount+Double.valueOf(getTotalAmountPaidByPatientBill(consommation.getConsommationId()));			
+
+			allPaidAmount =allPaidAmount+Double.valueOf(getTotalAmountPaidByPatientBill(consommation.getConsommationId()));
 		}
-		return ""+allPaidAmount;		
+		return ""+allPaidAmount;
 	}
 	public static String getServicesByDepartment(Integer departmentId){
 		Department department = DepartementUtil.getDepartement(departmentId);
 		List<HopService> services = new ArrayList<HopService>();
 		if(GlobalPropertyConfig.getListOfHopServicesByDepartment1(department)!=null){
-		String[] servicesByDepartStr = GlobalPropertyConfig.getListOfHopServicesByDepartment1(department).split(",");
-		 for (String s : servicesByDepartStr) {
-			 if(s!=null && !s.equals(""))
-			services.add(HopServiceUtil.getHopServiceById(Integer.valueOf(s)));
+			String[] servicesByDepartStr = GlobalPropertyConfig.getListOfHopServicesByDepartment1(department).split(",");
+			for (String s : servicesByDepartStr) {
+				if(s!=null && !s.equals(""))
+					services.add(HopServiceUtil.getHopServiceById(Integer.valueOf(s)));
+			}
 		}
-		}
-		return ""+services.size();		
+		return ""+services.size();
 	}
-	
+
 
 	public static String getConsommationStatus(Integer id){
 		return ConsommationUtil.getConsommationStatus(id);
 	}
-	
+
 	public static String getTotalPaidByConsommation(Integer consommationId){
 		Consommation c = ConsommationUtil.getConsommation(consommationId);
 		BigDecimal totalPaid = new BigDecimal(0);
 		for (BillPayment pay : c.getPatientBill().getPayments()) {
-			totalPaid=totalPaid.add(pay.getAmountPaid());
+			//if(!pay.isVoided())
+			if(pay.getVoidReason()==null)
+				totalPaid=totalPaid.add(pay.getAmountPaid());
 		}
 		return ""+totalPaid;
 	}
-	
+
 }

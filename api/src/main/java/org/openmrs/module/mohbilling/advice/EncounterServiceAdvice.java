@@ -40,7 +40,7 @@ public class EncounterServiceAdvice implements AfterReturningAdvice {
 	private static int encounterId = 0;
 
 	/**
-	 * @see org.springframework.aop.AfterReturningAdvice#afterReturning(Object,
+	 * @see AfterReturningAdvice#afterReturning(Object,
 	 *      Method, Object[], Object)
 	 */
 	@Override

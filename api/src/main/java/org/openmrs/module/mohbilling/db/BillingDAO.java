@@ -428,7 +428,7 @@ public interface BillingDAO {
 	 * saves Departement object in the DB
 	 * @param departement to be saved
 	 */
-	public Department  saveDepartement(Department departement);
+	public Department saveDepartement(Department departement);
 	
 	/**
 	 * Get encounter by idententifier departementid
@@ -441,7 +441,7 @@ public interface BillingDAO {
 	 * Get all departements in the Hospital
 	 * @return List<Department> departements including the voided ones
 	 */
-	public List<Department> getAllDepartements();	
+	public List<Department> getAllDepartements();
 
 	/**
 	 * Saves the the hop services to the DB
@@ -628,7 +628,19 @@ public interface BillingDAO {
 	 * @return list of Global bills
 	 */
 	public List<GlobalBill> getGlobalBills(Date date1, Date date2);
-	
+
+	/**
+	 * gets Global Bills between 2 dates
+	 * @param date1
+	 * @param date2
+	 * @param insurance
+	 * @return list of Global bills	 */
+
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2, Insurance insurance);
+
+	public List<GlobalBill> getGlobalBills();
+
+	public List<GlobalBill> getGlobalBillsWithNullInsurance();
 	/**
 	 * gets a list of consommations matching with a given global bill list
 	 * @param gb

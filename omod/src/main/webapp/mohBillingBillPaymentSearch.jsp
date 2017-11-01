@@ -26,7 +26,7 @@
 	</div>	
 </div>
 
-<!-- <br/> &nbsp; or<br/><br/> 
+<!-- <br/> &nbsp; or<br/><br/>
 
 <b class="boxHeader">Search Refund by Bill  Payment </b>
 <div class="box" style="height: 60px;">
@@ -47,6 +47,7 @@
 		</form>
 	</div>	
 </div>  -->
+<c:if test="${editPayStr==null }">
 <openmrs:hasPrivilege privilege="Confirm approved refunds">
 <br/>
 <c:if test="${!empty checkedRefundsByChief}">	
@@ -114,4 +115,8 @@
 
 	<c:import url="mohBillingPaidServiceBillList.jsp" />
 </c:if>
+</c:if>
+ <c:if test="${editPayStr!=null }">
+ <c:import url="mohBillingEditPayment.jsp" />
+ </c:if>
 <%@ include file="/WEB-INF/template/footer.jsp"%>

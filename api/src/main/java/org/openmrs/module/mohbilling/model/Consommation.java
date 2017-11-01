@@ -14,7 +14,8 @@ import java.util.TreeSet;
  * @author emr
  * 
  */
-public class Consommation {
+public class
+Consommation {
 
 	private Integer consommationId;
 	
@@ -228,6 +229,7 @@ public class Consommation {
 		return voidedBy;
 	}
 
+	public Boolean getVoided(){return voided;}
 	/**
 	 * @param voidedBy
 	 *            the voidedBy to set

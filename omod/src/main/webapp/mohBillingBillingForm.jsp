@@ -1,10 +1,12 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/headerFull.jsp"%>
-
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/mohbilling/patientBillPayment.form" />
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<script type="text/javascript">
+			var $j = jQuery.noConflict();
+</script>
 <script>
-var $j = jQuery.noConflict();
 	function loadBillableServiceByCategory(serviceCategoryId,departmentId){
 			$j("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
 	}
@@ -178,6 +180,24 @@ var $j = jQuery.noConflict();
 
 </script>
 
+<!-- Hide submit button when the user is adding items on existing consommation -->
+<script type="text/javascript">
+$j(document).ready(function(){
+		  var dep = $j('#selectedDepId').val();
+		  var sCategories = $j('#categories').length;
+		  if(dep>0&&sCategories!=0){
+		   $j('#depSubmitBtn').hide();
+		   $j('#selectedDepIdx').html("(Please!!! Add 1 item at time)");
+		   $j('#departments').attr('disabled', true);
+	      }
+		  else{
+			  $j('#depSubmitBtn').show();
+			   $j('#departments').attr('disabled', false);
+		  }
+
+});
+</script>
+
 
 <style>
 	.deleteBt{
@@ -185,11 +205,11 @@ var $j = jQuery.noConflict();
 		background-color: red;
 		padding: 2px;
 		cursor: pointer;
-		-moz-border-radius: 2px; 
+		-moz-border-radius: 2px;
 		border-right: 2px solid #dddddd;
 		border-bottom: 2px solid #dddddd;
 	}
-	
+
 	.selectedService{
 		background-color: #56CC81;
 	}
@@ -200,7 +220,7 @@ var $j = jQuery.noConflict();
 		padding-top: 5px;
 		border-top: 1px solid #dddddd;
 	}
-	
+
 </style>
 
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
@@ -238,12 +258,12 @@ var $j = jQuery.noConflict();
 						</table>
 					</div>
 					<br/>
-					
+
 					<input type="hidden" name="numberOfServicesClicked" id="numberOfServicesClicked" value=""/>
 				</div>
-				
+
 			</form>
-			
+
 			<table width="99%">
 				<tr>
 					<td style="width: 49%;">
@@ -256,27 +276,30 @@ var $j = jQuery.noConflict();
 					</td>
 				</tr>
 			</table>
-			
+
 		</div>
 	</div>
-	
-	<div style="float: right; width: 70%">		
+
+	<div style="float: right; width: 70%">
 		<b class="boxHeader">Search Services by Department</b>
 <div class="box">
 	<form
-		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&searchDpt=true"	method="post">
+		action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&searchDpt=true"	method="post" id="depSearchForm">
 
 		<table>
-			<tr>				
-				<td><select name="departmentId">
+			<tr>
+				<td><select name="departmentId" id="departments">
+						<!-- <option value="">--select--</option> -->
 						<c:forEach items="${departments }" var="dep">
-							<option value="${dep.departmentId}">${dep.name}</option>
+						<option value="${dep.departmentId}" ${dep.departmentId == param.departmentId ? 'selected':''}>${dep.name }</option>
 						</c:forEach>
 				</select>
 				</td>
-				<td><input type="submit" value="search services" /></td>
+				<td><p align="center" style="color: red;font-weight: bold; " id="selectedDepIdx"></p></td>
+				<td><input type="submit" value="search services" id="depSubmitBtn"/></td>
 			</tr>
 		</table>
+		<input type="hidden" id="selectedDepId" value="${param.departmentId}"/>
 	</form>
 </div>
 </div>
@@ -284,16 +307,16 @@ var $j = jQuery.noConflict();
 		<div>
 			<div id="patientTabs">
 				<ul>
-					<c:forEach items="${categories}" var="serviceCategory" varStatus="status"> 
-				      					  
+					<c:forEach items="${categories}" var="serviceCategory" varStatus="status">
+
 						<li><a hidefocus="hidefocus" onclick="return changeTab(this);" href="#" id="serviceCategory_${serviceCategory.serviceCategoryId}Tab" class="${(status.count==1)?'current':''} ">${serviceCategory.name}</a></li>
-				     
+				     <input type="hidden" value="${categories}" id="categories"/>
 					</c:forEach>
 				</ul>
 			</div>
-			
+
 			<c:forEach items="${categories}" var="sc" varStatus="counter">
-			
+
 				<div id="serviceCategory_${sc.serviceCategoryId}" <c:if test='${counter.count>1}'>style='display: none;'</c:if>>
 					<script>
 						loadBillableServiceByCategory("${sc.serviceCategoryId}");
@@ -307,7 +330,7 @@ var $j = jQuery.noConflict();
 	</div>
 </c:if>
 <c:if test="${consommation != null }">
-<c:import url="consommationItemList.jsp"/>
+<c:import url="mohBillingConsommationItemList.jsp"/>
 </c:if>
 
 
@@ -318,7 +341,7 @@ var $j = jQuery.noConflict();
 		if (!document.getElementById || !document.createTextNode) {return;}
 		if (typeof tabObj == "string")
 			tabObj = document.getElementById(tabObj);
-		
+
 		if (tabObj) {
 			var tabs = tabObj.parentNode.parentNode.getElementsByTagName('a');
 			for (var i=0; i<tabs.length; i++) {
@@ -335,7 +358,7 @@ var $j = jQuery.noConflict();
 				}
 			}
 			addClass(tabObj, 'current');
-			
+
 			setTabCookie(tabObj.id);
 		}
 		return false;

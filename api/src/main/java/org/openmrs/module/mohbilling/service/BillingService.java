@@ -616,6 +616,12 @@ public interface BillingService {
 	 */
 	public List<GlobalBill> getGlobalBills(Date date1, Date date2);
 
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2, Insurance insurance);
+
+	public List<GlobalBill> getGlobalBills();
+
+	public List<GlobalBill> getGlobalBillsWithNullInsurance();
+
 	public List<Consommation> getConsommationByGlobalBills(
 			List<GlobalBill> globalBills);
 	

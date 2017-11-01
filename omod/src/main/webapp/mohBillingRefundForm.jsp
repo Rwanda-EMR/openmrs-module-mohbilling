@@ -4,6 +4,9 @@
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
+<script type="text/javascript">
+			var $j = jQuery.noConflict();
+		</script>
 
  <script type="text/javascript">
          $j(function () {

@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.3.3-SNAPSHOT</version>
+	<version>0.0.4.0-SNAPSHOT</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -272,6 +272,11 @@
     </privilege>
     
     <privilege>
+        <name>Edit Bill Payment</name>
+        <description>Allows users to Edit the amount paid by the patient by entering the new amount</description>
+    </privilege>
+    
+    <privilege>
         <name>Billing Report - View Cashier Report</name>
         <description>Allows users to view Cashier Report</description>
     </privilege>
@@ -334,6 +339,24 @@
         <name>Manage deposit</name>
         <description>Allows user to manage admission</description>
      </privilege>
+
+    <!-- Discharge a patient -->
+    <privilege>
+        <name>Discharge Patient</name>
+        <description>Allows the user to discharge a patient and close the global bill</description>
+    </privilege>
+
+    <!-- Add Consommation -->
+    <privilege>
+        <name>Add Consommation</name>
+        <description>Allows the user to add consommation on global bill</description>
+    </privilege>
+
+    <!--Add Item -->
+    <privilege>
+        <name>Add Item</name>
+        <description>Allow user to add item on the same consommation</description>
+    </privilege>
      
      
     

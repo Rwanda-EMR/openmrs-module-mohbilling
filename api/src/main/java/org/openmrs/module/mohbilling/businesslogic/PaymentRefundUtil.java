@@ -31,7 +31,7 @@ public class PaymentRefundUtil {
 	
 	public static PaidServiceBillRefund createPaidServiceRefund(PaidServiceBillRefund psbRefund){
 		
-		PaymentRefund refund = new  PaymentRefund();
+		PaymentRefund refund = new PaymentRefund();
 
 		if (psbRefund != null) {
 			refund = psbRefund.getRefund();

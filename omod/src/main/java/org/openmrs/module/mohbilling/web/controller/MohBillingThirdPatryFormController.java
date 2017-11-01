@@ -24,8 +24,8 @@ public class MohBillingThirdPatryFormController extends
 	protected final Log log = LogFactory.getLog(getClass());
 
 	/**
-	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse)
+	 * @see ParameterizableViewController#handleRequestInternal(HttpServletRequest,
+	 *      HttpServletResponse)
 	 */
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,

@@ -26,14 +26,16 @@ public class MohBillingActivator implements Activator {
 	private Log log = LogFactory.getLog(this.getClass());
 
 	/**
-	 * @see org.openmrs.module.Activator#startup()
+	 * @see Activator#startup()
 	 */
 	public void startup() {
+
 		log.info("Starting MoH-Billing Module");
+
 	}
 
 	/**
-	 * @see org.openmrs.module.Activator#shutdown()
+	 * @see Activator#shutdown()
 	 */
 	public void shutdown() {
 		log.info("Shutting down MoH-Billing Module");

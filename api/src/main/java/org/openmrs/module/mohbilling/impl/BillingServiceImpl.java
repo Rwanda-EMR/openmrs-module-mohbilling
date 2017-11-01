@@ -303,7 +303,7 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	/**
-	 * @see org.openmrs.module.mohbilling.service.BillingService#getFacilityServiceByConcept(org.openmrs.Concept)
+	 * @see org.openmrs.module.mohbilling.service.BillingService#getFacilityServiceByConcept(Concept)
 	 */
 	@Override
 	public FacilityServicePrice getFacilityServiceByConcept(Concept concept) {
@@ -441,7 +441,7 @@ public class BillingServiceImpl implements BillingService {
 
 	/**
 	 * @see org.openmrs.module.mohbilling.service.BillingService#getRefundedBills(Date,
-	 *      Date, org.openmrs.User)
+	 *      Date, User)
 	 */
 	@Override
 	public Set<PatientBill> getRefundedBills(Date startDate, Date endDate,
@@ -872,6 +872,24 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	@Override
+	public List<GlobalBill> getGlobalBills() {
+		// TODO Auto-generated method stub
+		return billingDAO.getGlobalBills();
+	}
+
+
+	@Override
+	public List<GlobalBill> getGlobalBills(Date date1, Date date2,Insurance insurance) {
+		// TODO Auto-generated method stub
+		return billingDAO.getGlobalBills(date1, date2,insurance);
+	}
+
+	@Override
+	public List<GlobalBill> getGlobalBillsWithNullInsurance(){
+		return billingDAO.getGlobalBillsWithNullInsurance();
+	}
+
+	@Override
 	public List<Consommation> getConsommationByGlobalBills(
 			List<GlobalBill> globalBills) {
 		return billingDAO.getConsommationByGlobalBills(globalBills);
@@ -913,6 +931,7 @@ public class BillingServiceImpl implements BillingService {
 
 	@Override
 	public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t) {
+		System.out.print(" am getting in getinsurancepolicybythird party in billingserviceImplement "+t);
 		return billingDAO.getInsurancePolicyByThirdParty(t);
 	}
 

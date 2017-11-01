@@ -5,6 +5,7 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.PaymentRefundUtil;
 import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.springframework.web.servlet.ModelAndView;
@@ -33,7 +34,9 @@ public class MohBillingRefundedItemListController extends
   	  if(request.getParameter("refundId")!=null && !request.getParameter("refundId").equals("")){
 		  PaymentRefund refund = PaymentRefundUtil.getRefundById(Integer.valueOf(request.getParameter("refundId")));
 		  mav.addObject("refund", refund);
-		  
+		  mav.addObject("consommation", ConsommationUtil.getConsommationByPatientBill(refund.getBillPayment().getPatientBill()));
+		  /*Consommation consommation = ConsommationUtil.getConsommationByPatientBill(refund.getBillPayment().getPatientBill());
+		  mav.addObject("consommation",consommation);*/
 	  }
   	  
 		return mav;

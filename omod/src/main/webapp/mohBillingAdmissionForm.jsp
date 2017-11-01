@@ -114,6 +114,18 @@ function  cancelClosingGlobalBill(){
 				<td><openmrs_tag:dateField formFieldName="admissionDate" 	startValue="${startdate}" /></td>
 			</tr>
 
+			<tr>
+            				<td>Disease Type</td>
+            				<td><select name="diseaseType">
+            				<option value="">Please select disease type</option>
+            				<option value="Natural Disease">Natural Disease</option>
+            				<option value="Professional Disease">Professional Disease</option>
+            				<option value="Work Accident">Work Accident</option>
+            				<option value="Road Traffic Accident">Road Traffic Accident</option>
+            				<option value="Other">Other</option>
+            				</select></td>
+            </tr>
+
 
 		</table>
 	</div>
@@ -121,11 +133,13 @@ function  cancelClosingGlobalBill(){
 </form>
 
 
+<!-- 
 <c:if test="${empty globalBills }">
 <div class="box">
    <p style="text-align: center;color: red;">No Admission found!</p>
 </div>
 </c:if>
+ -->
 
 
 <c:if test="${not empty globalBills }">

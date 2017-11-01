@@ -5,16 +5,15 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.*;
-import org.openmrs.module.mohbilling.model.Consommation;
-import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.Insurance;
-import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -77,15 +76,49 @@ public class MohBillingCohortBuilderFormController extends
 				 }
 				 if(request.getParameter("thirdPartyId")!=null && !request.getParameter("thirdPartyId").equals(""))
 				 thirdParty = Context.getService(BillingService.class).getThirdParty(Integer.valueOf(request.getParameter("thirdPartyId")));
-				
-				 List<Consommation> cons = ConsommationUtil.getConsommations(startDate, endDate, insurance, thirdParty, creator, department);
-				 mav.addObject("consommations", cons);
-							
-		}
+
+				List<Consommation> cons = ConsommationUtil.getConsommations(startDate, endDate, insurance, thirdParty, creator, department);
+				List<Consommation> consFilteredByBillStatus=new ArrayList<Consommation>();
+				if(billStatus!=null){
+					for (Consommation con:cons){
+						/*if(con.getPatientBill().getStatus().toString().equals(billStatus.toString())){
+							consFilteredByBillStatus.add(con);
+						}*/
+
+						BigDecimal pamount=new BigDecimal(0);
+						if(con.getPatientBill().getPayments().size()>0)
+						for(BillPayment bp:con.getPatientBill().getPayments()){
+
+							pamount=pamount.add(bp.getAmountPaid());
+						}
+// FULL PAID
+						if(con.getPatientBill().getPayments().size()>=0 && (con.getPatientBill().getAmount().compareTo(pamount)==-1 || con.getPatientBill().getAmount().compareTo(pamount)==0) && billStatus.toString().equals("FULLY PAID")){
+							consFilteredByBillStatus.add(con);
+						}
+// Partialy PAID
+						if(con.getPatientBill().getPayments().size()>=0 && (con.getPatientBill().getAmount().compareTo(pamount)==1) && billStatus.toString().equals("PARTLY PAID")){
+							consFilteredByBillStatus.add(con);
+						}
+//  UNPAID
+						if(con.getPatientBill().getPayments().size()==0 && billStatus.toString().equals("UNPAID")){
+							consFilteredByBillStatus.add(con);
+						}
+
+
+
+					}
+					mav.addObject("consommations", consFilteredByBillStatus);
+				}
+				else {
+					mav.addObject("consommations", cons);
+				}
+				cons.get(0).getPatientBill().getStatus();
+
+			}
+			mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 			mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 			mav.addObject("thirdParties", InsurancePolicyUtil.getAllThirdParties());
-			mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
+		mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
 			return mav;
 	}
-
 }

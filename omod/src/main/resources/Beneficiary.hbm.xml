@@ -26,6 +26,11 @@
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
 
+		<property name="ownerName" column="owner_name" type="text" />
+		<property name="ownerCode" column="owner_code" type="text" />
+		<property name="level" column="level" type="int" />
+		<property name="company" column="company" type="text" />
+
 	</class>
 
 </hibernate-mapping>

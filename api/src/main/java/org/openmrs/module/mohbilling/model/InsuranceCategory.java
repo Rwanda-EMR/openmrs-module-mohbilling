@@ -9,7 +9,7 @@ package org.openmrs.module.mohbilling.model;
  */
 public enum InsuranceCategory {
 
-	MUTUELLE, RSSB, MMI_UR, PRIVATE, NONE,BASE;
+	MUTUELLE,RSSB,MMI_UR,PRIVATE,NONE,BASE;
 
 	/**
 	 * (non-Javadoc)
