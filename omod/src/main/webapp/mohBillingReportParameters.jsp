@@ -102,8 +102,8 @@
 								<td class="paymentType">
 								<select name="paymentType">
 									<option value="">All</option>
-									<option value="cashPayment">Cash Payment</option>
-									<option value="depositPayment">Deposit Payment</option>
+								<!-- <option value="cashPayment">Cash Payment</option>
+									<option value="depositPayment">Deposit Payment</option> -->
 								</select>
 								</td>			  
 						</tr>

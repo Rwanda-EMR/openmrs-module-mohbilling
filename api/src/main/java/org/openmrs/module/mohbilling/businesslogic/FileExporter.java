@@ -652,6 +652,7 @@ public class FileExporter {
 			table1.addCell(cell);
 
 			cell = new PdfPCell(fontselector.process("Clinician/Doctor \n"+consommation.getCreator().getPersonName()+"\n\n........................."));
+			//cell = new PdfPCell(fontselector.process("Clinician/Doctor\n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 
@@ -704,7 +705,7 @@ public class FileExporter {
 			document.add(new Paragraph("\n"));
 			// displayFooter(document,gb.getAdmission().getInsurancePolicy().getOwner(), fontselector);
 			User generatedBy = Context.getAuthenticatedUser();
-			User createdBy = Context.getAuthenticatedUser();
+			User createdBy = gb.getAdmission().getCreator();
 			displayFooter(document, gb.getAdmission().getInsurancePolicy().getOwner(),createdBy, generatedBy, null, fontselector);
 
 			document.close();

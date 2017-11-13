@@ -73,7 +73,8 @@ a.print {
 		<td>Patient Due</td>
 		<td>Paid Amount</td>
 		<td>Bill Status</td>
-		<td>Admission Status</td>
+		<td>Admission Type</td>
+		<td>Global Bill Status</td>
 		<td></td>
 		<td>Collector<td/>
 
@@ -138,6 +139,14 @@ a.print {
 			<c:if test="${empty c.patientBill.payments}">
 				<td class="rowAmountValue" style="color: red; font-weight: bold;">UNPAID</td>
             </c:if>
+
+           <c:if test="${c.globalBill.admission.isAdmitted==true}">
+           			<td class="rowAmountValue" style="color: blue; font-weight: bold;">In-Patient</td>
+           			</c:if>
+
+           			<c:if test="${c.globalBill.admission.isAdmitted==false}">
+                    	<td class="rowAmountValue" style="color: blue; font-weight: bold;">Out-Patient</td>
+                    </c:if>
 
             <c:choose>
                      <c:when test = "${c.globalBill.closingDate!=null}">

@@ -28,25 +28,34 @@
 		<tr>
 		   <td>Names:</td> <td><b>${insurancePolicy.owner.personName }</b></td>
 		   <td>Age </td><td><b> : ${insurancePolicy.owner.age }</b></td>
-		   <td>Sex </td><td> : <b>${(insurancePolicy.owner.gender=='F')?'Female':'Male'}</b></td>
+		   <td>Sex </td><td> : <b>${(insurancePolicy.owner.gender=='F')?'Female':'Male'}</b></td> <td></td> <td></td>
+		   <td> Type of Disease: </td><td> <b> ${globalBill.admission.diseaseType} </b></td> <td></td> <td></td> <td></td> <td></td>
+		   <c:choose>
+                                <c:when test = "${globalBill.closingDate!=null}">
+                                   <td>Global Bill Status :</td> <td class="rowAmountValue" style="color: green; font-weight: bold;">DISCHARGED</td>
+                                </c:when>
+
+                               <c:otherwise>
+                                 <td>Global Bill Status :</td>  <td class="rowAmountValue" style="color: red; font-weight: bold;">NOT DISCHARGED</td>
+                                </c:otherwise>
+           </c:choose>
 		</tr>
 		<tr>
 		   <td>Insurance:</td> <td><b>${insurancePolicy.insurance.name}</b></td>
-		   <td>Card Nbr:</td><td><b>${insurancePolicy.insuranceCardNo }</b></td>	   
+		   <td>Card No</td><td> :<b>${insurancePolicy.insuranceCardNo }</b></td>
 		</tr>
 		
 		<tr>
-		<td>Admission Mode</td>
+		<td>Admission Mode :</td>
 		<c:if test="${globalBill.admission.isAdmitted}">
-		<td> : <b>IPD</b></td>
+		<td style="color: blue; font-weight: bold;">In-Patient</b></td>
 		</c:if>
 		<c:if test="${not globalBill.admission.isAdmitted}">
-		<td> : <b>OPD</b></td>
+		<td style="color: green; font-weight: bold;">Out-Patient</b></td>
 		</c:if>
 		<td>Admission Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${admissionDate}" /></b></td> 
 		<td>Discharge Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${dischargingDate}" /></b></td>
 		</tr>
-
 	</table>
 </div>
 <br/>

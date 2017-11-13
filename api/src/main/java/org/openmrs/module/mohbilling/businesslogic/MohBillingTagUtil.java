@@ -21,7 +21,7 @@ import java.util.Set;
 public class MohBillingTagUtil {
 
 	public static String getTotalAmountPaidByPatientBill(Integer consommationId) {
-		Long amountPaid = 0l;
+		Double amountPaid = 0.0d;
 		if (null == consommationId)
 			return "";
 		else {
@@ -35,7 +35,7 @@ public class MohBillingTagUtil {
 
 						// amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
 						if(billPayment.getVoidReason()==null)
-							amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
+							amountPaid = amountPaid + billPayment.getAmountPaid().doubleValue();
 					}
 
 				}
@@ -130,7 +130,7 @@ public class MohBillingTagUtil {
 	}
 	public static String getGlobalPaidAmountFromGlobalBill(Integer globalBillId){
 
-		double allPaidAmount = 0d;
+		double allPaidAmount = 0.0d;
 		GlobalBill globalBill = Context.getService(BillingService.class).GetGlobalBill(globalBillId);
 
 		List<Consommation> consommations = Context.getService(BillingService.class).getAllConsommationByGlobalBill(globalBill);

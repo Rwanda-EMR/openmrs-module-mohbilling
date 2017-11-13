@@ -254,7 +254,7 @@ public class ConsommationUtil {
 		existingConsom.setThirdPartyBill(thirdPartyBill);
 
 		saveConsommation = ConsommationUtil.saveConsommation(existingConsom);
-		globalAmount = globalAmount.subtract(voidedItemTotalAmount).add(addedItemTotalAmount);
+		globalAmount = globalAmount.subtract(voidedItemTotalAmount).subtract(removedItemTotalAmount).add(addedItemTotalAmount);
 		//globalAmount =globalAmount.add(totalAmount);
 		globalBill.setGlobalAmount(globalAmount);
 		GlobalBillUtil.saveGlobalBill(globalBill);

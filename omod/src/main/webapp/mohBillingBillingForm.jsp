@@ -188,14 +188,13 @@ $j(document).ready(function(){
 		  var sCategories = $j('#categories').length;
 		  if(dep>0&&sCategories!=0){
 		   $j('#depSubmitBtn').hide();
-		   $j('#selectedDepIdx').html("(Please!!! Add 1 item at time)");
+		   $j('#selectedDepIdx').html("(In case, you need to add item to the saved consommation,Please!!! Add 1 item at once)");
 		   $j('#departments').attr('disabled', true);
 	      }
 		  else{
 			  $j('#depSubmitBtn').show();
 			   $j('#departments').attr('disabled', false);
 		  }
-
 });
 </script>
 

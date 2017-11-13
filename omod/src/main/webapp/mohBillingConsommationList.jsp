@@ -3,6 +3,7 @@
 <openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-1.3.2.js" />
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 
@@ -55,8 +56,8 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.insuranceBill.amount}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.thirdPartyBill.amount}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${consommation.patientBill.amount}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${billingtag:amountPaidForPatientBill(consommation.consommationId)}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${billingtag:consommationStatus(consommation.consommationId)}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber type="number" pattern="#.##" value="${billingtag:amountPaidForPatientBill(consommation.consommationId)}"/></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''} "  style="color: blue; font-weight: bold;" >${billingtag:consommationStatus(consommation.consommationId)}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">&nbsp;<a href="patientBillPayment.form?consommationId=${consommation.consommationId}">view</a></td>
 				<c:if test="${empty consommation.patientBill.payments && not consommation.globalBill.closed }">
 				<openmrs:hasPrivilege privilege="Edit Bill">
@@ -75,7 +76,7 @@
 				<td><div class="amount"><fmt:formatNumber value="${totalDueAmount}" type="number" pattern="#.##"/></div></td>
 				<td></td><td></td> <td></td><td></td><td></td>
 				<td><div style="text-align: right;"><b>Total paid  Amount</b></div></td>
-				<td><div class="amount">${billingtag:amountPaidByGlobalBill(globalBill.globalBillId)}</div></div></td>
+				<td><div class="amount"><fmt:formatNumber value="${billingtag:amountPaidByGlobalBill(globalBill.globalBillId)}" type="number" pattern="#.##"/></div></div></td>
 			</tr>
 	</table>
 </div>
