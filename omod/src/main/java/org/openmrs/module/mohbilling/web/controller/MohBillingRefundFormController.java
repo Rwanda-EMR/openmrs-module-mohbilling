@@ -82,11 +82,29 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 
 			//void removed items
 			for (PaidServiceBillRefund ri : refund.getRefundedItems()) {
-				ri.getPaidItem().setVoided(true);
-				ri.getPaidItem().setVoidedBy(Context.getAuthenticatedUser());
-				ri.getPaidItem().setVoidReason("Item Refunded");
-				BillPaymentUtil.createPaidServiceBill(ri.getPaidItem());
-				ConsommationUtil.retireItem(ri.getPaidItem().getBillItem());
+
+
+				if(ri.getPaidItem().getPaidQty().floatValue() > ri.getRefQuantity().floatValue()){
+					for (PatientServiceBill psb:ri.getPaidItem().getBillItem().getConsommation().getBillItems())
+					if(psb==ri.getPaidItem().getBillItem()) {
+
+						psb.setPaidQuantity(psb.getPaidQuantity().subtract(ri.getRefQuantity()));
+						psb.setQuantity(psb.getQuantity().subtract(ri.getRefQuantity()));
+						ConsommationUtil.saveBilledItem(psb);
+
+						ri.getPaidItem().setPaidQty(ri.getPaidItem().getPaidQty().subtract(ri.getRefQuantity()));
+
+						BillPaymentUtil.createPaidServiceBill(ri.getPaidItem());
+						//ConsommationUtil.saveConsommation(ri.getPaidItem().getBillItem().getConsommation());
+						continue;
+					}
+				}else {
+					ri.getPaidItem().setVoided(true);
+					ri.getPaidItem().setVoidedBy(Context.getAuthenticatedUser());
+					ri.getPaidItem().setVoidReason("Item Refunded");
+					BillPaymentUtil.createPaidServiceBill(ri.getPaidItem());
+					ConsommationUtil.retireItem(ri.getPaidItem().getBillItem());
+				}
 			}
 					//update amount paid
 			BigDecimal newPaidAmount = payment.getAmountPaid().subtract(refundAmount);

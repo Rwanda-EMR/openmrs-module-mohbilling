@@ -720,7 +720,8 @@ public class ReportsUtil {
 					Float pRate = (100f - insuranceRate) / 100f;
 					BigDecimal patientRte = new BigDecimal("" + pRate);
 					if (pi.getBillItem().getHopService().getName().equals(category) && pi.getBillItem().getConsommation().getThirdPartyBill() == null) {
-						BigDecimal reqQty = pi.getBillItem().getQuantity();
+						//BigDecimal reqQty = pi.getBillItem().getQuantity();
+						BigDecimal reqQty = pi.getBillItem().getPaidQuantity();
 						BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
 						totalByCategory = totalByCategory.add(reqQty.multiply(unitPrice).multiply(patientRte));
 					}

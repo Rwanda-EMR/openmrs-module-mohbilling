@@ -81,7 +81,7 @@ a.print {
   <td class="rowValue ${(status.count%2!=0)?'even':''}">${refund.billPayment.billPaymentId}</td>
  <td class="rowValue ${(status.count%2!=0)?'even':''}">${refund.creator.personName}</td>
  <td class="rowValue ${(status.count%2!=0)?'even':''}">${refund.createdDate}</td>
-      <c:forEach items="${refund.getRefundedItems()}" var="psr" varStatus="stat">
+      <c:forEach items="${refund.refundedItems}" var="psr" varStatus="stat">
           <c:if test="${stat.count==1}">
               <td class="rowValue ${(status.count%2!=0)?'even':''}">${psr.approvedBy.personName}</td>
           </c:if>
