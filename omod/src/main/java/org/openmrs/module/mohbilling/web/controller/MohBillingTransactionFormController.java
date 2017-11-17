@@ -10,6 +10,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.Transaction;
+import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
@@ -51,8 +52,12 @@ public class MohBillingTransactionFormController extends
 				Integer accountId = Integer.valueOf(request.getParameter("patientAccountId"));
 				account = PatientAccountUtil.getPatientAccountById(accountId);
 			}
-			if(type.equals("Withdrawal")){
+			if(type.equals("Withdrawal") && transAmount.floatValue() <= account.getBalance().floatValue()){
 				transAmount=transAmount.negate();
+			}else if(type.equals("Withdrawal")){
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+						"The Balance is low. Account Balance is: "+account.getBalance()+" Only");
+				return new ModelAndView(new RedirectView("searchPatientAccount.form?patientId="+account.getPatient().getPatientId()));
 			}
 			balance=account.getBalance().add(transAmount);
 			

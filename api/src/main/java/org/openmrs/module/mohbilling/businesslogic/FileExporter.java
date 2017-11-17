@@ -651,8 +651,8 @@ public class FileExporter {
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 
-			cell = new PdfPCell(fontselector.process("Clinician/Doctor \n"+consommation.getCreator().getPersonName()+"\n\n........................."));
-			//cell = new PdfPCell(fontselector.process("Clinician/Doctor\n\n........................."));
+			//cell = new PdfPCell(fontselector.process("Clinician/Doctor \n"+consommation.getCreator().getPersonName()+"\n\n........................."));
+			cell = new PdfPCell(fontselector.process("Clinician/Doctor\n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 
@@ -705,7 +705,7 @@ public class FileExporter {
 			document.add(new Paragraph("\n"));
 			// displayFooter(document,gb.getAdmission().getInsurancePolicy().getOwner(), fontselector);
 			User generatedBy = Context.getAuthenticatedUser();
-			User createdBy = gb.getAdmission().getCreator();
+			User createdBy = gb.getClosedBy();
 			displayFooter(document, gb.getAdmission().getInsurancePolicy().getOwner(),createdBy, generatedBy, null, fontselector);
 
 			document.close();
@@ -1357,7 +1357,8 @@ public class FileExporter {
 
 
 
-			Person doctor=Context.getService(BillingService.class).getConsommation(c.getConsommationId()).getGlobalBill().getAdmission().getCreator().getPerson();
+			//Person doctor=Context.getService(BillingService.class).getConsommation(c.getConsommationId()).getGlobalBill().getAdmission().getCreator().getPerson();
+			Person doctor=Context.getService(BillingService.class).getConsommation(c.getConsommationId()).getGlobalBill().getClosedBy().getPerson();
 
 			op.print(i
 							+ "," + f.format(c.getCreatedDate())
@@ -1682,7 +1683,7 @@ public class FileExporter {
 		}
 
 
-		cell = new PdfPCell(fontselector.process("Doctor: \n"+ createdBy.getPersonName()+"\n\n........................."));
+		cell = new PdfPCell(fontselector.process("Discharge by (Doctor): \n"+ createdBy.getPersonName()+"\n\n........................."));
 		cell.setBorder(Rectangle.NO_BORDER);
 		table1.addCell(cell);
 

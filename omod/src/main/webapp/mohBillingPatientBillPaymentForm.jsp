@@ -39,6 +39,15 @@
    
 <script type="text/javascript">
 $j(document).ready(function(){
+
+//Check All check boxes
+/*
+$j('#checkAll').change(function() {
+        $j(".items").attr("checked", "true");
+        recalculateTotals();
+    });
+*/
+
 	//first the balance is hidden until deposit checkbox is checked
 	$j('.depositPayment').hide();
 	//$j('.cashPayment').hide();
@@ -179,7 +188,7 @@ function recalculateTotals() {
 				<th class="columnHeader right">Price (Rwf)</th>
 				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</th>
 				<th class="columnHeader right">Patient : ${100-insurancePolicy.insurance.currentRate.rate} %</th>
-				<th></th>
+				<th> <!-- Select All<input type="checkbox" id="checkAll" onKeyUp=calculateCost(this)"/> --> </th>
 			</tr>
 			<c:if test="${empty consommation.billItems}"><tr><td colspan="7"><center>No consommation found !</center></td></tr></c:if>
 			<c:set var="totalBillInsurance" value="0"/>
