@@ -24,7 +24,7 @@
 
 
 <style>
-.insurances, .thirdParties,.time,.billCreator,.billStatus,.services,.paymentType {
+.insurances, .thirdParties,.billCreator,.billStatus,.services,.paymentType {
     display: none;
 }
 a.print {
@@ -81,7 +81,7 @@ Amount Withdrawn :
 	<tr>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}">
-			<fmt:formatDate pattern="yyyy-MM-dd" value="${trans.transactionDate }" />
+			<fmt:formatDate pattern="yyyy-MM-dd HH:mm:ss" value="${trans.transactionDate }" />
 	</td>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${trans.collector }</td>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${trans.patientAccount.patient.personName }</td>

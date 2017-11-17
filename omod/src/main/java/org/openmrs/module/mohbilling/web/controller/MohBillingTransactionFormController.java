@@ -63,7 +63,8 @@ public class MohBillingTransactionFormController extends
 			
 			transaction = new Transaction();
 			transaction.setAmount(transAmount);
-			transaction.setTransactionDate(Context.getDateFormat().parse(request.getParameter("receivedDate")));
+			//transaction.setTransactionDate(Context.getDateFormat().parse(request.getParameter("receivedDate")));
+			transaction.setTransactionDate(new Date());
 			transaction.setCreatedDate(new Date());
 			transaction.setCreator(Context.getAuthenticatedUser());
 			transaction.setPatientAccount(account);

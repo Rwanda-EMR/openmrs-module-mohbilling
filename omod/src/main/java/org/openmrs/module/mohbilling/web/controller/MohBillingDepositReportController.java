@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -28,16 +29,41 @@ public class MohBillingDepositReportController extends
 		
 		
 		ModelAndView mav = new ModelAndView();
-		if (request.getParameter("formStatus") != null
-				&& !request.getParameter("formStatus").equals("")) {
-			String startDateStr = request.getParameter("startDate");
-			String startHourStr = request.getParameter("startHour");
-			String startMinStr = request.getParameter("startMinute");
-			
-			String endDateStr = request.getParameter("endDate");
-			String endHourStr = request.getParameter("endHour");
-			String endMinuteStr = request.getParameter("endMinute");
-			
+
+		String startDateStr = null, endDateStr = null, startHourStr = null, startMinuteStr = null,
+				endHourStr = null, endMinuteStr = null;
+
+
+		if (request.getParameter("formStatus") != null && !request.getParameter("formStatus").equals("")) {
+
+			startHourStr = request.getParameter("startHour");
+			startMinuteStr = request.getParameter("startMinute");
+
+			endHourStr = request.getParameter("endHour");
+			endMinuteStr = request.getParameter("endMinute");
+
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+			String startTimeStr = startHourStr + ":" + startMinuteStr + ":00";
+			String endTimeStr = endHourStr + ":" + endMinuteStr + ":59";
+			Date startDate = null, endDate = null;
+
+			if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")) {
+				startDateStr = request.getParameter("startDate");
+				startDate = sdf.parse(startDateStr.split("/")[2] + "-"
+						+ startDateStr.split("/")[1] + "-"
+						+ startDateStr.split("/")[0] + " " + startTimeStr);
+			}
+
+			if(request.getParameter("endDate") != null && !request.getParameter("endDate").equals("")) {
+				endDateStr = request.getParameter("endDate");
+				endDate = sdf.parse(endDateStr.split("/")[2] + "-"
+						+ endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0]
+						+ " " + endTimeStr);
+			}
+
+
+
 			String collectorStr = null;
 			String insuranceStr = null;
 			String thirdPartyStr = null;
@@ -51,10 +77,9 @@ public class MohBillingDepositReportController extends
 			if(request.getParameter("thirdPartyId")!=null && !request.getParameter("thirdPartyId").equals(""))
 			 thirdPartyStr = request.getParameter("thirdPartyId");
 			
-			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
-			
-			 Date startDate = (Date) params[0];
-			 Date endDate = (Date) params[1];
+			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinuteStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
+
+
 			 User collector =  (User) params[2];
 			 
 			 String transactionType = request.getParameter("transactionType");
@@ -73,17 +98,9 @@ public class MohBillingDepositReportController extends
 			 for (Transaction trans : transactions) {
 				 total=total.add(trans.getAmount());
 			}
-
-			 //try {
 				mav.addObject("transactions", transactions);
 				mav.addObject("total", total);
 				mav.addObject("reason", reason);
-				
-			/*} catch (Exception e) {
-				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-						"No transaction found !");
-				log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
-			}*/
 
 	}	
 		mav.setViewName(getViewName());

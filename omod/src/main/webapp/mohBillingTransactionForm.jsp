@@ -2,6 +2,8 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ taglib prefix="mohbilling_tag" tagdir="/WEB-INF/tags/module/mohbilling" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 
 <div style="; width: 49%">
@@ -62,8 +64,13 @@
 				<td><input type="text" name="collector" value="${authenticatedUser.username}" disabled="disabled"/></td>
 			</tr>
 			<tr>
-				<td>${param.type } Date</td>
-				<td><input type="text" autocomplete="off" name="receivedDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
+			    <c:set var="today" value="<%=new java.util.Date()%>" />
+			    <td> Date:</td>
+				<!-- <td>${param.type } Date</td>
+				 <td><input type="text" autocomplete="off" name="receivedDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td> -->
+
+				<td><input type="text" name="receivedDate"  value="<fmt:formatDate  type="date" pattern="yyyy-MM-dd HH:mm:ss" value="${today}"/>" disabled="disabled" /></td>
+
 			</tr>
 			
 			<tr>

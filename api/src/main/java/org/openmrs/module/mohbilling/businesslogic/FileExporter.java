@@ -1246,7 +1246,7 @@ public class FileExporter {
 		table = new PdfPTable(colsWidt);
 		table.setWidthPercentage(100f);
 
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		FontSelector boldFont = new FontSelector();
 		boldFont.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
