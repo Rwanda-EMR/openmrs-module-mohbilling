@@ -104,7 +104,7 @@ function  cancelClosingGlobalBill(){
 					value="${insurancePolicy.insuranceCardNo}" size="15" disabled="disabled"/></td>
 			</tr>
 			<tr>
-				<td>Is admitted ?</td>
+				<td>Is admitted(URG-IPD)</td>
 				<td><input 	type="checkbox" name="isAdmitted" value="true" /><td>
 
 			</tr>

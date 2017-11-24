@@ -17,6 +17,7 @@
 							<td>On Or After <input type="text" size="11"
 								value="${startDate}" name="startDate"
 								onclick="showCalendar(this)" /></td>
+							<td>hh</td>
 							<td>
 							<select name="startHour" class="time">
 							<option value="00">00</option>
@@ -30,6 +31,7 @@
 				             </select>
 							
 							</td>
+							<td>mm</td>
 						 <td>
 							<select name="startMinute" class="time">
 							<option value="00">00</option>
@@ -57,6 +59,7 @@
 						<tr>
 							<td>On Or Before <input type="text" size="11"
 								value="${endDate}" name="endDate" onclick="showCalendar(this)" /></td>
+							<td>hh</td>
 							<td>
 							<select name="endHour" class="time">
 							<option value="00">00</option>
@@ -70,7 +73,7 @@
 				             </select>
 							</td>
 								
-
+                           <td>mm</td>
                            <td>
 							<select name="endMinute" class="time">
 							<option value="00">00</option>
