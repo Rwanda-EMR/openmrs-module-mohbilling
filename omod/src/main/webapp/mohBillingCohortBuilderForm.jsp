@@ -24,7 +24,7 @@
 
 
 <style>
-.collector,.time,.deposit,.paymentType {
+.collector,.time,.deposit,.timelabel,.paymentType {
     display: none;
 }
 a.print {

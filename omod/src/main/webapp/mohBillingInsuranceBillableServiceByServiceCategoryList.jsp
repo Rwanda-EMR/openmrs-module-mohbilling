@@ -130,9 +130,11 @@ $j(document).ready(function(){
 						//out.println("<tbody>");
 						out.println("<ul id='itemList'>");
 							for (BillableService bs : billableServices) {
-								//if(!bs.isRetired())
+							    //if(bs.getRetiredDate().retiredDate == null)
+								if(!bs.isRetired()){
 									/* out.println("<tr>");	
 								    out.println("<td class='submenu'>"); */
+
 								    out.println("<div class='inTable unselectedService' id='billableService_"+bs.getServiceId()+"' onclick=addServiceToCart('"+bs.getServiceId()+"','"+bs.getFacilityServicePrice().getName().replace("'","&nbsp;").replace(" ","&nbsp;")+"','"+bs.getMaximaToPay()+"')>");
 									out.println("<li class='item'>"
 											+ bs.getFacilityServicePrice().getName()
@@ -140,6 +142,7 @@ $j(document).ready(function(){
 									out.println("</div>");
 									/* out.println("</td>");
 									out.println("</tr>"); */
+									}
 							}
 							//out.println("</tbody>");
 						//out.println("</table>");

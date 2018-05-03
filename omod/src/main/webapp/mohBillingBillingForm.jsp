@@ -36,17 +36,21 @@
 	    var cell3 = row.insertCell(2);
 	    cell3.innerHTML="<input type='text' size='3' name='quantity_"+index+"' id='quantity_"+index+"' style='text-align: center;' value='1' onblur='calculateTheBill();'/>";
 
-	    var cell4 = row.insertCell(3);
+        //Drug Frequency
+        var cell7 = row.insertCell(3);
+        cell7.innerHTML="<input type='text' size='8' name='frequency_"+index+"' id='frequency_"+index+"' style='text-align: left;' value=''/>";
+
+	    var cell4 = row.insertCell(4);
 	    cell4.style.textAlign="right";
 	    cell4.innerHTML="<span id='price_"+index+"'><b>"+servicePrice+"</b></span>";
 	    var price=createHiddenElement('servicePrice',index,5);
 	    price.value=servicePrice;
 	    cell4.appendChild(price);
 
-	    var cell5 = row.insertCell(4);
+	    var cell5 = row.insertCell(5);
 	    cell5.innerHTML="<span title='Remove Service' onclick=deleteRow('"+serviceId+"') class='deleteBt' id='delete_"+index+"'><b>X</b></span>";
 
-	    var cell6 = row.insertCell(5);
+	    var cell6 = row.insertCell(6);
 	    cell6.innerHTML="<input type='hidden' size='5' name='billableServiceId_"+index+"' id='billableServiceId_"+index+"' value='"+serviceId+"'/>";
 
 	    index++;
@@ -120,7 +124,7 @@
 			    for(var i=1; i<rowCount; i++) {
 			        var row = table.rows[i];
 
-			        var hiddenElmnt=row.cells[5].childNodes[0];
+			        var hiddenElmnt=row.cells[6].childNodes[0];
 			        if(null != hiddenElmnt && serviceId == hiddenElmnt.value) {
 				    	table.deleteRow(i);
 			            rowCount--;
@@ -232,7 +236,7 @@ $j(document).ready(function(){
 <c:if test="${editStr==null }">
 <div id="billingForm">
 <div class="box">
-	<div style="float: left; width: 30%">
+	<div style="float: left; width: 40%">
 		<b class="boxHeader">Calculator</b>
 		<div class="box">
 			<form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&departmentId=${param.departmentId }&save=true" method="post" id="form_save_patient_bill">
@@ -240,12 +244,13 @@ $j(document).ready(function(){
 				<div style="max-width: 99%; overflow: auto;">
 					<table width="99%; !important;" id="cartOfServices">
 						<tr>
-							<td class="columnHeader" style="width: 5%;"></td>
+							<td class="columnHeader" style="width: 8%;"></td>
 							<td class="columnHeader" style="width: 60%;">Services</td>
-							<td class="columnHeader" style="width: 10%;">Qty</td>
-							<td class="columnHeader" style="width: 19%;">Price (Rwf)</td>
-							<td class="columnHeader" style="width: 5%;"></td>
-							<td style="width: 1%;"></td>
+							<td class="columnHeader" style="width: 8%;">Qty</td>
+							<td class="columnHeader" style="width: 8%;">Drug Frequency</td>
+							<td class="columnHeader" style="width: 17%;">Price (Rwf)</td>
+							<td class="columnHeader" style="width: 3%;"></td>
+							<td style="width: 1%"></td>
 						</tr>
 					</table>
 					<br/>
@@ -280,7 +285,7 @@ $j(document).ready(function(){
 		</div>
 	</div>
 
-	<div style="float: right; width: 70%">
+	<div style="float: right; width: 60%">
 		<b class="boxHeader">Search Services by Department</b>
 <div class="box">
 	<form

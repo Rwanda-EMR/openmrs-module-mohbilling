@@ -6,7 +6,7 @@
 	<!-- Base Module Properties -->
 	<id>mohbilling</id>
 	<name>MoH Billing Module</name>
-	<version>0.0.4.1-SNAPSHOT</version>
+	<version>0.0.4.2-SNAPSHOT</version>
 	<package>org.openmrs.module.@MODULE_ID@</package>
 	<author>MoH Rwanda</author>
 	<description>
@@ -274,6 +274,11 @@
     <privilege>
         <name>Edit Bill Payment</name>
         <description>Allows users to Edit the amount paid by the patient by entering the new amount</description>
+    </privilege>
+
+    <privilege>
+        <name>Edit Bill</name>
+        <description>Allows users to Edit Item Quantity or Remove it from Bill</description>
     </privilege>
     
     <privilege>

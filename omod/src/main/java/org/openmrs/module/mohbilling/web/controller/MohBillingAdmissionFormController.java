@@ -125,7 +125,7 @@ String diseaseType=request.getParameter("diseaseType");
 		}//
 		
 	}
-	if(request.getParameter("discharge")!=null){
+	if(request.getParameter("discharge")!=null && Context.isAuthenticated()){
 
 
 

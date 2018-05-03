@@ -1389,7 +1389,8 @@ public class HibernateBillingDAO implements BillingDAO {
 			Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
 					.add(Restrictions.between("createdDate", date1, date2))
 					.add(Restrictions.eq("closed", true))
-					.add(Restrictions.eq("insurance", insurance));
+					.add(Restrictions.eq("insurance", insurance))
+					.addOrder(Order.asc("closingDate"));
 		return crit.list();
 		}
 

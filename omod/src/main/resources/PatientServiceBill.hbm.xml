@@ -29,7 +29,9 @@
 		<many-to-one name="hopService" class="org.openmrs.module.mohbilling.model.HopService" column="service_id" />
 						
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
-		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />	
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+
+		<property name="drugFrequency" column="drug_frequency" type="java.lang.String" />
 
 	</class>
 

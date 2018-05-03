@@ -683,7 +683,8 @@ public class InsuranceUtil {
 		categories.add(Category.AMBULANCE.getDescription());
 		categories.add(Category.GYNECO_OBSTETRIQUE.getDescription());
 		categories.add(Category.POLYCLINIQUE.getDescription());
-
+		categories.add(Category.APPAREILLAGE_ORTHOPEDIQUE.getDescription());
+        categories.add(Category.RADIOGRAPHIE.getDescription());
 		return categories;
 	}
 

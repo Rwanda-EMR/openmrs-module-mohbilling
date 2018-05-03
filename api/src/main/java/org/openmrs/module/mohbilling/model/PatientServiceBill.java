@@ -38,6 +38,10 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private User voidedBy;
 	private Date voidedDate;
 	private String voidReason;
+	private String drugFrequency;
+
+	public  String getDrugFrequency(){return  drugFrequency;};
+	public  void setDrugFrequency(String drugFrequency){this.drugFrequency=drugFrequency;};
 	
 	public PatientServiceBill(){
 		
@@ -52,7 +56,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 * @param createdDate
 	 */
 
-	public PatientServiceBill(BillableService bs,HopService service,Date serviceDate,BigDecimal unitPrice,BigDecimal quantity,User creator,Date createdDate){
+	public PatientServiceBill(BillableService bs,HopService service,Date serviceDate,BigDecimal unitPrice,BigDecimal quantity,User creator,Date createdDate,String drugFrequency){
 		this.service = bs;
 		this.serviceDate=serviceDate;
 		this.unitPrice=unitPrice;
@@ -60,7 +64,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		this.creator=creator;
 		this.createdDate=createdDate;
 		this.setHopService(service);
-
+		this.drugFrequency=drugFrequency;
 	}
 	/**
 	 * Creates a new instance of PatientServiceBill from existing
@@ -71,11 +75,10 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	public static PatientServiceBill newInstance(PatientServiceBill psbToCopy,BigDecimal newQuantity){
 
-		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getHopService()   ,psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date());
+		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getHopService(),psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date(),psbToCopy.getDrugFrequency());
 
 		return newPsb;
 	}
-
 	/**
 	 * @return the patientServiceBillId
 	 */

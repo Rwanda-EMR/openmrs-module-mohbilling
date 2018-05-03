@@ -182,6 +182,7 @@ function recalculateTotals() {
 				<th class="columnHeader"></th>
 				<th class="columnHeader">Service</th>
 				<th class="columnHeader center">Qty</th>
+				<th class="columnHeader center">Dosage</th>
 				<th class="columnHeader center">Paid Qty</th>
 				<th class="columnHeader center">Paying Qty</th>
 				<th class="columnHeader right">Unit Price (Rwf)</th>
@@ -201,6 +202,7 @@ function recalculateTotals() {
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
+					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.drugFrequency}</td>
 					<c:if test="${not empty billItem.paidQuantity}">
 					<c:set var="paidQty" value="${ billItem.paidQuantity }"/>
 					<c:set var="pendingQty" value="${billItem.quantity-billItem.paidQuantity}"/>
