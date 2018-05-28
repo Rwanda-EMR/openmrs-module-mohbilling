@@ -23,8 +23,8 @@
 
 
 <style>
-.collector,.time,.deposit,.paymentType {
-    display: none;
+.collector,.time,.deposit,.timelabel,.paymentType {
+     display: none;
 }
 a.print {
     border: 2px solid #009900;

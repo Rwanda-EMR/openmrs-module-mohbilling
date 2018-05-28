@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE hibernate-mapping PUBLIC
- "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
- "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="org.openmrs.module.mohbilling.model">
 
 	<!-- PatientServiceBill -->
-	
+
 	<class name="PatientServiceBill" table="moh_bill_patient_service_bill">
 
 		<id name="patientServiceBillId" type="int" column="patient_service_bill_id" unsaved-value="0">
@@ -14,10 +14,10 @@
 		</id>
 		<property name="serviceDate" column="service_date" type="java.util.Date" />
 		<property name="unitPrice" column="unit_price" type="big_decimal" />
-		<property name="quantity" column="quantity" type="big_decimal" />	
+		<property name="quantity" column="quantity" type="big_decimal" />
 		<property name="paidQuantity" column="paid_quantity" type="big_decimal" />
 		<property name="serviceOther" column="service_other" type="java.lang.String" />
-		<property name="serviceOtherDescription" column="service_other_description" type="java.lang.String" />		
+		<property name="serviceOtherDescription" column="service_other_description" type="java.lang.String" />
 		<property name="createdDate" column="created_date" type="java.util.Date" />
 		<property name="paid" type="java.lang.Boolean" column="is_paid" length="1" not-null="true" />
 		<property name="voided" column="voided" type="boolean" />
@@ -27,9 +27,11 @@
 		<many-to-one name="service" class="org.openmrs.module.mohbilling.model.BillableService" column="billable_service_id" />
 		<many-to-one name="consommation" class="org.openmrs.module.mohbilling.model.Consommation" column="consommation_id" />
 		<many-to-one name="hopService" class="org.openmrs.module.mohbilling.model.HopService" column="service_id" />
-						
+
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
-		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />	
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+
+		<property name="drugFrequency" column="drug_frequency" type="java.lang.String" />
 
 	</class>
 

@@ -625,7 +625,7 @@
 		</sql>
 
 	</diff>
-		<diff>
+	<diff>
 		<version>1.3.0.9</version>
 		<author>MoH Rwanda</author>
 		<date>Mai 13th 2017</date>
@@ -686,6 +686,18 @@
 		</description>
 		<sql>
 			ALTER TABLE moh_bill_global_bill ADD insurance_id int(11);
+		</sql>
+	</diff>
+
+	<diff>
+		<version>1.3.1.4</version>
+		<author>Rwanda EMR</author>
+		<date>March 06th 2018</date>
+		<description>
+			alter moh_bill_patient_service_bill table
+		</description>
+		<sql>
+			ALTER TABLE  moh_bill_patient_service_bill ADD drug_frequency varchar(50) DEFAULT " ";
 		</sql>
 	</diff>
 

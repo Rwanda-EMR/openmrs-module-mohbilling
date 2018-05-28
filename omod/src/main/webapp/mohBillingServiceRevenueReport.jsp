@@ -23,8 +23,8 @@
 
 
 <style>
- .insurances, .thirdParties,.time,.collector,.billCreator,.billStatus,.deposit,.paymentType {
-    display: none;
+ .insurances, .thirdParties,.timelabel,.time,.collector,.billCreator,.billStatus,.deposit,.paymentType {
+      display: none;
 } 
 a.print {
     border: 2px solid #009900;

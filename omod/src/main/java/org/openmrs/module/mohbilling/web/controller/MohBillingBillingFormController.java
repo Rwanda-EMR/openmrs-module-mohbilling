@@ -1,6 +1,6 @@
 
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.web.controller;
 
@@ -21,7 +21,7 @@ import java.util.Set;
 
 /**
  * @author EMR-RBC
- * 
+ *
  */
 public class MohBillingBillingFormController extends
 		ParameterizableViewController {
@@ -30,12 +30,12 @@ public class MohBillingBillingFormController extends
 
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+												 HttpServletResponse response) throws Exception {
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 		Consommation consommation = null;
-		
+
 		//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>edit a consommation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 		System.out.println("yyyyyyyyyyyyyyyyyyyyyyyyy"+request.getParameter("consommationId"));
@@ -49,7 +49,7 @@ public class MohBillingBillingFormController extends
 					mav.addObject("consommation", consommation);
 
 				}
-				
+
 			}
 			else{
 				request.getSession().setAttribute(
@@ -74,7 +74,7 @@ public class MohBillingBillingFormController extends
 		if (request.getParameter("save") != null) {
 			consommation = ConsommationUtil.handleSavePatientConsommation(request, mav);
 			if (null == consommation)
-				 new ModelAndView(new RedirectView(
+				new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
 								+ "&ipCardNumber="+request.getParameter("ipCardNumber")
@@ -88,25 +88,25 @@ public class MohBillingBillingFormController extends
 		}
 
 		if (request.getParameter("searchDpt") != null) {
-		  Department depart = null;
-	
-		  if(request.getParameter("departmentId").equals("")){
-			  request.getSession().setAttribute(
+			Department depart = null;
+
+			if(request.getParameter("departmentId").equals("")){
+				request.getSession().setAttribute(
 						WebConstants.OPENMRS_ERROR_ATTR,"Please select the Department/Service!");
-			  return new ModelAndView(new RedirectView(
+				return new ModelAndView(new RedirectView(
 						"billing.form?insurancePolicyId="
 								+ request.getParameter("insurancePolicyId")
-								+ "&ipCardNumber="+request.getParameter("ipCardNumber")	
+								+ "&ipCardNumber="+request.getParameter("ipCardNumber")
 								+ "&globalBillId="+request.getParameter("globalBillId")));
-		  }
-		  else{
-			   depart = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
-					Set<String> servicesByDepartment =null;
-					if(GlobalPropertyConfig.getListOfHopServicesByDepartment(depart)!=null){
+			}
+			else{
+				depart = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+				Set<String> servicesByDepartment =null;
+				if(GlobalPropertyConfig.getListOfHopServicesByDepartment(depart)!=null){
 					servicesByDepartment = GlobalPropertyConfig.getListOfHopServicesByDepartment(depart);
-					 if(servicesByDepartment.size()!=0)
-						 request.getSession().setAttribute(
-									WebConstants.OPENMRS_MSG_ATTR,"Available service categories in "+depart.getName()+" department ");
+					if(servicesByDepartment.size()!=0)
+						request.getSession().setAttribute(
+								WebConstants.OPENMRS_MSG_ATTR,"Available service categories in "+depart.getName()+" department ");
 					else
 						request.getSession().setAttribute(
 								WebConstants.OPENMRS_ERROR_ATTR,"No service categories in "+ depart.getName()+" department! Contact the System Admin...");
@@ -115,12 +115,12 @@ public class MohBillingBillingFormController extends
 					return new ModelAndView(new RedirectView(
 							"billing.form?insurancePolicyId="
 									+ request.getParameter("insurancePolicyId")
-									+ "&ipCardNumber="+request.getParameter("ipCardNumber")	
-									+ "&globalBillId="+request.getParameter("globalBillId")	
+									+ "&ipCardNumber="+request.getParameter("ipCardNumber")
+									+ "&globalBillId="+request.getParameter("globalBillId")
 									+ "&departmentId="+depart.getDepartmentId()	));
-				}	
-					
-		  }
+				}
+
+			}
 		}
 		try {
 			if (request.getParameter("ipCardNumber") == null)
@@ -132,14 +132,15 @@ public class MohBillingBillingFormController extends
 							.getParameter("ipCardNumber"));
 			Set<ServiceCategory> categories = null;
 			if(request.getParameter("departmentId")!=null){
-				 Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
+				Department department = DepartementUtil.getDepartement(Integer.valueOf(request.getParameter("departmentId")));
 
-				 ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("ipCardNumber"));
-				 categories = HopServiceUtil.getServiceCategoryByInsurancePolicyDepartment(ben.getInsurancePolicy(), department);
-				 mav.addObject("categories",categories); 
-				 
+				ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("ipCardNumber"));
+				categories = HopServiceUtil.getServiceCategoryByInsurancePolicyDepartment(ben.getInsurancePolicy(), department);
+				mav.addObject("categories",categories);
+
+
 			}
-			
+
 
 			mav.addObject("beneficiary", ben);
 
@@ -147,18 +148,18 @@ public class MohBillingBillingFormController extends
 					.getInsurancePolicyByBeneficiary(ben);
 			mav.addObject("insurancePolicy", ip);
 			mav.addObject("globalBillId",request.getParameter("globalBillId"));
-			
+
 			// check the validity of the insurancePolicy for today
 			Date today = new Date();
 			mav.addObject("valid",
-							((ip.getCoverageStartDate().getTime() <= today
-									.getTime()) && (today.getTime() <= ip
-									.getExpirationDate().getTime())));
-			
+					((ip.getCoverageStartDate().getTime() <= today
+							.getTime()) && (today.getTime() <= ip
+							.getExpirationDate().getTime())));
+
 			mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
 			mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(ben.getPatient()));
 		} catch (Exception e) {
-		//	log.error(">>>>MOH>>BILLING>> " + e.getMessage());
+			//	log.error(">>>>MOH>>BILLING>> " + e.getMessage());
 			e.printStackTrace();
 			return new ModelAndView(new RedirectView("patientSearchBill.form"));
 		}

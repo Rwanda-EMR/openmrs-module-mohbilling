@@ -11,6 +11,7 @@ import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
@@ -140,8 +141,8 @@ public class ConsommationUtil {
 
 		int numberOfServicesClicked=0;
 		String[] billItems = request.getParameterValues("billItem");
-		 BigDecimal insuranceRate = (new BigDecimal(beneficiary.getInsurancePolicy().getInsurance().getCurrentRate().getRate()));
-		 BigDecimal patientRate = (new BigDecimal(100).subtract(insuranceRate)).divide(new BigDecimal(100));
+		BigDecimal insuranceRate = (new BigDecimal(beneficiary.getInsurancePolicy().getInsurance().getCurrentRate().getRate()));
+		BigDecimal patientRate = (new BigDecimal(100).subtract(insuranceRate)).divide(new BigDecimal(100));
 
 		//update quantity on the existing consommation/add new item on the existing consommation
 		if(request.getParameter("consommationId")!=null || request.getParameter("addNew")!=null) {
@@ -168,22 +169,22 @@ public class ConsommationUtil {
 		BigDecimal totalExistingConsomm= new BigDecimal(0);
 
 		for (int i = 0; i < numberOfServicesClicked; i++) {
-				BigDecimal  quantity= null;
-				BigDecimal unitPrice = null;
-				BillableService bs = null;
-				PatientServiceBill psb =null;
+			BigDecimal  quantity= null;
+			BigDecimal unitPrice = null;
+			BillableService bs = null;
+			PatientServiceBill psb =null;
+			String drugf="";
+			if(billItems!=null){
+				if(request.getParameter("removeItem_"  + billItems[i])!=null){
+					PatientServiceBill itemToRemove = ConsommationUtil.getPatientServiceBill(Integer.valueOf(request.getParameter("removeItem_" + billItems[i])));
+					retireItem(itemToRemove);
 
-				if(billItems!=null){
-					if(request.getParameter("removeItem_"  + billItems[i])!=null){
-						PatientServiceBill itemToRemove = ConsommationUtil.getPatientServiceBill(Integer.valueOf(request.getParameter("removeItem_" + billItems[i])));
-						retireItem(itemToRemove);
+					BigDecimal removedItemAmount = itemToRemove .getQuantity().multiply(itemToRemove .getUnitPrice());
+					removedItemTotalAmount = removedItemTotalAmount.add(removedItemAmount);
 
-						BigDecimal removedItemAmount = itemToRemove .getQuantity().multiply(itemToRemove .getUnitPrice());
-						removedItemTotalAmount = removedItemTotalAmount.add(removedItemAmount);
-
-						message="Item removed succefully...";
-					}
-					else{
+					message="Item removed succefully...";
+				}
+				else{
 					PatientServiceBill existingPsb = ConsommationUtil.getPatientServiceBill(Integer.valueOf(billItems[i]));
 					quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("newQuantity_"  + billItems[i])));
 					unitPrice = existingPsb.getUnitPrice();
@@ -198,10 +199,10 @@ public class ConsommationUtil {
 					addedItemTotalAmount=addedItemTotalAmount.add(newItemAmount);
 					existingConsom.addBillItem(psb);
 					message="Items' quantities have been changed succefully...";
-					}
-
 				}
-				else{
+
+			}
+			else{
 				if(request.getParameter("consomationToAddOn")!=null && !request.getParameter("consomationToAddOn").equals("")){
 					existingConsom= ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consomationToAddOn")));
 					numberOfServicesClicked = Integer.valueOf(request.getParameter("numberOfServicesClicked"));
@@ -211,7 +212,8 @@ public class ConsommationUtil {
 						HopService hopService = HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
 						quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
 						unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
-						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date());
+						drugf = request.getParameter("frequency_"+i);
+						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf);
 						addedItemTotalAmount=addedItemTotalAmount.add(quantity.multiply(unitPrice));
 
 						for(PatientServiceBill pp:existingConsom.getBillItems())
@@ -228,23 +230,24 @@ public class ConsommationUtil {
 						HopService hopService = HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
 						quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
 						unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
-						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date());
+						drugf = request.getParameter("frequency_"+i);
+						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf);
 						// totalAmount = totalAmount.add(quantity.multiply(unitPrice));
 						addedItemTotalAmount = addedItemTotalAmount.add(quantity.multiply(unitPrice));
 						existingConsom.addBillItem(psb);
 						message = "A new consommation has been added to the global bill...";
 					}
 				}
-		      }
 			}
-		    BigDecimal addedItemTotalAmountt=addedItemTotalAmount.add(totalExistingConsomm);
-			totalAmount = totalAmount.add(addedItemTotalAmountt);
-			totalAmount = totalAmount.subtract(voidedItemTotalAmount);
-		    totalAmount = totalAmount.subtract(removedItemTotalAmount);
+		}
+		BigDecimal addedItemTotalAmountt=addedItemTotalAmount.add(totalExistingConsomm);
+		totalAmount = totalAmount.add(addedItemTotalAmountt);
+		totalAmount = totalAmount.subtract(voidedItemTotalAmount);
+		totalAmount = totalAmount.subtract(removedItemTotalAmount);
 
 		PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());
-	    InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);
-		ThirdPartyBill thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
+		InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);
+		ThirdPartyBill	thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
 
 		existingConsom.setDepartment(department);
 		existingConsom.setPatientBill(pb);
@@ -253,7 +256,7 @@ public class ConsommationUtil {
 		existingConsom.setThirdPartyBill(thirdPartyBill);
 
 		saveConsommation = ConsommationUtil.saveConsommation(existingConsom);
-		globalAmount = globalAmount.subtract(voidedItemTotalAmount).add(addedItemTotalAmount);
+		globalAmount = globalAmount.subtract(voidedItemTotalAmount).subtract(removedItemTotalAmount).add(addedItemTotalAmount);
 		//globalAmount =globalAmount.add(totalAmount);
 		globalBill.setGlobalAmount(globalAmount);
 		GlobalBillUtil.saveGlobalBill(globalBill);
@@ -301,11 +304,11 @@ public class ConsommationUtil {
 		Boolean isTrue = false;
 		for (PatientServiceBill psb : c.getBillItems()) {
 			if(psb.getPaidQuantity()!=null){
-			if(psb.getPaidQuantity().compareTo(psb.getQuantity())==0)
-				isTrue=true;
-			else{
-				isTrue=false;
-			}
+				if(psb.getPaidQuantity().compareTo(psb.getQuantity())==0)
+					isTrue=true;
+				else{
+					isTrue=false;
+				}
 			}
 			else if(c.getPatientBill().getAmountPaid().compareTo(c.getPatientBill().getAmount())==0){
 				isTrue=true;
@@ -319,8 +322,8 @@ public class ConsommationUtil {
 		Boolean found = false;
 		for (PatientServiceBill psb : c.getBillItems()) {
 			if(psb.getPaidQuantity()!=null){
-			if(psb.getPaidQuantity().compareTo(BigDecimal.ZERO)==0)
-				found=true;
+				if(psb.getPaidQuantity().compareTo(BigDecimal.ZERO)==0)
+					found=true;
 			}
 			else if(c.getPatientBill().getAmountPaid().compareTo(BigDecimal.ZERO)==0){
 				found=true;
@@ -333,11 +336,11 @@ public class ConsommationUtil {
 		Boolean found = false;
 		for (PatientServiceBill psb : c.getBillItems()) {
 			if(psb.getPaidQuantity()!=null){
-			if(psb.getPaidQuantity().compareTo(psb.getQuantity())<0)
-				found=true;
-			else{
-				found=false;
-			}
+				if(psb.getPaidQuantity().compareTo(psb.getQuantity())<0)
+					found=true;
+				else{
+					found=false;
+				}
 			}
 			else if(c.getPatientBill().getAmountPaid().compareTo(c.getPatientBill().getAmount())==-1){
 				found=true;
@@ -346,9 +349,9 @@ public class ConsommationUtil {
 		return found;
 	}
 	public static List<Consommation> getConsommations(Date startDate,
-			Date endDate, Insurance insurance, ThirdParty tp,
-			User billCreator,Department department){
-		 return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+													  Date endDate, Insurance insurance, ThirdParty tp,
+													  User billCreator,Department department){
+		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
 	}
 
 	public static void retireItem(PatientServiceBill psb){

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.model;
 
@@ -12,12 +12,12 @@ import java.util.Date;
 
 /**
  * @author EMR/RBC
- * 
+ *
  */
 public class PatientServiceBill implements Comparable<PatientServiceBill> {
-	
+
 	private Integer patientServiceBillId;
-	
+
 	private Date serviceDate;
 	private BillableService service;
 	private HopService hopService;
@@ -25,8 +25,8 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private BigDecimal quantity;
 	private BigDecimal paidQuantity;
 	private Consommation consommation;
-	private Boolean paid = Boolean.FALSE;	
-	
+	private Boolean paid = Boolean.FALSE;
+
 	// These following 2 attr. are alternative to have
 	// another billableService Object and using
 	// those fields should have special privileges
@@ -38,9 +38,13 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private User voidedBy;
 	private Date voidedDate;
 	private String voidReason;
-	
+	private String drugFrequency;
+
+	public  String getDrugFrequency(){return  drugFrequency;};
+	public  void setDrugFrequency(String drugFrequency){this.drugFrequency=drugFrequency;};
+
 	public PatientServiceBill(){
-		
+
 	}
 	/**
 	 * sets required parameters of PatientServiceBill
@@ -52,7 +56,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 * @param createdDate
 	 */
 
-	public PatientServiceBill(BillableService bs,HopService service,Date serviceDate,BigDecimal unitPrice,BigDecimal quantity,User creator,Date createdDate){
+	public PatientServiceBill(BillableService bs,HopService service,Date serviceDate,BigDecimal unitPrice,BigDecimal quantity,User creator,Date createdDate,String drugFrequency){
 		this.service = bs;
 		this.serviceDate=serviceDate;
 		this.unitPrice=unitPrice;
@@ -60,7 +64,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		this.creator=creator;
 		this.createdDate=createdDate;
 		this.setHopService(service);
-
+		this.drugFrequency=drugFrequency;
 	}
 	/**
 	 * Creates a new instance of PatientServiceBill from existing
@@ -71,11 +75,10 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	public static PatientServiceBill newInstance(PatientServiceBill psbToCopy,BigDecimal newQuantity){
 
-		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getHopService()   ,psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date());
+		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getHopService(),psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date(),psbToCopy.getDrugFrequency());
 
 		return newPsb;
 	}
-
 	/**
 	 * @return the patientServiceBillId
 	 */
@@ -261,8 +264,8 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
 	}
-	
-	
+
+
 	public Boolean isPaid() {
 		return paid;
 	}
@@ -357,7 +360,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	/**
 	 * Gets the Service Category for the Billable Service that is associated to
 	 * this PatientServiceBill
-	 * 
+	 *
 	 * @return service.serviceCategory
 	 */
 	public ServiceCategory getBillableServiceCategory() {
@@ -366,7 +369,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -379,7 +382,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		PatientServiceBill psb = (PatientServiceBill) obj;
 		if (psb.getPatientServiceBillId() != null
 				&& psb.getPatientServiceBillId().equals(
-						this.patientServiceBillId)) {
+				this.patientServiceBillId)) {
 			return true;
 		}
 
@@ -388,7 +391,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -406,7 +409,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 * @return
 	 */
 	public BigDecimal applyInsuranceRate(Insurance insurance, Date date,
-			BigDecimal amount) {
+										 BigDecimal amount) {
 
 		MathContext mc = new MathContext(BigDecimal.ROUND_DOWN);
 		BigDecimal rate = BigDecimal.valueOf(insurance.getRateOnDate(date)
@@ -417,7 +420,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override

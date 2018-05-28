@@ -6,8 +6,8 @@
 
 <b class="boxHeader">Search Form(Advanced)</b>
 <div class="box">
-	<form method="post" action=" ">	
-	<input type="hidden" name="formStatus" id="formStatusId" value="" />	
+	<form method="post" action=" ">
+	<input type="hidden" name="formStatus" id="formStatusId" value="" />
 		<table>
 			<tr class="dates">
 				<td width="10%">When?</td>
@@ -17,30 +17,32 @@
 							<td>On Or After <input type="text" size="11"
 								value="${startDate}" name="startDate"
 								onclick="showCalendar(this)" /></td>
+							<td class="timelabel" >hh</td>
 							<td>
 							<select name="startHour" class="time">
 							<option value="00">00</option>
 							<c:forEach var="counter" begin="1" end="9">
    								  <option value="0${counter}">0${counter}</option>
 							 </c:forEach>
-							 
+
 							 <c:forEach var="j" begin="10" end="23">
    								<option value="${j}">${j}</option>
 							 </c:forEach>
 				             </select>
-							
+
 							</td>
+							<td class="timelabel">mm</td>
 						 <td>
 							<select name="startMinute" class="time">
 							<option value="00">00</option>
 							 <c:forEach var="i" begin="1" end="9">
 							 <option value="0${i}">0${i}</option>
 							 </c:forEach>
-							 
+
 							 <c:forEach var="j" begin="10" end="59">
    								  <option value="${j}">${j}</option>
 							 </c:forEach>
-							 
+
 				             </select>
 						  </td>
 						  <td class="deposit">Type</td>
@@ -57,34 +59,35 @@
 						<tr>
 							<td>On Or Before <input type="text" size="11"
 								value="${endDate}" name="endDate" onclick="showCalendar(this)" /></td>
+							<td class="timelabel" >hh</td>
 							<td>
 							<select name="endHour" class="time">
 							<option value="00">00</option>
 							 <c:forEach var="counter" begin="1" end="9">
 							 <option value="0${counter}">0${counter}</option>
 							 </c:forEach>
-							 
+
 							 <c:forEach var="j" begin="10" end="23">
    								 <option value="${j}">${j}</option>
 							 </c:forEach>
 				             </select>
 							</td>
-								
 
+                           <td class="timelabel">mm</td>
                            <td>
 							<select name="endMinute" class="time">
 							<option value="00">00</option>
 							 <c:forEach var="i" begin="1" end="9">
 							 <option value="0${i}">0${i}</option>
 							 </c:forEach>
-							 
+
 							 <c:forEach var="j" begin="10" end="59">
    								  <option value="${j}">${j}</option>
 							 </c:forEach>
-							 
+
 				             </select>
 						  </td>
-						  
+
 						  	<td class="billStatus">Bill Status</td>
 							<td class="billStatus">
 								<select name="billStatus">
@@ -94,23 +97,23 @@
 									<option value="PARTLY PAID" ${billStatus== 'PARTLY PAID' ? 'selected' : ''}>PARTLY PAID</option>
 								</select>
 							</td>
-						  
+
 						  	<td class="collector">Collector :</td>
 		    				<td class="collector"><openmrs_tag:userField formFieldName="cashCollector" initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
-							
+
 								<td class="paymentType">Type</td>
 								<td class="paymentType">
 								<select name="paymentType">
 									<option value="">All</option>
-									<option value="cashPayment">Cash Payment</option>
-									<option value="depositPayment">Deposit Payment</option>
+								<!-- <option value="cashPayment">Cash Payment</option>
+									<option value="depositPayment">Deposit Payment</option> -->
 								</select>
-								</td>			  
+								</td>
 						</tr>
 
 					</table>
 				</td>
-				
+
 			</tr>
 
 			<tr class="insurances">
@@ -123,7 +126,7 @@
 				    </c:forEach>
 				  </select>
 				</td>
-				
+
 				<td class="services">Service : </td>
 				<td class="services">
 				  <select name="departmentId">
@@ -134,7 +137,7 @@
 				  </select>
 				</td>
 			</tr>
-			
+
 			<tr class="thirdParties">
 			<td>Third Party : </td>
 				<td>

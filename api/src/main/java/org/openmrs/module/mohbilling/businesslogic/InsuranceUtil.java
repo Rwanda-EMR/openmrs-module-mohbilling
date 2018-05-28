@@ -12,18 +12,18 @@ import java.util.*;
 /**
  * This is a helper class for the Insurance domain, to contain all business
  * logic.
- * 
+ *
  * Parent Class is Insurance, child classes are ServiceCategory, and
  * InsuranceRate
- * 
+ *
  * @author dthomas
- * 
+ *
  */
 public class InsuranceUtil {
 
 	/**
 	 * Offers the BillingService to be use to talk to the DB
-	 * 
+	 *
 	 * @return the BillingService
 	 */
 	private static BillingService getService() {
@@ -55,7 +55,7 @@ public class InsuranceUtil {
 
 	/**
 	 * Auto generated method comment
-	 * 
+	 *
 	 * @param insurance
 	 * @param date
 	 * @return
@@ -86,7 +86,7 @@ public class InsuranceUtil {
 	 * @param phone
 	 */
 	public static void updateInsuranceInfomations(Insurance insurance,
-			String name, String address, String phone) {
+												  String name, String address, String phone) {
 
 		if (name != null) {
 			insurance.setName(name);
@@ -103,14 +103,14 @@ public class InsuranceUtil {
 
 	/**
 	 * Auto generated method comment
-	 * 
+	 *
 	 * @param insurance
 	 * @param creator
 	 * @param createdDate
 	 * @param concept
 	 */
 	public static void updateInsuranceCreationInfos(Insurance insurance,
-			User creator, Date createdDate, Concept concept) {
+													User creator, Date createdDate, Concept concept) {
 
 		if (creator != null) {
 			insurance.setCreator(creator);
@@ -132,7 +132,7 @@ public class InsuranceUtil {
 	 * @param concept
 	 */
 	public static void createInsurance(String name, String address,
-			String phone, Concept concept) {
+									   String phone, Concept concept) {
 
 		Insurance insurance = new Insurance();
 
@@ -150,7 +150,7 @@ public class InsuranceUtil {
 	 * Creates an new or edit an existing one. It just offers the option of
 	 * adding only and only one rate to the given insurance. If InsuranceRate is
 	 * not provided, it will just save the insurance.
-	 * 
+	 *
 	 * @param insurance
 	 *            the insurance to be added/edited
 	 * @param rate
@@ -158,7 +158,7 @@ public class InsuranceUtil {
 	 * @return the saved insurance
 	 */
 	public static Insurance createInsurance(Insurance insurance,
-			InsuranceRate rate) {
+											InsuranceRate rate) {
 
 		if (insurance != null) {
 			if (rate != null) {
@@ -193,14 +193,14 @@ public class InsuranceUtil {
 	 * existing Rates. Also check the StartDate is not ranged in the previous
 	 * Rate validity dates range (this has to be implemented in the business
 	 * logic)
-	 * 
+	 *
 	 * @param insurance
 	 * @param Rate
 	 * @param flatFee
 	 * @param startDate
 	 */
 	public static void createInsuranceRate(Insurance insurance, Float rate,
-			BigDecimal flatFee, Date startDate) {
+										   BigDecimal flatFee, Date startDate) {
 		// Create a new insurance rate will be the Retire Reason for the current
 		// one to be retired
 		InsuranceRate insuranceRate = new InsuranceRate();
@@ -233,13 +233,13 @@ public class InsuranceUtil {
 
 	/**
 	 * Auto generated method comment
-	 * 
+	 *
 	 * @param insurance
 	 * @param rate
 	 * @param reason
 	 */
 	public static void retireInsuranceRate(Insurance insurance,
-			InsuranceRate rate, String reason) {
+										   InsuranceRate rate, String reason) {
 
 		// Retire the previous rate.
 		for (InsuranceRate ir : insurance.getRates()) {
@@ -259,7 +259,7 @@ public class InsuranceUtil {
 	/**
 	 * Adds a new Insurance Rate instead of editing the existing that has to be
 	 * retired in this case.
-	 * 
+	 *
 	 * @param insurance
 	 * @param rate
 	 */
@@ -281,7 +281,7 @@ public class InsuranceUtil {
 
 	/**
 	 * This is the same as Saving an insurance: addNewInsurance();
-	 * 
+	 *
 	 * @param insurance
 	 */
 	public static void editInsurance(Insurance insurance) {
@@ -292,7 +292,7 @@ public class InsuranceUtil {
 
 	/**
 	 * This involves retiring current (not retired) InsuranceRate
-	 * 
+	 *
 	 * @param insurance
 	 * @param voidReason
 	 */
@@ -321,7 +321,7 @@ public class InsuranceUtil {
 	 * This has to be on the Insurance Object. This will use the
 	 * "getRateOnDate(Date date)" where date is the "new Date()" i.e. today's
 	 * date
-	 * 
+	 *
 	 * @return
 	 */
 	public static InsuranceRate getCurrentRate(Insurance insurance) {
@@ -334,13 +334,13 @@ public class InsuranceUtil {
 	 * (return) String msg saying that the StartDate entered by the user is in
 	 * Dates Ranges of previous Insurance Rates: considering the Rates related
 	 * to the given Insurance.}
-	 * 
+	 *
 	 * @param insurance
 	 * @param startDate
 	 * @return
 	 */
 	public static String checkRateStartDateConflict(Insurance insurance,
-			Date startDate) {
+													Date startDate) {
 
 		String message = "";
 
@@ -362,7 +362,7 @@ public class InsuranceUtil {
 	/**
 	 * Gets insurances considering the provided validity: i.e. if isValid ==
 	 * true it will return the non voided Insurance, and voided ones otherwise.
-	 * 
+	 *
 	 * @param isValid
 	 *            the validity condition
 	 * @return voided Insurances if isValid == false, unvoided otherwise.
@@ -381,7 +381,7 @@ public class InsuranceUtil {
 	/**
 	 * Gets all Valid/Invalid service categories depending on the provided
 	 * validity value
-	 * 
+	 *
 	 * @param insurance
 	 *            the insurance company to be matched
 	 * @param isValid
@@ -406,7 +406,7 @@ public class InsuranceUtil {
 	/**
 	 * Gets the Valid (not yet retired) Billable services at a Facility and by
 	 * specified insurance company on a given date
-	 * 
+	 *
 	 * @param insurance
 	 * @param date
 	 * @param facilityServicePrice
@@ -441,7 +441,7 @@ public class InsuranceUtil {
 
 	/**
 	 * Auto generated method comment
-	 * 
+	 *
 	 * @param sc
 	 * @param date
 	 * @param isRetired
@@ -451,7 +451,7 @@ public class InsuranceUtil {
 			ServiceCategory sc, Date date, Boolean isRetired) {
 
 		List<BillableService> bsByServiceCategory = getService().getBillableServiceByCategory(sc);
-		
+
 		// Sorting by Service Category
 		Collections.sort(bsByServiceCategory, BILLABLE_SERVICE_COMPARATOR);
 		return bsByServiceCategory;
@@ -459,7 +459,7 @@ public class InsuranceUtil {
 
 	/**
 	 * Saves the Billable service into the DB
-	 * 
+	 *
 	 * @param service
 	 *            the Billable service to be saved
 	 * @return the saved Billable service
@@ -526,9 +526,9 @@ public class InsuranceUtil {
 		} else
 			return null;
 	}
-	
+
 	public static BillableService saveBillableServiceForPharmacyItems(BillableService service) {
-		
+
 		FacilityServicePrice fsp = service.getFacilityServicePrice();
 
 		if (service != null && fsp != null) {
@@ -547,7 +547,7 @@ public class InsuranceUtil {
 
 			return service;
 		}
-		
+
 		return null;
 	}
 
@@ -560,7 +560,7 @@ public class InsuranceUtil {
 
 	/**
 	 * Updates the Billable service into the DB
-	 * 
+	 *
 	 * @param service
 	 *            the Billable service to be updated
 	 * @return the updated Billable service
@@ -572,7 +572,7 @@ public class InsuranceUtil {
 
 	/**
 	 * Gets a Billable service by the provided ID
-	 * 
+	 *
 	 * @param id
 	 *            the ID to be found
 	 * @return service Billable if ID matches, and null otherwise
@@ -584,7 +584,7 @@ public class InsuranceUtil {
 
 	/**
 	 * Gets all Billable services on a given date and not retired if specified
-	 * 
+	 *
 	 * @param date
 	 *            the date to check the validity
 	 * @param isRetired
@@ -592,7 +592,7 @@ public class InsuranceUtil {
 	 * @return the list of Billable service that matched the conditions
 	 */
 	public static List<BillableService> getAllBillableServices(Date date,
-			Boolean isRetired) {
+															   Boolean isRetired) {
 
 		List<BillableService> services = new ArrayList<BillableService>();
 
@@ -617,7 +617,7 @@ public class InsuranceUtil {
 
 	/**
 	 * Gets a Service category by the provided ID
-	 * 
+	 *
 	 * @param id
 	 *            the ID to be found
 	 * @return category Service if ID matches, and null otherwise
@@ -629,7 +629,7 @@ public class InsuranceUtil {
 
 	/**
 	 * Retires a Billable service for a given Facility Service
-	 * 
+	 *
 	 * @param billableService
 	 *            the billable service to be retired
 	 * @param retiredDate
@@ -640,7 +640,7 @@ public class InsuranceUtil {
 	 *            the facility service to be updated
 	 */
 	public static void retireBillableService(BillableService billableService,
-			Date retiredDate, String retireReason) {
+											 Date retiredDate, String retireReason) {
 
 		FacilityServicePrice fsp = billableService.getFacilityServicePrice();
 
@@ -683,7 +683,8 @@ public class InsuranceUtil {
 		categories.add(Category.AMBULANCE.getDescription());
 		categories.add(Category.GYNECO_OBSTETRIQUE.getDescription());
 		categories.add(Category.POLYCLINIQUE.getDescription());
-
+		categories.add(Category.APPAREILLAGE_ORTHOPEDIQUE.getDescription());
+		categories.add(Category.RADIOGRAPHIE.getDescription());
 		return categories;
 	}
 
@@ -703,10 +704,10 @@ public class InsuranceUtil {
 	}
 
 	public static List<Insurance> getAllInsurances() {
-		
+
 		return getService().getAllInsurances();
 	}
-	
+
 	public static ServiceCategory getServiceCategoryById(Integer id) {
 
 		return getService().getServiceCategory(id);

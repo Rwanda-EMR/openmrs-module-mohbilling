@@ -22,8 +22,8 @@
 
 
 <style>
-.thirdParties,.time,.collector,.billCreator,.billStatus,.services,.deposit,.paymentType {
-    display: none;
+.thirdParties,.timelabel,.time,.collector,.billCreator,.billStatus,.services,.deposit,.paymentType {
+     display: none;
 }
 a.print {
     border: 2px solid #009900;
@@ -64,7 +64,8 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 
 
 	<th class="columnHeader" style="width: 3%">#</th>
-		<th class="columnHeader" style="width: 3%">Date</th>
+		<th class="columnHeader" style="width: 3%">Admission Date</th>
+        <th class="columnHeader" style="width: 3%">Closing Date</th>
 		<th class="columnHeader">BENEFICIARY's NAMES'</th>
 		<th class="columnHeader">HEAD HOUSEHOLD'S NAMES </th>
 		<th class="columnHeader">FAMILY'S CODE </th>
@@ -101,8 +102,11 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 
 		    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
-			<fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.createdDate}" />
+			<fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.globalBill.createdDate}" />
 			</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">
+            <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.globalBill.closingDate}" />
+            </td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.personName}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.ownerName}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.ownerCode}</td>
@@ -113,8 +117,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.age}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.beneficiary.patient.birthdate}" />  </td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.gender}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.consommation.creator.familyName}  ${asr.consommation.creator.givenName}</td>
-
+            <td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.consommation.globalBill.closedBy.familyName}  ${asr.consommation.globalBill.closedBy.givenName}</td>
 			
 			<c:forEach items="${asr.revenues }" var="revenue">
 				<c:if test="${patientRate > 0}">
