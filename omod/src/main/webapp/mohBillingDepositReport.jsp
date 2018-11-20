@@ -21,9 +21,8 @@
 	});
 </script>
 
-
 <style>
-.insurances, .thirdParties,.time,.billCreator,.billStatus,.services,.paymentType {
+.insurances, .thirdParties,.billCreator,.billStatus,.services,.paymentType {
     display: none;
 }
 a.print {
@@ -48,22 +47,22 @@ a.print {
 <br/>
 <b class="boxHeader">
 <c:if test="${reason=='Deposit' }">
-Total Deposits Collected : 
+Total Deposits Collected :
 </c:if>
 <c:if test="${reason=='Bill Payment' }">
-Payments Made With Patients' Deposits : 
+Payments Made With Patients' Deposits :
 </c:if>
 <c:if test="${reason=='Withdrawal' }">
-Amount Withdrawn : 
+Amount Withdrawn :
 </c:if>
 <b style="color: black;font: bold;">${total < 0 ? -total:total} FRW</b>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <a href="depositReport.form?printPdf=true" class="print">PDF</a></b>
 <div class="box">
 <table style="width:70%">
@@ -71,7 +70,7 @@ Amount Withdrawn :
 		<th class="columnHeader">#.</th>
 		<th class="columnHeader">Date</th>
 		<th class="columnHeader">Collector</th>
-		<th class="columnHeader">Patient Names</th>	
+		<th class="columnHeader">Patient Names</th>
 		<th class="columnHeader">Amount</th>
 		<th class="columnHeader">Reason</th>
 	</tr>
@@ -80,7 +79,7 @@ Amount Withdrawn :
 	<tr>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}">
-			<fmt:formatDate pattern="yyyy-MM-dd" value="${trans.transactionDate }" />
+			<fmt:formatDate pattern="yyyy-MM-dd HH:mm:ss" value="${trans.transactionDate }" />
 	</td>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${trans.collector }</td>
 	<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${trans.patientAccount.patient.personName }</td>

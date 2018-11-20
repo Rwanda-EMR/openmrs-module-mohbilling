@@ -71,7 +71,7 @@
     <c:forEach items="${transactions}" var="trans" varStatus="status">
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
-					<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd" value="${trans.transactionDate}" /></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd HH:mm:ss" value="${trans.transactionDate}" /></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.reason}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.collector.personName}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.creator.personName}</td>

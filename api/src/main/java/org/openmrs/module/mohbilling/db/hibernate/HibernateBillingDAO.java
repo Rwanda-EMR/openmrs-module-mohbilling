@@ -87,8 +87,8 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurancePolicy(org.openmrs
-	 *      .module.mohbilling.model.InsurancePolicy)
+	 * @see org.openmrs.module.mohbilling.db.BillingDAO
+	 * #getInsurancePolicy(org.openmrs.module.mohbilling.model.InsurancePolicy)
 	 */
 	@Override
 	public InsurancePolicy getInsurancePolicy(Integer cardId) {

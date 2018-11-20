@@ -3,6 +3,8 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ taglib prefix="mohbilling_tag" tagdir="/WEB-INF/tags/module/mohbilling" %>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
 
 <div style="; width: 49%">
 			<b class="boxHeader">Patient details</b>
@@ -24,7 +26,7 @@
 						<td>Age</td>
 						<td> : <b>${patient.age}</b> yrs</td>
 					</tr>
-					
+
 				</table>
 			</div>
 </div>
@@ -41,7 +43,7 @@
 				<td><input type="text" name="amount"/></td>
 			</tr>
 			<tr>
-				<td>Reason </td>				
+				<td>Reason </td>
 				<!-- <td><input type="text" name="reason"/></td> -->
 				<td>
 				<select name="reason">
@@ -62,10 +64,11 @@
 				<td><input type="text" name="collector" value="${authenticatedUser.username}" disabled="disabled"/></td>
 			</tr>
 			<tr>
-				<td>${param.type } Date</td>
-				<td><input type="text" autocomplete="off" name="receivedDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
+			    <c:set var="today" value="<%=new java.util.Date()%>" />
+			    <td> Date:</td>
+				<td><input type="text" name="receivedDate"  value="<fmt:formatDate  type="date" pattern="yyyy-MM-dd HH:mm:ss" value="${today}"/>" disabled="disabled" /></td>
 			</tr>
-			
+
 			<tr>
 				<td></td>
 				<td><input type="submit" value="Submit"/></td>

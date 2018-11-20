@@ -1471,9 +1471,11 @@ public class FileExporter {
 					+ "," + f.format(c.getGlobalBill().getClosingDate())
 					+ "," + c.getBeneficiary().getPatient().getPersonName()
 					+ "," + c.getBeneficiary().getOwnerName()
-					+ "," + c.getBeneficiary().getOwnerCode()
+					//+ "," + c.getBeneficiary().getOwnerCode()
+					+ ",'" + c.getBeneficiary().getOwnerCode()
 					+ "," + c.getBeneficiary().getLevel()
-					+ "," + c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+					//+ "," + c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+					+ ",'" + c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
 					+ "," + c.getBeneficiary().getCompany()
 					+ "," + c.getBeneficiary().getPatient().getAge()
 					+ "," + f.format(c.getBeneficiary().getPatient().getBirthdate())
@@ -1488,7 +1490,8 @@ public class FileExporter {
 				else if(r!=null && (100 - insuranceRate)==0.0){
 					BigDecimal amount=new BigDecimal(0);
 					for (PatientServiceBill item:r.getBillItems()){
-						amount=amount.add(item.getService().getMaximaToPay().multiply(item.getQuantity()));
+						//amount=amount.add(item.getService().getMaximaToPay().multiply(item.getQuantity()));
+						amount=amount.add(item.getUnitPrice().multiply(item.getQuantity()));
 					}
 					op.print(","+ ReportsUtil.roundTwoDecimals(amount.floatValue()));
 				}

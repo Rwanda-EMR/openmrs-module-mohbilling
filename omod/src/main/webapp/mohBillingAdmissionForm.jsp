@@ -175,7 +175,11 @@ function  cancelClosingGlobalBill(){
 			
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd hh:mm" value="${gb.closingDate}" /></td>	
 			<c:if test="${gb.closingDate==null }">
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="billing.form?insurancePolicyId=${gb.admission.insurancePolicy.insurancePolicyId }&ipCardNumber=${gb.admission.insurancePolicy.insuranceCardNo}&globalBillId=${gb.globalBillId}">Add Bill</a></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">
+			<openmrs:hasPrivilege privilege="ADD CONS.">
+			<a href="billing.form?insurancePolicyId=${gb.admission.insurancePolicy.insurancePolicyId }&ipCardNumber=${gb.admission.insurancePolicy.insuranceCardNo}&globalBillId=${gb.globalBillId}">Add Bill</a>
+			</openmrs:hasPrivilege>
+			</td>
 			</c:if>
 			<c:if test="${gb.closingDate!=null }">
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;">Closed</b></td>

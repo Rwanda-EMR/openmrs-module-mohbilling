@@ -6,7 +6,7 @@
     <!-- Base Module Properties -->
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
-    <version>0.0.4.2-SNAPSHOT</version>
+    <version>0.0.4.3-SNAPSHOT</version>
     <package>org.openmrs.module.@MODULE_ID@</package>
     <author>MoH Rwanda</author>
     <description>
@@ -361,6 +361,11 @@
     <privilege>
         <name>Add Item</name>
         <description>Allow user to add item on the same consommation</description>
+    </privilege>
+
+    <privilege>
+        <name>ADD CONS.</name>
+        <description>Allows the user to add consommation from admission form</description>
     </privilege>
 
 

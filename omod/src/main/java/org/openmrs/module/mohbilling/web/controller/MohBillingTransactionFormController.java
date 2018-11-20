@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
@@ -10,6 +7,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.model.PatientAccount;
 import org.openmrs.module.mohbilling.model.Transaction;
+import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
@@ -31,13 +29,13 @@ public class MohBillingTransactionFormController extends
 	 */
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+												 HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-		
+
 		Patient patient = Context.getPatientService().getPatient(Integer.valueOf(request.getParameter("patientId")));
 		String type = request.getParameter("type");
-		if(request.getParameter("save")!=null )	{	
+		if(request.getParameter("save")!=null )	{
 
 			Transaction transaction = null;
 			PatientAccount account =null;
@@ -45,25 +43,30 @@ public class MohBillingTransactionFormController extends
 			BigDecimal transAmount = BigDecimal.valueOf(Double.valueOf(request.getParameter("amount")));
 			if(request.getParameter("patientAccountId").equals("")){
 				account = new PatientAccount();
-				
+
 			}
 			else{
 				Integer accountId = Integer.valueOf(request.getParameter("patientAccountId"));
 				account = PatientAccountUtil.getPatientAccountById(accountId);
 			}
-			if(type.equals("Withdrawal")){
+			if(type.equals("Withdrawal") && transAmount.floatValue() <= account.getBalance().floatValue()){
 				transAmount=transAmount.negate();
+			}else if(type.equals("Withdrawal")){
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+						"The Balance is low. Account Balance is: "+account.getBalance()+" Only");
+				return new ModelAndView(new RedirectView("searchPatientAccount.form?patientId="+account.getPatient().getPatientId()));
 			}
 			balance=account.getBalance().add(transAmount);
-			
+
 			account.setBalance(balance);
 			account.setPatient(patient);
 			account.setCreatedDate(new Date());
 			account.setCreator(Context.getAuthenticatedUser());
-			
+
 			transaction = new Transaction();
 			transaction.setAmount(transAmount);
-			transaction.setTransactionDate(Context.getDateFormat().parse(request.getParameter("receivedDate")));
+			//transaction.setTransactionDate(Context.getDateFormat().parse(request.getParameter("receivedDate")));
+			transaction.setTransactionDate(new Date());
 			transaction.setCreatedDate(new Date());
 			transaction.setCreator(Context.getAuthenticatedUser());
 			transaction.setPatientAccount(account);
@@ -71,19 +74,19 @@ public class MohBillingTransactionFormController extends
 			/*transaction.setCollector(Context.getUserService().getUser(Integer.valueOf(request.getParameter("collector"))));	*/
 			transaction.setCollector(Context.getAuthenticatedUser());
 			PatientAccountUtil.createTransaction(transaction);
-			
-			
+
+
 			return new ModelAndView(new RedirectView("searchPatientAccount.form?patientId="+account.getPatient().getPatientId()));
-		}		
+		}
 		mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(patient));
 		mav.addObject("patient", patient);
 		mav.addObject("type", type);
-		
+
 		/*if(request.getParameter("transactionId")!=null){
 		log.info("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJSSSSSSSSSSSSS "+request.getParameter("transactionId"));
 		mav.addObject("transaction", PatientAccountUtil.getTransactionById(Integer.valueOf(request.getParameter("transactionId"))));
 		}*/
-		
+
 		return mav;
 	}
 
