@@ -17,35 +17,44 @@
 	<c:set var="admissionDate" value="${globalBill.admission.admissionDate}" />
 	<c:set var="dischargingDate" value="${globalBill.closingDate}"/>
 	<c:set var="admissionMode" value="${globalBill.admission.isAdmitted}"/>
-	
+
 	<c:set var="insuranceRate" value="${insurancePolicy.insurance.currentRate.rate}"/>
 	<c:set var="patientRate" value="${100-insurancePolicy.insurance.currentRate.rate}"/>
-	
+
 <b class="boxHeader">Summary</b>
 <div class="box">
 	<table>
 		<tr>
 		   <td>Names:</td> <td><b>${insurancePolicy.owner.personName }</b></td>
 		   <td>Age </td><td><b> : ${insurancePolicy.owner.age }</b></td>
-		   <td>Sex </td><td> : <b>${(insurancePolicy.owner.gender=='F')?'Female':'Male'}</b></td>
+		   <td>Sex </td><td> : <b>${(insurancePolicy.owner.gender=='F')?'Female':'Male'}</b></td> <td></td> <td></td>
+		   <td> Type of Disease: </td><td> <b> ${globalBill.admission.diseaseType} </b></td> <td></td> <td></td> <td></td> <td></td>
+		   <c:choose>
+                                <c:when test = "${globalBill.closingDate!=null}">
+                                   <td>Global Bill Status :</td> <td class="rowAmountValue" style="color: green; font-weight: bold;">DISCHARGED</td>
+                                </c:when>
+
+                               <c:otherwise>
+                                 <td>Global Bill Status :</td>  <td class="rowAmountValue" style="color: red; font-weight: bold;">NOT DISCHARGED</td>
+                                </c:otherwise>
+           </c:choose>
 		</tr>
 		<tr>
 		   <td>Insurance:</td> <td><b>${insurancePolicy.insurance.name}</b></td>
-		   <td>Card Nbr:</td><td><b>${insurancePolicy.insuranceCardNo }</b></td>	   
-		</tr>
-		
-		<tr>
-		<td>Admission Mode</td>
-		<c:if test="${globalBill.admission.isAdmitted}">
-		<td> : <b>IPD</b></td>
-		</c:if>
-		<c:if test="${not globalBill.admission.isAdmitted}">
-		<td> : <b>OPD</b></td>
-		</c:if>
-		<td>Admission Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${admissionDate}" /></b></td> 
-		<td>Discharge Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${dischargingDate}" /></b></td>
+		   <td>Card No</td><td> :<b>${insurancePolicy.insuranceCardNo }</b></td>
 		</tr>
 
+		<tr>
+		<td>Admission Mode :</td>
+		<c:if test="${globalBill.admission.isAdmitted}">
+		<td style="color: blue; font-weight: bold;">In-Patient</b></td>
+		</c:if>
+		<c:if test="${not globalBill.admission.isAdmitted}">
+		<td style="color: green; font-weight: bold;">Out-Patient</b></td>
+		</c:if>
+		<td>Admission Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${admissionDate}" /></b></td>
+		<td>Discharge Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${dischargingDate}" /></b></td>
+		</tr>
 	</table>
 </div>
 <br/>
@@ -69,11 +78,11 @@
 <b class="boxHeader">Services</b>
 <div class="box">
 	<table style="width: 100%">
-		
+
 		<tr>
 		  <th>#.</th>
-		  <th>Date</th>	
-		  <th>Service</th>	
+		  <th>Date</th>
+		  <th>Service</th>
 		  <th>Quantity</th>
 		  <th>Dosage</th>
 		  <th>Unit Price</th>
@@ -100,7 +109,7 @@
            <c:set var="totalByCategory100" value="0"/>
       	   <c:set var="totalByCategoryInsurance" value="0"/>
            <c:set var="totalByCategoryTM" value="0"/>
-          
+
          <c:forEach items="${sr.billItems}" var="item" varStatus="status">
          <c:set var="itemCost" value="${item.quantity*item.unitPrice}"/>
          <tr>
@@ -118,7 +127,7 @@
           <c:set var="totalByCategory100" value="${totalByCategory100+itemCost}"/>
           <c:set var="totalByCategoryInsurance" value="${totalByCategoryInsurance+((itemCost*insuranceRate)/100)}"/>
           <c:set var="totalByCategoryTM" value="${totalByCategoryTM+((itemCost*patientRate)/100)}"/>
-          
+
          </c:forEach>
           <!-- big total 100%,Insurance and TM -->
           <c:set var="total100" value="${total100+totalByCategory100}"/>
