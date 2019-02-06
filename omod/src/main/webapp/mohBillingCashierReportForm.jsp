@@ -38,7 +38,9 @@ a.print {
 </h2>
 
 <c:import url="mohBillingReportParameters.jsp" />
+<openmrs:hasPrivilege privilege="Migration Cashier">
 <a href="beforeMigrationcashierReport.form">Click here</a> for summarized report
+</openmrs:hasPrivilege>
 <div>
 
 <c:if test="${empty paymentRevenues }">
