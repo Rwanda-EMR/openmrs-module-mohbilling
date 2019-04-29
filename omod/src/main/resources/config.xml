@@ -368,6 +368,10 @@
         <description>Allows the user to add consommation from admission form</description>
     </privilege>
 
+    <privilege>
+        <name>Migration Cashier</name>
+        <description>Allows the user to viewer Migration Cashier </description>
+    </privilege>
 
 
 
