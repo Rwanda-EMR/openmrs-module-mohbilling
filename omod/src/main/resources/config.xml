@@ -373,6 +373,11 @@
         <description>Allows the user to viewer Migration Cashier </description>
     </privilege>
 
+    <privilege>
+        <name>Approve Bill</name>
+        <description>Allows the user to approve bill </description>
+    </privilege>
+
 
 
 

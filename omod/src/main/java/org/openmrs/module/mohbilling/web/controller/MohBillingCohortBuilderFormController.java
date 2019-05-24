@@ -104,6 +104,16 @@ public class MohBillingCohortBuilderFormController extends
 							consFilteredByBillStatus.add(con);
 						}
 
+						if(con.getPatientBill().getApproved()!=null && con.getPatientBill().getApproved().toString().equals("YES") && billStatus.toString().equals("APPROVED_YES")){
+							consFilteredByBillStatus.add(con);
+						}
+						if(con.getPatientBill().getApproved()!=null && con.getPatientBill().getApproved().toString().equals("NO") && billStatus.toString().equals("APPROVED_NO")){
+							consFilteredByBillStatus.add(con);
+						}
+						if(con.getPatientBill().getApproved()==null && billStatus.toString().equals("APPROVED_NOT_YET")){
+							consFilteredByBillStatus.add(con);
+						}
+
 
 
 					}

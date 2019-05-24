@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -50,6 +51,11 @@ public class MohBillingPatientBillPaymentFormController extends
 			payment = handleSavePatientBillPayment(request);
 			mav.addObject("payment",payment);
 		}
+
+	if (request.getParameter("saveApproval") != null ){
+			approvePatientBill(request);
+		}
+
 
 		try{
 			Consommation consommation = null;
@@ -267,5 +273,39 @@ public class MohBillingPatientBillPaymentFormController extends
 		payment.setVoided(false);
 		payment.setCreatedDate(new Date());
 	}
+	public void approvePatientBill(HttpServletRequest request){
 
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		Consommation consommation = ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
+		PatientBill pb =consommation.getPatientBill();
+
+		String approved="NO";
+		User approvedBy= Context.getAuthenticatedUser();
+		Date date = new Date();
+		Date approvedDate=null;
+		try {
+			approvedDate = df.parse(df.format(date));
+		}catch (ParseException e){
+			e.printStackTrace();
+		}
+
+		if(request.getParameter("approvebill")!=null){
+			approved="YES";
+		}
+
+		String disapproveReason=null;
+		if(request.getParameter("disapprovereason")!=null || request.getParameter("disapprovereason")!="") {
+			disapproveReason=request.getParameter("disapprovereason");
+		}
+		pb.setApproved(approved);
+		pb.setDisapproveReason(disapproveReason);
+
+		pb.setApprovedDate(approvedDate);
+		pb.setApprovedBy(approvedBy);
+
+		Context.getService(BillingService.class).savePatientBill(pb);
+
+
+	}
 }

@@ -95,6 +95,9 @@
 									<option value="FULLY PAID" ${billStatus== 'FULLY PAID' ? 'selected' : ''}>FULLY PAID</option>
 									<option value="UNPAID" ${billStatus== 'UNPAID' ? 'selected' : ''}>UNPAID</option>
 									<option value="PARTLY PAID" ${billStatus== 'PARTLY PAID' ? 'selected' : ''}>PARTLY PAID</option>
+									<option value="APPROVED_YES" ${billStatus== 'APPROVED_YES' ? 'selected' : ''}>APPROVED-YES</option>
+									<option value="APPROVED_NO" ${billStatus== 'APPROVED_NO' ? 'selected' : ''}>APPROVED-NO</option>
+									<option value="APPROVED_NOT_YET" ${billStatus== 'APPROVED_NOT_YET' ? 'selected' : ''}>APPROVED-NOT_YET</option>
 								</select>
 							</td>
 

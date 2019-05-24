@@ -701,4 +701,21 @@
 		</sql>
 	</diff>
 
+	<diff>
+		<version>1.3.1.5</version>
+		<author>Rwanda EMR</author>
+		<date>May 16th 2019</date>
+		<description>
+			alter moh_bill_patient_bill table
+		</description>
+		<sql>
+			ALTER TABLE moh_bill_patient_bill
+			ADD COLUMN is_approved VARCHAR(3) NULL AFTER creator,
+			ADD COLUMN approved_by INT(11) NULL AFTER is_approved,
+			ADD COLUMN approved_date DATETIME NULL AFTER approved_by,
+			ADD COLUMN disapprove_reason VARCHAR(255) NULL AFTER approved_date,
+			ADD CONSTRAINT patient_bill_approved_by FOREIGN KEY (approved_by) REFERENCES users (user_id);
+		</sql>
+	</diff>
+
 </sqldiff>

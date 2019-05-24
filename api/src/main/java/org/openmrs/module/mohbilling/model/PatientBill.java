@@ -27,6 +27,59 @@ public class PatientBill {
 	private Date voidedDate;
 	private String voidReason;	
 	private Set<BillPayment> payments;
+	/*private boolean isApproved;
+	private User approvedBy;
+	private Date approvedDate;*/
+	private String disapproveReason;
+	private Date approvedDate;
+	private User approvedBy;
+	private String approved;
+
+	public String getApproved() {
+		return approved;
+	}
+
+	public void setApproved(String approved) {
+		this.approved = approved;
+	}
+
+	public String getDisapproveReason() {
+		return disapproveReason;
+	}
+
+	public void setDisapproveReason(String disapproveReason) {
+		this.disapproveReason = disapproveReason;
+	}
+
+	public Date getApprovedDate() {
+		return approvedDate;
+	}
+
+	public void setApprovedDate(Date approvedDate) {
+		this.approvedDate = approvedDate;
+	}
+
+	public User getApprovedBy() {
+		return approvedBy;
+	}
+
+	public void setApprovedBy(User approvedBy) {
+		this.approvedBy = approvedBy;
+	}
+
+	public boolean isPaid() {
+		return isPaid;
+	}
+
+	public void setPaid(boolean paid) {
+		isPaid = paid;
+	}
+
+	public void setVoided(boolean voided) {
+		this.voided = voided;
+	}
+
+
 
 	/**
 	 * @return the patientBillId

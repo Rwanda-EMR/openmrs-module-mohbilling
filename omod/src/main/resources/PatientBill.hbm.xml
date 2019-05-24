@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE hibernate-mapping PUBLIC
- "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
- "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="org.openmrs.module.mohbilling.model">
 
 	<!-- PatientBill -->
-	
+
 	<class name="PatientBill" table="moh_bill_patient_bill">
 
 		<id name="patientBillId" type="int" column="patient_bill_id" unsaved-value="0">
 			<generator class="native" />
-		</id>	
+		</id>
 		<property name="amount" column="amount" type="big_decimal" />
 		<property name="isPaid" column="is_paid" type="boolean" />
 		<property name="status" column="status" type="text" />
@@ -19,17 +19,22 @@
 		<property name="voided" column="voided" type="boolean" />
 		<property name="voidedDate" column="voided_date" />
 		<property name="voidReason" column="void_reason" type="text" />
+		<property name="approvedDate" column="approved_date" />
+		<property name="disapproveReason" column="disapprove_reason" type="text" />
+		<property name="approved" column="is_approved" type="text" />
+
 
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
-		
+		<many-to-one name="approvedBy" class="org.openmrs.User" column="approved_by" />
+
 
 		<set name="payments" lazy="false" inverse="true"
-			cascade="all-delete-orphan" sort="natural"
-			order-by="date_received asc">
+			 cascade="all-delete-orphan" sort="natural"
+			 order-by="date_received asc">
 			<key column="patient_bill_id" />
 			<one-to-many class="BillPayment" />
 		</set>
 	</class>
-	
+
 </hibernate-mapping>

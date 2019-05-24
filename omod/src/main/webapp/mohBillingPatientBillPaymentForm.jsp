@@ -41,6 +41,18 @@ $j(document).ready(function(){
 	//first the balance is hidden until deposit checkbox is checked
 	$j('.depositPayment').hide();
 	//$j('.cashPayment').hide();
+//Approve bill
+	$j('#disapprreason').hide();
+	$j('#disapproveRadiobox').click(function() {
+		$j('#disapprreason').toggle();
+	    $j('#approveRadiobox').attr('checked', false);
+	});
+	$j('#approveRadiobox').click(function() {
+    	    $j('#disapproveRadiobox').attr('checked', false);
+    	    	$j('#disapprreason').hide();
+    	});
+//End Approve bill
+
 	$j('#depositCheckbox').attr('checked', false);
 	$j('#depositCheckbox').click(function() {
 		  if ($j(this).is(":checked")) {
@@ -156,7 +168,13 @@ function recalculateTotals() {
 <td>Consommation # : <b>${consommation.consommationId}(${consommation.department.name})</b>
 </td>
 <td>Global Bill # : <b>${consommation.globalBill.billIdentifier}</b></td>
-<c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
+<c:if test="${consommation.patientBill.approved=='YES'}">
+<td>Bill Approved :<font color="green"><b>${consommation.patientBill.approved}</b></font></td>
+</c:if>
+<c:if test="${consommation.patientBill.approved=='NO'}">
+<td>Bill Approved :<font color="green"><b>${consommation.patientBill.approved}</b></font> Reason: <b>${consommation.patientBill.disapproveReason}</b></td>
+</c:if>
+<c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed && consommation.patientBill.approved==null}">
 <openmrs:hasPrivilege privilege="Add Item">
 <td><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
 </openmrs:hasPrivilege>
@@ -322,6 +340,9 @@ function recalculateTotals() {
 			  </td>				
 			</tr>	
 			</openmrs:hasPrivilege>
+
+
+
 			<tr>
 				<td colspan="7"><hr/></td>
 			</tr>			
@@ -331,12 +352,32 @@ function recalculateTotals() {
 				
 			 <td colspan="3"></td>
 			</tr>
+
+
+
+
 			<tr></tr>
 			<tr>
 			<td colspan="2"><div><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&type=epson">EPSON Printer</a></div></td>
 			</tr>
 		</table>
 	</form>
+<openmrs:hasPrivilege privilege="Approve Bill">
+<form action="approvePatientBill.form?consommationId=${consommation.consommationId}&saveApproval=true" method="post">
+
+	<!-- Verificator place -->
+    	  <table width="100%">
+    		<tr>
+            			  <td><b>Approve Bill:</b></td>
+            			  <td>Approve: <input type="checkBox" id="approveRadiobox" name="approvebill" value="approvebill" /> </td>
+            			  <td>Disapprove: <input type="checkBox" id="disapproveRadiobox" name="disapprovebill" value="disapprovebill" > <span id="disapprreason">Reason: <input type="text" name="disapprovereason" /></span></td>
+                          <td><input type="submit"  value="Save Approval" style="min-width: 200px;"/></td>
+            </tr>
+      </table>
+    <!-- end Verificator place -->
+</form>
+</openmrs:hasPrivilege>
+
 	<div style="text-align: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div>
 	
 </div>
