@@ -167,6 +167,7 @@ public class ConsommationUtil {
 		BigDecimal addedItemTotalAmount = new BigDecimal(0);
 		BigDecimal removedItemTotalAmount = new BigDecimal(0);
 		BigDecimal totalExistingConsomm= new BigDecimal(0);
+		int existingItemsLoopControl=0;
 
 		for (int i = 0; i < numberOfServicesClicked; i++) {
 			BigDecimal  quantity= null;
@@ -188,6 +189,10 @@ public class ConsommationUtil {
 					PatientServiceBill existingPsb = ConsommationUtil.getPatientServiceBill(Integer.valueOf(billItems[i]));
 					quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("newQuantity_"  + billItems[i])));
 					unitPrice = existingPsb.getUnitPrice();
+
+					if(existingPsb!=null && request.getParameter("newDrugFrequency_"  + billItems[i])!=null && !(request.getParameter("newDrugFrequency_"  + billItems[i]).trim()).equals("")){
+						existingPsb.setDrugFrequency(request.getParameter("newDrugFrequency_"  + billItems[i]));
+					}
 					psb = PatientServiceBill.newInstance(existingPsb, quantity);
 					existingPsb.setVoided(true);
 					existingPsb.setVoidedBy(creator);
@@ -197,8 +202,10 @@ public class ConsommationUtil {
 					BigDecimal newItemAmount = quantity.multiply(unitPrice);
 					voidedItemTotalAmount = voidedItemTotalAmount.add(voidedItemAmount);
 					addedItemTotalAmount=addedItemTotalAmount.add(newItemAmount);
+
+
 					existingConsom.addBillItem(psb);
-					message="Items' quantities have been changed succefully...";
+					message="Items' quantities/Drug frequency have been changed succefully...";
 				}
 
 			}
@@ -215,12 +222,16 @@ public class ConsommationUtil {
 						drugf = request.getParameter("frequency_"+i);
 						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf);
 						addedItemTotalAmount=addedItemTotalAmount.add(quantity.multiply(unitPrice));
+							if(existingItemsLoopControl==0) {
+								for (PatientServiceBill pp : existingConsom.getBillItems()) {
+									totalExistingConsomm = totalExistingConsomm.add(pp.getQuantity().multiply(pp.getUnitPrice()));
+								}
+								existingItemsLoopControl++;
+							}
 
-						for(PatientServiceBill pp:existingConsom.getBillItems())
-						{
-							totalExistingConsomm=totalExistingConsomm.add(pp.getQuantity().multiply(pp.getUnitPrice()));
-						}
 						existingConsom.addBillItem(psb);
+
+
 						message = "New Items have been added to the existing consommation succefully..";
 					}
 				}
