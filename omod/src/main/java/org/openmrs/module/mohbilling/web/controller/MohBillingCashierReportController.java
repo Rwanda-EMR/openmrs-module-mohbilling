@@ -123,7 +123,7 @@ public class MohBillingCashierReportController extends
 //				 try {
 					 
 					 Consommation c = ConsommationUtil.getConsommationByPatientBill(payments.get(0).getPatientBill());
-			      		if(c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
+			      		if(c!=null && c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
 			      			paidItems = BillPaymentUtil.getOldPaidItems(payments);
 			      		}
 					 
