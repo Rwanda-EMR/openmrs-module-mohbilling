@@ -12,9 +12,10 @@
 	<url>http://openmrs.org</url>
 
 	<scm>
-		<connection>scm:svn:http://svn.openmrs.org/openmrs-modules/mohbilling/trunk/</connection>
-		<developerConnection>scm:svn:http://svn.openmrs.org/openmrs-modules/mohbilling/trunk/</developerConnection>
-		<url>http://svn.openmrs.org/openmrs-modules/mohbilling/trunk/</url>
+		<connection>scm:git:git@github.com:Rwanda-EMR/openmrs-module-mohbilling.git</connection>
+		<developerConnection>scm:git:git@github.com:Rwanda-EMR/openmrs-module-mohbilling.git</developerConnection>
+		<url>https://github.com/Rwanda-EMR/openmrs-module-mohbilling/</url>
+		<tag>HEAD</tag>
 	</scm>
 
 	<modules>
