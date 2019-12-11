@@ -73,12 +73,8 @@ a.print {
 		<td>Bill Status</td>
 		<td>Admission Type</td>
 		<td>Global Bill Status</td>
-		<td>View Bill</td>
+		<td></td>
 		<td>Collector<td/>
-
-		<td>Approved</td>
-        <td>Approved By</td>
-        <td>Date Approved<td/>
 
 	</tr>
 	<c:set var="totalAmountAllConsom" value="0"/>
@@ -133,62 +129,37 @@ a.print {
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*patientRate }" type="number" pattern="#.##"/></td>
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountPaidByCons}" type="number" pattern="#.##"/></td>
 			<c:if test="${totalAmountPaidByCons >= (totalAmountByConsom*patientRate) && not empty c.patientBill.payments}">
-			<td class="rowValue" style="color: green; font-weight: bold;">FULLY PAID</td>
+			<td class="rowAmountValue" style="color: green; font-weight: bold;">FULLY PAID</td>
 			</c:if>
 			<c:if test="${(totalAmountPaidByCons!='0') && (totalAmountPaidByCons < (totalAmountByConsom*patientRate)) && not empty not empty c.patientBill.payments}">
-			<td class="rowValue" style="color: green; font-weight: bold;">PARTLY PAID</td>
+			<td class="rowAmountValue" style="color: green; font-weight: bold;">PARTLY PAID</td>
 			</c:if>
 			<c:if test="${empty c.patientBill.payments}">
-				<td class="rowValue" style="color: red; font-weight: bold;">UNPAID</td>
+				<td class="rowAmountValue" style="color: red; font-weight: bold;">UNPAID</td>
             </c:if>
 
            <c:if test="${c.globalBill.admission.isAdmitted==true}">
-           			<td class="rowValue" style="color: blue; font-weight: bold;">In-Patient</td>
+           			<td class="rowAmountValue" style="color: blue; font-weight: bold;">In-Patient</td>
            			</c:if>
 
            			<c:if test="${c.globalBill.admission.isAdmitted==false}">
-                    	<td class="rowValue" style="color: blue; font-weight: bold;">Out-Patient</td>
+                    	<td class="rowAmountValue" style="color: blue; font-weight: bold;">Out-Patient</td>
                     </c:if>
 
             <c:choose>
                      <c:when test = "${c.globalBill.closingDate!=null}">
-                        <td class="rowValue" style="color: green; font-weight: bold;">DISCHARGED</td>
+                        <td class="rowAmountValue" style="color: green; font-weight: bold;">DISCHARGED</td>
                      </c:when>
 
                     <c:otherwise>
-                        <td class="rowValue" style="color: red; font-weight: bold;">NOT DISCHARGED</td>
+                        <td class="rowAmountValue" style="color: red; font-weight: bold;">NOT DISCHARGED</td>
                      </c:otherwise>
             </c:choose>
 
-			<td class="rowValue"><a href="patientBillPayment.form?consommationId=${c.consommationId}" target="_blank">View/</a></td>
-
-
-			<c:forEach items="${c.patientBill.payments}" var="payment" varStatus="status">
+			<td class="rowTotalValue"><a href="patientBillPayment.form?consommationId=${c.consommationId}">View/</a></td>
+             <c:forEach items="${c.patientBill.payments}" var="payment" varStatus="status">
                                  <td class="rowValue">${payment.collector.person.familyName}&nbsp;</br>${payment.collector.person.givenName}</td>
-            </c:forEach>
-
-            <c:if test="${empty c.patientBill.payments}">
-                         <td class="rowValue">-</td>
-            </c:if>
-
-
-
-             <c:choose>
-                                 <c:when test = "${c.patientBill.approved!=null}">
-                                    <td class="rowValue"></td>
-                                    <td class="rowValue"><font color="green"><b>${c.patientBill.approved}</b></font></td>
-                                    <td class="rowValue">${c.patientBill.approvedBy.person.familyName}&nbsp;</br>${c.patientBill.approvedBy.person.givenName}</td>
-                                    <td class="rowValue">${c.patientBill.approvedDate}<td/>
-                                 </c:when>
-                                <c:otherwise>
-                                    <td class="rowValue"></td>
-                                    <td class="rowValue">-</td>
-                                    <td class="rowValue">-</td>
-                                    <td class="rowValue">-<td/>
-                                </c:otherwise>
-             </c:choose>
-
-
+              </c:forEach>
 
 		</tr>
 	<c:set var="totalAmountAllConsom" value="${totalAmountAllConsom+totalAmountByConsom}" />
@@ -202,15 +173,8 @@ a.print {
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalInsurances}" type="number" pattern="#.##"/></b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalPatients}" type="number" pattern="#.##"/></b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalAmountPaidAllConsom}" type="number" pattern="#.##"/></b></td>
-		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;">-</b></td>
-		<td class="rowTotalValue"><b style="color: red;font-size: 14px;">-</b></td>
-		<td class="rowTotalValue"><b style="color: red;font-size: 14px;">-</b></td>
-		<td class="rowTotalValue"><b style="color: red;font-size: 14px;">-</b></td>
-
-		<td class="rowTotalValue"><b style="color: red;font-size: 14px;">-</b></td>
-        <td class="rowTotalValue"><b style="color: red;font-size: 14px;">-</b></td>
-        <td class="rowTotalValue"><b style="color: red;font-size: 14px;">-</b></td>
-         <td class="rowTotalValue"><b style="color: red;font-size: 14px;">-</b></td>
+		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"></b></td>
+		<td class="rowTotalValue"><b style="color: red;font-size: 14px;"></b></td>
 	</tr>
 </table>
 </div>

@@ -10,17 +10,17 @@ import java.util.*;
 /**
  * Helper class to support the InsurancePolicy domain. (in other words, the
  * insurance card)
- * 
+ *
  * Parent class is InsurancePolicy, child class is Beneficiary
- * 
+ *
  * @author EMR-RBC
- * 
+ *
  */
 public class InsurancePolicyUtil {
 
 	/**
 	 * Offers the BillingService to be use to talk to the DB
-	 * 
+	 *
 	 * @return the BillingService
 	 */
 	private static BillingService getService() {
@@ -29,7 +29,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Auto generated method comment
-	 * 
+	 *
 	 * @param beneficiary
 	 * @param date
 	 * @return
@@ -44,7 +44,7 @@ public class InsurancePolicyUtil {
 
 				if (ben.equals(beneficiary)
 						&& (insurancePolicy.getCoverageStartDate().compareTo(
-								date) < 0)
+						date) < 0)
 						&& (insurancePolicy.getExpirationDate().compareTo(date) > 0)) {
 					insurancePolicies.add(insurancePolicy);
 				}
@@ -57,7 +57,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Auto generated method comment
-	 * 
+	 *
 	 * @param p
 	 * @param date
 	 * @return
@@ -72,7 +72,7 @@ public class InsurancePolicyUtil {
 
 				if (ben.equals(owner)
 						&& (insurancePolicy.getCoverageStartDate().compareTo(
-								date) < 0)
+						date) < 0)
 						&& (insurancePolicy.getExpirationDate().compareTo(date) > 0)) {
 					insurancePolicies.add(insurancePolicy);
 				}
@@ -84,10 +84,10 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Creates an new Beneficiary and saves it into the DB
-	 * 
+	 *
 	 * @param beneficiary
 	 *            the Beneficiary object to be saved.
-	 * 
+	 *
 	 * @return beneficiary that was added, and null otherwise
 	 */
 	public static Beneficiary createBeneficiary(Beneficiary beneficiary) {
@@ -98,7 +98,7 @@ public class InsurancePolicyUtil {
 			beneficiary.setCreator(Context.getAuthenticatedUser());
 
 			beneficiary.getInsurancePolicy().addBeneficiary(beneficiary);
-			getService().saveInsurancePolicy(beneficiary.getInsurancePolicy());			
+			getService().saveInsurancePolicy(beneficiary.getInsurancePolicy());
 			return beneficiary;
 		}
 		return null;
@@ -107,7 +107,7 @@ public class InsurancePolicyUtil {
 	/**
 	 * Creates the insurance policy and at the same time sets the Owner as the
 	 * very first beneficiary of the card
-	 * 
+	 *
 	 * @param card
 	 *            the Insurance Policy to be added into the DB
 	 * @return card if the card is not null, and null otherwise
@@ -128,13 +128,13 @@ public class InsurancePolicyUtil {
 				if (card.getInsurance().getCategory().toString()
 						.equalsIgnoreCase(InsuranceCategory.NONE.toString())
 						&& getPrimaryPatientIdentiferType()
-								.equals(Context
-										.getPatientService()
-										.getPatientIdentifierType(
-												Integer.valueOf(Context
-														.getAdministrationService()
-														.getGlobalProperty(
-																BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
+						.equals(Context
+								.getPatientService()
+								.getPatientIdentifierType(
+										Integer.valueOf(Context
+												.getAdministrationService()
+												.getGlobalProperty(
+														BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
 
 					/** Getting the Patient Identifier from the system **/
 					PatientIdentifier pi = InsurancePolicyUtil
@@ -193,7 +193,7 @@ public class InsurancePolicyUtil {
 				card.setCreator(Context.getAuthenticatedUser());
 				card.setRetired(false);
 
-				if (card.getInsurance().getCategory().toString()
+				/*if (card.getInsurance().getCategory().toString()
 						.equalsIgnoreCase(InsuranceCategory.NONE.toString())
 						&& getPrimaryPatientIdentiferType()
 						.equals(Context
@@ -204,40 +204,37 @@ public class InsurancePolicyUtil {
 												.getGlobalProperty(
 														BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
 
-					/** Getting the Patient Identifier from the system **/
+					*//** Getting the Patient Identifier from the system **//*
 					PatientIdentifier pi = InsurancePolicyUtil
 							.getPrimaryPatientIdentifierForLocation(
 									card.getOwner(),
-									InsurancePolicyUtil.getLocationLoggedIn());
+									InsurancePolicyUtil.getLocationLoggedIn());*/
 
-					card.setInsuranceCardNo(pi.getIdentifier().toString());
-					card.setCoverageStartDate(new Date());
-				}
-
-				getService().saveInsurancePolicy(card);
-
-
-				ben.setInsurancePolicy(card);
-				ben.setPatient(card.getOwner());
-
-				ben.setPolicyIdNumber(card.getInsuranceCardNo());
-
-
-				card.addBeneficiary(ben);
-
-				getService().saveInsurancePolicy(card);
+				card.setInsuranceCardNo(card.getInsuranceCardNo());
+				card.setCoverageStartDate(new Date());
 			}
 
-			return card;
+			getService().saveInsurancePolicy(card);
+
+
+			ben.setInsurancePolicy(card);
+			ben.setPatient(card.getOwner());
+
+			ben.setPolicyIdNumber(card.getInsuranceCardNo());
+
+
+			card.addBeneficiary(ben);
+
+			getService().saveInsurancePolicy(card);
 		}
 
-		return null;
+		return card;
 	}
 
 
 	/**
 	 * Updates the Insurance policy that has been changed
-	 * 
+	 *
 	 * @param card
 	 *            the Insurance policy to be updated
 	 * @return card the Insurance policy that has been changed, null otherwise
@@ -271,13 +268,13 @@ public class InsurancePolicyUtil {
 	/**
 	 * Retires (deletes) the provided Insurance policy as well as its related
 	 * beneficiaries
-	 * 
+	 *
 	 * @param card
 	 *            the Insurance policy to be retired
 	 * @param retireReason
 	 */
 	public static void retireInsurancePolicy(InsurancePolicy card,
-			String retireReason) {
+											 String retireReason) {
 
 		card.setRetired(true);
 		card.setRetireReason(retireReason);
@@ -301,7 +298,7 @@ public class InsurancePolicyUtil {
 	/**
 	 * Retires the beneficiary from the valid beneficiaries of an Insurance
 	 * policy
-	 * 
+	 *
 	 * @param beneficiary
 	 *            the beneficiary to be retired
 	 * @param retiredReason
@@ -309,7 +306,7 @@ public class InsurancePolicyUtil {
 	 * @return beneficary the Beneficiary that has been retired, null otherwise
 	 */
 	public static Beneficiary retireBeneficiary(Beneficiary beneficiary,
-			String retiredReason) {
+												String retiredReason) {
 
 		if (beneficiary != null) {
 			for (Beneficiary ben : beneficiary.getInsurancePolicy()
@@ -338,7 +335,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets the Insurance policy that has the provided beneficiary
-	 * 
+	 *
 	 * @param beneficiary
 	 *            the beneficiary to be matched
 	 * @return card if matched, null otherwise
@@ -351,7 +348,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets the Insurance policy that matches the provided Owner
-	 * 
+	 *
 	 * @param patient
 	 *            the Owner to be matched
 	 * @return card if matched, null otherwise
@@ -369,7 +366,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Auto generated method comment
-	 * 
+	 *
 	 * @param insurance
 	 * @return
 	 */
@@ -450,7 +447,7 @@ public class InsurancePolicyUtil {
 	 * {-- This should be done in the Hibernate Services in case we have many
 	 * records of InsurancePolicy --} This will help when reading the Card no
 	 * where Barcode is applicable
-	 * 
+	 *
 	 * @param insuranceCardNo
 	 * @return
 	 */
@@ -470,7 +467,7 @@ public class InsurancePolicyUtil {
 	/**
 	 * Gets the InsurancePolicy matching the Beneficiary policyIdNumber and
 	 * returning the one matching the status "isRetired"
-	 * 
+	 *
 	 * @param policyIdNumber
 	 * @return insurancePolicy that 1. is retired || 2. is not retired
 	 */
@@ -489,12 +486,12 @@ public class InsurancePolicyUtil {
 	/**
 	 * Gets the InsurancePolicy where the given Insurance and insuranceCardNo is
 	 * matched
-	 * 
+	 *
 	 * @param insuranceCardNo
 	 * @return
 	 */
 	public static InsurancePolicy getBeneficiaryByCardNo(Insurance insurance,
-			String insuranceCardNo) {
+														 String insuranceCardNo) {
 
 		for (InsurancePolicy card : getService().getAllInsurancePolicies()) {
 			if (card.getInsuranceCardNo().equals(insuranceCardNo))
@@ -508,7 +505,7 @@ public class InsurancePolicyUtil {
 	 * the InsuranceCardNo as well, given the fact that this will be matching
 	 * also the Beneficiary PolicyIdNo for the very first beneficiary of the
 	 * InsurancePolicy
-	 * 
+	 *
 	 * @param policyIdNumber
 	 * @return beneficiary whether matched the policyIdNumber, null otherwise
 	 */
@@ -519,7 +516,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets the list of Beneficiaries that are not retired yet.
-	 * 
+	 *
 	 * @param card
 	 * @return
 	 */
@@ -539,7 +536,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets the list of Beneficiaries that match the given Patient.
-	 * 
+	 *
 	 * @param patient
 	 *            , the patient to match the beneficiaries
 	 * @return list of matched Beneficiaries
@@ -559,7 +556,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets the list of Beneficiaries that match the given Owner.
-	 * 
+	 *
 	 * @param owner
 	 *            , the owner to match the beneficiaries
 	 * @return list of matched Beneficiaries
@@ -580,7 +577,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets the Beneficiary corresponding to the provided InsurancePolicy
-	 * 
+	 *
 	 * @param card
 	 *            the InsurancePolicy to match
 	 * @return beneficiary when found, null otherwise
@@ -627,10 +624,10 @@ public class InsurancePolicyUtil {
 	 * Gets all patient identifier types that should be used in this module.
 	 * This includes the primary type and the other types specified in the two
 	 * global properties.
-	 * 
+	 *
 	 * The first element of the returned list is the primary type. This method
 	 * ensures that the returned list contains no duplicates.
-	 * 
+	 *
 	 * @return
 	 */
 	public static List<PatientIdentifierType> getPatientIdentifierTypesToUse() {
@@ -688,7 +685,7 @@ public class InsurancePolicyUtil {
 					.equals(getPrimaryPatientIdentiferType()
 							.getPatientIdentifierTypeId())
 					&& piTmp.getLocation().getLocationId()
-							.equals(location.getLocationId())) {
+					.equals(location.getLocationId())) {
 				return piTmp;
 			}
 		}
@@ -713,7 +710,7 @@ public class InsurancePolicyUtil {
 	/**
 	 * Checks whether the matching patient has an insurance already that matches
 	 * its PatientIdentifier
-	 * 
+	 *
 	 * @param patient
 	 *            the patient to be matched
 	 * @return true if the patient does not have any, false otherwise
@@ -729,7 +726,7 @@ public class InsurancePolicyUtil {
 					InsurancePolicyUtil.getLocationLoggedIn()).getIdentifier();
 		}
 
-		
+
 		if (getService().getInsurancePolicyByCardNo(insuranceCardNo) == null)
 			return true;
 		else
@@ -739,13 +736,13 @@ public class InsurancePolicyUtil {
 	/**
 	 * Checks whether the matching patient has an insurance already that matches
 	 * its PatientIdentifier
-	 * 
+	 *
 	 * @param patient
 	 *            the patient to be matched
 	 * @return true if the patient does not have any, false otherwise
 	 */
 	public static boolean insuranceDoesNotExist(Patient patient,
-			String insuranceCardNo) {
+												String insuranceCardNo) {
 
 		/** Getting the Patient Identifier from the system **/
 		InsurancePolicy card = getService().getInsurancePolicyByCardNo(
@@ -761,7 +758,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Adds years to the given date
-	 * 
+	 *
 	 * @param date
 	 *            the given date
 	 * @param years
@@ -777,7 +774,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets all Third Parties
-	 * 
+	 *
 	 * @return
 	 */
 	public static List<ThirdParty> getAllThirdParties() {
@@ -792,7 +789,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets all Third Parties
-	 * 
+	 *
 	 * @return
 	 */
 	public static ThirdParty getThirdParty(Integer thirdPartyId) {
@@ -802,7 +799,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets all Third Parties
-	 * 
+	 *
 	 * @return
 	 */
 	public static void saveThirdParty(ThirdParty thirdParty) {
@@ -816,7 +813,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Voids Third Party that is provided
-	 * 
+	 *
 	 * @param thirdParty
 	 *            the ThirdParty to void
 	 */
@@ -834,7 +831,7 @@ public class InsurancePolicyUtil {
 
 	/**
 	 * Gets all PolicyIds that are associated to the given patient
-	 * 
+	 *
 	 * @param patientId
 	 *            the patient ID to match
 	 * @return list of String[] : {INSURANCE NAME, POLICY ID}
@@ -850,17 +847,17 @@ public class InsurancePolicyUtil {
 	 * else return false if the insurance policy does not exist
 	 */
 	public  static boolean isInsurancePolicyExists(String insuranceCardNo){
-		
+
 		InsurancePolicy insurancePolicy = getService().getInsurancePolicyByCardNo(insuranceCardNo);
 		if (insurancePolicy !=null) {
-			return true;			
+			return true;
 		}
-		else return false;		
+		else return false;
 	}
-	
+
 	public static InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t){
 
-	   	System.out.print(" am getting in getinsurancepolicybythird party ttttttttttttttttttttt "+t);
+		System.out.print(" am getting in getinsurancepolicybythird party ttttttttttttttttttttt "+t);
 
 		return getService().getInsurancePolicyByThirdParty(t);
 	}

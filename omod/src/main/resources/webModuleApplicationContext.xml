@@ -4,7 +4,7 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:context="http://www.springframework.org/schema/context"
 	   xmlns:util="http://www.springframework.org/schema/util"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
            http://www.springframework.org/schema/context
            http://www.springframework.org/schema/context/spring-context-2.5.xsd
@@ -66,7 +66,6 @@
 				<prop key="module/@MODULE_ID@/depositReport.form">mohBillingDepositReportController</prop>
 				<prop key="module/@MODULE_ID@/billingsessionControl.form">mohBillingsessionControlFormController</prop>
 				<prop key="module/@MODULE_ID@/beforeMigrationcashierReport.form">beforemigrationmohBillingCashierReportController</prop>
-	            <prop key="module/@MODULE_ID@/approvePatientBill.form">approvePatientBillController</prop>
 
 			</props>
 		</property>
@@ -236,9 +235,6 @@
 	</bean>
 	<bean id="beforemigrationmohBillingCashierReportController" class="org.openmrs.module.mohbilling.web.controller.BeforeMigrationMohBillingCashierReportController">
 		<property name="viewName"><value>/module/mohbilling/beforeMigrationmohBillingCashierReportForm</value></property>
-	</bean>
-	<bean id="approvePatientBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingApprovePatientBillController">
-		<property name="viewName"><value>/module/mohbilling/approvePatientBillForm</value></property>
 	</bean>
 
 	<!-- /Controllers -->

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.model;
 
@@ -13,10 +13,10 @@ import java.util.TreeSet;
 
 /**
  * @author EMR@RBC
- * 
+ *
  */
 public class PatientBill {
-	private Integer patientBillId;	
+	private Integer patientBillId;
 	private BigDecimal amount = new BigDecimal(0);
 	private boolean isPaid;
 	private String status;
@@ -25,61 +25,8 @@ public class PatientBill {
 	private boolean voided = false;
 	private User voidedBy;
 	private Date voidedDate;
-	private String voidReason;	
+	private String voidReason;
 	private Set<BillPayment> payments;
-	/*private boolean isApproved;
-	private User approvedBy;
-	private Date approvedDate;*/
-	private String disapproveReason;
-	private Date approvedDate;
-	private User approvedBy;
-	private String approved;
-
-	public String getApproved() {
-		return approved;
-	}
-
-	public void setApproved(String approved) {
-		this.approved = approved;
-	}
-
-	public String getDisapproveReason() {
-		return disapproveReason;
-	}
-
-	public void setDisapproveReason(String disapproveReason) {
-		this.disapproveReason = disapproveReason;
-	}
-
-	public Date getApprovedDate() {
-		return approvedDate;
-	}
-
-	public void setApprovedDate(Date approvedDate) {
-		this.approvedDate = approvedDate;
-	}
-
-	public User getApprovedBy() {
-		return approvedBy;
-	}
-
-	public void setApprovedBy(User approvedBy) {
-		this.approvedBy = approvedBy;
-	}
-
-	public boolean isPaid() {
-		return isPaid;
-	}
-
-	public void setPaid(boolean paid) {
-		isPaid = paid;
-	}
-
-	public void setVoided(boolean voided) {
-		this.voided = voided;
-	}
-
-
 
 	/**
 	 * @return the patientBillId
@@ -112,7 +59,7 @@ public class PatientBill {
 		this.amount = amount;
 	}
 
-	
+
 
 	/**
 	 * @return the isPaid
@@ -242,20 +189,20 @@ public class PatientBill {
 
 	/**
 	 * Gets all payments made by the beneficiary
-	 * 
+	 *
 	 * @return paidAmount
 	 */
 	public BigDecimal getAmountPaid() {
 
 		if (payments != null) {
 			BigDecimal paidAmount = new BigDecimal(0);
-			
+
 			for (BillPayment pay : payments)
 				paidAmount = paidAmount.add(pay.getAmountPaid());
 
 			return paidAmount;
 		}
-		
+
 		return new BigDecimal(0);
 	}
 
@@ -268,7 +215,7 @@ public class PatientBill {
 
 	/**
 	 * Adds the payment from payments list
-	 * 
+	 *
 	 * @param payment
 	 *            , the payment to be added
 	 * @return true when payment is added successfully, false otherwise
@@ -286,7 +233,7 @@ public class PatientBill {
 
 	/**
 	 * Removes the payment from payments list
-	 * 
+	 *
 	 * @param payment
 	 *            , the payment to be removed
 	 * @return true when payment is removed successfully, false otherwise
@@ -297,7 +244,7 @@ public class PatientBill {
 		return false;
 	}
 
-	
+
 
 	/**
 	 * @return
@@ -308,7 +255,7 @@ public class PatientBill {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -327,7 +274,7 @@ public class PatientBill {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -339,15 +286,15 @@ public class PatientBill {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "\n - Patient Bill Id : " + this.patientBillId		
-						
+		return "\n - Patient Bill Id : " + this.patientBillId
+
 				+ "\n - Amount : " + this.amount + "\n - is Paid : "
-			
+
 				+ "\n - Creator : " + this.creator.getPerson().getFamilyName()
 				+ "\n - Creation date : " + this.createdDate;
 

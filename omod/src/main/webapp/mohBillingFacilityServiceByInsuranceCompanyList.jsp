@@ -4,7 +4,7 @@
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-<openmrs:require privilege="View Facility service by insurance campanies" otherwise="/login.htm" redirect="/module/@MODULE_ID@/facilityServiceByInsuranceCompany.list" />
+<openmrs:require privilege="View Bulk Update" otherwise="/login.htm" redirect="/module/@MODULE_ID@/facilityServiceByInsuranceCompany.list" />
 
 
 <h2><spring:message code="@MODULE_ID@.facility.service.by.insurance" /></h2>

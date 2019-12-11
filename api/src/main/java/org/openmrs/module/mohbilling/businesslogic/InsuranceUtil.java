@@ -195,7 +195,7 @@ public class InsuranceUtil {
 	 * logic)
 	 *
 	 * @param insurance
-	 * @param Rate
+	 * @paramRate
 	 * @param flatFee
 	 * @param startDate
 	 */
@@ -685,6 +685,8 @@ public class InsuranceUtil {
 		categories.add(Category.POLYCLINIQUE.getDescription());
 		categories.add(Category.APPAREILLAGE_ORTHOPEDIQUE.getDescription());
 		categories.add(Category.RADIOGRAPHIE.getDescription());
+		categories.add(Category.MORGUE.getDescription());
+		categories.add(Category.MAGNETIC_RESONANCE_IMAGING.getDescription());
 		return categories;
 	}
 

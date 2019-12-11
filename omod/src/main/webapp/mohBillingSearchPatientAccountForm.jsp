@@ -41,7 +41,7 @@
 <td>${patientAccount.balance}</td>
 <td><a href="transaction.form?patientId=${patientAccount.patient.patientId}&patientAccountId=${patientAccount.patientAccountId }">Deposit</a>|<a>Withdrawal</a>|<a id="view" href="searchPatientAccount.form?patientAccountId=${patientAccount.patientAccountId }">View</a></td>
 </tr>
-</table>	
+</table>
 </div> --%>
 
 
@@ -66,6 +66,7 @@
 <th style="width:6%">Cash In</th>
 <th style="width:6%">Cash Out</th>
 <th style="width:6%"></th>
+<th style="width:6%"></th>
 </tr>
 
     <c:forEach items="${transactions}" var="trans" varStatus="status">
@@ -75,8 +76,8 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.reason}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.collector.personName}</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.creator.personName}</td>
-					
-					
+
+
 					<c:choose>
                      <c:when test="${trans.amount gt 0}">
                       <td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.amount}</td>
@@ -85,7 +86,7 @@
    					 <td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
                     </c:otherwise>
                     </c:choose>
-					
+
 					<c:choose>
                      <c:when test="${trans.amount lt 0}">
                       <td class="rowValue ${(status.count%2!=0)?'even':''}">${trans.amount}</td>
@@ -95,19 +96,25 @@
                     </c:otherwise>
                     </c:choose>
 					<%-- <td><a href="transaction.form?transactionId=${trans.transactionId }&patientId=${trans.patientAccount.patient.patientId}">View</a></td> --%>
-					
+
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">
 					<form action="searchPatientAccount.form?patientId=${trans.patientAccount.patient.patientId}" method="post" style="display: inline;">
    						 <input type="hidden" name="printed" value="${trans.transactionId }" />
 						 <input type="submit" class="list_exportBt" value="print" title="Export to PDF"/>
 					</form>
 					</td>
-				
+					<td class="rowValue ${(status.count%2!=0)?'even':''}">
+                    	<form action="searchPatientAccount.form?patientId=${trans.patientAccount.patient.patientId}" method="post" style="display: inline;">
+                       		<input type="hidden" name="printedEpson" value="${trans.transactionId }" />
+                    		<input type="submit" class="list_exportBt" value="Epson" title="Export to EPSON"/>
+                    	</form>
+                    </td>
+
 				</tr>
 	</c:forEach>
-			
 
-</table>	
+
+</table>
 </div>
 </c:if>
 </c:if>

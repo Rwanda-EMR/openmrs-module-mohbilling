@@ -2,6 +2,7 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.PatientIdentifier;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
@@ -25,15 +26,18 @@ public class MohBillingViewGlobalBillController extends
 	 */
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+												 HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-		
+
 		String globalBillStr = request.getParameter("globalBillId");
 		List<ServiceRevenue> serviceRevenueList = new ArrayList<ServiceRevenue>();
-		
+		Consommation consommation =null;
+
 		if(globalBillStr!=null && !globalBillStr.equals("")){
 			GlobalBill globalBill= GlobalBillUtil.getGlobalBill(Integer.parseInt(globalBillStr));
+			PatientIdentifier patientIdentifier= GlobalBillUtil.getGlobalBill(Integer.parseInt(globalBillStr)).getAdmission().getInsurancePolicy().getOwner().getPatientIdentifier(3);
+
 			List<Consommation> consommations = ConsommationUtil.getConsommationsByGlobalBill(globalBill);
 			List<PatientServiceBill> allItems = new ArrayList<PatientServiceBill>();
 			for (Consommation c : consommations) {
@@ -46,28 +50,29 @@ public class MohBillingViewGlobalBillController extends
 			List<HopService> revenuesCategories = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.REVENUE");
 			for (HopService hopService : revenuesCategories) {
 				if(ReportsUtil.getServiceRevenues(allItems, hopService)!=null)
-				serviceRevenueList.add(ReportsUtil.getServiceRevenues(allItems, hopService));
-					 
+					serviceRevenueList.add(ReportsUtil.getServiceRevenues(allItems, hopService));
+
 			}
 			ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.IMAGING");
 			if(imagingRevenue!=null)
-			serviceRevenueList.add(imagingRevenue);
-			
+				serviceRevenueList.add(imagingRevenue);
+
 			ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.ACTS");
 			if(actsRevenue!=null)
-			serviceRevenueList.add(actsRevenue);
-			
+				serviceRevenueList.add(actsRevenue);
+
 			ServiceRevenue autreRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.AUTRES");
 			if(autreRevenue!=null)
-			serviceRevenueList.add(autreRevenue);
-			
+				serviceRevenueList.add(autreRevenue);
+
 			mav.addObject("globalBill", globalBill);
+			mav.addObject("patientIdentifier",patientIdentifier);
 			request.getSession().setAttribute("globalBill" , globalBill);
 
 		}
 		mav.addObject("serviceRevenueList", serviceRevenueList);
 		request.getSession().setAttribute("serviceRevenueList" , serviceRevenueList);
-		
+
 		if(request.getParameter("print")!=null){
 			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.valueOf(request.getParameter("globalBillId")));
 			FileExporter exp = new FileExporter();

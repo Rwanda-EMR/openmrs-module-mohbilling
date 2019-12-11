@@ -32,61 +32,49 @@
                 $j('#tot').text("Your Payable  Is: " + total.toFixed(2));
             }
         });
-        
-    </script>    
 
-   
+    </script>
+
+
 <script type="text/javascript">
 $j(document).ready(function(){
 	//first the balance is hidden until deposit checkbox is checked
 	$j('.depositPayment').hide();
 	//$j('.cashPayment').hide();
-//Approve bill
-	$j('#disapprreason').hide();
-	$j('#disapproveRadiobox').click(function() {
-		$j('#disapprreason').toggle();
-	    $j('#approveRadiobox').attr('checked', false);
-	});
-	$j('#approveRadiobox').click(function() {
-    	    $j('#disapproveRadiobox').attr('checked', false);
-    	    	$j('#disapprreason').hide();
-    	});
-//End Approve bill
-
 	$j('#depositCheckbox').attr('checked', false);
 	$j('#depositCheckbox').click(function() {
 		  if ($j(this).is(":checked")) {
                 $j(".depositPayment").show();
                 $j('.cashPayment').hide();
                 $j('#cashCheckbox').attr('checked', false);
-            } 
+            }
 		  else{
 			  $j(".depositPayment").hide();
 			  $j('#cashCheckbox').attr('checked', false);
 			  }
-	});	
-	
+	});
+
 	$j('#cashCheckbox').click(function() {
 		if ($j(this).is(":checked")) {
             $j(".cashPayment").show();
             $j('.depositPayment').hide();
             $j('#depositCheckbox').attr('checked', false);
-        } 
+        }
 		else{
 			$j(".cashPayment").hide();
 			 $j('#depositCheckbox').attr('checked', false);
 			}
-		});	
-	
+		});
+
 	// this funciton : disable submit button until at least one item is selected
 	 $j('.submitBtn').attr('disabled', true);
 		$j('.items').change(function () {
 		    var a = $j('.items').filter(":checked").length;
 		    var balance=$j('#balance');
 		    var deductedAmount=$j('#deductedAmount');
-		    if (a == 0 || (deductedAmount>balance)) 
+		    if (a == 0 || (deductedAmount>balance))
 		        $j('.submitBtn').attr('disabled', true);
-		    else 
+		    else
 		    	 $j('.submitBtn').attr('disabled', false);
 		});
 });
@@ -101,9 +89,9 @@ $j(document).ready(function(){
 	 }
 	 else{
 		 $j('.submitBtn').attr('disabled', true);
-		 alert("Qty paid cannot be greater than requested Qty!!"); 
+		 alert("Qty paid cannot be greater than requested Qty!!");
 	 }
-	 
+
  }
 </script>
 
@@ -114,13 +102,13 @@ function calculateCost(j){
 	var up = document.getElementById("up_"+j).value;
 	var price= paidQty*up;
 	document.getElementById("cost_"+j).value=price.toFixed(2);
-	
+
 	//var insuranceRate = document.getElementById("insuranceRate").value;
 	var patientRate = document.getElementById("patientRate").value;
 
 	//document.getElementById("insuranceCost_"+j).value=(price*insuranceRate).toFixed(2);
 	document.getElementById("patientCost_"+j).value=(price*patientRate).toFixed(2);
-	
+
 	//Adjust the totals (totalBillInsurance, patientBillTotal)
 	recalculateTotals();
 }
@@ -145,10 +133,10 @@ function recalculateTotals() {
     //.toFixed() method will roundoff the final sum to 2 decimal places
   //  $j("#totalBillInsurance").val(sumInsurance.toFixed(2));
     $j("#totalBillPatient").val(sumPatient.toFixed(2));
-    
+
     //update the rest
     $j("#rest").val(sumPatient.toFixed(2));
-    
+
     //update payable
    //$j("#tot1").val(sumPatient.toFixed(2));
 }
@@ -168,13 +156,7 @@ function recalculateTotals() {
 <td>Consommation # : <b>${consommation.consommationId}(${consommation.department.name})</b>
 </td>
 <td>Global Bill # : <b>${consommation.globalBill.billIdentifier}</b></td>
-<c:if test="${consommation.patientBill.approved=='YES'}">
-<td>Bill Approved :<font color="green"><b>${consommation.patientBill.approved}</b></font></td>
-</c:if>
-<c:if test="${consommation.patientBill.approved=='NO'}">
-<td>Bill Approved :<font color="green"><b>${consommation.patientBill.approved}</b></font> Reason: <b>${consommation.patientBill.disapproveReason}</b></td>
-</c:if>
-<c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed && consommation.patientBill.approved==null}">
+<c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
 <openmrs:hasPrivilege privilege="Add Item">
 <td><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
 </openmrs:hasPrivilege>
@@ -232,26 +214,26 @@ function recalculateTotals() {
 					</td>
 					<td class="rowValue right ${(status.count%2!=0)?'even':''}"><input type="text"  size="10" id="up_${billItem.patientServiceBillId}"  value="${billItem.unitPrice}" style="border:none; text-align: center;"/></td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}"><input type="text" size="10" id="cost_${billItem.patientServiceBillId}" value="${billItem.unitPrice*billItem.quantity}" style="border:none; text-align: center;"/></td>
-	
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">					  
+
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">
 						 <input type="hidden" id="insuranceRate" value="${(insurancePolicy.insurance.currentRate.rate)/100 }"/>
 				         <!-- <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate)/100}"/> -->
-				         
+
 				         <c:if test="${insurancePolicy.thirdParty!=null}">
 				          <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate-insurancePolicy.thirdParty.rate)/100}"/>
 				         </c:if>
 				         <c:if test="${insurancePolicy.thirdParty==null}">
 				         <input type="hidden" id="patientRate" value="${(100-insurancePolicy.insurance.currentRate.rate)/100}"/>
 				         </c:if>
-				         
+
 						<input value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" id="insuranceCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="insuranceCol"/>
 						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}" />
 					</td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">							
+					<td class="rowValue right ${(status.count%2!=0)?'even':''}">
 					<!-- <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/> -->
 						<input value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" id="patientCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="patientCol"/>
 						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
-					</td>							
+					</td>
 					<td>
 					<c:if test="${pendingQty<=0}">
 					<input name="${fieldName}" class="items" value="${billItem.patientServiceBillId}" type="checkbox" checked="checked" disabled="disabled">
@@ -262,18 +244,18 @@ function recalculateTotals() {
 					</td>
 				</tr>
 				</c:if>
-			</c:forEach>		   
-			<tr>			
+			</c:forEach>
+			<tr>
 			   <td colspan="7"> <p align="center" style="color: red; " id="tot"></p></td>
 				<td><div style="text-align: right;"><b>Total : </b></div></td>
-				<!-- 
+				<!--
 				<td><div class="amount"><fmt:formatNumber value="${totalBillInsurance}" type="number" pattern="#.##"/></div></td>
 				<td><div class="amount"><fmt:formatNumber value="${totalBillPatient}" type="number" pattern="#.##"/></div></td>
 				 -->
-				 
+
 				 <td><div class="amount"><input id="totalBillInsurance" value="${totalBillInsurance}" disabled="disabled" style="border: none;background-color: #aabbcc"/></div></td>
 				 <td><div class="amount"><input id="totalBillPatient" value="${totalBillPatient}" disabled="disabled"   style="border: none;background-color: #aabbcc"/></div></td>
-			</tr>			
+			</tr>
 			<tr>
 				<td colspan="7"><hr/></td>
 			</tr>
@@ -283,11 +265,11 @@ function recalculateTotals() {
 				<td colspan="2"></td>
 				<td><div style="text-align: right;"><b>Amount Paid</b></div></td>
 				<td><div class="amount">${billingtag:amountPaidForPatientBill(consommation.consommationId)}</div></td>
-			    
-				<!-- 
+
+				<!--
 								<td><div style="text-align: right;"><b>Refunded Amount</b></div></td>
-				<td><div class="amount">1800</div></td>	
-				 -->			
+				<td><div class="amount">1800</div></td>
+				 -->
 			</tr>
 			<tr>
 				<td><b>Received Date</b>
@@ -300,7 +282,7 @@ function recalculateTotals() {
 
 
 							<td><div style="text-align: right;"><b>Current Payment Amount</b></div></td>
-				<td><div class="amount">1800</div></td>	
+				<td><div class="amount">1800</div></td>
 			 -->
 			</tr>
 
@@ -313,10 +295,10 @@ function recalculateTotals() {
 				<td>
 				<div class="amount" style="text-align: right"><b>
 				 <input type="text" disabled="disabled" value="${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}" id="rest" style="border: none;background-color: #aabbcc"/>
-				</b></div>	
-			   </td>		
+				</b></div>
+			   </td>
 			</tr>
-		
+
 			<openmrs:hasPrivilege privilege="Billing Reports - View Payments">
 			<tr>
 				<td><b>Pay with deposit</b></td>
@@ -324,10 +306,10 @@ function recalculateTotals() {
 				<td class="depositPayment">
 				<table><tr>
 				<td><b>Deducted Amount </b><input type="text" id="deductedAmount" name="deductedAmount" size="11" class="numbers"/></td>
-				<td> <b>Balance </b><input type="text" id="balance" disabled="disabled" name="balance" value="${patientAccount.balance }" size="11" class="numbers"/></td>	
+				<td> <b>Balance </b><input type="text" id="balance" disabled="disabled" name="balance" value="${patientAccount.balance }" size="11" class="numbers"/></td>
 				</tr>
 				</table>
-				</td>				
+				</td>
 			</tr>
 			<tr>
 			  <td><b>Pay with cash</b></td>
@@ -337,56 +319,33 @@ function recalculateTotals() {
 			  <td><b>Received Cash</b><input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/></td>
 			  </tr>
 			  </table>
-			  </td>				
-			</tr>	
+			  </td>
+			</tr>
 			</openmrs:hasPrivilege>
-
-
-
 			<tr>
 				<td colspan="7"><hr/></td>
-			</tr>			
+			</tr>
 			<tr style="font-size: 1.2em">
-				
+
 					<td colspan="2"><input type="submit"  value="Confirm Payment" style="min-width: 200px;" class="submitBtn"/></td>
-				
+
 			 <td colspan="3"></td>
 			</tr>
-
-
-
-
 			<tr></tr>
 			<tr>
 			<td colspan="2"><div><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&type=epson">EPSON Printer</a></div></td>
 			</tr>
 		</table>
 	</form>
-<openmrs:hasPrivilege privilege="Approve Bill">
-<form action="approvePatientBill.form?consommationId=${consommation.consommationId}&saveApproval=true" method="post">
-
-	<!-- Verificator place -->
-    	  <table width="100%">
-    		<tr>
-            			  <td><b>Approve Bill:</b></td>
-            			  <td>Approve: <input type="checkBox" id="approveRadiobox" name="approvebill" value="approvebill" /> </td>
-            			  <td>Disapprove: <input type="checkBox" id="disapproveRadiobox" name="disapprovebill" value="disapprovebill" > <span id="disapprreason">Reason: <input type="text" name="disapprovereason" /></span></td>
-                          <td><input type="submit"  value="Save Approval" style="min-width: 200px;"/></td>
-            </tr>
-      </table>
-    <!-- end Verificator place -->
-</form>
-</openmrs:hasPrivilege>
-
 	<div style="text-align: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div>
-	
+
 </div>
 <br/>
 	<c:set var="payments" value="${consommation.patientBill.payments}" scope="request"/>
 <c:import url="mohBillingPaymentHistory.jsp" />
-<!--  
+<!--
 <br/>
-<div class="box"> 
+<div class="box">
      <h2>Paid Services</h2>
      <div class="box"></div>
        <h2>Billed Services</h2>

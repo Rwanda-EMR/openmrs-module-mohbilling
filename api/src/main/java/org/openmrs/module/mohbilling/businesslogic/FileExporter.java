@@ -140,6 +140,10 @@ public class FileExporter {
 		c1.setBorder(Rectangle.NO_BORDER);
 		tableLeft.addCell(c1);
 
+		c1 = new PdfPCell(normal.process("Patient_ID: "+transaction.getPatientAccount().getPatient().getPatientIdentifier(3)));
+		c1.setBorder(Rectangle.NO_BORDER);
+		tableLeft.addCell(c1);
+
 		c1 = new PdfPCell(normal.process("Received by : "+transaction.getCollector().getPersonName()));
 		c1.setBorder(Rectangle.NO_BORDER);
 		tableLeft.addCell(c1);
@@ -174,7 +178,7 @@ public class FileExporter {
 		}
 		BigDecimal patientRate = new BigDecimal(""+patRate);
 
-		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived());
+		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(3));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -528,7 +532,7 @@ public class FileExporter {
 		document.add(heading2Tab);
 
 		//END HEADING
-		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+consommation.getGlobalBill().getBillIdentifier()+" - "+consommation.getCreatedDate());
+		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+consommation.getGlobalBill().getBillIdentifier()+" - "+consommation.getCreatedDate()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(3));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -941,7 +945,7 @@ public class FileExporter {
 		document.add(heading2Tab);
 		//end header
 
-		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+gb.getBillIdentifier()+" - "+df.format(gb.getCreatedDate()));
+		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+gb.getBillIdentifier()+" - "+df.format(gb.getCreatedDate())+ " Patient_ID: " + gb.getAdmission().getInsurancePolicy().getOwner().getPatientIdentifier(3));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -1581,12 +1585,15 @@ public class FileExporter {
 		String insuranceDetails =consommation.getBeneficiary().getInsurancePolicy().getInsurance().getName()+"\n"+
 				" Card Nbr: "+ consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo();
 
+		String primarycareId =" Patient_ID: "+ consommation.getBeneficiary().getPatient().getPatientIdentifier(3);
+
 		String patientDetails = consommation.getBeneficiary().getPatient().getFamilyName()+" "
 				+ consommation.getBeneficiary().getPatient().getGivenName()+"\n"
 				+"( DOB:"+ new SimpleDateFormat("dd-MMM-yyyy").format(consommation.getBeneficiary().getPatient().getBirthdate())+")";
 
 
 		document.add(fontTitle.process(insuranceDetails+"\n"));
+		document.add(fontTitle.process(primarycareId+"\n"));
 		document.add(fontTitle.process(patientDetails+"\n"));
 		document.add(fontTitle.process("--------------------\n"));
 
@@ -1841,5 +1848,108 @@ public class FileExporter {
 		}
 
 		document.add(table1);
+	}
+	public void displayTransactionEpson(HttpServletResponse response,Transaction transaction,String filename) throws Exception {
+
+		Rectangle pagesize = new Rectangle(200f, 500f);
+		Document document = new Document(pagesize, 16f, 16f, 0f, 0f);
+
+		Image image = Image.getInstance(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
+		image.scaleToFit(60, 60);
+
+		response.setContentType("application/pdf");
+		response.setHeader("Content-Disposition", "attachment; filename=\""+ filename + "\"");
+
+		PdfWriter writer = PdfWriter.getInstance(document,response.getOutputStream());
+		writer.setBoxSize("art", new Rectangle(0, 0, 1000, 2000));
+
+		HeaderFooter event = new HeaderFooter();
+		writer.setPageEvent(event);
+		writer.addViewerPreference(PdfName.PRINTSCALING, PdfName.NONE);
+
+		document.open();
+		document.setPageSize(PageSize.A4);
+
+		document.addAuthor(Context.getAuthenticatedUser().getPersonName()
+				.toString());// the name of the author
+
+		FontSelector fontTitle = new FontSelector();
+		fontTitle.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+
+		FontSelector fontTotals = new FontSelector();
+		fontTotals.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
+
+		/** ------------- Report title ------------- */
+
+		Chunk chk = new Chunk("Printed on : "+ (new Date()));
+		chk.setFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		document.add(fontTitle.process("\n"));
+		document.add(fontTitle.process("REPUBLIQUE DU RWANDA"+"\n"));
+		document.add(image);
+		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
+				BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME)+ "\n"));
+		document.add(fontTitle.process(Context.getAdministrationService()
+				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS)+ "\n"));
+		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
+				BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)+ "\n"));
+
+		/** ------------- End Report title ------------- */
+
+		chk = new Chunk("RECU POUR CAUTION #"+transaction.getTransactionId()+"\n\n");
+		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
+		//chk.setUnderline(0.2f, -2f);
+		Paragraph pa = new Paragraph();
+		pa.add(chk);
+		pa.setAlignment(Element.ALIGN_LEFT);
+		document.add(pa);
+
+		PdfPTable table = new PdfPTable(1);
+		table.setWidthPercentage(100f);
+
+		FontSelector fontTitleSelector = new FontSelector();
+		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+
+		FontSelector normal = new FontSelector();
+		normal.addFont(new Font(FontFamily.COURIER, 8f, Font.NORMAL));
+
+		PdfPCell c1 = new PdfPCell(normal.process("Amount : "+transaction.getAmount().abs()));
+		c1.setBorder(Rectangle.NO_BORDER);
+		table.addCell(c1);
+
+		c1 = new PdfPCell(normal.process("Received from :  "+transaction.getPatientAccount().getPatient().getPersonName()));
+		c1.setBorder(Rectangle.NO_BORDER);
+		table.addCell(c1);
+
+		c1 = new PdfPCell(normal.process("Patient_ID:  "+transaction.getPatientAccount().getPatient().getPatientIdentifier(3)));
+		c1.setBorder(Rectangle.NO_BORDER);
+		table.addCell(c1);
+
+		c1 = new PdfPCell(normal.process("Received by : "+transaction.getCollector().getPersonName()));
+		c1.setBorder(Rectangle.NO_BORDER);
+		table.addCell(c1);
+
+		c1 = new PdfPCell(normal.process("For : "+transaction.getReason()));
+		c1.setBorder(Rectangle.NO_BORDER);
+		table.addCell(c1);
+
+		c1 = new PdfPCell(normal.process("Receipt No : "+transaction.getTransactionId()));
+		c1.setBorder(Rectangle.NO_BORDER);
+		table.addCell(c1);
+
+		c1 = new PdfPCell(normal.process("Date : "+transaction.getCreatedDate()));
+		c1.setBorder(Rectangle.NO_BORDER);
+		table.addCell(c1);
+
+		c1 = new PdfPCell(normal.process("Cashier Signature\n : "+transaction.getCollector().getPersonName()+"\n\n........................."));
+		c1.setBorder(Rectangle.NO_BORDER);
+		table.addCell(c1);
+
+		c1 = new PdfPCell(normal.process("Beneficiary Signature\n : "+transaction.getPatientAccount().getPatient().getPersonName()+"\n\n........................."));
+		c1.setBorder(Rectangle.NO_BORDER);
+		table.addCell(c1);
+
+		document.add(table);
+
+		document.close();
 	}
 }

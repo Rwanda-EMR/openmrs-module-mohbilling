@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.web.controller;
 
@@ -31,11 +31,11 @@ public class MohBillingSearchPatientAccountFormController extends
 	 */
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+												 HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView();
 		Patient patient = null;
-		
-		if(request.getParameter("patientId")!=null )	{	
+
+		if(request.getParameter("patientId")!=null )	{
 			patient = Context.getPatientService().getPatient(Integer.valueOf(request.getParameter("patientId")));
 			mav.addObject("patient", patient);
 			if (PatientAccountUtil.isPatientAccountExists(patient)==true) {
@@ -47,7 +47,7 @@ public class MohBillingSearchPatientAccountFormController extends
 				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 						" To make deposit you must create the account for "+patient.getPersonName()+" !");
 				return new ModelAndView(new RedirectView("transaction.form?patientId="+patient.getPatientId()));
-			}		
+			}
 		}
 		if (request.getParameter("printed")!=null) {
 			Transaction transaction = PatientAccountUtil.getTransactionById(Integer.valueOf(request.getParameter("printed")));
@@ -55,8 +55,14 @@ public class MohBillingSearchPatientAccountFormController extends
 			String fileName = "DepositReceipt_"+transaction.getPatientAccount().getPatient().getPatientId()+"_"+transaction.getTransactionId()+".pdf";
 			fexp.printTransaction(request, response,transaction,fileName);
 		}
-		   mav.setViewName(getViewName());
+
+		if (request.getParameter("printedEpson")!=null) {
+			Transaction transaction = PatientAccountUtil.getTransactionById(Integer.valueOf(request.getParameter("printedEpson")));
+			FileExporter fexp = new FileExporter();
+			String fileName = "DepositReceipt_"+transaction.getPatientAccount().getPatient()+"_"+transaction.getTransactionId()+".pdf";
+			fexp.displayTransactionEpson(response,transaction,fileName);
+		}
+		mav.setViewName(getViewName());
 		return mav;
 	}
-
 }

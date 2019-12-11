@@ -19,14 +19,9 @@
 		<property name="voided" column="voided" type="boolean" />
 		<property name="voidedDate" column="voided_date" />
 		<property name="voidReason" column="void_reason" type="text" />
-		<property name="approvedDate" column="approved_date" />
-		<property name="disapproveReason" column="disapprove_reason" type="text" />
-		<property name="approved" column="is_approved" type="text" />
-
 
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
-		<many-to-one name="approvedBy" class="org.openmrs.User" column="approved_by" />
 
 
 		<set name="payments" lazy="false" inverse="true"

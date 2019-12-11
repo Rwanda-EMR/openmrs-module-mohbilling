@@ -8,7 +8,7 @@
 
 <h2><spring:message code="@MODULE_ID@.facility.service.manage" /></h2>
 <openmrs:hasPrivilege privilege="Add Facility service">
-<a href="facilityService.form"><spring:message code="@MODULE_ID@.facility.service.add" /></a> 
+<a href="facilityService.form"><spring:message code="@MODULE_ID@.facility.service.add" /></a>
 </openmrs:hasPrivilege>
 
 <br/><br/>
@@ -44,7 +44,7 @@
 				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}"><openmrs:formatDate date="${facilityService.startDate}" type="medium"/></td>-->
 				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}">${facilityService.location.name}</td>-->
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">
-					<openmrs:hasPrivilege privilege="View Facility service by insurance campanies">
+					<openmrs:hasPrivilege privilege="View Bulk Update">
 						<a href="facilityServiceByInsuranceCompany.list?facilityServiceId=${facilityService.facilityServicePriceId}">Details</a>
 					</openmrs:hasPrivilege>
 				</td>

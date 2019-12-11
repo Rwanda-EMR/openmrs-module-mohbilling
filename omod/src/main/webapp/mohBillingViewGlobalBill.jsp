@@ -17,6 +17,7 @@
 	<c:set var="admissionDate" value="${globalBill.admission.admissionDate}" />
 	<c:set var="dischargingDate" value="${globalBill.closingDate}"/>
 	<c:set var="admissionMode" value="${globalBill.admission.isAdmitted}"/>
+    <c:set var="Patient_ID" value="${patientIdentifier}"/>
 
 	<c:set var="insuranceRate" value="${insurancePolicy.insurance.currentRate.rate}"/>
 	<c:set var="patientRate" value="${100-insurancePolicy.insurance.currentRate.rate}"/>
@@ -42,6 +43,7 @@
 		<tr>
 		   <td>Insurance:</td> <td><b>${insurancePolicy.insurance.name}</b></td>
 		   <td>Card No</td><td> :<b>${insurancePolicy.insuranceCardNo }</b></td>
+		    <td>Primary Care ID</td><td> :<b>${Patient_ID}</b></td>
 		</tr>
 
 		<tr>

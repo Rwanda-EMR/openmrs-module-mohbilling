@@ -191,7 +191,7 @@ $j(document).ready(function(){
 		  var sCategories = $j('#categories').length;
 		  if(dep>0&&sCategories!=0){
 		   $j('#depSubmitBtn').hide();
-		   $j('#selectedDepIdx').html("(In case, you need to add item to the saved consommation,Please!!! Add 1 item at once)");
+		 <!-- $j('#selectedDepIdx').html("(In case, you need to add item to the saved consommation,Please!!! Add 1 item at once)");-->
 		   $j('#departments').attr('disabled', true);
 	      }
 		  else{
@@ -299,7 +299,7 @@ $j(document).ready(function(){
 						</c:forEach>
 				</select>
 				</td>
-				<td><p align="center" style="color: red;font-weight: bold; " id="selectedDepIdx"></p></td>
+				<!-- <td><p align="center" style="color: red;font-weight: bold; " id="selectedDepIdx"></p></td> -->
 				<td><input type="submit" value="search services" id="depSubmitBtn"/></td>
 			</tr>
 		</table>
