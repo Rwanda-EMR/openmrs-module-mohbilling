@@ -87,6 +87,15 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 					FileExporter exp = new FileExporter();
 					exp.epsonPrinter(request, response, payment, receiptTitle);
 				}
+
+				if(request.getParameter("printPaid")!=null){
+					FileExporter exp = new FileExporter();
+					exp.printPaymentPaid(request, response, payment, consommation, receiptTitle);
+				}
+				if(request.getParameter("typePaid")!=null){
+					FileExporter exp = new FileExporter();
+					exp.epsonPrinterPaidItems(request, response, payment, receiptTitle);
+				}
 				
 				String editPayStr = "";
 				if(request.getParameter("editPay")!=null){

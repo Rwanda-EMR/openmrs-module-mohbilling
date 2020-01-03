@@ -6,7 +6,7 @@
     <!-- Base Module Properties -->
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
-    <version>0.0.4.6-SNAPSHOT</version>
+    <version>0.0.4.7-SNAPSHOT</version>
     <package>org.openmrs.module.@MODULE_ID@</package>
     <author>MoH Rwanda</author>
     <description>
@@ -376,6 +376,11 @@
     <privilege>
         <name>View Bulk Update</name>
         <description>Allows the user to view View Facility service by insurance campanies</description>
+    </privilege>
+
+    <privilege>
+        <name>Patient Receipts - Print Only Paid Items</name>
+        <description>Allows the user to print only selected items during payment</description>
     </privilege>
 
 

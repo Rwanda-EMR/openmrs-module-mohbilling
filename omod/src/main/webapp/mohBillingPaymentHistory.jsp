@@ -22,6 +22,10 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}">View</a></td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print</a></td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&type=epson">Epson</a></td>
+				<openmrs:hasPrivilege privilege="Patient Receipts - Print Only Paid Items">
+			    <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&printPaid=true">Print Paid Items</a></td>
+                <td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&typePaid=epson">Epson Paid Items</a></td>
+			   	</openmrs:hasPrivilege>
 			</tr>
 			</c:if>
 		</c:forEach>

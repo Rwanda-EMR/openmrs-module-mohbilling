@@ -332,12 +332,12 @@ function recalculateTotals() {
 			 <td colspan="3"></td>
 			</tr>
 			<tr></tr>
-			<tr>
+	        <!--<tr>
 			<td colspan="2"><div><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&type=epson">EPSON Printer</a></div></td>
-			</tr>
+			</tr>-->
 		</table>
 	</form>
-	<div style="text-align: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div>
+	<!-- <div style="text-align: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div> -->
 
 </div>
 <br/>
