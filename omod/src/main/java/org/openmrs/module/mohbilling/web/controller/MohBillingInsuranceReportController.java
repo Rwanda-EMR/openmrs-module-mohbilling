@@ -55,6 +55,11 @@ public class MohBillingInsuranceReportController extends
 			 Insurance insurance = InsuranceUtil.getInsurance(Integer.valueOf(request.getParameter("insuranceId")));
 			 Float insuranceRate=insurance.getCurrentRate().getRate();
 			 Float patientRate = 100-insuranceRate;
+			 BigDecimal insuranceFlatFee=new BigDecimal(0);
+			 if(insurance.getCurrentRate().getFlatFee()!=new BigDecimal(0)){
+				 insuranceFlatFee = insurance.getCurrentRate().getFlatFee();
+			 }
+					 insurance.getCurrentRate().getFlatFee();
 
          	BigDecimal total100 = new BigDecimal(0);
 
@@ -149,7 +154,9 @@ public class MohBillingInsuranceReportController extends
 					mav.addObject("totals", totals);
 		    		mav.addObject("listOfAllServicesRevenue", listOfAllServicesRevenue);
 		    		mav.addObject("resultMsg", "["+insurance.getName()+"] Bill from "+startDateStr +" To "+ endDateStr);
-		    		mav.addObject("insuranceRate", insuranceRate);
+					mav.addObject("insuranceFlatFee", insuranceFlatFee);
+
+					mav.addObject("insuranceRate", insuranceRate);
 		    		mav.addObject("total100", total100);
 		
 	}

@@ -90,11 +90,19 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		</c:forEach>
 	<!--	<th class="columnHeader">Acts</th> -->
 		<th class="columnHeader">100%</th>
-		<th class="columnHeader">Insurance:<b>${insuranceRate }%</b></th>
-		<th class="columnHeader">Patient:<b>${100-insuranceRate}%</b></th>
+		<c:if test="${insuranceFlatFee > 0}">
+		<th class="columnHeader">FlatFeee:<b> <fmt:formatNumber value="${insuranceFlatFee}" type="number" pattern="#.##"/></b></th>
+		<th class="columnHeader">Insurance:<b> <fmt:formatNumber value="${insuranceRate }" type="number" pattern="#.##"/>% - <fmt:formatNumber value="${insuranceFlatFee}" type="number" pattern="#.##"/> </b></th>
+		<th class="columnHeader">Patient:<b> <fmt:formatNumber value="${100-insuranceRate}" type="number" pattern="#.##"/>% + <fmt:formatNumber value="${insuranceFlatFee}" type="number" pattern="#.##"/></b></th>
+	    </c:if>
+	    <c:if test="${empty insuranceFlatFee}">
+        		<th class="columnHeader">Insurance:<b> <fmt:formatNumber value="${insuranceRate }" type="number" pattern="#.##"/>% </b></th>
+        		<th class="columnHeader">Patient:<b> <fmt:formatNumber value="${100-insuranceRate}" type="number" pattern="#.##"/>%</b></th>
+       </c:if>
 	</tr>
     
 	<c:set var="patientRate" value="${100-insuranceRate}"/>
+   <c:set var="totalFlatFee" value="0" scope="page" />
 
 	<c:forEach items="${listOfAllServicesRevenue}" var="asr" varStatus="status">
 
@@ -132,20 +140,26 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
                  </c:if>
 			</c:forEach>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts}" type="number" pattern="#.##"/></td>
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*insuranceRate/100}" type="number" pattern="#.##"/></td>
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*patientRate/100}" type="number" pattern="#.##"/></td>
+		<c:if test="${insuranceFlatFee > 0}">
+		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${insuranceFlatFee}" type="number" pattern="#.##"/></td>
+		</c:if>
+		<c:set var="totalFlatFee" value="${totalFlatFee + insuranceFlatFee}"/>
+
+		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*insuranceRate/100 - insuranceFlatFee}" type="number" pattern="#.##"/></td>
+		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*patientRate/100 + insuranceFlatFee}" type="number" pattern="#.##"/></td>
 	    </tr>
 	</c:forEach>
 	
 <tr>
 <td><b style="color: blue;">TOTAL</b></td>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 		<c:forEach items="${totals }" var="total">
 		  <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total}" type="number" pattern="#.##"/></b> </td>
 		</c:forEach>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100}" type="number" pattern="#.##"/></b> </td>
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*insuranceRate/100}" type="number" pattern="#.##"/></b> </td>
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*patientRate/100}" type="number" pattern="#.##"/></b> </td>
+		<td></td>
+		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*insuranceRate/100 - totalFlatFee}" type="number" pattern="#.##"/></b> </td>
+		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*patientRate/100 + totalFlatFee}" type="number" pattern="#.##"/></b> </td>
 </tr>
 
 </table>
