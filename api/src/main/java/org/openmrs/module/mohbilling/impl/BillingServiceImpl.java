@@ -519,6 +519,11 @@ public class BillingServiceImpl implements BillingService {
 		// TODO Auto-generated method stub
 		return billingDAO.getHopService(serviceId);
 	}
+	@Override
+	public HopService getHopService(String name) {
+		// TODO Auto-generated method stub
+		return billingDAO.getHopService(name);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -957,6 +962,11 @@ public class BillingServiceImpl implements BillingService {
 	public List<Transaction> getTransactions(Date startDate, Date endDate,
 			User collector, String type) {
 		return billingDAO.getTransactions(startDate, endDate, collector, type);
+	}
+
+	@Override
+	public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo) {
+		return billingDAO.getOpenGlobalBillByInsuranceCardNo(insuranceCardNo);
 	}
 
 

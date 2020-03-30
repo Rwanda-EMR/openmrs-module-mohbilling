@@ -459,6 +459,7 @@ public interface BillingDAO {
 	public List<HopService> getAllHopService();
 
 	public HopService getHopService(Integer serviceId);
+	public HopService getHopService(String name);
 
 	/**
 	 * Saves admission to DB
@@ -700,4 +701,6 @@ public interface BillingDAO {
 	 * @return List<DepositPayment>
 	 */
 	public List<Transaction> getTransactions(Date startDate, Date endDate, User collector, String type);
+
+	public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo);
 }

@@ -36,6 +36,11 @@
 		</snapshotRepository>
 	</distributionManagement>
 
+	<properties>
+		<openMRSVersion>1.9.11</openMRSVersion>
+		<htmlformentryVersion>2.6</htmlformentryVersion>
+	</properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<!--
@@ -65,12 +70,16 @@
 				<type>jar</type>
 				<scope>provided</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.openmrs.module</groupId>
+				<artifactId>htmlformentry-api</artifactId>
+				<version>${htmlformentryVersion}</version>
+				<scope>provided</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
-	<properties>
-		<openMRSVersion>1.9.11</openMRSVersion>
-	</properties>
+
 
 	<!--<profiles>
 		<profile>

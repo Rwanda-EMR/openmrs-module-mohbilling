@@ -22,7 +22,9 @@
 
     <require_version>1.6.2.12911</require_version>
     <!-- <require_version>1.6.1.12909</require_version> -->
-
+    <require_modules>
+        <require_module>org.openmrs.module.htmlformentry</require_module>
+    </require_modules>
     <!-- Extensions -->
     <extension>
         <point>org.openmrs.tracmodule.list</point>

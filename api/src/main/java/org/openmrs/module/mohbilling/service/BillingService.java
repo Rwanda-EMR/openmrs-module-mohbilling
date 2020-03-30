@@ -432,7 +432,9 @@ public interface BillingService {
 	 * @return Hop Service
 	 */
 	public HopService getHopService(Integer serviceId);
-	
+
+	public HopService getHopService(String name);
+
 	/**
 	 * saves Admission to the DB
 	 * @param admission the admission to be saved
@@ -680,4 +682,7 @@ public interface BillingService {
 	 * @return List<DepositPayment>
 	 */
 	public List<Transaction> getTransactions(Date startDate, Date endDate, User collector, String type);
+
+	public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo);
+
 }

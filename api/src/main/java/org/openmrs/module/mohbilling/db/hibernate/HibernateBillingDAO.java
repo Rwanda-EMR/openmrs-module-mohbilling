@@ -1086,6 +1086,16 @@ public class HibernateBillingDAO implements BillingDAO {
 		return (HopService) sessionFactory.getCurrentSession().get(HopService.class, serviceId);
 	}
 
+	@Override
+	public HopService getHopService(String name) {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(HopService.class)
+				.add(Restrictions.eq("name", name));
+
+		HopService hopService = (HopService) crit.uniqueResult();
+		return hopService;
+
+	}
+
 	/* (non-Javadoc)
 	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveAdmission(org.openmrs.module.mohbilling.model.Admission)
 	 */
@@ -1557,6 +1567,14 @@ public class HibernateBillingDAO implements BillingDAO {
 			crit.add(Restrictions.eq("reason", type));
 		return crit.list();
 	}
+
+	@Override
+	public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo) {
+		Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+				.add(Restrictions.like("billIdentifier",insuranceCardNo+"%")).add(Restrictions.eq("closed",false));
+
+		GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
+		return globalBill;	}
 
 
 }
