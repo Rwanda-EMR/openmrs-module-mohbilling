@@ -1,0 +1,1587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+		xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+	<!--  REPORTING REPORT DESIGN SCHEMA -->
+
+	<changeSet id="moh_bill_admission" author="jberchmas">
+        <preConditions onFail="MARK_RAN">
+        	<not><tableExists tableName="moh_bill_admission" /></not>
+        </preConditions>
+        <comment>
+			Create table moh_bill_admission
+        </comment>
+		<sql>
+			CREATE TABLE moh_bill_admission (
+			admission_id int(11) NOT NULL AUTO_INCREMENT,
+			insurance_policy_id int(11) NOT NULL,
+			is_admitted tinyint(1) NOT NULL DEFAULT '0',
+			admission_date datetime NOT NULL,
+			discharging_date datetime DEFAULT NULL,
+			discharged_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided tinyint(1) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (admission_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+
+	<changeSet id="moh_bill_beneficiary" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_beneficiary" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_beneficiary
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_beneficiary (
+			beneficiary_id int(11) NOT NULL AUTO_INCREMENT,
+			policy_id_number varchar(250) DEFAULT NULL,
+			created_date date NOT NULL,
+			retired smallint(1) NOT NULL DEFAULT '0',
+			retire_date date DEFAULT NULL,
+			retire_reason varchar(250) DEFAULT NULL,
+			patient_id int(11) NOT NULL,
+			insurance_policy_id int(11) NOT NULL,
+			retired_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (beneficiary_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_billable_service" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_billable_service" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_billable_service
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_billable_service (
+			billable_service_id int(11) NOT NULL AUTO_INCREMENT,
+			insurance_id int(11) DEFAULT NULL,
+			maxima_to_pay decimal(20,2) DEFAULT NULL,
+			start_date date NOT NULL,
+			end_date date DEFAULT NULL,
+			facility_service_price_id int(11) NOT NULL,
+			service_category_id int(11) DEFAULT NULL,
+			created_date date NOT NULL,
+			retired smallint(1) NOT NULL DEFAULT '0',
+			retire_date date DEFAULT NULL,
+			retire_reason varchar(250) DEFAULT NULL,
+			retired_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (billable_service_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_cash_payment" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_cash_payment" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_cash_payment
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_cash_payment (
+			cash_payment_id int(11) NOT NULL AUTO_INCREMENT,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided smallint(6) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (cash_payment_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+
+	<changeSet id="moh_bill_consommation" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_consommation" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_consommation
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_consommation (
+			consommation_id int(11) NOT NULL AUTO_INCREMENT,
+			global_bill_id int(11) DEFAULT NULL,
+			department_id int(11) DEFAULT NULL,
+			beneficiary_id int(11) NOT NULL,
+			patient_bill_id int(11) NOT NULL,
+			insurance_bill_id int(11) DEFAULT NULL,
+			third_party_bill_id int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided smallint(6) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (consommation_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+
+	<changeSet id="moh_bill_department" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_department" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_department
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_department (
+			department_id int(11) NOT NULL AUTO_INCREMENT,
+			name varchar(50) DEFAULT NULL,
+			description varchar(50) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided tinyint(1) NOT NULL DEFAULT '0',
+			voided_date date DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (department_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_deposit_payment" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_deposit_payment" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_deposit_payment
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_deposit_payment (
+			deposit_payment_id int(11) NOT NULL,
+			transaction_id int(11) NOT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided smallint(6) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (deposit_payment_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_facility_service_price" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_facility_service_price" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_facility_service_price
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_facility_service_price (
+			facility_service_price_id int(11) NOT NULL AUTO_INCREMENT,
+			name varchar(150) NOT NULL,
+			short_name varchar(100) DEFAULT NULL,
+			description varchar(250) DEFAULT NULL,
+			category varchar(150) DEFAULT NULL,
+			full_price decimal(20,2) NOT NULL,
+			start_date date NOT NULL,
+			end_date date DEFAULT NULL,
+			location_id int(11) NOT NULL,
+			concept_id int(11) DEFAULT NULL,
+			created_date date NOT NULL,
+			retired smallint(1) NOT NULL DEFAULT '0',
+			retire_date date DEFAULT NULL,
+			retire_reason varchar(250) DEFAULT NULL,
+			retired_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (facility_service_price_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+
+	<changeSet id="moh_bill_global_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_global_bill" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_global_bill
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_global_bill (
+			global_bill_id int(11) NOT NULL AUTO_INCREMENT,
+			admission_id int(11) NOT NULL,
+			bill_identifier varchar(250) NOT NULL,
+			global_amount decimal(10,0) NOT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			closed_by int(11) DEFAULT NULL,
+			closing_date datetime DEFAULT NULL,
+			closed smallint(1) NOT NULL DEFAULT '0',
+			voided tinyint(1) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (global_bill_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_hop_service" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_hop_service" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_hop_service
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_hop_service (
+			service_id int(11) NOT NULL AUTO_INCREMENT,
+			name varchar(50) DEFAULT NULL,
+			description varchar(50) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided tinyint(1) NOT NULL DEFAULT '0',
+			voided_date date DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (service_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_insurance" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_insurance" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_insurance
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_insurance (
+			insurance_id int(11) NOT NULL AUTO_INCREMENT,
+			name varchar(50) NOT NULL,
+			address varchar(150) DEFAULT NULL,
+			phone varchar(100) DEFAULT NULL,
+			created_date date NOT NULL,
+			voided smallint(1) NOT NULL DEFAULT '0',
+			voided_date date DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			concept_id int(11) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			category varchar(150) NOT NULL,
+			PRIMARY KEY (insurance_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_insurance_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_insurance_bill" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_insurance_bill
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_insurance_bill (
+			insurance_bill_id int(11) NOT NULL AUTO_INCREMENT,
+			amount decimal(10,0) NOT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided tinyint(1) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (insurance_bill_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_insurance_policy" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_insurance_policy" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_insurance_policy
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_insurance_policy (
+			insurance_policy_id int(11) NOT NULL AUTO_INCREMENT,
+			insurance_card_no varchar(250) DEFAULT NULL,
+			owner int(11) NOT NULL,
+			coverage_start_date date NOT NULL,
+			expiration_date date DEFAULT NULL,
+			created_date date NOT NULL,
+			retired smallint(1) NOT NULL DEFAULT '0',
+			retire_date date DEFAULT NULL,
+			retire_reason varchar(250) DEFAULT NULL,
+			insurance_id int(11) NOT NULL,
+			third_party_id int(11) DEFAULT NULL,
+			retired_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (insurance_policy_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_insurance_rate" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_insurance_rate" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_insurance_rate
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_insurance_rate (
+			insurance_rate_id int(11) NOT NULL AUTO_INCREMENT,
+			rate float NOT NULL,
+			flatFee decimal(20,2) DEFAULT NULL,
+			start_date date NOT NULL,
+			end_date date DEFAULT NULL,
+			created_date date NOT NULL,
+			retired smallint(1) NOT NULL DEFAULT '0',
+			retire_date date DEFAULT NULL,
+			retire_reason varchar(250) DEFAULT NULL,
+			insurance_id int(11) NOT NULL,
+			retired_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (insurance_rate_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_paid_service_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_paid_service_bill" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_paid_service_bill
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_paid_service_bill (
+			paid_service_bill_id int(11) NOT NULL AUTO_INCREMENT,
+			bill_payment_id int(11) NOT NULL,
+			patient_service_bill_id int(11) NOT NULL,
+			paid_quantity decimal(10,0) NOT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided smallint(6) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (paid_service_bill_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_paid_service_bill_refund" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_paid_service_bill_refund" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_paid_service_bill_refund
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_paid_service_bill_refund (
+			service_bill_refund_id int(11) NOT NULL AUTO_INCREMENT,
+			created_date datetime NOT NULL,
+			refund_id int(11) NOT NULL,
+			paid_item_id int(11) NOT NULL,
+			refund_quantity int(11) NOT NULL,
+			creator int(11) NOT NULL,
+			refund_reason varchar(250) DEFAULT NULL,
+			is_approved smallint(6) NOT NULL DEFAULT '0',
+			approval_date datetime DEFAULT NULL,
+			approved_by int(11) DEFAULT NULL,
+			is_declined smallint(6) NOT NULL DEFAULT '0',
+			declining_note varchar(250) DEFAULT NULL,
+			decline_date datetime DEFAULT NULL,
+			voided smallint(6) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (service_bill_refund_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_patient_account" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_patient_account" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_patient_account
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_patient_account (
+			patient_account_id int(11) NOT NULL AUTO_INCREMENT,
+			patient_id int(11) NOT NULL,
+			balance decimal(20,2) NOT NULL DEFAULT '0.00',
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided tinyint(1) NOT NULL DEFAULT '0',
+			voided_by int(11) DEFAULT NULL,
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			PRIMARY KEY (patient_account_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_patient_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_patient_bill" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_patient_bill
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_patient_bill (
+			patient_bill_id int(11) NOT NULL AUTO_INCREMENT,
+			amount decimal(20,2) NOT NULL,
+			is_paid smallint(1) DEFAULT '0',
+			status varchar(150) DEFAULT NULL,
+			created_date datetime DEFAULT NULL,
+			voided smallint(1) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (patient_bill_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+
+	<changeSet id="moh_bill_patient_service_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_patient_service_bill" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_patient_service_bill
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_patient_service_bill (
+			patient_service_bill_id int(11) NOT NULL AUTO_INCREMENT,
+			service_date date NOT NULL,
+			unit_price decimal(20,2) NOT NULL,
+			quantity decimal(20,2) DEFAULT NULL,
+			paid_quantity decimal(20,2) DEFAULT '0.00',
+			service_other varchar(100) DEFAULT NULL,
+			service_other_description varchar(250) DEFAULT NULL,
+			created_date date DEFAULT NULL,
+			voided smallint(1) NOT NULL DEFAULT '0',
+			voided_date date DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			billable_service_id int(11) DEFAULT NULL,
+			consommation_id int(11) NOT NULL,
+			service_id int(11) DEFAULT NULL,
+			is_paid smallint(1) NOT NULL DEFAULT '0',
+			voided_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (patient_service_bill_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_payment" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_payment" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_payment
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_payment (
+			bill_payment_id int(11) NOT NULL AUTO_INCREMENT,
+			amount_paid decimal(20,2) NOT NULL,
+			date_received date NOT NULL,
+			created_date datetime DEFAULT NULL,
+			voided smallint(1) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			collector int(11) NOT NULL,
+			patient_bill_id int(11) NOT NULL,
+			voided_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (bill_payment_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_payment_refund" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_payment_refund" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_payment_refund
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_payment_refund (
+			refund_id int(11) NOT NULL AUTO_INCREMENT,
+			bill_payment_id int(11) NOT NULL,
+			amount_refunded decimal(20,2) DEFAULT NULL,
+			refunded_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided smallint(6) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (refund_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_recovery" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_recovery" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_recovery
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_recovery (
+			recovery_id int(11) NOT NULL AUTO_INCREMENT,
+			insurance_id int(11) DEFAULT NULL,
+			third_party_id int(11) DEFAULT NULL,
+			start_period date NOT NULL,
+			end_period date NOT NULL,
+			status varchar(50) NOT NULL DEFAULT 'UNPAID',
+			due_amount decimal(20,2) NOT NULL,
+			submission_date date DEFAULT NULL,
+			verification_date date DEFAULT NULL,
+			paid_amount decimal(20,2) DEFAULT NULL,
+			payement_date date DEFAULT NULL,
+			partly_pay_reason varchar(250) DEFAULT NULL,
+			no_payment_reason varchar(250) DEFAULT NULL,
+			observation varchar(250) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			created_date date NOT NULL,
+			changed_by int(11) DEFAULT NULL,
+			retired smallint(1) NOT NULL DEFAULT '0',
+			retired_by int(11) DEFAULT NULL,
+			retire_date date DEFAULT NULL,
+			retire_reason varchar(250) DEFAULT NULL,
+			PRIMARY KEY (recovery_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_service_category" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_service_category" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_service_category
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_service_category (
+			service_category_id int(11) NOT NULL AUTO_INCREMENT,
+			name varchar(150) NOT NULL,
+			description varchar(250) DEFAULT NULL,
+			price decimal(10,0) DEFAULT NULL,
+			created_date date NOT NULL,
+			retired smallint(1) NOT NULL DEFAULT '0',
+			retire_date date DEFAULT NULL,
+			retire_reason varchar(250) DEFAULT NULL,
+			insurance_id int(11) NOT NULL,
+			department_id int(11) DEFAULT NULL,
+			service_id int(11) DEFAULT NULL,
+			retired_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (service_category_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_third_party" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_third_party" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_third_party
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_third_party (
+			third_party_id int(11) NOT NULL AUTO_INCREMENT,
+			name varchar(150) NOT NULL,
+			rate float NOT NULL,
+			created_date date NOT NULL,
+			voided smallint(1) NOT NULL DEFAULT '0',
+			voided_date date DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			PRIMARY KEY (third_party_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_third_party_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_third_party_bill" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_third_party_bill
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_third_party_bill (
+			third_party_bill_id int(11) NOT NULL AUTO_INCREMENT,
+			amount decimal(10,0) NOT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided tinyint(1) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (third_party_bill_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_transaction" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_transaction" /></not>
+		</preConditions>
+		<comment>
+			Create table moh_bill_transaction
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_transaction (
+			transaction_id int(11) NOT NULL AUTO_INCREMENT,
+			patient_account_id int(11) NOT NULL,
+			amount decimal(20,2) NOT NULL,
+			collector int(11) NOT NULL,
+			transaction_reason varchar(250) NOT NULL,
+			transaction_date datetime NOT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			voided smallint(6) NOT NULL DEFAULT '0',
+			voided_date datetime DEFAULT NULL,
+			void_reason varchar(250) DEFAULT NULL,
+			voided_by int(11) DEFAULT NULL,
+			PRIMARY KEY (transaction_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+
+
+	<changeSet id="add_admission_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_admission" foreignKeyName="admission_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_admission" baseColumnNames="creator" constraintName="admission_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_admission_insurance_policy" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_admission" foreignKeyName="admission_insurance_policy" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_admission" baseColumnNames="insurance_policy_id" constraintName="admission_insurance_policy" referencedTableName="moh_bill_insurance_policy" referencedColumnNames="insurance_policy_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_admission_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_admission" foreignKeyName="admission_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_admission" baseColumnNames="voided_by" constraintName="admission_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+	<changeSet id="add_benefeciary_insurance_policy" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_beneficiary" foreignKeyName="benefeciary_insurance_policy" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_beneficiary" baseColumnNames="insurance_policy_id" constraintName="benefeciary_insurance_policy" referencedTableName="moh_bill_insurance_policy" referencedColumnNames="insurance_policy_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_beneficiary_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_beneficiary" foreignKeyName="beneficiary_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_beneficiary" baseColumnNames="creator" constraintName="beneficiary_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_beneficiary_patient" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_beneficiary" foreignKeyName="beneficiary_patient" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_beneficiary" baseColumnNames="patient_id" constraintName="beneficiary_patient" referencedTableName="patient" referencedColumnNames="patient_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_beneficiary_retired_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_beneficiary" foreignKeyName="beneficiary_retired_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_beneficiary" baseColumnNames="retired_by" constraintName="beneficiary_retired_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_billable_service_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_billable_service" foreignKeyName="billable_service_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_billable_service" baseColumnNames="creator" constraintName="billable_service_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_billable_service_retired_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_billable_service" foreignKeyName="billable_service_retired_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_billable_service" baseColumnNames="retired_by" constraintName="billable_service_retired_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_billable_service_facility_service_price" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_billable_service" foreignKeyName="billable_service_facility_service_price" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_billable_service" baseColumnNames="facility_service_price_id" constraintName="billable_service_facility_service_price" referencedTableName="moh_bill_facility_service_price" referencedColumnNames="facility_service_price_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_billable_service_insurance" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_billable_service" foreignKeyName="billable_service_insurance" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_billable_service" baseColumnNames="insurance_id" constraintName="billable_service_insurance" referencedTableName="moh_bill_insurance" referencedColumnNames="insurance_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_billable_service_service_category" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_billable_service" foreignKeyName="billable_service_service_category" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_billable_service" baseColumnNames="service_category_id" constraintName="billable_service_service_category" referencedTableName="moh_bill_service_category" referencedColumnNames="service_category_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_cash_payment_bill_payment" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_cash_payment" foreignKeyName="cash_payment_bill_payment" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_cash_payment" baseColumnNames="cash_payment_id" constraintName="cash_payment_bill_payment" referencedTableName="moh_bill_payment" referencedColumnNames="bill_payment_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_cash_payment_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_cash_payment" foreignKeyName="cash_payment_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_cash_payment" baseColumnNames="creator" constraintName="cash_payment_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_cash_payment_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_cash_payment" foreignKeyName="cash_payment_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_cash_payment" baseColumnNames="voided_by" constraintName="cash_payment_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+	<changeSet id="add_consommation_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_consommation" foreignKeyName="consommation_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_consommation" baseColumnNames="creator" constraintName="consommation_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_consommation_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_consommation" foreignKeyName="consommation_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_consommation" baseColumnNames="voided_by" constraintName="consommation_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_consommation_beneficiary" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_consommation" foreignKeyName="consommation_beneficiary" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_consommation" baseColumnNames="beneficiary_id" constraintName="consommation_beneficiary" referencedTableName="moh_bill_beneficiary" referencedColumnNames="beneficiary_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_consommation_department" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_consommation" foreignKeyName="consommation_department" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_consommation" baseColumnNames="department_id" constraintName="consommation_department" referencedTableName="moh_bill_department" referencedColumnNames="department_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_consommation_global_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_consommation" foreignKeyName="consommation_global_bill" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_consommation" baseColumnNames="global_bill_id" constraintName="consommation_global_bill" referencedTableName="moh_bill_global_bill" referencedColumnNames="global_bill_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_consommation_insurance_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_consommation" foreignKeyName="consommation_insurance_bill" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_consommation" baseColumnNames="insurance_bill_id" constraintName="consommation_insurance_bill" referencedTableName="moh_bill_insurance_bill" referencedColumnNames="insurance_bill_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_consommation_patient_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_consommation" foreignKeyName="consommation_patient_bill" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_consommation" baseColumnNames="patient_bill_id" constraintName="consommation_patient_bill" referencedTableName="moh_bill_patient_bill" referencedColumnNames="patient_bill_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_consommation_third_party_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_consommation" foreignKeyName="consommation_third_party_bill" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_consommation" baseColumnNames="third_party_bill_id" constraintName="consommation_third_party_bill" referencedTableName="moh_bill_third_party_bill" referencedColumnNames="third_party_bill_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_departement_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_department" foreignKeyName="departement_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_department" baseColumnNames="creator" constraintName="departement_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_departement_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_department" foreignKeyName="departement_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_department" baseColumnNames="voided_by" constraintName="departement_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+	<changeSet id="add_deposit_payment_creatory" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_deposit_payment" foreignKeyName="deposit_payment_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_deposit_payment" baseColumnNames="creator" constraintName="deposit_payment_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_deposit_payment_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_deposit_payment" foreignKeyName="deposit_payment_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_deposit_payment" baseColumnNames="voided_by" constraintName="deposit_payment_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_deposit_payment_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_deposit_payment" foreignKeyName="deposit_payment_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_deposit_payment" baseColumnNames="voided_by" constraintName="deposit_payment_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_deposit_payment_transaction" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_deposit_payment" foreignKeyName="deposit_payment_transaction" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_deposit_payment" baseColumnNames="transaction_id" constraintName="deposit_payment_transaction" referencedTableName="moh_bill_transaction" referencedColumnNames="transaction_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_deposit_payment_bill_payment" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_deposit_payment" foreignKeyName="deposit_payment_bill_payment" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_deposit_payment" baseColumnNames="deposit_payment_id" constraintName="deposit_payment_bill_payment" referencedTableName="moh_bill_payment" referencedColumnNames="bill_payment_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_facility_service_price_concept" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_facility_service_price" foreignKeyName="facility_service_price_concept" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_facility_service_price" baseColumnNames="concept_id" constraintName="facility_service_price_concept" referencedTableName="concept" referencedColumnNames="concept_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_facility_service_price_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_facility_service_price" foreignKeyName="facility_service_price_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_facility_service_price" baseColumnNames="creator" constraintName="facility_service_price_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_facility_service_price_location" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_facility_service_price" foreignKeyName="facility_service_price_location" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_facility_service_price" baseColumnNames="location_id" constraintName="facility_service_price_location" referencedTableName="location" referencedColumnNames="location_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_facility_service_price_retired_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_facility_service_price" foreignKeyName="facility_service_price_retired_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_facility_service_price" baseColumnNames="retired_by" constraintName="facility_service_price_retired_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_global_bill_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_global_bill" foreignKeyName="global_bill_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_global_bill" baseColumnNames="voided_by" constraintName="global_bill_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_global_bill_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_global_bill" foreignKeyName="global_bill_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_global_bill" baseColumnNames="creator" constraintName="global_bill_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_global_bill_closed_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_global_bill" foreignKeyName="global_bill_closed_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_global_bill" baseColumnNames="closed_by" constraintName="global_bill_closed_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_global_bill_admission" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_global_bill" foreignKeyName="global_bill_admission" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_global_bill" baseColumnNames="admission_id" constraintName="global_bill_admission" referencedTableName="moh_bill_admission" referencedColumnNames="admission_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_hop_service_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_hop_service" foreignKeyName="hop_service_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_hop_service" baseColumnNames="creator" constraintName="hop_service_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_hop_service_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_hop_service" foreignKeyName="hop_service_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_hop_service" baseColumnNames="voided_by" constraintName="hop_service_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+	<changeSet id="add_insurance_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance" foreignKeyName="insurance_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance" baseColumnNames="creator" constraintName="insurance_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_insurance_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance" foreignKeyName="insurance_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance" baseColumnNames="voided_by" constraintName="insurance_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_insurance_concept" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance" foreignKeyName="insurance_concept" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance" baseColumnNames="concept_id" constraintName="insurance_concept" referencedTableName="concept" referencedColumnNames="concept_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+	<changeSet id="add_insurance_bill_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_bill" foreignKeyName="insurance_bill_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_bill" baseColumnNames="creator" constraintName="insurance_bill_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_insurance_bill_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_bill" foreignKeyName="insurance_bill_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_bill" baseColumnNames="voided_by" constraintName="insurance_bill_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_insurance_policy_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_policy" foreignKeyName="insurance_policy_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_policy" baseColumnNames="creator" constraintName="insurance_policy_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_insurance_policy_retired_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_policy" foreignKeyName="insurance_policy_retired_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_policy" baseColumnNames="retired_by" constraintName="insurance_policy_retired_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_insurance_policy_insurance" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_policy" foreignKeyName="insurance_policy_insurance" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_policy" baseColumnNames="insurance_id" constraintName="insurance_policy_insurance" referencedTableName="moh_bill_insurance" referencedColumnNames="insurance_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_insurance_policy_owner" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_policy" foreignKeyName="insurance_policy_owner" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_policy" baseColumnNames="owner" constraintName="insurance_policy_owner" referencedTableName="patient" referencedColumnNames="patient_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_insurance_policy_third_party" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_policy" foreignKeyName="insurance_policy_third_party" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_policy" baseColumnNames="third_party_id" constraintName="insurance_policy_third_party" referencedTableName="moh_bill_third_party" referencedColumnNames="third_party_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_insurance_rate_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_rate" foreignKeyName="insurance_rate_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_rate" baseColumnNames="creator" constraintName="insurance_rate_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_insurance_rate_retired_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_rate" foreignKeyName="insurance_rate_retired_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_rate" baseColumnNames="retired_by" constraintName="insurance_rate_retired_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_insurance_rate_insurance" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_insurance_rate" foreignKeyName="insurance_rate_insurance" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_insurance_rate" baseColumnNames="insurance_id" constraintName="insurance_rate_insurance" referencedTableName="moh_bill_insurance" referencedColumnNames="insurance_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_paid_service_bill_bill_payment" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_paid_service_bill" foreignKeyName="paid_service_bill_bill_payment" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_paid_service_bill" baseColumnNames="bill_payment_id" constraintName="paid_service_bill_bill_payment" referencedTableName="moh_bill_payment" referencedColumnNames="bill_payment_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_paid_service_bill_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_paid_service_bill" foreignKeyName="paid_service_bill_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_paid_service_bill" baseColumnNames="creator" constraintName="paid_service_bill_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_paid_service_bill_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_paid_service_bill" foreignKeyName="paid_service_bill_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_paid_service_bill" baseColumnNames="voided_by" constraintName="paid_service_bill_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_paid_service_bill_patient_service_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_paid_service_bill" foreignKeyName="paid_service_bill_patient_service_bill" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_paid_service_bill" baseColumnNames="patient_service_bill_id" constraintName="paid_service_bill_patient_service_bill" referencedTableName="moh_bill_patient_service_bill" referencedColumnNames="patient_service_bill_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+
+	<changeSet id="add_refunded_item_approved_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_paid_service_bill_refund" foreignKeyName="refunded_item_approved_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_paid_service_bill_refund" baseColumnNames="approved_by" constraintName="refunded_item_approved_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_refunded_item_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_paid_service_bill_refund" foreignKeyName="refunded_item_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_paid_service_bill_refund" baseColumnNames="voided_by" constraintName="refunded_item_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_service_bill_refund_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_paid_service_bill_refund" foreignKeyName="service_bill_refund_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_paid_service_bill_refund" baseColumnNames="creator" constraintName="service_bill_refund_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_service_bill_refund_paid_service_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_paid_service_bill_refund" foreignKeyName="service_bill_refund_paid_service_bill" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_paid_service_bill_refund" baseColumnNames="paid_item_id" constraintName="service_bill_refund_paid_service_bill" referencedTableName="moh_bill_paid_service_bill" referencedColumnNames="paid_service_bill_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_service_bill_refund_refund" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_paid_service_bill_refund" foreignKeyName="service_bill_refund_refund" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_paid_service_bill_refund" baseColumnNames="refund_id" constraintName="service_bill_refund_refund" referencedTableName="moh_bill_payment_refund" referencedColumnNames="refund_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+	<changeSet id="add_patient_account_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_account" foreignKeyName="patient_account_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_account" baseColumnNames="creator" constraintName="patient_account_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_patient_account_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_account" foreignKeyName="patient_account_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_account" baseColumnNames="voided_by" constraintName="patient_account_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_patient_account_patient" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_account" foreignKeyName="patient_account_patient" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_account" baseColumnNames="patient_id" constraintName="patient_account_patient" referencedTableName="patient" referencedColumnNames="patient_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+	<changeSet id="add_patient_bill_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_bill" foreignKeyName="patient_bill_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_bill" baseColumnNames="creator" constraintName="patient_bill_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_patient_bill_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_bill" foreignKeyName="patient_bill_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_bill" baseColumnNames="voided_by" constraintName="patient_bill_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+
+	<changeSet id="add_patient_service_bill_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_service_bill" foreignKeyName="patient_service_bill_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_service_bill" baseColumnNames="creator" constraintName="patient_service_bill_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_patient_service_bill_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_service_bill" foreignKeyName="patient_service_bill_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_service_bill" baseColumnNames="voided_by" constraintName="patient_service_bill_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_patient_service_bill_billable_service" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_service_bill" foreignKeyName="patient_service_bill_billable_service" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_service_bill" baseColumnNames="billable_service_id" constraintName="patient_service_bill_billable_service" referencedTableName="moh_bill_billable_service" referencedColumnNames="billable_service_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_patient_service_bill_consommation" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_service_bill" foreignKeyName="patient_service_bill_consommation" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_service_bill" baseColumnNames="consommation_id" constraintName="patient_service_bill_consommation" referencedTableName="moh_bill_consommation" referencedColumnNames="consommation_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_patient_service_bill_hop_service" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_patient_service_bill" foreignKeyName="patient_service_bill_hop_service" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_patient_service_bill" baseColumnNames="service_id" constraintName="patient_service_bill_hop_service" referencedTableName="moh_bill_hop_service" referencedColumnNames="service_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+
+	<changeSet id="add_bill_payment_collector" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_payment" foreignKeyName="bill_payment_collector" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_payment" baseColumnNames="collector" constraintName="bill_payment_collector" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_bill_payment_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_payment" foreignKeyName="bill_payment_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_payment" baseColumnNames="creator" constraintName="bill_payment_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_bill_payment_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_payment" foreignKeyName="bill_payment_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_payment" baseColumnNames="voided_by" constraintName="bill_payment_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_bill_payment_patient_bill" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_payment" foreignKeyName="bill_payment_patient_bill" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_payment" baseColumnNames="patient_bill_id" constraintName="bill_payment_patient_bill" referencedTableName="moh_bill_patient_bill" referencedColumnNames="patient_bill_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+
+	<changeSet id="add_payment_refunded_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_payment_refund" foreignKeyName="payment_refunded_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_payment_refund" baseColumnNames="refunded_by" constraintName="payment_refunded_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_refund_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_payment_refund" foreignKeyName="refund_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_payment_refund" baseColumnNames="creator" constraintName="refund_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_refund_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_payment_refund" foreignKeyName="refund_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_payment_refund" baseColumnNames="voided_by" constraintName="refund_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_refund_bill_payment" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_payment_refund" foreignKeyName="refund_bill_payment" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_payment_refund" baseColumnNames="bill_payment_id" constraintName="refund_bill_payment" referencedTableName="moh_bill_payment" referencedColumnNames="bill_payment_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+
+	<changeSet id="add_insurance_recovery" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_recovery" foreignKeyName="insurance_recovery" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_recovery" baseColumnNames="insurance_id" constraintName="insurance_recovery" referencedTableName="moh_bill_insurance" referencedColumnNames="insurance_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_recovery_changed_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_recovery" foreignKeyName="recovery_changed_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_recovery" baseColumnNames="changed_by" constraintName="recovery_changed_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_recovery_third_party_id" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_recovery" foreignKeyName="recovery_third_party_id" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_recovery" baseColumnNames="third_party_id" constraintName="recovery_third_party_id" referencedTableName="moh_bill_third_party" referencedColumnNames="third_party_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+
+	<changeSet id="add_service_category_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_service_category" foreignKeyName="service_category_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_service_category" baseColumnNames="creator" constraintName="service_category_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_service_category_retired_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_service_category" foreignKeyName="service_category_retired_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_service_category" baseColumnNames="retired_by" constraintName="service_category_retired_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_service_category_department" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_service_category" foreignKeyName="service_category_department" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_service_category" baseColumnNames="department_id" constraintName="service_category_department" referencedTableName="moh_bill_department" referencedColumnNames="department_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_service_category_hop_service" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_service_category" foreignKeyName="service_category_hop_service" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_service_category" baseColumnNames="service_id" constraintName="service_category_hop_service" referencedTableName="moh_bill_hop_service" referencedColumnNames="service_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_service_category_insurance" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_service_category" foreignKeyName="service_category_insurance" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_service_category" baseColumnNames="insurance_id" constraintName="service_category_insurance" referencedTableName="moh_bill_insurance" referencedColumnNames="insurance_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+	<changeSet id="add_third_party_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_third_party" foreignKeyName="third_party_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_third_party" baseColumnNames="creator" constraintName="third_party_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_third_party_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_third_party" foreignKeyName="third_party_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_third_party" baseColumnNames="voided_by" constraintName="third_party_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+	<changeSet id="add_third_party_bill_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_third_party_bill" foreignKeyName="third_party_bill_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_third_party_bill" baseColumnNames="creator" constraintName="third_party_bill_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_third_party_bill_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_third_party_bill" foreignKeyName="third_party_bill_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_third_party_bill" baseColumnNames="voided_by" constraintName="third_party_bill_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+
+
+	<changeSet id="add_transaction_collector" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_transaction" foreignKeyName="transaction_collector" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_transaction" baseColumnNames="collector" constraintName="transaction_collector" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_transaction_creator" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_transaction" foreignKeyName="transaction_creator" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_transaction" baseColumnNames="creator" constraintName="transaction_creator" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_transaction_voided_by" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_transaction" foreignKeyName="transaction_voided_by" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_transaction" baseColumnNames="voided_by" constraintName="transaction_voided_by" referencedTableName="users" referencedColumnNames="user_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+	<changeSet id="add_transaction_patient_account" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<foreignKeyConstraintExists	foreignKeyTableName="moh_bill_transaction" foreignKeyName="transaction_patient_account" />
+			</not>
+		</preConditions>
+		<addForeignKeyConstraint baseTableName="moh_bill_transaction" baseColumnNames="patient_account_id" constraintName="transaction_patient_account" referencedTableName="moh_bill_patient_account" referencedColumnNames="patient_account_id" deferrable="false" initiallyDeferred="false" />
+	</changeSet>
+
+	<changeSet id="moh_bill_payment_2" author="jberchmas">
+		<sql>
+			ALTER TABLE moh_bill_payment MODIFY date_received datetime DEFAULT NULL;
+		</sql>
+	</changeSet>
+	<changeSet id="moh_bill_beneficiary_2" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_beneficiary" columnName="owner_name"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_beneficiary">
+			<column name="owner_name" type="varchar(150)" defaultValue=" "/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_beneficiary_3" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_beneficiary" columnName="owner_code"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_beneficiary">
+			<column name="owner_code" type="varchar(150)" defaultValue=" "/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_beneficiary_4" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_beneficiary" columnName="level"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_beneficiary">
+			<column name="level" type="varchar(150)" defaultValueNumeric="1">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_beneficiary_5" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_beneficiary" columnName="company"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_beneficiary">
+			<column name="company" type="varchar(100)" defaultValue=" " />
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_admission_2" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_admission" columnName="disease_type"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_admission">
+			<column name="disease_type" type="varchar(100)" defaultValue=" " />
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_global_bill_2" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_global_bill" columnName="insurance_id"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_global_bill">
+			<column name="insurance_id" type="int">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_patient_service_bill_2" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_service_bill" columnName="drug_frequency"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_service_bill">
+			<column name="drug_frequency" type="varchar(50)" defaultValue=" "/>
+		</addColumn>
+	</changeSet>
+</databaseChangeLog>

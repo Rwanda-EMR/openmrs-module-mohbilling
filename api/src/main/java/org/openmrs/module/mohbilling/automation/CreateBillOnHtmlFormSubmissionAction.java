@@ -67,6 +67,7 @@ if(currentInsuranceId.size()>=1)
                     //psb.setHopService(Context.getService(BillingService.class).getHopService(2));
                     psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
                     psb.setCreator(Context.getAuthenticatedUser());
+                    psb.setCreatedDate(new Date());
 
                     psbList.add(psb);
                 }
@@ -87,6 +88,7 @@ if(currentInsuranceId.size()>=1)
                     //psb.setHopService(Context.getService(BillingService.class).getHopService(2));
                     psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
                     psb.setCreator(Context.getAuthenticatedUser());
+                    psb.setCreatedDate(new Date());
 
                     psbList.add(psb);
                 }
@@ -107,6 +109,7 @@ if(currentInsuranceId.size()>=1)
                     //psb.setHopService(Context.getService(BillingService.class).getHopService(2));
                     psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
                     psb.setCreator(Context.getAuthenticatedUser());
+                    psb.setCreatedDate(new Date());
 
                     psbList.add(psb);
                 }
@@ -114,48 +117,37 @@ if(currentInsuranceId.size()>=1)
             }
 
         }
-       /* admission.setDiseaseType(diseaseType);
-        Admission savedAdmission = AdmissionUtil.savePatientAdmission(admission);
-*/
-        //create new Global bill
-       /* gb =new GlobalBill();
-        gb.setAdmission(savedAdmission);
-        gb.setBillIdentifier(ip.getInsuranceCardNo()+savedAdmission.getAdmissionId());
-        gb.setCreatedDate(new Date());
-        gb.setGlobalAmount(totalMaximaTopay);
-        gb.setCreator(Context.getAuthenticatedUser());
-        gb.setInsurance(ip.getInsurance());
-        gb =   GlobalBillUtil.saveGlobalBill(gb);
-*/
-        GlobalBill gb=Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
-        BigDecimal globalAmount=gb.getGlobalAmount().add(totalMaximaTopay);
-        gb.setGlobalAmount(globalAmount);
-        gb =   GlobalBillUtil.saveGlobalBill(gb);
+        if(psbList.size()>0) {
+
+            GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
+            BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
+            gb.setGlobalAmount(globalAmount);
+            gb = GlobalBillUtil.saveGlobalBill(gb);
 
 
-        System.out.println("Totalllllllllllllllllllllllllll: "+totalMaximaTopay);
+            System.out.println("Totalllllllllllllllllllllllllll: " + totalMaximaTopay);
 
-        PatientBill pb= PatientBillUtil.createPatientBill(totalMaximaTopay,ip);
-        InsuranceBill ib= InsuranceBillUtil.createInsuranceBill(ip.getInsurance(),totalMaximaTopay);
+            PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
+            InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
 
-        Consommation cons=new Consommation();
-        cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));
-        cons.setPatientBill(pb);
-        cons.setInsuranceBill(ib);
-        cons.setGlobalBill(gb);
-        cons.setCreatedDate(new Date());
-        cons.setCreator(Context.getAuthenticatedUser());
-        //cons.setDepartment(Context.getService(BillingService.class).getDepartement(2));
-        cons.setDepartment(department);
-        ConsommationUtil.saveConsommation(cons);
-        //Context.getService(BillingService.class).saveConsommation(cons);
+            Consommation cons = new Consommation();
+            cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));
+            cons.setPatientBill(pb);
+            cons.setInsuranceBill(ib);
+            cons.setGlobalBill(gb);
+            cons.setCreatedDate(new Date());
+            cons.setCreator(Context.getAuthenticatedUser());
+            //cons.setDepartment(Context.getService(BillingService.class).getDepartement(2));
+            cons.setDepartment(department);
+            ConsommationUtil.saveConsommation(cons);
+            //Context.getService(BillingService.class).saveConsommation(cons);
 
-        for (PatientServiceBill psb:psbList) {
-        psb.setConsommation(cons);
-        ConsommationUtil.createPatientServiceBill(psb);
-            //cons.addBillItem(psb);
+            for (PatientServiceBill psb : psbList) {
+                psb.setConsommation(cons);
+                ConsommationUtil.createPatientServiceBill(psb);
+                //cons.addBillItem(psb);
+            }
         }
-
     }
 
 

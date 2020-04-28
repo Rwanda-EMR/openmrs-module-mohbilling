@@ -57,6 +57,7 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			consommation = Context.getService(BillingService.class).getConsommation(
 					Integer.parseInt(request.getParameter("consommationId")));
+			System.out.println("Allllllllll Itemsssssssssssss sizeeeeeeeeeeeee:"+consommation.getBillItems().size());
 
 			consommations = ConsommationUtil.getConsommationsByBeneficiary(consommation.getBeneficiary());
 
