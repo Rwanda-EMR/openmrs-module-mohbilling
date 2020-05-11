@@ -16,29 +16,30 @@ package org.openmrs.module.mohbilling;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.Activator;
+import org.openmrs.module.BaseModuleActivator;
 
 /**
  * This class contains the logic that is run every time this module is either
  * started or shutdown
  */
-public class MohBillingActivator implements Activator {
+public class MohBillingActivator extends BaseModuleActivator {
 
-	private Log log = LogFactory.getLog(this.getClass());
+	protected Log log = LogFactory.getLog(this.getClass());
 
 	/**
-	 * @see Activator#startup()
+	 * @see BaseModuleActivator#started()
 	 */
-	public void startup() {
+	public void started() {
 
-		log.info("Starting MoH-Billing Module");
+		log.info("MoH-Billing Module started");
 
 	}
 
 	/**
-	 * @see Activator#shutdown()
+	 * @see BaseModuleActivator#stopped()
 	 */
-	public void shutdown() {
-		log.info("Shutting down MoH-Billing Module");
+	public void stopped() {
+		log.info("MoH-Billing Module stopped");
 	}
 
 }
