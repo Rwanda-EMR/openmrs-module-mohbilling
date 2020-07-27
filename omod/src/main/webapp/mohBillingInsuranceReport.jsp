@@ -134,7 +134,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 				<c:if test="${patientRate==0}">
 					<c:set var="amount" value="0" />
 					<c:forEach items="${revenue.billItems}" var="item">
-						<c:set var="amount" value="${amount + (item.service.maximaToPay)*(item.quantity)}" />
+						<c:set var="amount" value="${amount + (item.unitPrice)*(item.quantity)}" />
 					</c:forEach>
                  	<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${amount}" type="number" pattern="#.##"/></td>
                  </c:if>
@@ -152,12 +152,11 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 	
 <tr>
 <td><b style="color: blue;">TOTAL</b></td>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><td></td><td></td>
 		<c:forEach items="${totals }" var="total">
 		  <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total}" type="number" pattern="#.##"/></b> </td>
 		</c:forEach>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100}" type="number" pattern="#.##"/></b> </td>
-		<td></td>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*insuranceRate/100 - totalFlatFee}" type="number" pattern="#.##"/></b> </td>
 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100*patientRate/100 + totalFlatFee}" type="number" pattern="#.##"/></b> </td>
 </tr>

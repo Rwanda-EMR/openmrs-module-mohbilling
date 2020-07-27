@@ -69,8 +69,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurance(org.openmrs.
-	 *      module.mohbilling.model.Insurance)
 	 */
 	@Override
 	public Insurance getInsurance(Integer insuranceId) {
@@ -123,8 +121,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillableServiceByConcept(Concept
-	 *      concept, Insurance insurance)
 	 */
 	@Override
 	public BillableService getBillableServiceByConcept(
@@ -148,8 +144,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPatientBill(org.openmrs
-	 *      .module.mohbilling.model.PatientBill)
 	 */
 	@Override
 	public PatientBill getPatientBill(Integer billId) {
@@ -161,8 +155,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getPatientBill(org.openmrs
-	 *      .module.mohbilling.model.PatientBill)
 	 */
 	@Override
 	public ThirdParty getThirdParty(Integer thirdPartyId) {
@@ -174,8 +166,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveThirdParty(org.openmrs
-	 *      .module.mohbilling.model.ThirdParty)
 	 */
 	@Override
 	public void saveThirdParty(ThirdParty thirdParty) {
@@ -186,8 +176,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveInsurance(org.openmrs
-	 *      .module.mohbilling.model.Insurance)
 	 */
 	@Override
 	public void saveInsurance(Insurance insurance) {
@@ -198,8 +186,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#saveInsurancePolicy(org.openmrs
-	 *      .module.mohbilling.model.InsurancePolicy)
 	 */
 	@Override
 	public void saveInsurancePolicy(InsurancePolicy card) {
@@ -211,8 +197,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#savePatientBill(org.openmrs
-	 *      .module.mohbilling.model.PatientBill)
 	 */
 	@Override
 	public void savePatientBill(PatientBill bill) {
@@ -680,8 +664,6 @@ public class HibernateBillingDAO implements BillingDAO {
 	/**
 	 * (non-Javadoc)
 	 *
-	 * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillableServiceByConcept(Concept
-	 *      concept, Insurance insurance)
 	 */
 	@Override
 	public ServiceCategory getServiceCategoryByName(String name,
@@ -911,7 +893,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			scToMapToInsurance.setInsurance(insurance);
 			scToMapToInsurance.setCreator(Context.getAuthenticatedUser());
 			for(ServiceCategory scExisting:serviceCategoryCheckList){
-				if(!(scExisting.getName().toString().equals(sc[0].toString())&& scExisting.getInsurance().getInsuranceId()==insurance.getInsuranceId())) {
+				if(!(scExisting.getName().toString().equals(sc[0].toString()) && scExisting.getInsurance().getInsuranceId()==insurance.getInsuranceId())) {
 					insurance.addServiceCategory(scToMapToInsurance);
 				}
 			}
@@ -982,10 +964,8 @@ public class HibernateBillingDAO implements BillingDAO {
 		bui.append(" FROM moh_bill_facility_service_price fsp ");
 		bui.append(" inner join moh_bill_service_category sc on fsp.category = sc.name ");
 		bui.append(" inner join moh_bill_insurance i on sc.insurance_id = i.insurance_id");
-		bui.append(" WHERE fsp.category not in ('MEDICAMENTS', 'CONSOMMABLES') and i.insurance_id in("+i.getInsuranceId()+")");
+		bui.append(" WHERE fsp.category not in ('MEDICAMENTS', 'CONSOMMABLES') and fsp.retired = '0' and i.insurance_id in("+i.getInsuranceId()+")");
 
-
-//		log.info("ssssssssssssssssssssssss "+bui.toString());
 
 		SQLQuery query = session.createSQLQuery(bui.toString());
 		List<Object[]> ob = query.list();
@@ -1003,7 +983,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		bui.append(" FROM moh_bill_facility_service_price fsp ");
 		bui.append(" inner join moh_bill_service_category sc on fsp.category = sc.name ");
 		bui.append(" inner join moh_bill_insurance i on sc.insurance_id = i.insurance_id");
-		bui.append(" WHERE fsp.category in ('MEDICAMENTS', 'CONSOMMABLES') and i.insurance_id in("+i.getInsuranceId()+")");
+		bui.append(" WHERE fsp.category in ('MEDICAMENTS', 'CONSOMMABLES') and fsp.retired = '0' and i.insurance_id in("+i.getInsuranceId()+")");
 
 //		log.info("ssssssssssssssssssssssss "+bui.toString());
 

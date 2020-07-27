@@ -119,15 +119,9 @@ public class MohBillingInsurancePolicyFormController extends
 					b.setOwnerCode(request.getParameter("ownerCode"));
 					b.setLevel(Integer.parseInt(request.getParameter("level")));
 					b.setCompany(request.getParameter("company"));
-
 					card.addBeneficiary(b);
-
 				}
-
 			}
-
-			//card.setInsurance(InsuranceUtil.getInsurance(Integer.parseInt(request.getParameter("insurancePolicyInsurance"))));
-
 			if (request.getParameter("insurancePolicyOwnerCardNumber") != null
 					&& !request.getParameter("insurancePolicyOwnerCardNumber")
 					.equals("")) {
@@ -135,22 +129,6 @@ public class MohBillingInsurancePolicyFormController extends
 				card.setInsuranceCardNo(request
 						.getParameter("insurancePolicyOwnerCardNumber"));
 			}
-
-			/*if (card.getThirdParty()!=null && !card.getThirdParty().isVoided() && (request.getParameter("thirdParty") == null
-					|| request.getParameter("thirdParty").equals("")
-					|| request.getParameter("thirdParty").equals("0")||request.getParameter("hasThirdPart")==null)) {
-
-				card.setThirdParty(null);
-			}
-
-			if (request.getParameter("thirdParty") != null
-					&& !request.getParameter("thirdParty").equals("")
-					&& !request.getParameter("thirdParty").equals("0")) {
-
-				card.setThirdParty(InsurancePolicyUtil.getThirdParty(Integer
-						.parseInt(request.getParameter("thirdParty"))));
-			}*/
-
 try {
 	if (request.getParameter("insurancePolicyCoverageStartDate") != null
 			&& !request
@@ -170,21 +148,36 @@ try {
 }catch (ParseException pex){
 	pex.getMessage();
 }
+			try {
+				if(!InsurancePolicyUtil.isInsurancePolicyExists(request.getParameter("insurancePolicyOwnerCardNumber"))==true){
+
 			card.setCreator(Context.getAuthenticatedUser());
 			card.setCreatedDate(new Date());
 			InsurancePolicyUtil.createInsurancePolicy(card);
-			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
-					"The insurance policy has been Edited successfully !");
-		return true;
+				}
+				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+						"The insurance policy has been Edited successfully !");
+				return true;
+			}
+			catch (Exception e) {
+
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+						"Attention !!!!!!!!!...the insurance policy with card no: "+request.getParameter("insurancePolicyOwnerCardNumber")+" cannot be edited," +
+								"because it has been used already");
+				log.error(">>>>MOH>>BILLING>> " + e.getMessage());
+				e.printStackTrace();
+
+				return false;
+			}
 		}
 
-// end Edit insurance
+/*end Edit insurance*/
 
 		InsurancePolicy card = null;
 		
 		try {
 			// insurancePolicy
-			if (request.getParameter("cardId") != null
+/*			if (request.getParameter("cardId") != null
 					&& !request.getParameter("cardId").equals("")) {
 
 				card = Context
@@ -200,7 +193,7 @@ try {
 					card.addBeneficiary(b);
 				}
 
-			} else
+			} else*/
 				card = new InsurancePolicy();
 
 			if (request.getParameter("thirdParty") != null
@@ -254,10 +247,7 @@ try {
 							.getParameter("insurancePolicyOwner"))));
 			
 			//owner update
-			
 
-			// beneficiaries
-			//Beneficiary b=null;
 			for (int i = 1; i < 11; i++) {
 				if (request.getParameter("insurancePolicyBeneficiary_" + i) != null
 						&& request
@@ -281,33 +271,27 @@ try {
 					b.setOwnerCode(request.getParameter("ownerCode"));
 					b.setLevel(Integer.parseInt(request.getParameter("level")));
 					b.setCompany(request.getParameter("company"));
-
-					// check if it does not exists already...
-
 					card.addBeneficiary(b);
 
 				}
 			}
-
 			card.setCreatedDate(new Date());
 			card.setCreator(Context.getAuthenticatedUser());
 			card.setRetired(false);			
-            //if the insurance policy already  exist,display the  message
+            /*if the insurance policy already  exist,display the  message*/
 			if (InsurancePolicyUtil.isInsurancePolicyExists(request.getParameter("insurancePolicyOwnerCardNumber"))==true) {
-				
-				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
-				"The insurance policy already with card no: "+request.getParameter("insurancePolicyOwnerCardNumber")+"  already exists!");				
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+				"Attention !!!!!!!!!...the insurance policy with card no: "+request.getParameter("insurancePolicyOwnerCardNumber")+" cannot be created," +
+						" it has been used already");
 			}
 			else {
-
-				//==================== Beneficiary ============================
-
+				/*===================Creating Beneficiary ============================*/
 				Beneficiary b = new Beneficiary();
 
 				b.setCreatedDate(new Date());
 				b.setCreator(Context.getAuthenticatedUser());
 				b.setRetired(false);
-				if(!(request.getParameter("ownerName").trim()).isEmpty() && !(request.getParameter("ownerCode").trim()).isEmpty() && !(request.getParameter("ownerCode").trim()).isEmpty())
+				if(!(request.getParameter("ownerName").trim()).isEmpty() && !(request.getParameter("ownerCode").trim()).isEmpty())
 				{
 					b.setOwnerName(request.getParameter("ownerName"));
 					b.setOwnerCode(request.getParameter("ownerCode"));
@@ -319,38 +303,21 @@ try {
 					b.setLevel(0);
 					b.setCompany(request.getParameter(" "));
 				}
-				// check if it does not exists already...
-
-				//card.addBeneficiary(b);
-
-				//===================== End Beneficiary =======================
-
-				//InsurancePolicyUtil.createInsurancePolicy(card);
-				//Context.getService(BillingService.class).saveInsurancePolicy(card);
 				InsurancePolicyUtil.createInsurancePolicy(card, b);
 
 				DateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
 				Calendar cal = Calendar.getInstance();
-				System.out.println(sdf.format(cal.getTime()));
-
-Date exp=Context.getDateFormat().parse(request.getParameter("insurancePolicyExpirationDate"));
-Date now=Context.getDateFormat().parse(sdf.format(cal.getTime()));
-
-				//System.out.println("Nowwwwwwwwwwwwwwwwwwwwww: "+now.toString());
-				//System.out.println("Expiiiiiiiiiiiiiiiiiiiii: " + exp.toString());
+				Date exp=Context.getDateFormat().parse(request.getParameter("insurancePolicyExpirationDate"));
+				Date now=Context.getDateFormat().parse(sdf.format(cal.getTime()));
 
 				if(exp.before(now)){
 					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-							"Attention!!!!!!!!! The insurance policy has been saved successfully! But you select past date");
+							"Attention!!!!!!!!! The insurance policy has been created successfully! But you selected past date");
 				}else {
-					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,"The insurance policy has been saved successfully !");
+					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,"The insurance policy has been created successfully !");
 				}
-
-
 			}
-			
-						
 		} catch(ConstraintViolationException cve){
 			
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,

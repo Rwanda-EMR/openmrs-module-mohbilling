@@ -231,8 +231,23 @@ public class FacilityServicePriceUtil {
 			Date retiredDate, String retireReason) {
 
 		FacilityServicePrice fsp = billableService.getFacilityServicePrice();
-
-		billableService.setRetired(true);
+			if (!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
+				if (billableService.getInsurance().getCategory().toLowerCase().equals("mmi_ur")) {
+					billableService.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.15)));
+				} else if (billableService.getInsurance().getCategory().toLowerCase().equals("rssb")) {
+					billableService.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.25)));
+				} else if (billableService.getInsurance().getCategory().toLowerCase().equals("mutuelle")) {
+					billableService.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
+				} else if (billableService.getInsurance().getCategory().toLowerCase().equals("private")) {
+					billableService.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.4375)));
+				} else if (billableService.getInsurance().getCategory().toLowerCase().equals("none")) {
+					BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+					billableService.setMaximaToPay(initial);
+				}
+			} else {
+				billableService.setMaximaToPay(fsp.getFullPrice());
+			}
+		billableService.setRetired(false);
 		billableService.setRetiredBy(Context.getAuthenticatedUser());
 		billableService.setRetiredDate((retiredDate != null) ? retiredDate
 				: new Date());
@@ -307,21 +322,6 @@ public class FacilityServicePriceUtil {
 			FacilityServicePrice fsp) {
 
 		if (fsp != null) {
-
-			BillableService service = new BillableService();
-
-			// Adding the Billable Service automatically for non insured
-			// patients.
-//			service.setCreatedDate(fsp.getCreatedDate());
-//			service.setCreator(fsp.getCreator());
-//			service.setFacilityServicePrice(fsp);
-//			service.setStartDate(fsp.getStartDate());
-//			service.setMaximaToPay(fsp.getFullPrice());
-//			service.setRetired(fsp.isRetired());
-
-			// Adding the Billable service to the FSP.
-//			fsp.addBillableService(service);
-
 			getService().saveFacilityServicePrice(fsp);
 
 			return fsp;
@@ -343,42 +343,16 @@ public class FacilityServicePriceUtil {
 			FacilityServicePrice fsp) {
 		
 		if (fsp != null) {
-
-			BillableService service = new BillableService();
-
-			// Editing the Billable Service automatically for non insured
-			// patients.
-//			service.setCreatedDate(fsp.getCreatedDate());
-//			service.setCreator(fsp.getCreator());
-//			service.setFacilityServicePrice(fsp);
-//			service.setStartDate(fsp.getStartDate());
-//			service.setMaximaToPay(fsp.getFullPrice());
-//			service.setRetired(false);
-			
-			
-
-			// Retiring the existing Billable service
+			/*Retiring the existing Billable service*/
 			for (BillableService serv : fsp.getBillableServices()) {
-				if (serv.isRetired()) {
+				if (!serv.isRetired()) {
 					retireBillableService(serv, fsp.getStartDate(),
 							"The facility service has changed");
-					
-					
 				}
 			}
-			// Editing the Billable service to the FSP.
-//			fsp.addBillableService(service);
-
 			getService().saveFacilityServicePrice(fsp);
-			
-
-
 			return fsp;
 		}
-		
-
-
-
 		return null;
 	}
 
@@ -537,7 +511,7 @@ public class FacilityServicePriceUtil {
 		for(Insurance insurance : insurances) {
 			if(!insurance.isVoided())			
 				try {
-					if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")&&!fsp.getCategory().equals("AUTRES")) {
+					if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables") && !fsp.getCategory().equals("AUTRES")) {
 									
 						if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
 							System.out.println("The bill exist already");
@@ -661,9 +635,6 @@ public class FacilityServicePriceUtil {
 				bs.setFacilityServicePrice(fsp);
 				
 				if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
-				/*if(insurance.getCategory().toLowerCase().equals("base")) {
-					bs.setMaximaToPay(fsp.getFullPrice());
-				}*/
 				if(insurance.getCategory().toLowerCase().equals("mmi_ur")) {
 						bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.15)));
 					}
@@ -691,7 +662,7 @@ public class FacilityServicePriceUtil {
 		}
 	
 			getService().saveFacilityServicePrice(fsp);
-			log.info("wouuuuuuuuuuuuuuuuuuuuuuu Updated Successfully");
+			log.info("Updated Successfully");
 		}
 
 	}

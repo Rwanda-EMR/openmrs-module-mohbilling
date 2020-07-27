@@ -99,21 +99,23 @@ $j(function(){
 					<c:if test="${refundItem.approved==false && refundItem.declined==false}">
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">
 					Approved<input type="radio" value="1_${refundItem.paidServiceBillRefundId}" name="approveRadio_${refundItem.paidServiceBillRefundId}" id="approve_${refundItem.paidServiceBillRefundId}" class="approval"/>				
-					Declined<input type="radio" value="0_${refundItem.paidServiceBillRefundId}" name="approveRadio_${refundItem.paidServiceBillRefundId}" id="decline_${refundItem.paidServiceBillRefundId}" class=decline />
+					Declined<input type="radio" value="0_${refundItem.paidServiceBillRefundId}" name="approveRadio_${refundItem.paidServiceBillRefundId}" id="decline_${refundItem.paidServiceBillRefundId}" class="decline" />
 					<textarea name="declineNote_${refundItem.paidServiceBillRefundId}" id="declineNote_${refundItem.paidServiceBillRefundId}" rows="1" cols="20" value="" style="display: none;" ></textarea>
 					</c:if>
 					
 					</td>
-					<c:if test="${refundItem.approved }">
+					<c:if test="${refundItem.approved==true || refundItem.declined==true }">
 					<c:set var="action" value="${refundItem.approved}"/>
 					<c:if test="${refundItem.approved }">
-					 <td class="rowValue center ${(status.count%2!=0)?'even':''}"><span title='approved' class='closedStutus'><b>V</b></span></td>	
+					 <td class="rowValue center ${(status.count%2!=0)?'even':''}"><span title='approved' class='closedStutus'><b>Approved</b></span></td>
 					</c:if>
 					
 					<c:if test="${not refundItem.approved }">
-					 <td class="rowValue center ${(status.count%2!=0)?'even':''}"><span title='declined' class='closedStutus'><b>X</b></span></td>	
+					 <td class="rowValue center ${(status.count%2!=0)?'even':''}"><span title='declined' class='closedStutus'><b>Declined</b></span></td>
 					</c:if>
-					
+					</c:if>
+
+					<c:if test="${refundItem.approved==true}">
 					<c:set var="totalRefundAmount" value="${totalRefundAmount+(refundItem.refQuantity*psb.unitPrice)}"/>
 					</c:if>
 				</tr>
@@ -153,9 +155,5 @@ $j(function(){
 			</tr>			
 		</table>
 	</form>
-	
-	
-	
 </div>
-
 <%@ include file="/WEB-INF/template/footer.jsp"%>
