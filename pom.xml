@@ -37,7 +37,7 @@
 	</distributionManagement>
 
 	<properties>
-		<openMRSVersion>1.9.11</openMRSVersion>
+		<openMRSVersion>2.3.0</openMRSVersion>
 		<htmlformentryVersion>2.6</htmlformentryVersion>
 	</properties>
 
