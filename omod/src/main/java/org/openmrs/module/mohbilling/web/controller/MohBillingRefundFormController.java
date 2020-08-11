@@ -1,10 +1,11 @@
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
@@ -34,26 +35,22 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected ModelAndView handleRequestInternal(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+	protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-		
-		String paymentIdStr = request.getParameter("paymentId");	
+		String paymentIdStr = request.getParameter("paymentId");
 		BillPayment payment = BillPaymentUtil.getBillPaymentById(Integer.parseInt(paymentIdStr));
 		Consommation consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());
 		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
 
 		PaymentRefund refund = null;
-		
 		if(request.getParameter("edit")!=null){
 			refund = PaymentRefundUtil.getRefundById(Integer.parseInt(request.getParameter("refundId")));
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"The refund has been Verified by the Chief Cashier !");
 			handleEditRefund(payment, refund, request);
 			mav.addObject("refund", refund);
-			
 		}
 
 		if (request.getParameter("save") != null) {
@@ -62,19 +59,17 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 					"The refund has been submitted successfully ! Wait for the chief cashier approval");
 			return new ModelAndView(new RedirectView(
 					"patientBillPayment.form?"
-					+" paymentId="+payment.getPatientBill().getPatientBillId()
-					+" &ipCardNumber="+consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
-					+" &consommationId="+consommation.getConsommationId()
+							+" paymentId="+payment.getPatientBill().getPatientBillId()
+							+" &ipCardNumber="+consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+							+" &consommationId="+consommation.getConsommationId()
 			));
 		}
 
 
 		if(request.getParameter("refundingDate")!=null){
-			//String refundDateStr = request.getParameter("refundingDate");
 			String refundAmountStr = request.getParameter("refundedAmount");
 			BigDecimal refundAmount = BigDecimal.valueOf(Double.parseDouble(refundAmountStr));
 			refund = PaymentRefundUtil.getRefundById(Integer.parseInt(request.getParameter("refundId")));
-			//refund.setRefundedAmount(BigDecimal.valueOf(Double.parseDouble(refundAmountStr)));
 			refund.setRefundedAmount(refundAmount);
 			refund.setRefundedBy(Context.getAuthenticatedUser());
 
@@ -82,83 +77,130 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 
 			//void removed items
 			for (PaidServiceBillRefund ri : refund.getRefundedItems()) {
-				ri.getPaidItem().setVoided(true);
-				ri.getPaidItem().setVoidedBy(Context.getAuthenticatedUser());
-				ri.getPaidItem().setVoidReason("Item Refunded");
-				BillPaymentUtil.createPaidServiceBill(ri.getPaidItem());
-				ConsommationUtil.retireItem(ri.getPaidItem().getBillItem());
+				if(!ri.getPaidItem().getPaidQty().equals(ri.getRefQuantity()) && !ri.getDeclined().equals(true))
+				{
+					//Void the item(s) whose quantities are not fully refunded
+					PatientServiceBill psb = ri.getPaidItem().getBillItem();
+					psb.setVoided(true);
+					psb.setVoidedBy(Context.getAuthenticatedUser());
+					psb.setVoidReason("Whole Quantiy Not Refunded");
+					psb.setVoidedDate(new Date());
+					ConsommationUtil.saveConsommation(psb.getConsommation());
+
+					//create a copy of remaining quantity after refund
+					PatientServiceBill cpPsb = new PatientServiceBill();
+					cpPsb.setServiceDate(ri.getPaidItem().getBillItem().getServiceDate());
+					cpPsb.setService(ri.getPaidItem().getBillItem().getService());
+					cpPsb.setHopService(ri.getPaidItem().getBillItem().getHopService());
+					cpPsb.setUnitPrice(ri.getPaidItem().getBillItem().getUnitPrice());
+					cpPsb.setQuantity(ri.getPaidItem().getBillItem().getQuantity().subtract(ri.getRefQuantity()));
+					cpPsb.setPaidQuantity(ri.getPaidItem().getBillItem().getPaidQuantity().subtract(ri.getRefQuantity()));
+					cpPsb.setConsommation(ri.getPaidItem().getBillItem().getConsommation());
+					cpPsb.setPaid(ri.getPaidItem().getBillItem().getPaid());
+					cpPsb.setServiceOther(ri.getPaidItem().getBillItem().getServiceOther());
+					cpPsb.setServiceOtherDescription(ri.getPaidItem().getBillItem().getServiceOtherDescription());
+					cpPsb.setCreator(Context.getAuthenticatedUser());
+					cpPsb.setCreatedDate(new Date());
+					cpPsb.setVoided(false);
+					cpPsb.setDrugFrequency(ri.getPaidItem().getBillItem().getDrugFrequency());
+					ConsommationUtil.saveBilledItem(cpPsb);
+
+					//Void the paid items with the condition above
+					ri.getPaidItem().setVoided(true);
+					ri.getPaidItem().setVoidedDate(new Date());
+					ri.getPaidItem().setVoidedBy(Context.getAuthenticatedUser());
+					ri.getPaidItem().setVoidReason("Whole Quantiy Not Refunded");
+					BillPaymentUtil.createPaidServiceBill(ri.getPaidItem());
+
+					//Make a copy of remaining items with the condition
+					PaidServiceBill cppdsb = new PaidServiceBill();
+					cppdsb.setBillItem(ri.getPaidItem().getBillItem());
+					cppdsb.setBillPayment(ri.getPaidItem().getBillPayment());
+					cppdsb.setPaidQty(ri.getPaidItem().getPaidQty().subtract(ri.getRefQuantity()));
+					cppdsb.setCreator(Context.getAuthenticatedUser());
+					cppdsb.setCreatedDate(new Date());
+					BillPaymentUtil.createPaidServiceBill(cppdsb);
+
+					//ri.getPaidItem().getBillItem().setPaidQuantity(ri.getRefQuantity());
+				}
+				else {
+					if(!ri.getDeclined().equals(true)) {
+						ri.getPaidItem().setVoided(true);
+						ri.getPaidItem().setVoidedBy(Context.getAuthenticatedUser());
+						ri.getPaidItem().setVoidReason("Item Refunded");
+						BillPaymentUtil.createPaidServiceBill(ri.getPaidItem());
+						ConsommationUtil.retireItem(ri.getPaidItem().getBillItem());
+					}
+				}
 			}
-					//update amount paid
+			//update amount paid
 			BigDecimal newPaidAmount = payment.getAmountPaid().subtract(refundAmount);
 			payment.setAmountPaid(newPaidAmount);
 			Context.getService(BillingService.class).saveBillPayment(payment);
-                //update due amount on Consommation
+			//update due amount on Consommation
 			BigDecimal newDueAmount= payment.getPatientBill().getAmount().subtract(refundAmount);
 			consommation.getPatientBill().setAmount(newDueAmount);
 			ConsommationUtil.saveConsommation(consommation);
 
-							Context.getService(BillingService.class).savePaymentRefund(refund);
+			Context.getService(BillingService.class).savePaymentRefund(refund);
 
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"The refund has been confirmed !");
 			return new ModelAndView(new RedirectView(
 					"patientBillPayment.form?"
-					+"consommationId="+consommation.getConsommationId()
-					+"&ipCardNumber="+consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
-					+"&refundId="+refund.getRefundId()
+							+"consommationId="+consommation.getConsommationId()
+							+"&ipCardNumber="+consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+							+"&refundId="+refund.getRefundId()
 			));
 		}
-		
-		
+
 		mav.addObject("paidItems",paidItems);
 		mav.addObject("payment", payment);
 		mav.addObject("consommation",consommation);
 		mav.addObject("insurancePolicy",consommation.getBeneficiary().getInsurancePolicy());
 		mav.addObject("authUser", Context.getAuthenticatedUser());
-		
-	return mav;
+		return mav;
 	}
 	/**
 	 * @param request
 	 * @return paymentRefund
 	 */
 	private PaymentRefund handleSavePaymentRefund(HttpServletRequest request) {
-		
 		BillPayment payment = BillPaymentUtil.getBillPaymentById(Integer.parseInt(request.getParameter("paymentId")));
 		PaymentRefund refund = null;
 
 		//if(request.getParameter("refundedAmount")!=null){
 		if(payment!=null){
-		 refund = new PaymentRefund();
-		 refund.setBillPayment(payment);
-		 refund.setCreatedDate(new Date()); //submissionDate
-		 refund.setCreator(Context.getAuthenticatedUser()); //submitted by
-		 
-		 //create paidServiceBillRefund		 
-		 Map<String, String[]> parameterMap = request.getParameterMap();	
-		 
-		 for (String  parameterName : parameterMap.keySet()) {
-			 
-			 //to do
-			 //Get only  parameterName checked but starting with paid- knowing at the index 1 there is paidServiceBillid
-			 //Big Decimal RefQty =request.getParameter("quantity"-paidServiceBillId);
-			 //create  new PaidServiceBillRefund object and populate it
-			 //refund.add(new paidServiceBillRefund)
-			 //saveRefund();
-			 
-			 if (!parameterName.startsWith("item-")) {
+			refund = new PaymentRefund();
+			refund.setBillPayment(payment);
+			refund.setCreatedDate(new Date()); //submissionDate
+			refund.setCreator(Context.getAuthenticatedUser()); //submitted by
+
+			//create paidServiceBillRefund
+			Map<String, String[]> parameterMap = request.getParameterMap();
+
+			for (String  parameterName : parameterMap.keySet()) {
+
+				//to do
+				//Get only  parameterName checked but starting with paid- knowing at the index 1 there is paidServiceBillid
+				//Big Decimal RefQty =request.getParameter("quantity"-paidServiceBillId);
+				//create  new PaidServiceBillRefund object and populate it
+				//refund.add(new paidServiceBillRefund)
+				//saveRefund();
+
+				if (!parameterName.startsWith("item-")) {
 					continue;
 				}
-							
+
 				String[] splittedParameterName = parameterName.split("-");
 				String paidItemIdstr = splittedParameterName[2];
 				Integer  paidSviceBillid = Integer.parseInt(paidItemIdstr);
-                BigDecimal refQuantity = BigDecimal.valueOf(Double.parseDouble(request.getParameter("quantity-"+paidSviceBillid)));
+				BigDecimal refQuantity = BigDecimal.valueOf(Double.parseDouble(request.getParameter("quantity-"+paidSviceBillid)));
 				PaidServiceBill paidItem  = BillPaymentUtil.getPaidServiceBill(paidSviceBillid);
 				PaidServiceBillRefund paidSbRefund = new PaidServiceBillRefund();
-				
+
 				String refundReason = request.getParameter("refundReason-"+paidSviceBillid);
-				
+
 				// submit a refund
 				paidSbRefund.setCreatedDate(new Date());
 				paidSbRefund.setRefund(refund);
@@ -167,51 +209,51 @@ public class MohBillingRefundFormController  extends ParameterizableViewControll
 				paidSbRefund.setPaidItem(paidItem);
 				paidSbRefund.setRefQuantity(refQuantity);
 				paidSbRefund.setRefundReason(refundReason);
-				
+
 				PaymentRefundUtil.createPaidServiceRefund(paidSbRefund);
-		 }
-		}		
-		
+			}
+		}
+
 		return refund;
-		
-		
-		
+
+
+
 	}
 
 	private void handleEditRefund(BillPayment payment,PaymentRefund refund,HttpServletRequest request){
-	
-		 Map<String, String[]> parameterMap = request.getParameterMap();
 
-		 for (String  parameterName : parameterMap.keySet()) {
-			 if (parameterName.startsWith("approveRadio_")) {
-			   
-				 // retrieve the value of refunded item
+		Map<String, String[]> parameterMap = request.getParameterMap();
+
+		for (String  parameterName : parameterMap.keySet()) {
+			if (parameterName.startsWith("approveRadio_")) {
+
+				// retrieve the value of refunded item
 				String[] splittedParameterName = parameterName.split("_");
 				String refundItemIdstr = splittedParameterName[1];
 				Integer  refundItemId = Integer.parseInt(refundItemIdstr);
 
 				PaidServiceBillRefund paidServiceRefund  = PaymentRefundUtil.getPaidServiceBillRefund(refundItemId);
-				
+
 				//retrieve an action
 				String actionParam[] = request.getParameter("approveRadio_"+refundItemId).split("_");
 				Integer action = Integer.valueOf(actionParam[0]);
 
 				// add properties on existing refund
 				if(action==1){
-				paidServiceRefund.setApproved(true);
-				paidServiceRefund.setApprovalDate(new Date());
-				paidServiceRefund.setApprovedBy(Context.getAuthenticatedUser());
-				paidServiceRefund.isApproved();
+					paidServiceRefund.setApproved(true);
+					paidServiceRefund.setApprovalDate(new Date());
+					paidServiceRefund.setApprovedBy(Context.getAuthenticatedUser());
+					paidServiceRefund.isApproved();
 				}
 				else if(action==0){
 					paidServiceRefund.setDeclined(true);
 					paidServiceRefund.setDeclineDate(new Date());
 					paidServiceRefund.setDecliningNote(request.getParameter("declineNote_"+refundItemId));
 				}
-				
+
 				PaymentRefundUtil.createPaidServiceRefund(paidServiceRefund);
-		 }
-		 }
+			}
+		}
 	}
 
 }

@@ -911,7 +911,7 @@ public class HibernateBillingDAO implements BillingDAO {
 			scToMapToInsurance.setInsurance(insurance);
 			scToMapToInsurance.setCreator(Context.getAuthenticatedUser());
 			for(ServiceCategory scExisting:serviceCategoryCheckList){
-				if(!(scExisting.getName().toString().equals(sc[0].toString())&& scExisting.getInsurance().getInsuranceId()==insurance.getInsuranceId())) {
+				if(!(scExisting.getName().toString().equals(sc[0].toString()) && scExisting.getInsurance().getInsuranceId()==insurance.getInsuranceId())) {
 					insurance.addServiceCategory(scToMapToInsurance);
 				}
 			}
@@ -982,7 +982,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		bui.append(" FROM moh_bill_facility_service_price fsp ");
 		bui.append(" inner join moh_bill_service_category sc on fsp.category = sc.name ");
 		bui.append(" inner join moh_bill_insurance i on sc.insurance_id = i.insurance_id");
-		bui.append(" WHERE fsp.category not in ('MEDICAMENTS', 'CONSOMMABLES') and i.insurance_id in("+i.getInsuranceId()+")");
+		bui.append(" WHERE fsp.category not in ('MEDICAMENTS', 'CONSOMMABLES') and fsp.retired = '0' and i.insurance_id in("+i.getInsuranceId()+")");
 
 
 //		log.info("ssssssssssssssssssssssss "+bui.toString());
@@ -1003,7 +1003,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		bui.append(" FROM moh_bill_facility_service_price fsp ");
 		bui.append(" inner join moh_bill_service_category sc on fsp.category = sc.name ");
 		bui.append(" inner join moh_bill_insurance i on sc.insurance_id = i.insurance_id");
-		bui.append(" WHERE fsp.category in ('MEDICAMENTS', 'CONSOMMABLES') and i.insurance_id in("+i.getInsuranceId()+")");
+		bui.append(" WHERE fsp.category in ('MEDICAMENTS', 'CONSOMMABLES') and fsp.retired = '0' and i.insurance_id in("+i.getInsuranceId()+")");
 
 //		log.info("ssssssssssssssssssssssss "+bui.toString());
 

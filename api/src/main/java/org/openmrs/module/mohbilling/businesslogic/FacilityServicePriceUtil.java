@@ -19,23 +19,23 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * 
+ *
  * Class to contain all of the business logic helper classes for the creation of
  * facility services, and billable service items.
- * 
+ *
  * The parent class is FacilityServicePrice, and BillableServices are child
  * objects.
- * 
+ *
  * @author EMR-RBC
- * 
+ *
  */
 public class FacilityServicePriceUtil {
-	
+
 	private static Log log = LogFactory.getLog(FacilityServicePriceUtil.class);
 
 	/**
 	 * Offers the BillingService to be use to talk to the DB
-	 * 
+	 *
 	 * @return the BillingService
 	 */
 	private static BillingService getService() {
@@ -76,7 +76,7 @@ public class FacilityServicePriceUtil {
 	/**
 	 * Gets all Facility Services at a given location and on a given date (they
 	 * may be retired or not)
-	 * 
+	 *
 	 * @param location
 	 *            the location to be matched
 	 * @param date
@@ -110,7 +110,7 @@ public class FacilityServicePriceUtil {
 
 	/**
 	 * Gets all Valid Billable services in a given service category
-	 * 
+	 *
 	 * @param serviceCategory
 	 *            the service category to be considered
 	 * @param date
@@ -144,7 +144,7 @@ public class FacilityServicePriceUtil {
 	/**
 	 * Gets the Valid (not yet retired) Billable services at a Facility and by
 	 * specified insurance company on a given date
-	 * 
+	 *
 	 * @param insurance
 	 * @param date
 	 * @param facilityServicePrice
@@ -165,7 +165,7 @@ public class FacilityServicePriceUtil {
 
 	/**
 	 * Gets all Billable services on a given date and not retired if specified
-	 * 
+	 *
 	 * @param fsp
 	 *            the Facility service to be matched
 	 * @param date
@@ -182,7 +182,7 @@ public class FacilityServicePriceUtil {
 
 	/**
 	 * Gets all Billable services on a given date and not retired if specified
-	 * 
+	 *
 	 * @param date
 	 *            the date to check the validity
 	 * @param isRetired
@@ -190,7 +190,7 @@ public class FacilityServicePriceUtil {
 	 * @return the list of Billable service that matched the conditions
 	 */
 	public static List<BillableService> getAllBillableServices(Date date,
-			Boolean isRetired) {
+															   Boolean isRetired) {
 
 		List<BillableService> services = new ArrayList<BillableService>();
 
@@ -215,7 +215,7 @@ public class FacilityServicePriceUtil {
 
 	/**
 	 * Retires a Billable service for a given Facility Service
-	 * 
+	 *
 	 * @param billableService
 	 *            the billable service to be retired
 	 * @param retiredDate
@@ -228,11 +228,26 @@ public class FacilityServicePriceUtil {
 	// @param facilityServicePrice
 	//  the facility service to be updated
 	public static void retireBillableService(BillableService billableService,
-			Date retiredDate, String retireReason) {
+											 Date retiredDate, String retireReason) {
 
 		FacilityServicePrice fsp = billableService.getFacilityServicePrice();
-
-		billableService.setRetired(true);
+		if (!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
+			if (billableService.getInsurance().getCategory().toLowerCase().equals("mmi_ur")) {
+				billableService.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.15)));
+			} else if (billableService.getInsurance().getCategory().toLowerCase().equals("rssb")) {
+				billableService.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.25)));
+			} else if (billableService.getInsurance().getCategory().toLowerCase().equals("mutuelle")) {
+				billableService.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
+			} else if (billableService.getInsurance().getCategory().toLowerCase().equals("private")) {
+				billableService.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.4375)));
+			} else if (billableService.getInsurance().getCategory().toLowerCase().equals("none")) {
+				BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+				billableService.setMaximaToPay(initial);
+			}
+		} else {
+			billableService.setMaximaToPay(fsp.getFullPrice());
+		}
+		billableService.setRetired(false);
 		billableService.setRetiredBy(Context.getAuthenticatedUser());
 		billableService.setRetiredDate((retiredDate != null) ? retiredDate
 				: new Date());
@@ -245,7 +260,7 @@ public class FacilityServicePriceUtil {
 	/**
 	 * Retires the Facility Service at same time it has to retire its
 	 * BillableServices where they are not
-	 * 
+	 *
 	 * @param facilityServicePrice
 	 *            the facility service to be retired
 	 * @param retiredDate
@@ -282,7 +297,7 @@ public class FacilityServicePriceUtil {
 
 	/**
 	 * Gets the Facility Service that mathces the given OpenMRS Concept
-	 * 
+	 *
 	 * @param concept
 	 *            the concept to be compared to the Facility service
 	 * @return the FacilityServicePrice when it matches the concept, null
@@ -299,7 +314,7 @@ public class FacilityServicePriceUtil {
 	 * service for non-insured patients (Billable service StartDate and EndDate
 	 * are same as the Facility Service ones, and the MaximaToPay is the same
 	 * amount as the FullPrice of the Facility Service)
-	 * 
+	 *
 	 * @param fsp
 	 *            the Facility service to be added to the DB
 	 */
@@ -307,21 +322,6 @@ public class FacilityServicePriceUtil {
 			FacilityServicePrice fsp) {
 
 		if (fsp != null) {
-
-			BillableService service = new BillableService();
-
-			// Adding the Billable Service automatically for non insured
-			// patients.
-//			service.setCreatedDate(fsp.getCreatedDate());
-//			service.setCreator(fsp.getCreator());
-//			service.setFacilityServicePrice(fsp);
-//			service.setStartDate(fsp.getStartDate());
-//			service.setMaximaToPay(fsp.getFullPrice());
-//			service.setRetired(fsp.isRetired());
-
-			// Adding the Billable service to the FSP.
-//			fsp.addBillableService(service);
-
 			getService().saveFacilityServicePrice(fsp);
 
 			return fsp;
@@ -335,50 +335,24 @@ public class FacilityServicePriceUtil {
 	 * for non-insured patients (Billable service StartDate and EndDate are same
 	 * as the Facility Service ones, and the MaximaToPay is the same amount as
 	 * the FullPrice of the Facility Service)
-	 * 
+	 *
 	 * @param fsp
 	 *            the Facility service to be added to the DB
 	 */
 	public static FacilityServicePrice editFacilityService(
 			FacilityServicePrice fsp) {
-		
+
 		if (fsp != null) {
-
-			BillableService service = new BillableService();
-
-			// Editing the Billable Service automatically for non insured
-			// patients.
-//			service.setCreatedDate(fsp.getCreatedDate());
-//			service.setCreator(fsp.getCreator());
-//			service.setFacilityServicePrice(fsp);
-//			service.setStartDate(fsp.getStartDate());
-//			service.setMaximaToPay(fsp.getFullPrice());
-//			service.setRetired(false);
-			
-			
-
-			// Retiring the existing Billable service
+			/*Retiring the existing Billable service*/
 			for (BillableService serv : fsp.getBillableServices()) {
-				if (serv.isRetired()) {
+				if (!serv.isRetired()) {
 					retireBillableService(serv, fsp.getStartDate(),
 							"The facility service has changed");
-					
-					
 				}
 			}
-			// Editing the Billable service to the FSP.
-//			fsp.addBillableService(service);
-
 			getService().saveFacilityServicePrice(fsp);
-			
-
-
 			return fsp;
 		}
-		
-
-
-
 		return null;
 	}
 
@@ -386,7 +360,7 @@ public class FacilityServicePriceUtil {
 	 * Gets Facility Services considering the provided validity: i.e. if isValid
 	 * == true it will return the non retired Facility Services, and retired
 	 * ones otherwise.
-	 * 
+	 *
 	 * @param isValid
 	 *            the validity condition
 	 * @return retired Facility Services if isValid == false, unvoided
@@ -407,7 +381,7 @@ public class FacilityServicePriceUtil {
 	 * Gets a BillableService by selecting those having the provided Concept
 	 * (passing by FacilityServicePrice, as it is the one having Concept) and
 	 * the Insurance.
-	 * 
+	 *
 	 * @param concept
 	 *            the Concept to retrieve the corresponding FacilityServicePrice
 	 * @param insurance
@@ -416,7 +390,7 @@ public class FacilityServicePriceUtil {
 	 *         Insurance
 	 */
 	public static BillableService getBillableServiceByConcept(Concept concept,
-			Insurance insurance) {
+															  Insurance insurance) {
 
 		return getService().getBillableServiceByConcept(
 				getFacilityServiceByConcept(concept), insurance);
@@ -424,7 +398,7 @@ public class FacilityServicePriceUtil {
 
 	/**
 	 * Adds Category to All Facility Services that do not have it...
-	 * 
+	 *
 	 * @param category
 	 *            the one to be added
 	 */
@@ -461,7 +435,7 @@ public class FacilityServicePriceUtil {
 
 	/**
 	 * Gets FacilityServicePrice by facilityId
-	 * 
+	 *
 	 * @param facilityId
 	 *            the ID to match
 	 * @return facilityServicePrice that matches the ID
@@ -474,7 +448,7 @@ public class FacilityServicePriceUtil {
 
 	/**
 	 * Adds Category to Facility Service Price where it misses
-	 * 
+	 *
 	 * @param facilityServicePrice
 	 *            the one to be updated
 	 */
@@ -493,55 +467,55 @@ public class FacilityServicePriceUtil {
 			}
 		}
 	}
-	
+
 	public static boolean isBillableCreated(FacilityServicePrice facilityService, Insurance insurance) {
 		BillableService billableService = getService().getBillableServiceByConcept(facilityService, insurance);
 		if(billableService != null)
-			return true;		
+			return true;
 		return false;
 	}
-	
+
 	public static String saveBillableServiceByInsurance(HttpServletRequest request) {
 		List<Insurance> insurances = getService().getAllInsurances();
-		
+
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		
+
 		FacilityServicePrice fsp = null;
 		BillableService bs = new BillableService();
-		
+
 		BillableService bscopy = new BillableService();
-		
+
 		String startDateStr = null, msg = null;
 		Date startDate = null;
-		
+
 		if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")
 				&& request.getParameter("facilityServiceId") != null && !request.getParameter("facilityServiceId").equals("")) {
 			System.out.println("Facility Service Id: " + request.getParameter("facilityServiceId"));
-			
+
 			startDateStr = request.getParameter("startDate");
-			
+
 			try {
 				startDate = sdf.parse(startDateStr.split("/")[2] + "-" + startDateStr.split("/")[1] + "-" + startDateStr.split("/")[0]);
 			} catch (ParseException e) {
 				e.printStackTrace();
-			}			
-			
+			}
+
 			fsp = getService().getFacilityServicePrice(Integer.valueOf(request.getParameter("facilityServiceId")));
 		}
-		
+
 		BigDecimal quarter = new BigDecimal(25).divide(new BigDecimal(100));
 		BigDecimal fifth = new BigDecimal(20).divide(new BigDecimal(100));
-		
-	
-		
+
+
+
 		for(Insurance insurance : insurances) {
-			if(!insurance.isVoided())			
+			if(!insurance.isVoided())
 				try {
-					if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")&&!fsp.getCategory().equals("AUTRES")) {
-									
+					if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables") && !fsp.getCategory().equals("AUTRES")) {
+
 						if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
 							System.out.println("The bill exist already");
-							
+
 							bs = getService().getBillableServiceByConcept(fsp, insurance);
 							bs.setStartDate(startDate);
 							bs.setInsurance(insurance);
@@ -550,7 +524,7 @@ public class FacilityServicePriceUtil {
 							bs.setRetired(false);
 							bs.setCreator(Context.getAuthenticatedUser());
 							bs.setFacilityServicePrice(fsp);
-							
+
 							/*if(insurance.getCategory().toLowerCase().equals("base")) {
 								bs.setMaximaToPay(fsp.getFullPrice());
 							}*/
@@ -599,7 +573,7 @@ public class FacilityServicePriceUtil {
 								bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
 							}
 						}
-					} 
+					}
 					else {
 						if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
 							System.out.println("Existing tarrif item");
@@ -625,7 +599,7 @@ public class FacilityServicePriceUtil {
 							bs.setMaximaToPay(fsp.getFullPrice());
 						}
 					}
-					
+
 					fsp.addBillableService(bs);
 					getService().saveFacilityServicePrice(fsp);
 
@@ -633,65 +607,62 @@ public class FacilityServicePriceUtil {
 				} catch(Exception e) {
 					log.error(">>>MOH>>BILLING>>BULK UPDATE>> " + e.getMessage());
 					e.printStackTrace();
-			}
+				}
 		}
 		return msg;
 	}
 
 	public static void cascadeUpdateFacilityService(FacilityServicePrice fsp) {
-		
+
 		List<Insurance> insurances = getService().getAllInsurances();
 		Set<BillableService> billableServices = fsp.getBillableServices();
-		
+
 		BigDecimal quarter = new BigDecimal(25).divide(new BigDecimal(100));
 		BigDecimal fifth = new BigDecimal(20).divide(new BigDecimal(100));
-		
+
 		for(Insurance insurance : insurances) {
-		 if(!insurance.isVoided())	
-			 try{
-			  
-			for(BillableService bs:billableServices) {
-				bs = getService().getBillableServiceByConcept(fsp, insurance);
-				bs.setStartDate(new Date());
-				bs.setInsurance(insurance);
-				bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
-				bs.setCreatedDate(new Date());
-				bs.setRetired(false);
-				bs.setCreator(Context.getAuthenticatedUser());
-				bs.setFacilityServicePrice(fsp);
-				
-				if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
-				/*if(insurance.getCategory().toLowerCase().equals("base")) {
-					bs.setMaximaToPay(fsp.getFullPrice());
-				}*/
-				if(insurance.getCategory().toLowerCase().equals("mmi_ur")) {
-						bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.15)));
+			if(!insurance.isVoided())
+				try{
+
+					for(BillableService bs:billableServices) {
+						bs = getService().getBillableServiceByConcept(fsp, insurance);
+						bs.setStartDate(new Date());
+						bs.setInsurance(insurance);
+						bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+						bs.setCreatedDate(new Date());
+						bs.setRetired(false);
+						bs.setCreator(Context.getAuthenticatedUser());
+						bs.setFacilityServicePrice(fsp);
+
+						if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
+							if(insurance.getCategory().toLowerCase().equals("mmi_ur")) {
+								bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.15)));
+							}
+							else if(insurance.getCategory().toLowerCase().equals("rssb")) {
+								bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.25)));
+							}
+							else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+								bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
+							} else if (insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.4375)));
+							} else if(insurance.getCategory().toLowerCase().equals("none")) {
+								BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+								bs.setMaximaToPay(initial);
+							}
+							fsp.addBillableService(bs);
+						}
+						else
+							bs.setMaximaToPay(fsp.getFullPrice());
+
 					}
-				else if(insurance.getCategory().toLowerCase().equals("rssb")) {
-						bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.25)));
-					}
-				else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
-					bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
-				} else if (insurance.getCategory().toLowerCase().equals("private")) {
-					bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.4375)));
-				} else if(insurance.getCategory().toLowerCase().equals("none")) {
-					BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
-					bs.setMaximaToPay(initial);
+
 				}
-				fsp.addBillableService(bs);
-			} 
-				else
-					bs.setMaximaToPay(fsp.getFullPrice());  
-				  
-		}
-		  
-		}
-		 catch (Exception e) {
-			// TODO: handle exception
-		}
-	
+				catch (Exception e) {
+					// TODO: handle exception
+				}
+
 			getService().saveFacilityServicePrice(fsp);
-			log.info("wouuuuuuuuuuuuuuuuuuuuuuu Updated Successfully");
+			log.info("Updated Successfully");
 		}
 
 	}
