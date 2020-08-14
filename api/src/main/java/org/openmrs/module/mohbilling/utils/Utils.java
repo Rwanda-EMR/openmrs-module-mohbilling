@@ -12,7 +12,7 @@ import org.openmrs.api.context.Context;
 
 public class Utils {
 
-	protected static final Logger log = LoggerFactory.getLogger(Utils.class);	
+	private static final Logger log = LoggerFactory.getLogger(Utils.class);	
 	
 	public static List<Obs> getLastNObservations(java.lang.Integer n, Person who, Concept question, boolean includeVoided) {
 		return Context.getObsService().getObservations(Arrays.asList( who), null, Arrays.asList(question), null, null, null, null, n, null, null, null, includeVoided);
