@@ -1,21 +1,19 @@
 package org.openmrs.module.mohbilling.automation;
 
-import org.openmrs.*;
-import org.openmrs.api.PatientService;
+import java.util.Date;
+import java.util.List;
+
+import org.openmrs.Obs;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.htmlformentry.CustomFormSubmissionAction;
 import org.openmrs.module.htmlformentry.FormEntrySession;
 import org.openmrs.module.mohbilling.businesslogic.AdmissionUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
-import org.openmrs.module.mohbilling.model.*;
+import org.openmrs.module.mohbilling.model.Admission;
+import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-// Below tag will be pasted in any OPD admission html form
-// <postSubmissionAction class="org.openmrs.module.mohbilling.automation.CreateOPDAdmissionOnHtmlFormSubmissionAction"/>
+import org.openmrs.module.mohbilling.utils.Utils;
 
 public class CreateOPDAdmissionOnHtmlFormSubmissionAction implements CustomFormSubmissionAction {
 
@@ -32,7 +30,7 @@ GlobalBill gb =null;
 
 
 //List<Obs> currentInsurance=Context.getObsService().getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceTypeconceptID),false);
-List<Obs> currentInsuranceId=Context.getObsService().getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
+List<Obs> currentInsuranceId=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
 
 /*
 if(currentInsurance.size()>=1)

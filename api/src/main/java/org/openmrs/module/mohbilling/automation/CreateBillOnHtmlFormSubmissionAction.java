@@ -1,20 +1,29 @@
 package org.openmrs.module.mohbilling.automation;
 
-import org.openmrs.Obs;
-import org.openmrs.api.context.Context;
-import org.openmrs.module.htmlformentry.CustomFormSubmissionAction;
-import org.openmrs.module.htmlformentry.FormEntrySession;
-import org.openmrs.module.mohbilling.businesslogic.*;
-import org.openmrs.module.mohbilling.model.*;
-import org.openmrs.module.mohbilling.service.BillingService;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-// Below tag will be pasted in any html form which has billing acts
-// <postSubmissionAction class="org.openmrs.module.mohbilling.automation.CreateBillOnHtmlFormSubmissionAction"/>
+
+import org.openmrs.Obs;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.htmlformentry.CustomFormSubmissionAction;
+import org.openmrs.module.htmlformentry.FormEntrySession;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.InsuranceBill;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.module.mohbilling.utils.Utils;
 
 public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissionAction {
 
@@ -28,7 +37,7 @@ String insuranceCardNumber=null;
 
 
 
-List<Obs> currentInsuranceId=Context.getObsService().getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
+List<Obs> currentInsuranceId=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
 
 if(currentInsuranceId.size()>=1)
     insuranceCardNumber=currentInsuranceId.get(0).getValueText();
