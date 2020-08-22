@@ -38,7 +38,7 @@
 
 	<properties>
 		<openMRSVersion>2.3.0</openMRSVersion>
-		<htmlformentryVersion>2.6</htmlformentryVersion>
+		<htmlformentryVersion>3.11.0</htmlformentryVersion>
 	</properties>
 
 	<dependencyManagement>
