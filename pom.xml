@@ -25,20 +25,20 @@
 
 	<distributionManagement>
 		<repository>
-			<id>openmrs-repo-modules</id>
-			<name>Modules</name>
-			<url>http://mavenrepo.openmrs.org/nexus/content/repositories/modules/</url>
+			<id>openmrs-repo-modules-rwandaemr</id>
+			<name>rwandaemr-artifactory-primary-0-releases</name>
+			<url>https://rwandaemr.jfrog.io/artifactory/libs-release</url>
 		</repository>
 		<snapshotRepository>
-			<id>openmrs-repo-snapshots</id>
-			<name>OpenMRS Snapshots</name>
-			<url>http://mavenrepo.openmrs.org/nexus/content/repositories/snapshots</url>
+			<id>openmrs-repo-modules-rwandaemr-snapshots</id>
+			<name>rwandaemr-artifactory-primary-0-snapshots</name>
+			<url>https://rwandaemr.jfrog.io/artifactory/libs-snapshot</url>
 		</snapshotRepository>
 	</distributionManagement>
 
 	<properties>
 		<openMRSVersion>2.3.0</openMRSVersion>
-		<htmlformentryVersion>2.6</htmlformentryVersion>
+		<htmlformentryVersion>3.11.0</htmlformentryVersion>
 	</properties>
 
 	<dependencyManagement>
