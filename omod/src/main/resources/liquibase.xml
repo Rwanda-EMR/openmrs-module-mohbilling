@@ -1576,4 +1576,39 @@
 			<column name="drug_frequency" type="varchar(50)" defaultValue=" "/>
 		</addColumn>
 	</changeSet>
+	<changeSet id="moh_bill_patient_account_unique_patient_id" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<indexExists indexName="moh_bill_patient_account_patient_id_UNIQUE" />
+			</not>
+
+		</preConditions>
+		<sql>
+			ALTER TABLE moh_bill_patient_account ADD UNIQUE INDEX moh_bill_patient_account_patient_id_UNIQUE (patient_id);
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_beneficiary_unique_policy_id_number" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<indexExists indexName="moh_bill_beneficiary_policy_id_number_UNIQUE" />
+			</not>
+
+		</preConditions>
+		<sql>
+			ALTER TABLE moh_bill_beneficiary ADD UNIQUE INDEX moh_bill_beneficiary_policy_id_number_UNIQUE (policy_id_number);
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_insurance_policy_unique_insurance_card_no" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<indexExists indexName="moh_bill_insurance_policy_insurance_card_no_UNIQUE" />
+			</not>
+
+		</preConditions>
+		<sql>
+			ALTER TABLE moh_bill_insurance_policy ADD UNIQUE INDEX moh_bill_insurance_policy_insurance_card_no_UNIQUE (insurance_card_no);
+		</sql>
+	</changeSet>
 </databaseChangeLog>
