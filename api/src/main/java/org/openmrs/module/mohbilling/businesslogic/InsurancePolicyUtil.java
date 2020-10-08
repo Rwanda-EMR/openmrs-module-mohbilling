@@ -116,8 +116,8 @@ public class InsurancePolicyUtil {
 
 		if (card != null) {
 
-			if (card.getInsurancePolicyId() != null)
-				getService().saveInsurancePolicy(card);
+			if (card.getInsurancePolicyId() != null){
+				getService().saveInsurancePolicy(card);}
 
 			else {
 
@@ -125,7 +125,7 @@ public class InsurancePolicyUtil {
 				card.setCreator(Context.getAuthenticatedUser());
 				card.setRetired(false);
 
-				if (card.getInsurance().getCategory().toString()
+/*				if (card.getInsurance().getCategory().toString()
 						.equalsIgnoreCase(InsuranceCategory.NONE.toString())
 						&& getPrimaryPatientIdentiferType()
 						.equals(Context
@@ -135,16 +135,14 @@ public class InsurancePolicyUtil {
 												.getAdministrationService()
 												.getGlobalProperty(
 														BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
-
-					/** Getting the Patient Identifier from the system **/
+					*//** Getting the Patient Identifier from the system **//*
 					PatientIdentifier pi = InsurancePolicyUtil
 							.getPrimaryPatientIdentifierForLocation(
 									card.getOwner(),
 									InsurancePolicyUtil.getLocationLoggedIn());
-
-					card.setInsuranceCardNo(pi.getIdentifier().toString());
-					card.setCoverageStartDate(new Date());
-				}
+					card.setInsuranceCardNo(card.getInsuranceCardNo());
+					card.setCoverageStartDate(card.getCoverageStartDate());
+				}*/
 
 				getService().saveInsurancePolicy(card);
 
@@ -184,8 +182,8 @@ public class InsurancePolicyUtil {
 
 		if (card != null) {
 
-			if (card.getInsurancePolicyId() != null)
-				getService().saveInsurancePolicy(card);
+			if (card.getInsurancePolicyId() != null){
+				getService().saveInsurancePolicy(card);}
 
 			else {
 
@@ -203,7 +201,6 @@ public class InsurancePolicyUtil {
 												.getAdministrationService()
 												.getGlobalProperty(
 														BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE))))) {
-
 					*//** Getting the Patient Identifier from the system **//*
 					PatientIdentifier pi = InsurancePolicyUtil
 							.getPrimaryPatientIdentifierForLocation(
@@ -211,7 +208,7 @@ public class InsurancePolicyUtil {
 									InsurancePolicyUtil.getLocationLoggedIn());*/
 
 				card.setInsuranceCardNo(card.getInsuranceCardNo());
-				card.setCoverageStartDate(new Date());
+				card.setCoverageStartDate(card.getCoverageStartDate());
 			}
 
 			getService().saveInsurancePolicy(card);
@@ -857,9 +854,6 @@ public class InsurancePolicyUtil {
 
 	public static InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t){
 
-		System.out.print(" am getting in getinsurancepolicybythird party ttttttttttttttttttttt "+t);
-
 		return getService().getInsurancePolicyByThirdParty(t);
 	}
-
 }
