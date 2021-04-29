@@ -23,7 +23,7 @@
 
 
 <style>
- .insurances, .thirdParties,.timelabel,.time,.collector,.billCreator,.billStatus,.deposit,.paymentType {
+ .insurances, .thirdParties,.timelabel,.time,.collector,.billCreator,.billStatus,.deposit,.paymentType,.reportType,.services {
       display: none;
 } 
 a.print {
@@ -76,9 +76,6 @@ ${resultMsg } : <b style="color: black;font: bold;"><fmt:formatNumber value="${t
 	</tr>
 	</c:forEach>
 </table>
-
 </div>
 </c:if>
-
-
 <%@ include file="/WEB-INF/template/footer.jsp"%>

@@ -8,8 +8,10 @@ import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.*;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
+import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,15 +62,12 @@ public class MohBillingCashierReportController extends
 						+ startDateStr.split("/")[1] + "-"
 						+ startDateStr.split("/")[0] + " " + startTimeStr);
 			}
-			
 			if(request.getParameter("endDate") != null && !request.getParameter("endDate").equals("")) {
 				endDateStr = request.getParameter("endDate");
 				endDate = sdf.parse(endDateStr.split("/")[2] + "-"
 						+ endDateStr.split("/")[1] + "-" + endDateStr.split("/")[0]
 						+ " " + endTimeStr);
 			}
-			
-			
 			String collectorStr = null;
 			String insuranceStr = null;
 			String thirdPartyStr = null;
@@ -84,12 +83,9 @@ public class MohBillingCashierReportController extends
 			
 			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinuteStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
 
-			// Date startDate = (Date) params[0];
-			// Date endDate = (Date) params[1];
 			 User collector =  (User) params[2];
 			 cashier=collector;
-//			 try {
-				  
+
 					 List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate, collector);
 					 
 					 List<BillPayment> cashPayments = new ArrayList<BillPayment>();
@@ -116,12 +112,21 @@ public class MohBillingCashierReportController extends
 						 mav.addObject("reportMsg", "Total Received Amount From "+startDateStr+" To "+endDateStr);
 					 }
 				 mav.addObject("reportMsg1", "Total Received Amount From "+startDateStr+" To "+endDateStr);
-				 
-				 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
-			
-	
-//				 try {
-					 
+			List<HopService> reportColumns=null;
+			if (request.getParameter("reportType")!=null && request.getParameter("reportType")!=""){
+				if(request.getParameter("reportType").equals("NO_DCP_Report")){
+					reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
+				}else if(request.getParameter("reportType").equals("DCP_Report")){
+					reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumnsDcp");
+				}
+				else {
+					reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumnsAll");
+				}
+			}
+			else {
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,"Please!!!! Dear " +Context.getAuthenticatedUser()+ " Select Report Type");
+				return new ModelAndView(new RedirectView("cashierReport.form"));
+			}
 					 Consommation c = ConsommationUtil.getConsommationByPatientBill(payments.get(0).getPatientBill());
 			      		if(c!=null && c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
 			      			paidItems = BillPaymentUtil.getOldPaidItems(payments);
@@ -134,13 +139,27 @@ public class MohBillingCashierReportController extends
 					 
 					 List<PaymentRevenue> paymentRevenues =  new ArrayList<PaymentRevenue>();
 					 for (BillPayment pay : payments) {
-						 PaymentRevenue br= ReportsUtil.getRevenuesByPayment(pay, columns);
+						 PaymentRevenue br =null;
+						 if(request.getParameter("reportType")!=null && request.getParameter("reportType").equals("NO_DCP_Report")) {
+							 br = ReportsUtil.getRevenuesByPayment(pay, columns);
+						 }
+						 else if(request.getParameter("reportType")!=null && request.getParameter("reportType").equals("DCP_Report")){
+							 br = ReportsUtil.getRevenuesByPaymentDCP(pay, columns);
+							 }
+						 else {
+						 	br = ReportsUtil.getRevenuesByPaymentAll(pay,columns);
+						 }
 						 if(br!=null){
 							 paymentRevenues.add(br);
 						 }
 					}
-					 
-					 List<PaidServiceRevenue> services = paymentRevenues.get(0).getPaidServiceRevenues();
+					 List<PaidServiceRevenue> services=null;
+					 if (paymentRevenues.size()<=0){
+					 	request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,"No data in the selected interval of time");
+					 }
+					 else{
+					 	services = paymentRevenues.get(0).getPaidServiceRevenues();
+					 }
 					 List<BigDecimal> subTotals = new ArrayList<BigDecimal>();
 					 BigDecimal bigTotal = new BigDecimal(0);
 					 for (String s : columns) {
@@ -163,26 +182,11 @@ public class MohBillingCashierReportController extends
 					 request.getSession().setAttribute("bigTotal" , bigTotal); 
 					 request.getSession().setAttribute("totalRevenueAmount" , BillPaymentUtil.getTotalPaid(payments));
 			         request.getSession().setAttribute("collector" , cashier);
-
-		/*	} catch (Exception e) {
-				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-						"No payment found !");
-				log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
-			}
-				
-				
-			} catch (Exception e) {
-				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-						"No payment found !");
-			}*/
-
 	}
-
 		mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 		mav.addObject("thirdParties", Context.getService(BillingService.class).getAllThirdParties());
 		
 		if(request.getParameter("print")!=null){
-		//	HttpSession session = request.getSession(true);
 			 List<PaymentRevenue> paymentRevenues  = (List<PaymentRevenue>) request.getSession().getAttribute("paymentRevenues" );
 			 List<BigDecimal> subTotals = (List<BigDecimal>) request.getSession().getAttribute("subTotals");
 			 BigDecimal bigTotal = (BigDecimal) request.getSession().getAttribute("bigTotal");
@@ -193,7 +197,6 @@ public class MohBillingCashierReportController extends
 				 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 			User cashierUser=(User) request.getSession().getAttribute("collector");
 					String fileName = "cashierReport-"+df.format(new Date())+".pdf";
-			//System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC:"+cashierUser.getPersonName().getFullName());
 				    fexp.printCashierReport(request, response, amount,paymentRevenues,subTotals,bigTotal,totalPaid,fileName,cashierUser);
 			
 		}

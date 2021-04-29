@@ -1497,6 +1497,38 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		return consommations;
 	}
+	@Override
+	public List<Consommation> getDCPConsommations(Date startDate,Date endDate,User billCreator) {
+		Session session = sessionFactory.getCurrentSession();
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		StringBuilder combinedSearch = new StringBuilder("");
+
+		combinedSearch.append("SELECT c.* FROM moh_bill_consommation c "
+				//+" inner join moh_bill_patient_bill pb on pb.patient_bill_id=c.patient_bill_id"
+		        //+ " inner join moh_bill_beneficiary b on b.beneficiary_id=c.beneficiary_id "
+				//+ " inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=b.insurance_policy_id "
+				//+ " inner join moh_bill_insurance i on i.insurance_id = ip.insurance_id "
+				+ " inner join moh_bill_patient_service_bill psb on c.consommation_id=psb.consommation_id "
+				+ " and psb.is_paid='1' and psb.item_type='2' and psb.voided='0' "
+				+ " and c.created_date between '"+df.format(startDate)+" 00:00:00 "+"' AND '"+df.format(endDate)+" 23:59:59'");
+			/*if (insurance != null)
+				combinedSearch.append(" and i.insurance_id ='"+insurance.getInsuranceId()+"'");
+
+			if (tp != null)
+				combinedSearch.append(" and ip.third_party_id ='"+tp.getThirdPartyId()+"'");*/
+
+		if (billCreator != null)
+			combinedSearch.append(" and c.creator ='"+billCreator.getUserId()+"'");
+		combinedSearch.append(" GROUP BY c.consommation_id ");
+
+		/*if (department != null)
+			combinedSearch.append(" and c.department_id ='"+department.getDepartmentId()+"'");*/
+
+		List<Consommation> consommations = session
+				.createSQLQuery(combinedSearch.toString())
+				.addEntity("c", Consommation.class).list();
+		return consommations;
+	}
 
 	@Override
 	public void updateOtherInsurances(ServiceCategory sc) {

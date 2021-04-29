@@ -150,6 +150,7 @@ public class MohBillingFacilityServiceFormController extends
 					.getParameter("facilityServiceDescription"));
 			fs.setCategory(request
 					.getParameter("facilityServiceCategory"));
+			fs.setItemType(Integer.parseInt(request.getParameter("facilityServiceItemType")));
 			fs.setStartDate(Context.getDateFormat().parse(
 					request.getParameter("facilityServiceStartDate")));
 			
@@ -181,7 +182,6 @@ public class MohBillingFacilityServiceFormController extends
 				/*update all related billable service*/
 				FacilityServicePriceUtil.cascadeUpdateFacilityService(fs);
 			}
-
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					"The Facility Service has been saved successfully !");
 		} catch (Exception e) {
@@ -191,7 +191,6 @@ public class MohBillingFacilityServiceFormController extends
 			e.printStackTrace();
 			return false;
 		}
-
 		return true;
 	}
 
@@ -217,7 +216,6 @@ public class MohBillingFacilityServiceFormController extends
 			e.printStackTrace();
 			return false;
 		}
-
 		try {
 			/*Retire existing facilityService*/
 			fs.setRetiredDate(new Date());
@@ -235,8 +233,6 @@ public class MohBillingFacilityServiceFormController extends
 			e.printStackTrace();
 			return false;
 		}
-
 		return true;
 	}
-
 }

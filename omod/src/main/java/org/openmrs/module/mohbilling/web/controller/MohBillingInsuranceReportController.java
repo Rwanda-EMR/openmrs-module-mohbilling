@@ -2,6 +2,7 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
@@ -10,7 +11,6 @@ import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
@@ -30,7 +30,6 @@ public class MohBillingInsuranceReportController extends
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 
-
 		if (request.getParameter("formStatus") != null
 				&& !request.getParameter("formStatus").equals("")) {
 			String startDateStr = request.getParameter("startDate");
@@ -44,8 +43,6 @@ public class MohBillingInsuranceReportController extends
 			String collectorStr = null;
 			String insuranceStr = null;
 			String thirdPartyStr = null;
-			
-			
 			 // parameters
 			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
 			
@@ -65,16 +62,8 @@ public class MohBillingInsuranceReportController extends
 
 			// get all consommation with globalbill closed
 				List<GlobalBill> globalBills = ReportsUtil.getGlobalBills(startDate, endDate, insurance);
-				/*List<GlobalBill> globalBillsByInsuranceType = new ArrayList<GlobalBill>();
-				for (GlobalBill gb : globalBills) {
-					if(gb.getAdmission().getInsurancePolicy().getInsurance().getInsuranceId()==insurance.getInsuranceId())
-						//if(gb.isClosed())
-						globalBillsByInsuranceType.add(gb);
-				}*/
-				
 				List<AllServicesRevenue> listOfAllServicesRevenue = new ArrayList<AllServicesRevenue>();
-				
-				
+
 				List<String> columns = new ArrayList<String>();	
 				Consommation initialConsom=null;
 				List<BigDecimal> totals = new ArrayList<BigDecimal>();
@@ -82,32 +71,38 @@ public class MohBillingInsuranceReportController extends
 			try {					 
 			if(startDate!=null && endDate!=null){
 				int countGlobalBill=1;
-				//for (GlobalBill gb : globalBillsByInsuranceType) {
 				for (GlobalBill gb : globalBills) {
 					BigDecimal globalBillAmount = new BigDecimal(0);
 					if(ReportsUtil.getConsommationByGlobalBill(gb)!=null)
 					initialConsom = ReportsUtil.getConsommationByGlobalBill(gb);
-
 					List<ServiceRevenue> insuranceColumnsRevenues=new ArrayList<ServiceRevenue>();
 					if(gb.isClosed()){
-					List<PatientServiceBill> gbItems = ReportsUtil.getAllItemsByGlobalBill(gb);
-
-						 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.insuranceReportColumns");
-						 for (HopService hopService : reportColumns) {
+						List<PatientServiceBill> gbItems=null;
+						List<HopService> reportColumns =null;
+						if (request.getParameter("reportType") != null && request.getParameter("reportType").equals("NO_DCP_Report")) {
+							gbItems = ReportsUtil.getAllItemsByGlobalBill(gb);
+							reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.insuranceReportColumns");
+						}
+						else if(request.getParameter("reportType") != null && request.getParameter("reportType").equals("DCP_Report")){
+							gbItems = ReportsUtil.getAllItemsByGlobalBillDcp(gb);
+							reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.insuranceReportColumnsDcp");
+						}
+						else if(request.getParameter("reportType") != null && request.getParameter("reportType").equals("All")){
+							gbItems = ReportsUtil.getAllItemsByGlobalBillAll(gb);
+							reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.insuranceReportColumnsAll");
+						}
+						else {
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,"Please!!!! Dear" + Context.getAuthenticatedUser()+ " Select Report Type");
+						}
+						 for (HopService hopService : reportColumns){
 							 if(!columns.contains(hopService.getName()))
 							 columns.add(hopService.getName());
-
 							 insuranceColumnsRevenues.add(ReportsUtil.getServiceRevenues(gbItems, hopService));
-
 						}
-
 						 ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.IMAGING");
 						 insuranceColumnsRevenues.add(imagingRevenue);
-
-
 						 ServiceRevenue proceduresRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.PROCEDURES");
 						 insuranceColumnsRevenues.add(proceduresRevenue);
-
 						 globalBillAmount=globalBillAmount.add(ReportsUtil.getTotalByItems(gbItems));
 
 					 //populate asr
@@ -116,10 +111,6 @@ public class MohBillingInsuranceReportController extends
 					 servicesRevenu.setAllDueAmounts(globalBillAmount);
 					 servicesRevenu.setConsommation(initialConsom);
 					 listOfAllServicesRevenue.add(servicesRevenu);
-						//System.out.println("Global bill: " + countGlobalBill+" / "+globalBills.size());
-
-						System.out.println("Progressssssssss: " + (countGlobalBill*100) / globalBills.size()+"%");
-						//log.info("Global bill: " + countGlobalBill+" / "+globalBills.size());
 			}
 					countGlobalBill++;
 		  }
@@ -138,7 +129,6 @@ public class MohBillingInsuranceReportController extends
 			} catch (Exception e) {
 					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 							"No patient bill found or service categories are not set properly. Contact System Admin... !");
-					log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
 				}
 
 					if(!columns.contains("IMAGING"))
@@ -155,13 +145,10 @@ public class MohBillingInsuranceReportController extends
 		    		mav.addObject("listOfAllServicesRevenue", listOfAllServicesRevenue);
 		    		mav.addObject("resultMsg", "["+insurance.getName()+"] Bill from "+startDateStr +" To "+ endDateStr);
 					mav.addObject("insuranceFlatFee", insuranceFlatFee);
-
 					mav.addObject("insuranceRate", insuranceRate);
 		    		mav.addObject("total100", total100);
-		
 	}
 		 mav.addObject("insurances", InsuranceUtil.getAllInsurances());
-	
 		 if(request.getParameter("export")!=null){
 			 List<String> columns = (List<String>) request.getSession().getAttribute("columns");
 			 List<AllServicesRevenue> listOfAllServicesRevenue = (List<AllServicesRevenue>) request.getSession().getAttribute("listOfAllServicesRevenue" );
@@ -170,5 +157,4 @@ public class MohBillingInsuranceReportController extends
 		 }
 		return mav;
 	}
-
 }

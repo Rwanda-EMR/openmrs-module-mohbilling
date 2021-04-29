@@ -491,7 +491,7 @@ public class FacilityServicePriceUtil {
 		if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")
 				&& request.getParameter("facilityServiceId") != null && !request.getParameter("facilityServiceId").equals("")) {
 			System.out.println("Facility Service Id: " + request.getParameter("facilityServiceId"));
-			
+
 			startDateStr = request.getParameter("startDate");
 			
 			try {
@@ -511,11 +511,11 @@ public class FacilityServicePriceUtil {
 		for(Insurance insurance : insurances) {
 			if(!insurance.isVoided())			
 				try {
-					if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables") && !fsp.getCategory().equals("AUTRES")) {
+					if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables") && !fsp.getCategory().equals("AUTRES") && !fsp.getItemType().equals(2)) {
 									
 						if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
 							System.out.println("The bill exist already");
-							
+
 							bs = getService().getBillableServiceByConcept(fsp, insurance);
 							bs.setStartDate(startDate);
 							bs.setInsurance(insurance);
@@ -576,6 +576,9 @@ public class FacilityServicePriceUtil {
 					} 
 					else {
 						if(FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
+							if (fsp.getItemType()==2 && insurance.getCategory().toLowerCase().equals("mutuelle")){
+								continue;
+							}
 							System.out.println("Existing tarrif item");
 							bs = getService().getBillableServiceByConcept(fsp, insurance);
 							bs.setStartDate(startDate);
@@ -587,6 +590,9 @@ public class FacilityServicePriceUtil {
 							bs.setFacilityServicePrice(fsp);
 							bs.setMaximaToPay(fsp.getFullPrice());
 						} else {
+							if (fsp.getItemType()==2 && insurance.getCategory().toLowerCase().equals("mutuelle")){
+								continue;
+							}
 							System.out.println("New Tarrif item");
 							bs = new BillableService();
 							bs.setStartDate(startDate);

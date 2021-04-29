@@ -23,6 +23,7 @@
 		<property name="voided" column="voided" type="boolean" />
 		<property name="voidedDate" column="voided_date" type="java.util.Date" />
 		<property name="voidReason" column="void_reason" type="java.lang.String" />
+		<property name="itemType" column="item_type" type="java.lang.Integer" />
 
 		<many-to-one name="service" class="org.openmrs.module.mohbilling.model.BillableService" column="billable_service_id" />
 		<many-to-one name="consommation" class="org.openmrs.module.mohbilling.model.Consommation" column="consommation_id" />

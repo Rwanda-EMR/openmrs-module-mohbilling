@@ -46,6 +46,16 @@
 				<td><input autocomplete="off" type="text" name="facilityServiceFullPrice" size="8" class="numbers" value="${facilityService.fullPrice}"/> Rwf</td>
 			</tr>
 			<tr>
+				<td>Item Type</td>
+
+				<td><select name="facilityServiceItemType" required>
+					<option value="">Please!!!Select Item Type</option>
+					<option value="1">ORDINARY ITEM</option>
+					<option value="2">DCP ITEM</option>
+				</select>
+				</td>
+			</tr>
+			<tr>
 				<td>Start Date</td>
 				<td><input autocomplete="off" type="text" name="facilityServiceStartDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date="${facilityService.startDate}" type="string"/>"/></td>
 			</tr>

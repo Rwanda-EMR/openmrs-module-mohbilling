@@ -898,6 +898,16 @@ public class FileExporter {
 		head2 = new PdfPCell(fontSelector.process("Ambulant: "+admissionMode+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head2);
+		String admType="";
+		if(gb.getAdmission().getAdmissionType()==1){
+			admType = "Oridinary Clinic";
+		}
+		else {
+			admType = "Dual Clinic";
+		}
+		head2 = new PdfPCell(fontSelector.process("Admission Type: "+admType+"\n"));
+		head2.setBorder(Rectangle.NO_BORDER);
+		heading2Tab.addCell(head2);
 
 		head2 = new PdfPCell(fontSelector.process("Sex: "+gb.getAdmission().getInsurancePolicy().getOwner().getGender()+"\n"));
 		head2.setBorder(Rectangle.NO_BORDER);
@@ -1443,6 +1453,62 @@ public class FileExporter {
 
 
 		document.add(table);
+	}
+	public static void exportDCPData(HttpServletRequest request, HttpServletResponse response,List<Consommation> consommations) throws Exception{
+
+		Date date = new Date();
+		SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+
+		PrintWriter dcp = response.getWriter();
+		response.setContentType("text/plain");
+		response.setHeader("Content-Disposition", "attachment; filename=\"releve_"+f.format(date)+".csv\"");
+
+		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+		dcp.println();
+		dcp.println();
+
+		dcp.println(","+","+","+"DCP PROVIDER REPORT");
+		dcp.println();
+		dcp.println();
+
+		dcp.println("#,Date,Department,Creator,Policy Id Number,Beneficiary,Insurance Name,Total,Insurance due,Patient Due,Admission Type");
+
+		BigDecimal totalAmountByConsom = new BigDecimal(0);
+		Float insuranceDueByConsom = 0.0f;
+		int i=0;
+		for (Consommation cons : consommations){
+			i++;
+			dcp.print(i
+					+ "," + f.format(cons.getCreatedDate())
+					+ "," + cons.getDepartment().getName()
+					+ "," + cons.getCreator().getPersonName()
+					+ ",'" + cons.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+					+ "," + cons.getBeneficiary().getPatient().getPersonName()
+					+ "," + cons.getBeneficiary().getInsurancePolicy().getInsurance().getName()
+			);
+			float insuranceRate = cons.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+			for (PatientServiceBill psb : cons.getBillItems()){
+				totalAmountByConsom = totalAmountByConsom.add(psb.getPaidQuantity().multiply(psb.getUnitPrice()));
+			}
+			dcp.print("," +ReportsUtil.roundTwoDecimals(totalAmountByConsom.floatValue()));
+            insuranceDueByConsom = totalAmountByConsom.floatValue()*insuranceRate/100;
+            dcp.print(","+ReportsUtil.roundTwoDecimals(insuranceDueByConsom));
+            dcp.print(","+ReportsUtil.roundTwoDecimals(totalAmountByConsom.floatValue()*(100-insuranceRate)/100));
+            String admissionType = "";
+            if(cons.getGlobalBill().getAdmission().getAdmissionType()==2){
+            	admissionType="DCP";
+			}else {
+            	admissionType="Oridinary";
+			}
+			dcp.print(","+admissionType);
+            dcp.println();
+		}
+		dcp.println();
+
+		dcp.flush();
+		dcp.close();
 	}
 	//export to excel
 	public static void exportData(HttpServletRequest request, HttpServletResponse response, Insurance insurance, List<String> columns,List<AllServicesRevenue> listOfAllServicesRevenue)throws Exception,

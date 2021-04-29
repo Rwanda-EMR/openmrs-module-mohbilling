@@ -701,4 +701,19 @@
 		</sql>
 	</diff>
 
+	<diff>
+		<version>1.3.1.5</version>
+		<author>Rwanda EMR</author>
+		<date>February 11th 2021</date>
+		<description>
+			alter moh_bill_patient_service_bill table
+		</description>
+		<sql>
+			ALTER TABLE  moh_bill_patient_service_bill ADD item_type TINYINT(1) DEFAULT NULL;
+			ALTER TABLE  moh_bill_facility_service_price ADD item_type TINYINT(1) DEFAULT NULL;
+			ALTER TABLE  moh_bill_admission ADD admission_type TINYINT(1) DEFAULT NULL;
+			ALTER TABLE moh_bill_patient_service_bill MODIFY COLUMN drug_frequency varchar(150) DEFAULT NULL;
+		</sql>
+	</diff>
+
 </sqldiff>

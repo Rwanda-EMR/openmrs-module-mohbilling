@@ -687,6 +687,19 @@ public class InsuranceUtil {
 		categories.add(Category.RADIOGRAPHIE.getDescription());
 		categories.add(Category.MORGUE.getDescription());
 		categories.add(Category.MAGNETIC_RESONANCE_IMAGING.getDescription());
+		categories.add(Category.DCP_CONSULTATION.getDescription());
+		categories.add(Category.DCP_SURGERY.getDescription());
+		categories.add(Category.DCP_INTERNAL_MEDECINE.getDescription());
+		categories.add(Category.DCP_PEDIATRICS.getDescription());
+		categories.add(Category.DCP_DERMATOLOGY.getDescription());
+		categories.add(Category.DCP_OBSTETRICS_GYNECOLOGY.getDescription());
+		categories.add(Category.DCP_OPHTHALMOLOGY.getDescription());
+		categories.add(Category.DCP_STOMATOLOGY.getDescription());
+		categories.add(Category.DCP_OTORHINOLARYNGOLOGIE.getDescription());
+		categories.add(Category.DCP_ANESTHESIE.getDescription());
+
+
+
 		return categories;
 	}
 

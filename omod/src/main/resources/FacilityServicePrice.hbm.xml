@@ -24,6 +24,7 @@
 		<property name="retired" column="retired" type="boolean" />
 		<property name="retiredDate" column="retire_date" type="java.util.Date" />
 		<property name="retireReason" column="retire_reason" type="java.lang.String" />
+		<property name="itemType" column="item_type" type="java.lang.Integer" />
 
 		<many-to-one name="location" class="org.openmrs.Location" column="location_id" />
 		<many-to-one name="concept" class="org.openmrs.Concept" column="concept_id" />

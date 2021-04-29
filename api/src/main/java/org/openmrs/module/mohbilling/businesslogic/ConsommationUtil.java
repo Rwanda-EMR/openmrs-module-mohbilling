@@ -175,6 +175,7 @@ public class ConsommationUtil {
 			BillableService bs = null;
 			PatientServiceBill psb =null;
 			String drugf="";
+			Integer item_type=null;
 			if(billItems!=null){
 				if(request.getParameter("removeItem_"  + billItems[i])!=null){
 					PatientServiceBill itemToRemove = ConsommationUtil.getPatientServiceBill(Integer.valueOf(request.getParameter("removeItem_" + billItems[i])));
@@ -217,10 +218,11 @@ public class ConsommationUtil {
 					if(request.getParameter("billableServiceId_"+i)!=null && request.getParameter("quantity_"+i)!=null && request.getParameter("servicePrice_"+i)!=null) {
 						bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));
 						HopService hopService = HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
+						item_type = bs.getFacilityServicePrice().getItemType().intValue();
 						quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
 						unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
 						drugf = request.getParameter("frequency_"+i);
-						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf);
+						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf,item_type);
 						addedItemTotalAmount=addedItemTotalAmount.add(quantity.multiply(unitPrice));
 							if(existingItemsLoopControl==0) {
 								for (PatientServiceBill pp : existingConsom.getBillItems()) {
@@ -240,9 +242,10 @@ public class ConsommationUtil {
 						bs = InsuranceUtil.getValidBillableService(Integer.valueOf(request.getParameter("billableServiceId_" + i)));
 						HopService hopService = HopServiceUtil.getServiceByName(bs.getServiceCategory().getName());
 						quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
+						item_type = bs.getFacilityServicePrice().getItemType().intValue();
 						unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
 						drugf = request.getParameter("frequency_"+i);
-						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf);
+						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf,item_type);
 						// totalAmount = totalAmount.add(quantity.multiply(unitPrice));
 						addedItemTotalAmount = addedItemTotalAmount.add(quantity.multiply(unitPrice));
 						existingConsom.addBillItem(psb);
@@ -363,6 +366,10 @@ public class ConsommationUtil {
 													  Date endDate, Insurance insurance, ThirdParty tp,
 													  User billCreator,Department department){
 		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+	}
+
+	public static List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator){
+		return getService().getDCPConsommations(startDate, endDate,billCreator);
 	}
 
 	public static void retireItem(PatientServiceBill psb){

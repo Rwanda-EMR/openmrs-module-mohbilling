@@ -41,6 +41,10 @@
 			<a href="thirdPartyReport.form">Third Party Report</a>
 		</li>
 		</openmrs:hasPrivilege>
-		
+	<openmrs:hasPrivilege privilege="View Provider DCP Report">
+		<li class="<c:if test='<%= request.getRequestURI().contains("ProviderDCPReport")%>'> active</c:if>">
+			<a href="providerDCPReport.form">DCP Provider Report</a>
+		</li>
+	</openmrs:hasPrivilege>
 
 </ul>

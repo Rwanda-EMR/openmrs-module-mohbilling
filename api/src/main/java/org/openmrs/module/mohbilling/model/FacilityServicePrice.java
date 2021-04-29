@@ -36,6 +36,14 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	private User creator;
 	private User retiredBy;
 	private Set<BillableService> billableServices;
+	private Integer itemType;
+	public Integer getItemType() {
+		return itemType;
+	}
+
+	public void setItemType(Integer itemType) {
+		this.itemType = itemType;
+	}
 
 	/**
 	 * @return list of BillableServices

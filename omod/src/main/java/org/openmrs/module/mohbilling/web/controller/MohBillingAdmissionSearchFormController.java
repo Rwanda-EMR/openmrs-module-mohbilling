@@ -27,7 +27,6 @@ public class MohBillingAdmissionSearchFormController extends
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
-		
 	ModelAndView mav =new ModelAndView();
 	mav.setViewName(getViewName());	
 	return mav;

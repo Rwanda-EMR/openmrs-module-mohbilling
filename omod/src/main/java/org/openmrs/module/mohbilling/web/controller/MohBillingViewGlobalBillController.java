@@ -61,6 +61,10 @@ public class MohBillingViewGlobalBillController extends
 			if(actsRevenue!=null)
 				serviceRevenueList.add(actsRevenue);
 
+			ServiceRevenue actsDCPRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.DCPACTS");
+			if(actsRevenue!=null)
+				serviceRevenueList.add(actsDCPRevenue);
+
 			ServiceRevenue autreRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.AUTRES");
 			if(autreRevenue!=null)
 				serviceRevenueList.add(autreRevenue);

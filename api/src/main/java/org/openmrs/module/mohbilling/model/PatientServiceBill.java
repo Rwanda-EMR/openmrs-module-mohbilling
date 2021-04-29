@@ -39,6 +39,15 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private Date voidedDate;
 	private String voidReason;
 	private String drugFrequency;
+	private Integer itemType;
+
+	public Integer getItemType() {
+		return itemType;
+	}
+
+	public void setItemType(Integer itemType) {
+		this.itemType = itemType;
+	}
 
 	public  String getDrugFrequency(){return  drugFrequency;};
 	public  void setDrugFrequency(String drugFrequency){this.drugFrequency=drugFrequency;};
@@ -56,7 +65,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 * @param createdDate
 	 */
 
-	public PatientServiceBill(BillableService bs,HopService service,Date serviceDate,BigDecimal unitPrice,BigDecimal quantity,User creator,Date createdDate,String drugFrequency){
+	public PatientServiceBill(BillableService bs,HopService service,Date serviceDate,BigDecimal unitPrice,BigDecimal quantity,User creator,Date createdDate,String drugFrequency, Integer itemType){
 		this.service = bs;
 		this.serviceDate=serviceDate;
 		this.unitPrice=unitPrice;
@@ -65,6 +74,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		this.createdDate=createdDate;
 		this.setHopService(service);
 		this.drugFrequency=drugFrequency;
+		this.itemType=itemType;
 	}
 	/**
 	 * Creates a new instance of PatientServiceBill from existing
@@ -75,7 +85,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	public static PatientServiceBill newInstance(PatientServiceBill psbToCopy,BigDecimal newQuantity){
 
-		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getHopService(),psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date(),psbToCopy.getDrugFrequency());
+		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getHopService(),psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date(),psbToCopy.getDrugFrequency(),psbToCopy.getItemType());
 
 		return newPsb;
 	}

@@ -37,7 +37,15 @@ public class Admission {
 	private String voidReason;
 
 	private String diseaseType;
+	private Integer admissionType;
 
+	public Integer getAdmissionType() {
+		return admissionType;
+	}
+
+	public void setAdmissionType(Integer admissionType) {
+		this.admissionType = admissionType;
+	}
 
 	public String getDiseaseType() {
 		return diseaseType;

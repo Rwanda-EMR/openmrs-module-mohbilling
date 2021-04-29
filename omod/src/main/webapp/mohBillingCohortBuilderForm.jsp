@@ -22,7 +22,7 @@
 </script>
 
 <style>
-.collector,.time,.deposit,.timelabel,.paymentType {
+.collector,.time,.deposit,.timelabel,.paymentType,.reportType {
     display: none;
 }
 a.print {
@@ -59,7 +59,7 @@ a.print {
 		<td>No</td>
 		<td>Date</td>
 		<td>Department</td>
-		<td> Creator</td>
+		<td>Creator</td>
 		<td>Policy Id Number</td>
 		<td>Beneficiary</td>
 
@@ -179,6 +179,4 @@ a.print {
 </table>
 </div>
 </c:if>
-
-
 <%@ include file="/WEB-INF/template/footer.jsp"%>

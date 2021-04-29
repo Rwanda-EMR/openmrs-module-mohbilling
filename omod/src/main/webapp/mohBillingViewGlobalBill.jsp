@@ -54,6 +54,7 @@
 		<c:if test="${not globalBill.admission.isAdmitted}">
 		<td style="color: green; font-weight: bold;">Out-Patient</b></td>
 		</c:if>
+			<td>Admission Type: <b>${(globalBill.admission.admissionType=='1')?'Ordinary Clinic':'Dual Clinic'} </b></td>
 		<td>Admission Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${admissionDate}" /></b></td>
 		<td>Discharge Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${dischargingDate}" /></b></td>
 		</tr>
