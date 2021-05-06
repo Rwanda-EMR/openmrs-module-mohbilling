@@ -245,7 +245,11 @@ public class ReportsUtil {
 		DecimalFormat twoDForm = new DecimalFormat("#.##");
 		return Double.valueOf(twoDForm.format(d));
 	}
-	
+
+/*	static public BigDecimal roundTwoBigDecimals(BigDecimal d) {
+		DecimalFormat twoDForm = new DecimalFormat("#.##");
+		return BigDecimal.valueOf(Long.parseLong(twoDForm.format(d)));
+	}*/
 
 	
 	static public void printPatientBillToPDF(HttpServletRequest request,
@@ -774,6 +778,17 @@ public class ReportsUtil {
 				}
 			}
 		}
+		return allItems;
+	}
+
+	public static List<PatientServiceBill> getBillItemsByAllConsommations(List<Consommation> consommations){
+		List<PatientServiceBill> allItems = new ArrayList<PatientServiceBill>();
+		for ( Consommation cons  : consommations) {
+				for (PatientServiceBill psb : cons.getBillItems()) {
+					if(!psb.isVoided())
+						allItems.add(psb);
+				}
+			}
 		return allItems;
 	}
 	

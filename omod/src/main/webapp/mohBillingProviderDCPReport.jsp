@@ -4,7 +4,6 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingReportHeader.jsp"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
 <script type="text/javascript" language="JavaScript">
     var $bill = jQuery.noConflict();
     $bill(document).ready(function(){
@@ -33,87 +32,78 @@
     }
 </style>
 
-<h3>
-    DCP Provider Report
-</h3>
+<h2>
+    Provider Report
+</h2>
 
 <c:import url="mohBillingReportParameters.jsp" />
 
-
-<c:if test="${empty consommations }">
-    <div style="text-align: center;color: red;"><p>No Data found!</p></div>
+<c:if test="${empty listOfAllServicesRevenue }">
+    <div style="text-align: center;color: red;"><p>No Patient Bill found!</p></div>
 </c:if>
 
-<c:if test="${not empty consommations }">
+<c:if test="${not empty listOfAllServicesRevenue }">
     <br/>
     <b class="boxHeader">
             ${resultMsg} <b style="color: black;font: bold;"></b>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
-
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <a href="providerDCPReport.form?export=true">Excel</a></b>
     <div class="box">
-        <table width="99%">
+        <table style="width: 100%">
             <tr>
-                <td>No</td>
-                <td>Date</td>
-                <td>Department</td>
-                <td> Creator</td>
-                <td>Policy Id Number</td>
-                <td>Beneficiary</td>
-
-                <td>Insurance Name</td>
-                <td>Total</td>
-                <td>Insurance due</td>
-                <td>Patient Due</td>
-                <td>Admission Type</td>
+                <th class="columnHeader" style="width: 3%">#</th>
+                <th class="columnHeader">BENEFICIARY NAMES</th>
+                <th class="columnHeader">INSURANCE NAME</th>
+                <th class="columnHeader">INSURANCE NO</th>
+                <th class="columnHeader">DATE CREATED</th>
+                <th class="columnHeader">DOCTOR</th>
+            <c:forEach items="${columns}" var="categ">
+                <th class="columnHeader">${categ} </th>
+            </c:forEach>
+                <th class="columnHeader">100%</th>
+                <th class="columnHeader">Insurance</th>
+                <th class="columnHeader">Patient</th>
             </tr>
-            <c:set var="totalAmountAllConsom" value="0"/>
-            <c:set var="totalAmountPaidAllConsom" value="0"/>
-            <c:set var="totalInsurances" value="0"/>
-            <c:set var="totalPatients" value="0"/>
-            <c:forEach items="${consommations}" var="c" varStatus="status">
-
-            <c:set var="insuranceRate" value="${(c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100 }"/>
-            <c:set var="patientRate" value="${(100-c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100}"/>
-            <c:set var="totalAmountByConsom" value="0"/>
-            <c:forEach items="${c.billItems}" var="item" varStatus="status">
-                <c:if test="${not item.voided}">
-                <c:set var="totalAmountByConsom" value="${totalAmountByConsom+(item.unitPrice*item.paidQuantity)}" />
-                </c:if>
-            </c:forEach>
+            <c:set var="patientRate" value="${100-insuranceRate}"/>
+            <c:forEach items="${listOfAllServicesRevenue}" var="asr" varStatus="status">
                 <tr>
-                    <td class="rowValue">${status.count}</td>
-                    <td class="rowValue">
-                        <fmt:formatDate pattern="yyyy-MM-dd" value="${c.createdDate}" />
-                    </td>
-                    <td class="rowValue">${c.department.name}</td>
-                    <td class="rowValue">${c.creator.person.familyName}&nbsp;${c.creator.person.givenName}</td>
-                    <td class="rowValue"><b>${c.beneficiary.policyIdNumber}</b></td>
-                    <td class="rowValue">${c.beneficiary.patient.personName}</td>
-                    <td class="rowValue">${c.beneficiary.insurancePolicy.insurance.name}</td>
-                    <td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom}" type="number" pattern="#.##"/></td>
-                    <td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*insuranceRate }" type="number" pattern="#.##"/></td>
-                    <td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom*patientRate }" type="number" pattern="#.##"/></td>
-                    <c:if test="${c.globalBill.admission.isAdmitted==true}">
-                        <td class="rowAmountValue" style="color: blue; font-weight: bold;">In-Patient</td>
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.personName}</td>
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insurance.name}</td>
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insuranceCardNo}</td>
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.createdDate}"/></td>
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.creator}</td>
+                <c:forEach items="${asr.revenues}" var="revenue">
+                    <c:if test="${patientRate > 0}">
+                        <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${revenue.dueAmount*100/patientRate}" type="number" pattern="#.##"/></td>
                     </c:if>
-                        <td class="rowAmountValue" style="color: blue; font-weight: bold;">${(c.globalBill.admission.admissionType=='2')?'DCP':'Ordinary'}</td>
-                    <td class="rowTotalValue"><a href="patientBillPayment.form?consommationId=${c.consommationId}">View/</a></td>
+                    <c:if test="${patientRate==0}">
+                        <c:set var="amount" value="0" />
+                        <c:forEach items="${revenue.billItems}" var="item">
+                            <c:set var="amount" value="${amount + (item.unitPrice)*(item.quantity)}"/>
+                        </c:forEach>
+                        <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${amount}" type="number" pattern="#.##"/></td>
+                    </c:if>
+                </c:forEach>
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts}" type="number" pattern="#.##"/></td>
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.bigTotal}" type="number" pattern="#.##"/></td>
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.patientTotal}" type="number" pattern="#.##"/></td>
+                    <td class="rowTotalValue"><a href="patientBillPayment.form?consommationId=${asr.consommation.consommationId}">View/</a></td>
                 </tr>
-                <c:set var="totalAmountAllConsom" value="${totalAmountAllConsom+totalAmountByConsom}" />
-                <c:set var="totalAmountPaidAllConsom" value="${totalAmountPaidAllConsom+totalAmountPaidByCons}" />
-                <c:set var="totalInsurances" value="${totalInsurances+(totalAmountByConsom*insuranceRate)}" />
-                <c:set var="totalPatients" value="${totalPatients+(totalAmountByConsom*patientRate)}" />
             </c:forEach>
             <tr>
-                <td class="rowTotalValue" colspan="7"><b style="color: blue;font-size: 14px;">TOTAL</b></td>
-                <td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalAmountAllConsom}" type="number" pattern="#.##"/></b></td>
-                <td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalInsurances}" type="number" pattern="#.##"/></b></td>
-                <td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalPatients}" type="number" pattern="#.##"/></b></td>
-                <td class="rowTotalValue"><b style="color: blue;font-size: 14px;"></b></td>
+                <td><b style="color: blue;">TOTAL</b></td>
+                <td></td><td></td><td><td></td><td></td>
+                <c:forEach items="${totals }" var="total">
+                    <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total}" type="number" pattern="#.##"/></b> </td>
+                </c:forEach>
+                <td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;"><fmt:formatNumber value="${total100}" type="number" pattern="#.##"/></b> </td>
             </tr>
         </table>
     </div>

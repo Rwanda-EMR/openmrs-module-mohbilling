@@ -9,6 +9,7 @@ import org.openmrs.Patient;
 import org.openmrs.Person;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil.HeaderFooter;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -1454,7 +1456,7 @@ public class FileExporter {
 
 		document.add(table);
 	}
-	public static void exportDCPData(HttpServletRequest request, HttpServletResponse response,List<Consommation> consommations) throws Exception{
+	public static void exportDCPData(HttpServletRequest request, HttpServletResponse response,List<AllServiceRevenueCons> listOfAllServicesRevenue,List<String> columns) throws Exception{
 
 		Date date = new Date();
 		SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
@@ -1473,40 +1475,65 @@ public class FileExporter {
 		dcp.println();
 		dcp.println();
 
-		dcp.println("#,Date,Department,Creator,Policy Id Number,Beneficiary,Insurance Name,Total,Insurance due,Patient Due,Admission Type");
+		dcp.print("#,Beneficiary Name,Insurance Name,Insurance Card No,Date Created,Creator");
+		for (String service : columns){
+			dcp.print(","+service);
+		}
+		dcp.print(",GRAND TOT(100%),INSURANCE TOT,PATIENT TOT");
 
-		BigDecimal totalAmountByConsom = new BigDecimal(0);
+		dcp.println();
 		Float insuranceDueByConsom = 0.0f;
+		BigDecimal insurancePercentage = new BigDecimal(100);
+		float pRate = 0.0f;
+
 		int i=0;
-		for (Consommation cons : consommations){
+		for (AllServiceRevenueCons asr : listOfAllServicesRevenue){
 			i++;
 			dcp.print(i
-					+ "," + f.format(cons.getCreatedDate())
-					+ "," + cons.getDepartment().getName()
-					+ "," + cons.getCreator().getPersonName()
-					+ ",'" + cons.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
-					+ "," + cons.getBeneficiary().getPatient().getPersonName()
-					+ "," + cons.getBeneficiary().getInsurancePolicy().getInsurance().getName()
+					+ "," + asr.getConsommation().getBeneficiary().getPatient().getPersonName()
+					+ "," + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getName()
+					+ ",'" + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+					+ "," + f.format(asr.getConsommation().getCreatedDate())
+					+ "," + asr.getConsommation().getCreator().getPersonName()
 			);
-			float insuranceRate = cons.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+			float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+			pRate=100-insuranceRate;
+			for (ServiceRevenue serviceRevenue : asr.getRevenues()){
+				List<PatientServiceBill> billItems = new ArrayList<PatientServiceBill>();
+				if (pRate>0){
+					dcp.print(","+ReportsUtil.roundTwoDecimals(serviceRevenue.getDueAmount().multiply(insurancePercentage).divide(BigDecimal.valueOf(pRate)).doubleValue()));
+				}
+				else if (pRate==0){
+					BigDecimal amount = new BigDecimal(0);
+					for (PatientServiceBill psb : serviceRevenue.getBillItems()){
+						billItems.add(psb);
+						amount = amount.add(psb.getQuantity().multiply(psb.getUnitPrice()));
+					}
+					dcp.print(","+ReportsUtil.roundTwoDecimals(amount.doubleValue()));
+				}
+				else {
+					dcp.print(","+0);
+				}
+			}
+			Consommation cons = asr.getConsommation();
+			BigDecimal totalConsAmount = new BigDecimal(0);
 			for (PatientServiceBill psb : cons.getBillItems()){
-				totalAmountByConsom = totalAmountByConsom.add(psb.getPaidQuantity().multiply(psb.getUnitPrice()));
+				BigDecimal reqQty = psb.getQuantity();
+				BigDecimal unitPrice =psb.getUnitPrice();
+				totalConsAmount =totalConsAmount.add(reqQty.multiply(unitPrice));
 			}
-			dcp.print("," +ReportsUtil.roundTwoDecimals(totalAmountByConsom.floatValue()));
-            insuranceDueByConsom = totalAmountByConsom.floatValue()*insuranceRate/100;
-            dcp.print(","+ReportsUtil.roundTwoDecimals(insuranceDueByConsom));
-            dcp.print(","+ReportsUtil.roundTwoDecimals(totalAmountByConsom.floatValue()*(100-insuranceRate)/100));
-            String admissionType = "";
-            if(cons.getGlobalBill().getAdmission().getAdmissionType()==2){
-            	admissionType="DCP";
-			}else {
-            	admissionType="Oridinary";
-			}
-			dcp.print(","+admissionType);
-            dcp.println();
+			BigDecimal totalASR = new BigDecimal(0);
+			BigDecimal totalPatientASR = new BigDecimal(0);
+			totalASR = totalConsAmount.multiply(BigDecimal.valueOf(insuranceRate)).divide(new BigDecimal(100));
+			totalPatientASR = totalConsAmount.multiply(BigDecimal.valueOf(pRate)).divide(new BigDecimal(100));
+
+			dcp.print(","+ReportsUtil.roundTwoDecimals(totalConsAmount.doubleValue()));
+			dcp.print(","+ReportsUtil.roundTwoDecimals(totalASR.doubleValue()));
+			dcp.print(","+ReportsUtil.roundTwoDecimals(totalPatientASR.doubleValue()));
+			dcp.println();
+
 		}
 		dcp.println();
-
 		dcp.flush();
 		dcp.close();
 	}
