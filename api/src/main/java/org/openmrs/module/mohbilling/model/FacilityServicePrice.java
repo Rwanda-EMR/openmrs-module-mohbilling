@@ -35,6 +35,16 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	private Concept concept;
 	private User creator;
 	private User retiredBy;
+	private Boolean hidden =false;
+
+	public boolean isHidden (){
+		return hidden;
+	}
+
+	public void setHidden(Boolean hidden) {
+		this.hidden = hidden;
+	}
+
 	private Set<BillableService> billableServices;
 
 	/**
