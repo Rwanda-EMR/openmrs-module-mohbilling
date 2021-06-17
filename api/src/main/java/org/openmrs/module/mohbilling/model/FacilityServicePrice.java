@@ -37,6 +37,38 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	private User retiredBy;
 	private Boolean hidden =false;
 
+
+	private Boolean itemType;
+	private Boolean hideItem;
+
+	
+	/**
+	 * @return the item type status
+	 */
+	public Boolean getItemType(){
+		return itemType;
+	}
+
+	/**
+	 * @param itemType
+	 */
+	public void setItemType(Boolean itemType){
+		this.itemType = itemType;
+	}
+
+	/**
+	 * @return the hide item status
+	 */
+	public Boolean getHideItem(){
+		return hideItem;
+	}
+	/**
+	 * @param hideItem
+	 */
+	public void setHideItem(Boolean hideItem){
+		this.hideItem = hideItem;
+	}
+
 	public boolean isHidden (){
 		return hidden;
 	}
