@@ -697,6 +697,7 @@ public class InsuranceUtil {
 		categories.add(Category.DCP_STOMATOLOGY.getDescription());
 		categories.add(Category.DCP_OTORHINOLARYNGOLOGIE.getDescription());
 		categories.add(Category.DCP_ANESTHESIE.getDescription());
+		categories.add(Category.OCCUPATIONALTHERAPY.getDescription());
 
 
 
