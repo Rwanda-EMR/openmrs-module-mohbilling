@@ -4,7 +4,7 @@
 <module configVersion="1.2">
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
-    <version>0.0.6.3-SNAPSHOT</version>
+    <version>0.0.6.4-SNAPSHOT</version>
     <package>org.openmrs.module.@MODULE_ID@</package>
     <author>MoH Rwanda</author>
     <description>
@@ -384,6 +384,11 @@
     <privilege>
         <name>View Provider DCP Report</name>
         <description>View Provider DCP Report</description>
+    </privilege>
+
+    <privilege>
+        <name>revert global bill</name>
+        <description>revert global bill</description>
     </privilege>
 
 

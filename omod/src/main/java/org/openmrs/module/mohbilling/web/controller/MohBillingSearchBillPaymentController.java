@@ -80,21 +80,21 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
 				}
 				String receiptTitle = consommation.getBeneficiary().getPatient().getPersonName()+"-BILL#"+consommation.getConsommationId()+"-payment#"+payment.getBillPaymentId().toString().concat(".pdf");
 				if(request.getParameter("print")!=null){
-					FileExporter exp = new FileExporter();
-					exp.printPayment(request, response, payment, consommation, receiptTitle);
+					FileExporter exp1 = new FileExporter();
+					exp1.printPayment(request, response, payment, consommation, receiptTitle);
 				}
 				if(request.getParameter("type")!=null){
-					FileExporter exp = new FileExporter();
-					exp.epsonPrinter(request, response, payment, receiptTitle);
+					FileExporter exp2 = new FileExporter();
+					exp2.epsonPrinter(request, response, payment, receiptTitle);
 				}
 
 				if(request.getParameter("printPaid")!=null){
-					FileExporter exp = new FileExporter();
-					exp.printPaymentPaid(request, response, payment, consommation, receiptTitle);
+					FileExporter exp3 = new FileExporter();
+					exp3.printPaymentPaid(request, response, payment, consommation, receiptTitle);
 				}
 				if(request.getParameter("typePaid")!=null){
-					FileExporter exp = new FileExporter();
-					exp.epsonPrinterPaidItems(request, response, payment, receiptTitle);
+					FileExporter exp4 = new FileExporter();
+					exp4.epsonPrinterPaidItems(request, response, payment, receiptTitle);
 				}
 				
 				String editPayStr = "";

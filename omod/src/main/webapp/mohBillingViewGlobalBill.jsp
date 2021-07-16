@@ -123,7 +123,9 @@
 </c:if>
 <c:if test="${globalBill.closed==true}">
 	<div style="float: left;">
+		<openmrs:hasPrivilege privilege="revert global bill">
 		<button id="btnRevert">Edit Global Bill</button>
+		</openmrs:hasPrivilege>
 	</div>
 </c:if>
 <div id="revert_discharge">

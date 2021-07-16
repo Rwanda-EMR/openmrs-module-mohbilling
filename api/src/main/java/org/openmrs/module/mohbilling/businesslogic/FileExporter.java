@@ -1656,19 +1656,15 @@ public class FileExporter {
 
 		FontSelector fontTotals = new FontSelector();
 		fontTotals.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
+		FontSelector fontItemDetails = new FontSelector();
+		fontItemDetails.addFont(new Font(FontFamily.UNDEFINED, 9, Font.BOLD));
 
 		/** ------------- Report title ------------- */
 
 		Chunk chk = new Chunk("Printed on : "+ (new Date()));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
-		//Paragraph todayDate = new Paragraph();
-		//todayDate.setAlignment(Element.ALIGN_RIGHT);
-		//todayDate.add(chk);
-		//document.add(todayDate);
 		document.add(fontTitle.process("\n"));
-		//document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 
-		//displayHeader(document, fontTitle);
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA"+"\n"));
 
 		document.add(image);
@@ -1690,9 +1686,7 @@ public class FileExporter {
 		pa.add(chk);
 		pa.setAlignment(Element.ALIGN_CENTER);
 		document.add(pa);
-		//document.add(new Paragraph("\n"));
 
-		// title row
 		FontSelector fontTitleSelector = new FontSelector();
 		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
 
@@ -1714,7 +1708,6 @@ public class FileExporter {
 		document.add(fontTitle.process(patientDetails+"\n"));
 		document.add(fontTitle.process("--------------------\n"));
 
-
 		// Table of bill items;
 		float[] colsWidth = { 2f, 15f, 2f, 3.5f, 5f, 5f, 5f };
 		PdfPTable table = new PdfPTable(colsWidth);
@@ -1723,7 +1716,6 @@ public class FileExporter {
 		// normal row
 		FontSelector fontselector = new FontSelector();
 		fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
-
 
 		int number = 0;
 		PdfPTable serviceTb = new PdfPTable(1);
@@ -1769,35 +1761,12 @@ public class FileExporter {
 					itemPaymentStatus="Unpaid";
 				}
 				String itemDetailsp = number + ")" + itemNamep+" ["+drudFrequency+"] " + formatter.format(unitPricep) + " X " + psbitems.getQuantity() + " = " + formatter.format(itemCostp) + " ("+itemPaymentStatus+")";
-
-				cell = new PdfPCell(fontTitleSelector.process(""+itemDetailsp));
+				cell = new PdfPCell(fontItemDetails.process(""+itemDetailsp));
 				cell.setBorder(Rectangle.NO_BORDER);
+				cell.setColspan(2);
 				serviceTb.addCell(cell);
 			}
 		}
-
-		/*for (PaidServiceBill paidItem: paidItems) {
-			number += 1;
-
-			BigDecimal itemCost = paidItem.getBillItem().getQuantity().multiply(paidItem.getBillItem().getUnitPrice().multiply(patientRate).divide(new BigDecimal(100)));
-			totalToBePaidByPatient=totalToBePaidByPatient.add(itemCost);
-
-			BigDecimal paid= paidItem.getBillItem().getPaidQuantity().multiply(itemCost);
-			//totalPaid=totalPaid.add(paid);
-
-			itemName = paidItem.getBillItem().getService().getFacilityServicePrice().getName();
-			unitPrice = paidItem.getBillItem().getUnitPrice().multiply(patientRate).divide(new BigDecimal(100));
-			paidQty = paidItem.getPaidQty();
-			itemPaidCost = paid;
-
-
-			String itemDetails = number+")"+itemName +" "+unitPrice +" X "+paidQty+" = "+formatter.format(unitPrice.multiply(paidQty));
-
-
-			cell = new PdfPCell(fontTitleSelector.process(""+itemDetails));
-			cell.setBorder(Rectangle.NO_BORDER);
-			serviceTb.addCell(cell);
-		}*/
 		document.add(serviceTb);
 
 		document.add(fontTitle.process("--------------------\n"));
@@ -2135,14 +2104,8 @@ public class FileExporter {
 
 		Chunk chk = new Chunk("Printed on : "+ (new Date()));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
-		//Paragraph todayDate = new Paragraph();
-		//todayDate.setAlignment(Element.ALIGN_RIGHT);
-		//todayDate.add(chk);
-		//document.add(todayDate);
 		document.add(fontTitle.process("\n"));
-		//document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 
-		//displayHeader(document, fontTitle);
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA"+"\n"));
 
 		document.add(image);
@@ -2153,9 +2116,6 @@ public class FileExporter {
 		document.add(fontTitle.process(Context.getAdministrationService().getGlobalProperty(
 				BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL)+ "\n"));
 
-		/** ------------- End Report title ------------- */
-		/** -------------Epson Printer-----------------*/
-
 		Consommation consommation = ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill());
 		chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+" Consommation#"+consommation.getConsommationId()+"-"+payment.getDateReceived());
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
@@ -2164,11 +2124,11 @@ public class FileExporter {
 		pa.add(chk);
 		pa.setAlignment(Element.ALIGN_CENTER);
 		document.add(pa);
-		//document.add(new Paragraph("\n"));
 
-		// title row
 		FontSelector fontTitleSelector = new FontSelector();
 		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		FontSelector fontItemDetails = new FontSelector();
+		fontItemDetails.addFont(new Font(FontFamily.UNDEFINED, 9, Font.BOLD));
 
 		PdfPTable tableHeader = new PdfPTable(1);
 		tableHeader.setWidthPercentage(100f);
@@ -2197,7 +2157,6 @@ public class FileExporter {
 		// normal row
 		FontSelector fontselector = new FontSelector();
 		fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
-
 
 		int number = 0;
 		PdfPTable serviceTb = new PdfPTable(1);
@@ -2230,28 +2189,6 @@ public class FileExporter {
 			paidItems= BillPaymentUtil.getOldPayments(payment);
 		}
 
-/*		for(PatientServiceBill psbitems : consommation.getBillItems()) {
-			if (!psbitems.isVoided()) {
-				number = number + 1;
-				BigDecimal itemCostp = psbitems.getQuantity().multiply(psbitems.getUnitPrice()).multiply(patientRate).divide(new BigDecimal(100));
-				itemNamep = psbitems.getService().getFacilityServicePrice().getName();
-				unitPricep = psbitems.getUnitPrice().multiply(patientRate).divide(new BigDecimal(100));
-				drudFrequency= psbitems.getDrugFrequency();
-				String itemPaymentStatus=null;
-				if(psbitems.isPaid()){
-					itemPaymentStatus="Paid";
-				}
-				else {
-					itemPaymentStatus="Unpaid";
-				}
-				String itemDetailsp = number + ")" + itemNamep+" "+drudFrequency+ " " + formatter.format(unitPricep) + " X " + psbitems.getQuantity() + " = " + formatter.format(itemCostp) + " (" + itemPaymentStatus + " )";
-
-				cell = new PdfPCell(fontTitleSelector.process(""+itemDetailsp));
-				cell.setBorder(Rectangle.NO_BORDER);
-				serviceTb.addCell(cell);
-			}
-		}*/
-
 		for (PaidServiceBill paidItem: paidItems) {
 			number += 1;
 
@@ -2274,11 +2211,11 @@ public class FileExporter {
 				itemPaymentStatus="Unpaid";
 			}
 
-			String itemDetails = number+")"+itemName+" ["+drudFrequency+"] "+formatterUnitPrice.format(unitPrice) +" X "+paidQty+" = "+formatter.format(unitPrice.multiply(paidQty))+"("+itemPaymentStatus+")";
+			String itemDetailsEp = number + ")" + itemName + " ["+drudFrequency+"] " + formatterUnitPrice.format(unitPrice) + " X " + paidQty + " = " + formatter.format(unitPrice.multiply(paidQty)) + " ("+itemPaymentStatus+")";
 
-
-			cell = new PdfPCell(fontTitleSelector.process(""+itemDetails));
+			cell = new PdfPCell(fontItemDetails.process(""+itemDetailsEp));
 			cell.setBorder(Rectangle.NO_BORDER);
+			cell.setColspan(2);
 			serviceTb.addCell(cell);
 		}
 		document.add(serviceTb);
@@ -2319,11 +2256,6 @@ public class FileExporter {
 		cell.setBorder(Rectangle.NO_BORDER);
 		table.addCell(cell);
 
-		//prestataire/health care provider is still under discussion, so the following codes will help provide space for his/her signature
-			/*cell = new PdfPCell(fontTitleSelector.process("Prestataire:............... \n\n"));
-			cell = new PdfPCell(fontTitleSelector.process(" \n\n"));
-			cell.setBorder(Rectangle.NO_BORDER);
-			table.addCell(cell);*/
 
 		cell = new PdfPCell(fontTitleSelector.process("Cashier Signature: "+ Context.getAuthenticatedUser().getPersonName()+"........."));
 		cell.setBorder(Rectangle.NO_BORDER);
@@ -2332,9 +2264,6 @@ public class FileExporter {
 		document.add(table);
 
 		document.close();
-
-		// Mark the Bill as Printed
-		//PatientBillUtil.printBill(pb);
 	}
 
 	public void printerPaidItems(Document document,BillPayment payment,Consommation consommation,FontSelector fontSelector) throws DocumentException {
