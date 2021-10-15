@@ -684,5 +684,7 @@ public interface BillingService {
 	public List<Transaction> getTransactions(Date startDate, Date endDate, User collector, String type);
 
 	public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo);
+	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException;
+	public FacilityServicePrice getFacilityServiceByName(String name);
 
 }

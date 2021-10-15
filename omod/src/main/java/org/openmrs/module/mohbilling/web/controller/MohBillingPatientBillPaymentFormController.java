@@ -4,10 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
-import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
-import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
-import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.*;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
@@ -22,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author rbcemr
@@ -48,6 +46,10 @@ public class MohBillingPatientBillPaymentFormController extends
 
 		if (request.getParameter("save") != null ){
 			payment = handleSavePatientBillPayment(request);
+			mav.addObject("payment",payment);
+		}
+		if (request.getParameter("billTransfer") != null ){
+			payment = handlebillTransfer(request);
 			mav.addObject("payment",payment);
 		}
 
@@ -267,6 +269,74 @@ public class MohBillingPatientBillPaymentFormController extends
 		payment.setCreator(Context.getAuthenticatedUser());
 		payment.setVoided(false);
 		payment.setCreatedDate(new Date());
+	}
+
+
+	private BillPayment handlebillTransfer(HttpServletRequest request) {
+		Consommation consommation = ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
+		PatientBill currentPb =consommation.getPatientBill();
+		InsuranceBill currentIb=consommation.getInsuranceBill();
+		Set<PatientServiceBill> servicesBill=consommation.getBillItems();
+
+		BigDecimal totalAmount = new BigDecimal(0);
+		BigDecimal totalMaximaTopay=new BigDecimal(0);
+
+		for (PatientServiceBill  serviceBill : servicesBill) {
+
+			/*BigDecimal qty = serviceBill.getQuantity();
+			PatientServiceBill cpyPsb = new PatientServiceBill();
+			cpyPsb.setUnitPrice(psb.getUnitPrice());
+			qty = psb.getQuantity();
+			cpyPsb.setQuantity(qty);
+			cpyPsb.setCreator(Context.getAuthenticatedUser());
+			cpyPsb.setCreatedDate(new Date());
+			cpyPsb.setConsommation(cpyConsom);
+			cpyPsb.setServiceDate(psb.getServiceDate());*/
+
+			totalAmount = totalAmount.add(serviceBill.getQuantity().multiply(serviceBill.getUnitPrice()));
+			totalMaximaTopay=totalMaximaTopay.add(serviceBill.getService().getMaximaToPay());
+			//cpyConsom.addBillItem(cpyPsb);
+		}
+		InsurancePolicy newInsurancePolicy=InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")).getInsurancePolicy();
+
+		if (newInsurancePolicy!=null) {
+			PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, newInsurancePolicy);
+			InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(newInsurancePolicy.getInsurance(), totalAmount);
+
+			//ThirdPartyBill thirdPartyBill =	ThirdPartyBillUtil.createThirdPartyBill(existingConsom.getBeneficiary().getInsurancePolicy(), totalAmount);
+
+			GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(newInsurancePolicy.getInsuranceCardNo());
+			if (gb != null) {
+
+
+				BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
+				gb.setGlobalAmount(globalAmount);
+				gb = GlobalBillUtil.saveGlobalBill(gb);
+
+				GlobalBill oldGb = consommation.getGlobalBill();
+				BigDecimal oldGlobalAmount = oldGb.getGlobalAmount().subtract(totalMaximaTopay);
+				oldGb = GlobalBillUtil.saveGlobalBill(oldGb);
+
+
+				consommation.setBeneficiary(InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")));
+				consommation.setGlobalBill(gb);
+				consommation.setPatientBill(pb);
+				consommation.setInsuranceBill(ib);
+				//consommation.setThirdPartyBill(thirdPartyBill);
+
+				Consommation saveConsommation = ConsommationUtil.saveConsommation(consommation);
+			} else {
+				// alert on no Admission opened
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+						"No admission opened by using "+request.getParameter("newCardNumber"));
+			}
+		}else{
+			// alert on ipCardNumber invalid
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					request.getParameter("newCardNumber")+" is invalid, Please it check again");
+		}
+		BillPayment payment = null;
+		return payment;
 	}
 
 }
