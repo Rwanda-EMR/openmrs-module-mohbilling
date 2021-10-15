@@ -856,4 +856,12 @@ public class InsurancePolicyUtil {
 
 		return getService().getInsurancePolicyByThirdParty(t);
 	}
+
+	public static List<InsurancePolicy> getInsurancePoliciesByPatient(Patient patient) {
+
+		if (patient != null)
+			return getService().getAllInsurancePoliciesByPatient(patient);
+		return null;
+	}
+
 }

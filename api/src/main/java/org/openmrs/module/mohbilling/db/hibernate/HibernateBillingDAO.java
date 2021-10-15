@@ -1576,5 +1576,20 @@ public class HibernateBillingDAO implements BillingDAO {
 		GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
 		return globalBill;	}
 
+	@Override
+	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException {
+
+		return sessionFactory
+				.getCurrentSession()
+				.createCriteria(InsurancePolicy.class)
+				.add(Restrictions.eq("owner", patient)).list();
+	}
+	@Override
+	public FacilityServicePrice getFacilityServiceByName(String name) {
+
+		return (FacilityServicePrice) sessionFactory.getCurrentSession()
+				.createCriteria(FacilityServicePrice.class)
+				.add(Restrictions.eq("name", name)).uniqueResult();
+	}
 
 }

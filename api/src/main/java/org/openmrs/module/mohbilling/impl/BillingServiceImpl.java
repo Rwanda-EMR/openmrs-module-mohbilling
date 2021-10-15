@@ -968,6 +968,12 @@ public class BillingServiceImpl implements BillingService {
 	public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo) {
 		return billingDAO.getOpenGlobalBillByInsuranceCardNo(insuranceCardNo);
 	}
-
-
+	@Override
+	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException {
+		return billingDAO.getAllInsurancePoliciesByPatient(patient);
+	}
+	@Override
+	public FacilityServicePrice getFacilityServiceByName(String name) {
+		return billingDAO.getFacilityServiceByName(name);
+	}
 }

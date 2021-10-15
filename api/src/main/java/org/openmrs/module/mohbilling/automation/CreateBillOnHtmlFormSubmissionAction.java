@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.openmrs.DrugOrder;
 import org.openmrs.Obs;
+import org.openmrs.Order;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.htmlformentry.CustomFormSubmissionAction;
 import org.openmrs.module.htmlformentry.FormEntrySession;
@@ -88,7 +90,7 @@ if(currentInsuranceId.size()>=1)
                 if (fsp!=null) {
                     System.out.println("FacilityServicePrice Found: " + fsp.getName());
                     BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
-                    totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay());
+                    totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay().multiply(new BigDecimal(o.getValueNumeric())));
                     System.out.println("BillableService maxima_to_pay: " + bs.getMaximaToPay());
                     psb.setService(bs);
                     psb.setServiceDate(new Date());
@@ -126,6 +128,21 @@ if(currentInsuranceId.size()>=1)
             }
 
         }
+
+        //drugs start
+
+        List<Order> orders=session.getSubmissionActions().getCurrentEncounter().getOrdersWithoutOrderGroups();
+        for (Order order:orders) {
+            DrugOrder drugOrder=(DrugOrder)order;
+           //Billng code here
+        }
+
+        //Drugs end
+
+
+
+
+
         if(psbList.size()>0) {
 
             GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());

@@ -159,9 +159,23 @@ function recalculateTotals() {
 <c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
 <openmrs:hasPrivilege privilege="Add Item">
 <td><a href="billing.form?consommationId=${consommation.consommationId}&departmentId=${consommation.department.departmentId}&insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${consommation.globalBill.globalBillId}&addNew=true">Add Item</a></td>
+
 </openmrs:hasPrivilege>
 </c:if>
 </tr>
+
+<c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
+<openmrs:hasPrivilege privilege="Add Item">
+<tr>
+<td colspan="3">
+<form action="patientBillPayment.form?consommationId=${consommation.consommationId}&billTransfer=true" method="post" id="formTranserBill">
+Policy Number: <input type="text" name="newCardNumber" size="11"/>
+<input type="submit"  value="Confirm Bill transfer" style="min-width: 200px;"/>
+</form>
+</td>
+</tr>
+</openmrs:hasPrivilege>
+</c:if>
 </table>
 
 <br/>
