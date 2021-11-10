@@ -1579,7 +1579,7 @@ public class HibernateBillingDAO implements BillingDAO {
 	@Override
 	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException {
 
-		return sessionFactory
+		return (List<InsurancePolicy>)sessionFactory
 				.getCurrentSession()
 				.createCriteria(InsurancePolicy.class)
 				.add(Restrictions.eq("owner", patient)).list();

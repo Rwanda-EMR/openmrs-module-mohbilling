@@ -11,6 +11,7 @@ import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.module.mohbilling.utils.Utils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -95,7 +96,7 @@ public static void checkBilling(){
 public static void createBillOnSavePharmacyOrders(List<DrugOrderedAndQuantinty> phamacyDrugOrderList, Patient patient){
         Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
         String insuranceCardNumber=null;
-        List<Obs> currentInsuranceId=Utils.getLastNObservations(1,patient,Context.getConceptService().getConcept(insuranceNumberConceptID),false);
+        List<Obs> currentInsuranceId= Utils.getLastNObservations(1,patient,Context.getConceptService().getConcept(insuranceNumberConceptID),false);
         if(currentInsuranceId.size()>=1)
             insuranceCardNumber=currentInsuranceId.get(0).getValueText();
         InsurancePolicy ip =Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);

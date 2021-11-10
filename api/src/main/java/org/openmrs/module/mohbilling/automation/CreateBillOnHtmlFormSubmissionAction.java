@@ -131,7 +131,7 @@ if(currentInsuranceId.size()>=1)
 
         //drugs start
 
-        List<Order> orders=session.getSubmissionActions().getCurrentEncounter().getOrdersWithoutOrderGroups();
+        List<Order> orders=session.getSubmissionActions().getOrdersToCreate();
         for (Order order:orders) {
             DrugOrder drugOrder=(DrugOrder)order;
            //Billng code here
