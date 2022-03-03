@@ -32,7 +32,6 @@
                 $j('#tot').text("Your Payable  Is: " + total.toFixed(2));
             }
         });
-
     </script>
 
 
@@ -340,9 +339,7 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 				<td colspan="7"><hr/></td>
 			</tr>
 			<tr style="font-size: 1.2em">
-
 					<td colspan="2"><input type="submit"  value="Confirm Payment" style="min-width: 200px;" class="submitBtn"/></td>
-
 			 <td colspan="3"></td>
 			</tr>
 			<tr></tr>
@@ -350,13 +347,29 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 			<td colspan="2"><div><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&type=epson">EPSON Printer</a></div></td>
 			</tr>-->
 		</table>
-	</form>
-	<!-- <div style="text-align: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div> -->
+		</form>
+
+		<!--======================Private Card Number Transfer=============================-->
+		<table>
+		        <c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
+                <openmrs:hasPrivilege privilege="Add Item">
+                <tr>
+                <td colspan="3">
+                <form action="billing.form?insurancePolicyId=${param.insurancePolicyId}&ipCardNumber=${param.ipCardNumber}&globalBillId=${param.globalBillId}&departmentId=${param.departmentId }&save=true" method="post" id="itemsTransferBill">
+                Private Card Number: <input type="text" name="privateCardNumber" size="11"/>
+                <input type="submit"  value="Confirm Items transfer" style="min-width: 200px;"/>
+                </form>
+                </td>
+                </tr>
+                </openmrs:hasPrivilege>
+                </c:if>
+       </table>
+		<!--=======================End Private Card Number Transfer=============================-->
 
 </div>
 <br/>
 	<c:set var="payments" value="${consommation.patientBill.payments}" scope="request"/>
-<c:import url="mohBillingPaymentHistory.jsp" />
+    <c:import url="mohBillingPaymentHistory.jsp" />
 <!--
 <br/>
 <div class="box">

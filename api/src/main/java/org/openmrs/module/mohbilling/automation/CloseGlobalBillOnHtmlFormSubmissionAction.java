@@ -23,24 +23,24 @@ public class CloseGlobalBillOnHtmlFormSubmissionAction implements CustomFormSubm
     @Override
     public void applyAction(FormEntrySession session) {
 //Integer insuranceTypeconceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceTypeConcept"));
-Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
+        Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
 
-String insuranceCardNumber=null;
-Date closingDate=new Date();
+        String insuranceCardNumber=null;
+        Date closingDate=new Date();
 //GlobalBill gb =null;
 
 
 
 //List<Obs> currentInsurance=Context.getObsService().getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceTypeconceptID),false);
-List<Obs> currentInsuranceId=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
+        List<Obs> currentInsuranceId=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
 
 /*
 if(currentInsurance.size()>=1)
     System.out.println("Insuranceeeeeeeeee Company : "+  currentInsurance.get(0).getValueCoded().getName().getName());
 */
 
-if(currentInsuranceId.size()>=1)
-    insuranceCardNumber=currentInsuranceId.get(0).getValueText();
+        if(currentInsuranceId.size()>=1)
+            insuranceCardNumber=currentInsuranceId.get(0).getValueText();
 
 
         InsurancePolicy ip =Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
@@ -59,9 +59,23 @@ if(currentInsuranceId.size()>=1)
         openGb.setClosedBy(Context.getAuthenticatedUser());
         openGb = GlobalBillUtil.saveGlobalBill(openGb);
 
+        List<InsurancePolicy> insurancePolicies = Context.getService(BillingService.class).getAllInsurancePoliciesByPatient(session.getPatient());
+        for (InsurancePolicy insp : insurancePolicies) {
+            if (insp.getInsurance().getCategory().equals("NONE")) {
+                GlobalBill noneOpenedGB= Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(insp.getInsuranceCardNo());
+                if (noneOpenedGB!=null){
+                    noneOpenedGB.setClosingDate(new Date());
+                    noneOpenedGB.setClosed(true);
+                    noneOpenedGB.setClosedBy(Context.getAuthenticatedUser());
+                    noneOpenedGB = GlobalBillUtil.saveGlobalBill(noneOpenedGB);
+                    break;
+                }
+            }
+        }
 
 
     }
+
 
 
 }
