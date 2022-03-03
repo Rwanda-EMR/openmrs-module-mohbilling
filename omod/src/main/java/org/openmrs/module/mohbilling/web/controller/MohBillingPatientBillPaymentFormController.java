@@ -52,6 +52,10 @@ public class MohBillingPatientBillPaymentFormController extends
 			payment = handlebillTransfer(request);
 			mav.addObject("payment",payment);
 		}
+		if (request.getParameter("billTransferItems") != null ){
+			payment = handleBillTransferItems(request);
+			mav.addObject("payment",payment);
+		}
 
 		try{
 			Consommation consommation = null;
@@ -338,5 +342,96 @@ public class MohBillingPatientBillPaymentFormController extends
 		BillPayment payment = null;
 		return payment;
 	}
+
+	//=====================================================
+	private BillPayment handleBillTransferItems(HttpServletRequest request) {
+		Map<String, String[]> parameterMap = request.getParameterMap();
+		for (String  parameterName : parameterMap.keySet()) {
+
+			if (!parameterName.startsWith("item-")) {
+				continue;
+			}
+			PaidServiceBill paidSb = new PaidServiceBill();
+			String[] splittedParameterName = parameterName.split("-");
+			String psbIdStr = splittedParameterName[2];
+			//String psbIdStr = request.getParameter(parameterName);
+			Integer  patientServiceBillId = Integer.parseInt(psbIdStr);
+			PatientServiceBill psb  = ConsommationUtil.getPatientServiceBill(patientServiceBillId);
+			psb.getService().getFacilityServicePrice().getName();
+			System.out.println("checkedddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd: "+psb.getService().getFacilityServicePrice().getName() );
+
+			if (request.getParameter("privateCardNumber") !="" && request.getParameter("privateCardNumber") !=null) {
+
+
+			}
+
+		}
+		/*Consommation consommation = ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
+		PatientBill currentPb =consommation.getPatientBill();
+		InsuranceBill currentIb=consommation.getInsuranceBill();
+		Set<PatientServiceBill> servicesBill=consommation.getBillItems();
+
+		BigDecimal totalAmount = new BigDecimal(0);
+		BigDecimal totalMaximaTopay=new BigDecimal(0);
+
+		for (PatientServiceBill  serviceBill : servicesBill) {
+
+			*//*BigDecimal qty = serviceBill.getQuantity();
+			PatientServiceBill cpyPsb = new PatientServiceBill();
+			cpyPsb.setUnitPrice(psb.getUnitPrice());
+			qty = psb.getQuantity();
+			cpyPsb.setQuantity(qty);
+			cpyPsb.setCreator(Context.getAuthenticatedUser());
+			cpyPsb.setCreatedDate(new Date());
+			cpyPsb.setConsommation(cpyConsom);
+			cpyPsb.setServiceDate(psb.getServiceDate());*//*
+
+			totalAmount = totalAmount.add(serviceBill.getQuantity().multiply(serviceBill.getUnitPrice()));
+			totalMaximaTopay=totalMaximaTopay.add(serviceBill.getService().getMaximaToPay());
+			//cpyConsom.addBillItem(cpyPsb);
+		}
+		InsurancePolicy newInsurancePolicy=InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")).getInsurancePolicy();
+
+		if (newInsurancePolicy!=null) {
+			PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, newInsurancePolicy);
+			InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(newInsurancePolicy.getInsurance(), totalAmount);
+
+			//ThirdPartyBill thirdPartyBill =	ThirdPartyBillUtil.createThirdPartyBill(existingConsom.getBeneficiary().getInsurancePolicy(), totalAmount);
+
+			GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(newInsurancePolicy.getInsuranceCardNo());
+			if (gb != null) {
+
+
+				BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
+				gb.setGlobalAmount(globalAmount);
+				gb = GlobalBillUtil.saveGlobalBill(gb);
+
+				GlobalBill oldGb = consommation.getGlobalBill();
+				BigDecimal oldGlobalAmount = oldGb.getGlobalAmount().subtract(totalMaximaTopay);
+				oldGb = GlobalBillUtil.saveGlobalBill(oldGb);
+
+
+				consommation.setBeneficiary(InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")));
+				consommation.setGlobalBill(gb);
+				consommation.setPatientBill(pb);
+				consommation.setInsuranceBill(ib);
+				//consommation.setThirdPartyBill(thirdPartyBill);
+
+				Consommation saveConsommation = ConsommationUtil.saveConsommation(consommation);
+			} else {
+				// alert on no Admission opened
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+						"No admission opened by using "+request.getParameter("newCardNumber"));
+			}
+		}else{
+			// alert on ipCardNumber invalid
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					request.getParameter("newCardNumber")+" is invalid, Please it check again");
+		}
+		*/
+		BillPayment payment = null;
+		return payment;
+	}
+	//===================================================
 
 }
