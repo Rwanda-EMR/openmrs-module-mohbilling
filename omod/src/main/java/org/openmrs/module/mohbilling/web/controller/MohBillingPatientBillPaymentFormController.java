@@ -16,10 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author rbcemr
@@ -45,15 +43,16 @@ public class MohBillingPatientBillPaymentFormController extends
 
 
 		if (request.getParameter("save") != null ){
-			payment = handleSavePatientBillPayment(request);
-			mav.addObject("payment",payment);
+			if (request.getParameter("billTransferItems") != null ){
+				payment = handleBillTransferItems(request);
+				mav.addObject("payment",payment);
+			}else {
+				payment = handleSavePatientBillPayment(request);
+				mav.addObject("payment", payment);
+			}
 		}
 		if (request.getParameter("billTransfer") != null ){
 			payment = handlebillTransfer(request);
-			mav.addObject("payment",payment);
-		}
-		if (request.getParameter("billTransferItems") != null ){
-			payment = handleBillTransferItems(request);
 			mav.addObject("payment",payment);
 		}
 
@@ -346,6 +345,7 @@ public class MohBillingPatientBillPaymentFormController extends
 	//=====================================================
 	private BillPayment handleBillTransferItems(HttpServletRequest request) {
 		Map<String, String[]> parameterMap = request.getParameterMap();
+		int lastNoneCons=0;
 		for (String  parameterName : parameterMap.keySet()) {
 
 			if (!parameterName.startsWith("item-")) {
@@ -356,79 +356,102 @@ public class MohBillingPatientBillPaymentFormController extends
 			String psbIdStr = splittedParameterName[2];
 			//String psbIdStr = request.getParameter(parameterName);
 			Integer  patientServiceBillId = Integer.parseInt(psbIdStr);
+
+			if (request.getParameter("privateCardNumber") !="" && request.getParameter("privateCardNumber") !=null && Context.getService(BillingService.class).getInsurancePolicyByCardNo(request.getParameter("privateCardNumber")).getInsurance().getCategory().equals("NONE")) {
+
+				InsurancePolicy insurancePolicy=Context.getService(BillingService.class).getInsurancePolicyByCardNo(request.getParameter("privateCardNumber"));
+				List<GlobalBill> globalBills=GlobalBillUtil.getGlobalBillsByInsurancePolicy(insurancePolicy);
+				List<Integer> globalBillsInt=new ArrayList<Integer>();
+				for (GlobalBill gb:globalBills) {
+					globalBillsInt.add(gb.getGlobalBillId());
+				}
+				List<Integer> sortedGB = globalBillsInt.stream().sorted().collect(Collectors.toList());
+				List<Consommation> consommations= ConsommationUtil.getConsommationsByGlobalBill(GlobalBillUtil.getGlobalBill(sortedGB.get(sortedGB.size()-1)));
+				List<Integer> consInt=new ArrayList<Integer>();
+				for (Consommation cs:consommations) {
+					consInt.add(cs.getConsommationId());
+				}
+				List<Integer> sortedconsInt = consInt.stream().sorted().collect(Collectors.toList());
+				//System.out.println("Last Consssssssssssssssssssssssssssssssssssssssss: "+sortedconsInt.get(sortedconsInt.size()-1));
+				lastNoneCons=sortedconsInt.get(sortedconsInt.size()-1);
+					}
 			PatientServiceBill psb  = ConsommationUtil.getPatientServiceBill(patientServiceBillId);
+			Consommation oldCons=psb.getConsommation();
+			System.out.println("Consommantion Olddddddddddddddddddddddddddd: "+oldCons.getConsommationId());
+			PatientServiceBill psbOld=psb;
 			psb.getService().getFacilityServicePrice().getName();
-			System.out.println("checkedddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd: "+psb.getService().getFacilityServicePrice().getName() );
+			//System.out.println("checkedddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd: "+psb.getService().getFacilityServicePrice().getName() );
+			Consommation noneCons=ConsommationUtil.getConsommation(lastNoneCons);
+			System.out.println("Consommantion Newwwwwwwwwwwwwwwwwwwwwwwwwwwwwww: "+noneCons.getConsommationId());
+			psb.setConsommation(ConsommationUtil.getConsommation(lastNoneCons));
+			PatientBill nonePAtientBill = noneCons.getPatientBill();
+			System.out.println("Before Update Patient Bill: "+nonePAtientBill.getAmount());
+			BigDecimal psbAmount=psb.getQuantity().multiply(psb.getService().getMaximaToPay());
+			nonePAtientBill.setAmount(nonePAtientBill.getAmount().add(psbAmount));
+			System.out.println("After Update Patient Bill: "+nonePAtientBill.getAmount());
+			PatientBillUtil.savePatientBill(nonePAtientBill);
+			System.out.println("After save Patient Bill: "+nonePAtientBill.getAmount()+" With ID: "+ nonePAtientBill.getPatientBillId());
+			noneCons.setPatientBill(nonePAtientBill);
+			noneCons.addBillItem(psb);
+			ConsommationUtil.saveConsommation(noneCons);
+			System.out.println("After save Consommation: "+noneCons.getPatientBill().getAmount()+" With ID: "+ noneCons.getPatientBill().getPatientBillId());
+			GlobalBill globalBillNone=noneCons.getGlobalBill();
+			globalBillNone.setGlobalAmount(globalBillNone.getGlobalAmount().add(psbAmount));
+			globalBillNone=GlobalBillUtil.saveGlobalBill(globalBillNone);
 
-			if (request.getParameter("privateCardNumber") !="" && request.getParameter("privateCardNumber") !=null) {
 
 
-			}
+
+			//PatientServiceBill psbOld  = ConsommationUtil.getPatientServiceBill(patientServiceBillId);
+			//Consommation oldCons=ConsommationUtil.getConsommation(psbOld.getConsommation().getConsommationId());
+			PatientBill oldPAtientBill = oldCons.getPatientBill();
+			InsuranceBill oldInsuranceBill=oldCons.getInsuranceBill();
+
+
+			ThirdParty thirdParty =oldCons.getBeneficiary().getInsurancePolicy().getThirdParty();
+			InsuranceRate validRate=oldCons.getBeneficiary().getInsurancePolicy().getInsurance().getRateOnDate(new Date());
+			Float rateToPay=null;		//rate based on which the amount is calculated
+			Float insRateToPay=null;
+			if(thirdParty == null)
+				rateToPay = 100-validRate.getRate();
+			else
+				rateToPay = (100-validRate.getRate())-thirdParty.getRate();
+
+			BigDecimal amountToReduceOnPatientBill=psbOld.getQuantity().multiply(psbOld.getService().getMaximaToPay()).multiply(BigDecimal.valueOf(rateToPay/100));
+
+			oldPAtientBill.setAmount(oldPAtientBill.getAmount().subtract(amountToReduceOnPatientBill));
+			oldCons.setPatientBill(oldPAtientBill);
+			insRateToPay=100-rateToPay;
+			BigDecimal amountToReduceOnInsuranceBill=psbOld.getQuantity().multiply(psbOld.getService().getMaximaToPay().multiply(BigDecimal.valueOf(insRateToPay/100)));
+			oldInsuranceBill.setAmount(oldInsuranceBill.getAmount().subtract(amountToReduceOnInsuranceBill));
+
+			oldCons.setPatientBill(oldPAtientBill);
+			oldCons.setInsuranceBill(oldInsuranceBill);
+			InsuranceBillUtil.saveInsuranceBill(oldInsuranceBill);
+			PatientBillUtil.savePatientBill(oldPAtientBill);
+			ConsommationUtil.saveConsommation(oldCons);
+
+			GlobalBill globalBillOld=oldCons.getGlobalBill();
+			globalBillOld.setGlobalAmount(globalBillOld.getGlobalAmount().subtract(amountToReduceOnPatientBill));
+			globalBillOld.setGlobalAmount(globalBillOld.getGlobalAmount().subtract(amountToReduceOnInsuranceBill));
+			globalBillOld=GlobalBillUtil.saveGlobalBill(globalBillOld);
+
+
+			System.out.println("Consommantion Old after Save: "+oldCons.getConsommationId());
+			System.out.println("Patient Bill Old after Save: "+oldPAtientBill.getPatientBillId()+" "+oldPAtientBill.getAmount());
+			System.out.println("Patient Bill Old after Save: "+oldInsuranceBill.getInsuranceBillId()+" "+oldInsuranceBill.getAmount());
+
 
 		}
-		/*Consommation consommation = ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
-		PatientBill currentPb =consommation.getPatientBill();
-		InsuranceBill currentIb=consommation.getInsuranceBill();
-		Set<PatientServiceBill> servicesBill=consommation.getBillItems();
-
-		BigDecimal totalAmount = new BigDecimal(0);
-		BigDecimal totalMaximaTopay=new BigDecimal(0);
-
-		for (PatientServiceBill  serviceBill : servicesBill) {
-
-			*//*BigDecimal qty = serviceBill.getQuantity();
-			PatientServiceBill cpyPsb = new PatientServiceBill();
-			cpyPsb.setUnitPrice(psb.getUnitPrice());
-			qty = psb.getQuantity();
-			cpyPsb.setQuantity(qty);
-			cpyPsb.setCreator(Context.getAuthenticatedUser());
-			cpyPsb.setCreatedDate(new Date());
-			cpyPsb.setConsommation(cpyConsom);
-			cpyPsb.setServiceDate(psb.getServiceDate());*//*
-
-			totalAmount = totalAmount.add(serviceBill.getQuantity().multiply(serviceBill.getUnitPrice()));
-			totalMaximaTopay=totalMaximaTopay.add(serviceBill.getService().getMaximaToPay());
-			//cpyConsom.addBillItem(cpyPsb);
-		}
-		InsurancePolicy newInsurancePolicy=InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")).getInsurancePolicy();
-
-		if (newInsurancePolicy!=null) {
-			PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, newInsurancePolicy);
-			InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(newInsurancePolicy.getInsurance(), totalAmount);
-
-			//ThirdPartyBill thirdPartyBill =	ThirdPartyBillUtil.createThirdPartyBill(existingConsom.getBeneficiary().getInsurancePolicy(), totalAmount);
-
-			GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(newInsurancePolicy.getInsuranceCardNo());
-			if (gb != null) {
-
-
-				BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
-				gb.setGlobalAmount(globalAmount);
-				gb = GlobalBillUtil.saveGlobalBill(gb);
-
-				GlobalBill oldGb = consommation.getGlobalBill();
-				BigDecimal oldGlobalAmount = oldGb.getGlobalAmount().subtract(totalMaximaTopay);
-				oldGb = GlobalBillUtil.saveGlobalBill(oldGb);
-
-
-				consommation.setBeneficiary(InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")));
-				consommation.setGlobalBill(gb);
-				consommation.setPatientBill(pb);
-				consommation.setInsuranceBill(ib);
-				//consommation.setThirdPartyBill(thirdPartyBill);
-
-				Consommation saveConsommation = ConsommationUtil.saveConsommation(consommation);
-			} else {
-				// alert on no Admission opened
-				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-						"No admission opened by using "+request.getParameter("newCardNumber"));
-			}
-		}else{
-			// alert on ipCardNumber invalid
+		if(lastNoneCons > 0){
+			request.getSession().setAttribute(
+					WebConstants.OPENMRS_MSG_ATTR,
+					"Transfer of item(s) has been saved successfully !");
+		}else {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-					request.getParameter("newCardNumber")+" is invalid, Please it check again");
+					"Transfer of item(s) has been failed! Check if you selected at least one item. ");
 		}
-		*/
+
 		BillPayment payment = null;
 		return payment;
 	}
