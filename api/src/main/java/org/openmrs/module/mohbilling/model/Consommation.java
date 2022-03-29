@@ -49,12 +49,12 @@ Consommation {
 		
 	}
 	
-	public Consommation(GlobalBill gb,Beneficiary ben,Date createDate,User creator,Boolean isVoided){
+	public Consommation(GlobalBill gb,Beneficiary ben,Date createDate,User creator, Boolean voided){
 		this.globalBill=gb;
 		this.beneficiary=ben;
 		this.createdDate=createDate;
 		this.creator=creator;
-		this.voided=isVoided();
+		this.voided=voided;
 	}
 
 	/**
@@ -124,7 +124,7 @@ Consommation {
 	}
 
 	/**
-	 * @param bill
+	 * @param patientBill
 	 *            the bill to set
 	 */
 	public void setPatientBill(PatientBill patientBill) {
@@ -205,13 +205,6 @@ Consommation {
 	 */
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
-	}
-
-	/**
-	 * @return the voided
-	 */
-	public boolean isVoided() {
-		return voided;
 	}
 
 	/**

@@ -228,8 +228,6 @@ public class Insurance implements Comparable<Insurance> {
 	}
 
 	/**
-	 * @param date
-	 *            , the date to be matched
 	 * @return today or current insuranceRate
 	 */
 	public InsuranceRate getCurrentRate() {
@@ -300,7 +298,7 @@ public class Insurance implements Comparable<Insurance> {
 				+ "\n - Insurance Name : " + this.name + "\n - Address : "
 				+ this.address + "\n - Insurance Concept : "
 				+ this.getConcept().getDisplayString() + "\n - Creator : "
-				+ this.creator.getName();
+				+ this.creator.getUsername();
 	}
 
 	/*

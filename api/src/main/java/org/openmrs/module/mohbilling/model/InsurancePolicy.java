@@ -259,7 +259,7 @@ public class InsurancePolicy {
 	/**
 	 * Adds the beneficiary to the list of beneficiary of this InsurancePolicy
 	 * 
-	 * @param beneficiary
+	 * @param b
 	 *            , the beneficiary to be added
 	 * @return true when the beneficiary is added successfully, false otherwise
 	 */
@@ -331,7 +331,7 @@ public class InsurancePolicy {
 				+ "\n - Card No : " + this.insuranceCardNo
 				+ "\n - Coverage Start Date : "
 				+ this.coverageStartDate.toString() + "\n - Creator : "
-				+ this.creator.getName();
+				+ this.creator.getUsername();
 
 	}
 

@@ -169,7 +169,7 @@ public class InsuranceRate implements Comparable<InsuranceRate> {
 				+ "\n - Insurance Rate : " + this.rate + "\n - Flat Fee : "
 				+ this.flatFee + "\n - Start Date : "
 				+ this.startDate.toString() + "\n - Creator : "
-				+ this.creator.getName();
+				+ this.creator.getUsername();
 	}
 
 	@Override

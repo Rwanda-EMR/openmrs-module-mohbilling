@@ -192,9 +192,9 @@ public class ReportsUtil {
 		List<BillPayment> payments = new ArrayList<BillPayment>();
 
 		for (PatientBill pb : getService().getAllPatientBills())
-			if (!pb.isVoided() && pb.getPayments() != null)
+			if (!pb.getVoided() && pb.getPayments() != null)
 				for (BillPayment bp : pb.getPayments())
-					if (!bp.isVoided()
+					if (!bp.getVoided()
 							&& bp.getDateReceived().compareTo(day) == 0)
 						payments.add(bp);
 
@@ -227,20 +227,6 @@ public class ReportsUtil {
 	 */
 	// Wonder if it is not the same as above
 
-
-	/**
-	 * 
-	 * gets all patients' bills by facility service
-	 * 
-	 * @param sc
-	 * @param startDate
-	 * @param endDate
-	 * @param patient
-	 * @param insurance
-	 * @return bills the list of matched PatientBill
-	 */
-
-	
 	static public double roundTwoDecimals(double d) {
 		DecimalFormat twoDForm = new DecimalFormat("#.##");
 		return Double.valueOf(twoDForm.format(d));
@@ -412,7 +398,7 @@ public class ReportsUtil {
 	}
 	/**
 	 * gets a list of consommations matching with a given global bill list
-	 * @param gb
+	 * @param globalBills
 	 * @return list of Consommations
 	 */
 	public static List<Consommation> getConsommationByGlobalBills(List<GlobalBill> globalBills){
@@ -642,7 +628,7 @@ public class ReportsUtil {
 	/**
 	 * gets total of items matching any of grouped category
 	 * @param billItems
-	 * @param category
+	 * @param hopServices
 	 * @return
 	 */
 	public static BigDecimal getTotalByCategorizedItems(List<PatientServiceBill> billItems,List<HopService> hopServices){
@@ -668,7 +654,7 @@ public class ReportsUtil {
 		for (GlobalBill gb : globalBills) {
 			for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
 				for (PatientServiceBill psb : c.getBillItems()) {
-					if(!psb.isVoided())
+					if(!psb.getVoided())
 					allItems.add(psb);
 				}
 			}

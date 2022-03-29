@@ -284,13 +284,6 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	}
 
 	/**
-	 * @return the voided
-	 */
-	public Boolean isVoided() {
-		return voided;
-	}
-
-	/**
 	 * @param voided
 	 *            the voided to set
 	 */
@@ -425,17 +418,13 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	@Override
 	public int compareTo(PatientServiceBill other) {
-		int ret = OpenmrsUtil.compareWithNullAsGreatest(this.isVoided(), other
-				.isVoided());
+		int ret = OpenmrsUtil.compareWithNullAsGreatest(this.getVoided(), other.getVoided());
 		if (ret == 0)
-			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getServiceDate(),
-					other.getServiceDate());
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getServiceDate(), other.getServiceDate());
 		if (ret == 0 && this.getCreatedDate() != null)
-			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getCreatedDate(),
-					other.getCreatedDate());
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getCreatedDate(), other.getCreatedDate());
 		if (ret == 0 && this.getCreatedDate() != null)
-			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other
-					.hashCode());
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other.hashCode());
 		return ret;
 	}
 }

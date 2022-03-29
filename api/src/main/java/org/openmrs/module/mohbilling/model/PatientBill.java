@@ -121,13 +121,6 @@ public class PatientBill {
 	}
 
 	/**
-	 * @return the voided
-	 */
-	public Boolean isVoided() {
-		return voided;
-	}
-
-	/**
 	 * @param voided
 	 *            the voided to set
 	 */
