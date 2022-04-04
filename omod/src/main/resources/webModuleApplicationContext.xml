@@ -158,7 +158,7 @@
 	<bean id="mohBillingDepartmentListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentListController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingDepartmentList</value></property>
 	</bean>
-	<bean id="mohBillingHopServiceListController	" class="org.openmrs.module.mohbilling.web.controller.MohBillingHopServiceListController">
+	<bean id="mohBillingHopServiceListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingHopServiceListController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingHopServiceList</value></property>
 	</bean>
 	<bean id="mohBillingHopserviceFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingHopserviceFormController">

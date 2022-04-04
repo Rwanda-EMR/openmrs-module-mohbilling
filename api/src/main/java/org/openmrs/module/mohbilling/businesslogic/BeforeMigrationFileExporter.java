@@ -257,7 +257,7 @@ public class BeforeMigrationFileExporter {
 		BigDecimal dueAmountp = new BigDecimal(0);
 		for (PatientServiceBill itemp : consommation.getBillItems())
 		{
-			if(!itemp.isVoided()) {
+			if(!itemp.getVoided()) {
 
 				totale = totale.add(itemp.getQuantity().multiply(itemp.getUnitPrice()));
 				dueAmountp = totale.multiply(patientRate).divide(new BigDecimal(100));
@@ -433,7 +433,7 @@ public class BeforeMigrationFileExporter {
 				 table.addCell(cell);
 				 BigDecimal totalByService=new BigDecimal(0);
 				 for (PatientServiceBill item : sr.getBillItems()) {
-					 if(!item.isVoided()) {
+					 if(!item.getVoided()) {
 						 cell = new PdfPCell(fontSelector.process("" + df.format(item.getServiceDate())));
 						 table.addCell(cell);
 						 cell = new PdfPCell(fontSelector.process("" + item.getService().getFacilityServicePrice().getName()));
@@ -730,7 +730,7 @@ public class BeforeMigrationFileExporter {
 				 BigDecimal totalByCategory = new BigDecimal(0);
 				 for (PatientServiceBill item : r.getBillItems()) {
 					 i++;
-					 if(!item.isVoided()){
+					 if(!item.getVoided()){
 					cell = new PdfPCell(fontSelector.process(""+i));
 					table.addCell(cell);
 					 cell = new PdfPCell(fontSelector.process(""+df.format(item.getServiceDate())));

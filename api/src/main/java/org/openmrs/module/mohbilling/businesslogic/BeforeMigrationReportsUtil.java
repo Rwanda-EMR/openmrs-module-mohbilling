@@ -192,9 +192,9 @@ public class BeforeMigrationReportsUtil {
 		List<BillPayment> payments = new ArrayList<BillPayment>();
 
 		for (PatientBill pb : getService().getAllPatientBills())
-			if (!pb.isVoided() && pb.getPayments() != null)
+			if (!pb.getVoided() && pb.getPayments() != null)
 				for (BillPayment bp : pb.getPayments())
-					if (!bp.isVoided()
+					if (!bp.getVoided()
 							&& bp.getDateReceived().compareTo(day) == 0)
 						payments.add(bp);
 
@@ -614,7 +614,7 @@ public class BeforeMigrationReportsUtil {
 	/**
 	 * gets total of items matching any of grouped category
 	 * @param billItems
-	 * @param category
+	 * @param hopServices
 	 * @return
 	 */
 	public static BigDecimal getTotalByCategorizedItems(List<PatientServiceBill> billItems,List<HopService> hopServices){
@@ -640,7 +640,7 @@ public class BeforeMigrationReportsUtil {
 		for (GlobalBill gb : globalBills) {
 			for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
 				for (PatientServiceBill psb : c.getBillItems()) {
-					if(!psb.isVoided())
+					if(!psb.getVoided())
 					allItems.add(psb);
 				}
 			}

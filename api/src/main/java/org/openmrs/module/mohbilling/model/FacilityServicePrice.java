@@ -223,7 +223,7 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param retireReason2
+	 * @param retireReason
 	 *            the retireReason to set
 	 */
 	public void setRetireReason(String retireReason) {
@@ -375,7 +375,7 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 				+ "\n - Full Price : " + this.fullPrice + "\n - Location : "
 				+ this.location.getName() + "\n - Concept :"
 				+ this.concept.getDisplayString() + "\n - Creator : "
-				+ this.creator.getName();
+				+ this.creator.getUsername();
 	}
 
 	/**

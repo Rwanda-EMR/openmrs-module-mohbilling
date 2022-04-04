@@ -219,7 +219,7 @@ public class FileExporter {
 		BigDecimal unitPricep;
 
 		for(PatientServiceBill psbitems : consommation.getBillItems()) {
-			if (!psbitems.isVoided()) {
+			if (!psbitems.getVoided()) {
 				number = number + 1;
 				BigDecimal itemCostp = psbitems.getQuantity().multiply(psbitems.getUnitPrice()).multiply(patientRate).divide(new BigDecimal(100));
 				itemNamep = psbitems.getService().getFacilityServicePrice().getName();
@@ -373,7 +373,7 @@ public class FileExporter {
 		BigDecimal totalDueAmount = new BigDecimal(0);
 		for (PatientServiceBill item : consommation.getBillItems())
 		{
-			if(!item.isVoided()) {
+			if(!item.getVoided()) {
 
 				totale = totale.add(item.getQuantity().multiply(item.getUnitPrice()));
 				totalDueAmount = totale.multiply(patientRate).divide(new BigDecimal(100));
@@ -635,7 +635,7 @@ public class FileExporter {
 					table.addCell(cell);
 					BigDecimal totalByService=new BigDecimal(0);
 					for (PatientServiceBill item : sr.getBillItems()) {
-						if(!item.isVoided()) {
+						if(!item.getVoided()) {
 							cell = new PdfPCell(fontSelector.process("" + df.format(item.getServiceDate())));
 							table.addCell(cell);
 							cell = new PdfPCell(fontSelector.process("" + item.getService().getFacilityServicePrice().getName())) ;
@@ -1038,7 +1038,7 @@ public class FileExporter {
 				BigDecimal totalByCategory = new BigDecimal(0);
 				for (PatientServiceBill item : r.getBillItems()) {
 					i++;
-					if(!item.isVoided()){
+					if(!item.getVoided()){
 						cell = new PdfPCell(fontSelector.process(""+i));
 						table.addCell(cell);
 						cell = new PdfPCell(fontSelector.process(""+df.format(item.getServiceDate())));
@@ -1662,7 +1662,7 @@ public class FileExporter {
 		}
 
 		for(PatientServiceBill psbitems : consommation.getBillItems()) {
-			if (!psbitems.isVoided()) {
+			if (!psbitems.getVoided()) {
 				number = number + 1;
 				BigDecimal itemCostp = psbitems.getQuantity().multiply(psbitems.getUnitPrice()).multiply(patientRate).divide(new BigDecimal(100));
 				itemNamep = psbitems.getService().getFacilityServicePrice().getName();
@@ -1723,7 +1723,7 @@ public class FileExporter {
 		BigDecimal total = new BigDecimal(0);
 		for (PatientServiceBill item : consommation.getBillItems())
 		{
-			if(!item.isVoided()) {
+			if(!item.getVoided()) {
 				total = total.add(item.getQuantity().multiply(item.getUnitPrice()));
 				totalDueAmount = total.multiply(patientRate).divide(new BigDecimal(100));
 			}
@@ -2206,7 +2206,7 @@ public class FileExporter {
 		BigDecimal total = new BigDecimal(0);
 		for (PatientServiceBill item : consommation.getBillItems())
 		{
-			if(!item.isVoided()) {
+			if(!item.getVoided()) {
 				total = total.add(item.getQuantity().multiply(item.getUnitPrice()));
 				totalDueAmount = total.multiply(patientRate).divide(new BigDecimal(100));
 			}
@@ -2342,7 +2342,7 @@ public class FileExporter {
 		BigDecimal totalDueAmount = new BigDecimal(0);
 		for (PatientServiceBill item : consommation.getBillItems())
 		{
-			if(!item.isVoided()) {
+			if(!item.getVoided()) {
 
 				totale = totale.add(item.getQuantity().multiply(item.getUnitPrice()));
 				totalDueAmount = totale.multiply(patientRate).divide(new BigDecimal(100));

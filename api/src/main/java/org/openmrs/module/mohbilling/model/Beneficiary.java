@@ -265,7 +265,7 @@ public class Beneficiary implements Comparable<Beneficiary> {
 				+ "\n - Beneficiary Card No : " + this.policyIdNumber
 				+ "\n - Insurance policy No : "
 				+ this.insurancePolicy.getInsuranceCardNo() + "\n - Creator : "
-				+ this.creator.getName();
+				+ this.creator.getUsername();
 
 	}
 
