@@ -16,7 +16,6 @@ import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
@@ -117,6 +116,7 @@ public class MohBillingFacilityServiceFormController extends
 
 				// keep previews fs info before setting new price
 				fspCopy.setName(fs.getName());
+				fspCopy.setConcept(fs.getConcept());
 				fspCopy.setDescription(fs.getDescription());
 				fspCopy.setCategory(fs.getCategory());
 				fspCopy.setFullPrice(oldfs.getFullPrice());
@@ -145,6 +145,8 @@ public class MohBillingFacilityServiceFormController extends
 		try {
 			/*Create new facilityService*/
 			fs.setName(request.getParameter("facilityServiceName"));
+			fs.setConcept(Context.getConceptService().getConcept(Integer.valueOf(request
+					.getParameter("facilityServiceRelatedConcept"))));
 			fs.setShortName(request.getParameter("facilityServiceShortName"));
 			fs.setDescription(request
 					.getParameter("facilityServiceDescription"));
