@@ -31,13 +31,12 @@ public class CreateOPDAdmissionOnHtmlFormSubmissionAction implements CustomFormS
         List<Obs> currentInsuranceId = Utils.getLastNObservations(1, session.getPatient(), Context.getConceptService().getConcept(insuranceNumberConceptID), false);
         List<Obs> obs = session.getSubmissionActions().getObsToCreate();
 
-
-        if (currentInsuranceId.size() >= 1)
+        if (currentInsuranceId.size() >= 1) {
             insuranceCardNumber = currentInsuranceId.get(0).getValueText();
 
 
-        InsurancePolicy ip = Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
-        GlobalBill openGb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
+            InsurancePolicy ip = Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
+            GlobalBill openGb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
 
         if (openGb == null) {
             Admission admission = new Admission();
@@ -47,109 +46,109 @@ public class CreateOPDAdmissionOnHtmlFormSubmissionAction implements CustomFormS
             admission.setCreator(Context.getAuthenticatedUser());
             admission.setCreatedDate(new Date());
 
-            for (Obs o : obs) {
-                if (o.getConcept().getName().getName().equals("Disease Type")) {
-                    diseaseType = o.getValueCoded().getName().getName();
+                for (Obs o : obs) {
+                    if (o.getConcept().getName().getName().equals("Disease Type")) {
+                        diseaseType = o.getValueCoded().getName().getName();
+                    }
+
                 }
-
+                admission.setDiseaseType(diseaseType);
+                Admission savedAdmission = AdmissionUtil.savePatientAdmission(admission);
+                //create new Global bill
+                gb = new GlobalBill();
+                gb.setAdmission(savedAdmission);
+                gb.setBillIdentifier(ip.getInsuranceCardNo() + savedAdmission.getAdmissionId());
+                gb.setCreatedDate(new Date());
+                gb.setCreator(Context.getAuthenticatedUser());
+                gb.setInsurance(ip.getInsurance());
+                gb = GlobalBillUtil.saveGlobalBill(gb);
             }
-            admission.setDiseaseType(diseaseType);
-            Admission savedAdmission = AdmissionUtil.savePatientAdmission(admission);
 
-            //create new Global bill
-            gb = new GlobalBill();
-            gb.setAdmission(savedAdmission);
-            gb.setBillIdentifier(ip.getInsuranceCardNo() + savedAdmission.getAdmissionId());
-            gb.setCreatedDate(new Date());
-            gb.setCreator(Context.getAuthenticatedUser());
-            gb.setInsurance(ip.getInsurance());
-            gb = GlobalBillUtil.saveGlobalBill(gb);
-        }
-
-        if (gb != null && gb.getInsurance().getCategory() != "NONE") {
             if (gb != null && gb.getInsurance().getCategory() != "NONE") {
-                List<InsurancePolicy> insurancePolicies = Context.getService(BillingService.class).getAllInsurancePoliciesByPatient(session.getPatient());
-                for (InsurancePolicy insp : insurancePolicies) {
-                    if (insp.getInsurance().getCategory().equals("NONE") && (insp.getExpirationDate().after(new Date()))) {
-                        Admission admissionNone = new Admission();
-                        admissionNone.setAdmissionDate(new Date());
-                        admissionNone.setInsurancePolicy(insp);
-                        admissionNone.setIsAdmitted(false);
-                        admissionNone.setCreator(Context.getAuthenticatedUser());
-                        admissionNone.setCreatedDate(new Date());
-                        for (Obs o : obs) {
-                            if (o.getConcept().getName().getName().equals("Disease Type")) {
-                                diseaseType = o.getValueCoded().getName().getName();
+                //if (gb != null && gb.getInsurance().getCategory() != "NONE") {
+                    List<InsurancePolicy> insurancePolicies = Context.getService(BillingService.class).getAllInsurancePoliciesByPatient(session.getPatient());
+                    for (InsurancePolicy insp : insurancePolicies) {
+                        if (insp.getInsurance().getCategory().equals("NONE") && (insp.getExpirationDate().after(new Date())) && Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(insp.getInsuranceCardNo()) == null) {
+                            Admission admissionNone = new Admission();
+                            admissionNone.setAdmissionDate(new Date());
+                            admissionNone.setInsurancePolicy(insp);
+                            admissionNone.setIsAdmitted(false);
+                            admissionNone.setCreator(Context.getAuthenticatedUser());
+                            admissionNone.setCreatedDate(new Date());
+                            for (Obs o : obs) {
+                                if (o.getConcept().getName().getName().equals("Disease Type")) {
+                                    diseaseType = o.getValueCoded().getName().getName();
+                                }
+
+                            }
+                            admissionNone.setDiseaseType(diseaseType);
+                            Admission savedAdmissionNone = AdmissionUtil.savePatientAdmission(admissionNone);
+
+                            //create new Global bill
+                            GlobalBill gbNone = null;
+                            gbNone = new GlobalBill();
+                            gbNone.setAdmission(savedAdmissionNone);
+                            gbNone.setBillIdentifier(insp.getInsuranceCardNo() + savedAdmissionNone.getAdmissionId());
+                            gbNone.setCreatedDate(new Date());
+                            gbNone.setCreator(Context.getAuthenticatedUser());
+                            gbNone.setInsurance(insp.getInsurance());
+                            gbNone = GlobalBillUtil.saveGlobalBill(gbNone);
+
+                            //Create Private admission consommation
+                            BigDecimal totalMaximaToPayNone = new BigDecimal(0);
+                            PatientServiceBill psbNone = new PatientServiceBill();
+                            FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByName("Private Admission");
+                            if (fsp != null) {
+                                BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp, insp.getInsurance());
+                                if (bs != null) {
+                                    totalMaximaToPayNone = totalMaximaToPayNone.add(bs.getMaximaToPay().multiply(new BigDecimal(1)));
+                                    psbNone.setService(bs);
+                                    psbNone.setServiceDate(new Date());
+                                    psbNone.setUnitPrice(bs.getMaximaToPay());
+                                    psbNone.setQuantity(new BigDecimal(1));
+                                    psbNone.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
+                                    psbNone.setCreator(Context.getAuthenticatedUser());
+                                    psbNone.setCreatedDate(new Date());
+                                }
                             }
 
-                        }
-                        admissionNone.setDiseaseType(diseaseType);
-                        Admission savedAdmissionNone = AdmissionUtil.savePatientAdmission(admissionNone);
+                            //patient bill none
+                            PatientBill pbn = PatientBillUtil.createPatientBill(totalMaximaToPayNone, insp);
+                            InsuranceBill ibn = InsuranceBillUtil.createInsuranceBill(insp.getInsurance(), totalMaximaToPayNone);
 
-                        //create new Global bill
-                        GlobalBill gbNone = null;
-                        gbNone = new GlobalBill();
-                        gbNone.setAdmission(savedAdmissionNone);
-                        gbNone.setBillIdentifier(insp.getInsuranceCardNo() + savedAdmissionNone.getAdmissionId());
-                        gbNone.setCreatedDate(new Date());
-                        gbNone.setCreator(Context.getAuthenticatedUser());
-                        gbNone.setInsurance(insp.getInsurance());
-                        gbNone = GlobalBillUtil.saveGlobalBill(gbNone);
+                            for (Obs o : obs) {
 
-                        //Create Private admission consommation
-                        BigDecimal totalMaximaToPayNone = new BigDecimal(0);
-                        PatientServiceBill psbNone = new PatientServiceBill();
-                        FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByName("Private Admission");
-                        if (fsp != null) {
-                            BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp, insp.getInsurance());
-                            if (bs != null) {
-                                totalMaximaToPayNone = totalMaximaToPayNone.add(bs.getMaximaToPay().multiply(new BigDecimal(1)));
-                                psbNone.setService(bs);
-                                psbNone.setServiceDate(new Date());
-                                psbNone.setUnitPrice(bs.getMaximaToPay());
-                                psbNone.setQuantity(new BigDecimal(1));
-                                psbNone.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
-                                psbNone.setCreator(Context.getAuthenticatedUser());
-                                psbNone.setCreatedDate(new Date());
-                            }
-                        }
-
-                        //patient bill none
-                        PatientBill pbn = PatientBillUtil.createPatientBill(totalMaximaToPayNone, insp);
-                        InsuranceBill ibn = InsuranceBillUtil.createInsuranceBill(insp.getInsurance(), totalMaximaToPayNone);
-
-                        for (Obs o : obs) {
-
-                            if (dp == null && o.getValueCoded() != null) {
-                                for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
-                                    if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
-                                        dp = dept;
-                                        break;
+                                if (dp == null && o.getValueCoded() != null) {
+                                    for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
+                                        if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
+                                            dp = dept;
+                                            break;
+                                        }
                                     }
                                 }
                             }
+                            Consommation cns = new Consommation();
+                            cns.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insp.getInsuranceCardNo()));
+                            cns.setPatientBill(pbn);
+                            cns.setInsuranceBill(ibn);
+                            cns.setGlobalBill(gbNone);
+                            cns.setCreatedDate(new Date());
+                            cns.setCreator(Context.getAuthenticatedUser());
+                            cns.setDepartment(dp);
+                            ConsommationUtil.saveConsommation(cns);
+                            psbNone.setConsommation(cns);
+                            ConsommationUtil.createPatientServiceBill(psbNone);
+                            //cons.addBillItem(psb);
+                            break;
+
                         }
-                        Consommation cns = new Consommation();
-                        cns.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insp.getInsuranceCardNo()));
-                        cns.setPatientBill(pbn);
-                        cns.setInsuranceBill(ibn);
-                        cns.setGlobalBill(gbNone);
-                        cns.setCreatedDate(new Date());
-                        cns.setCreator(Context.getAuthenticatedUser());
-                        cns.setDepartment(dp);
-                        ConsommationUtil.saveConsommation(cns);
-                        psbNone.setConsommation(cns);
-                        ConsommationUtil.createPatientServiceBill(psbNone);
-                        //cons.addBillItem(psb);
-                        break;
+
 
                     }
-
-
-                }
+                //}
             }
+
+
         }
-
-
     }
 }

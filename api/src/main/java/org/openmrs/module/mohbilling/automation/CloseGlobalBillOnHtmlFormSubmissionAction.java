@@ -64,7 +64,7 @@ if(currentInsurance.size()>=1)
             if (insp.getInsurance().getCategory().equals("NONE")) {
                 GlobalBill noneOpenedGB= Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(insp.getInsuranceCardNo());
                 if (noneOpenedGB!=null){
-                    noneOpenedGB.setClosingDate(new Date());
+                    noneOpenedGB.setClosingDate(closingDate);
                     noneOpenedGB.setClosed(true);
                     noneOpenedGB.setClosedBy(Context.getAuthenticatedUser());
                     noneOpenedGB = GlobalBillUtil.saveGlobalBill(noneOpenedGB);
