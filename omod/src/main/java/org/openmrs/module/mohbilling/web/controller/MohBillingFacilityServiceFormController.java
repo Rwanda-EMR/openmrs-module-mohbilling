@@ -13,6 +13,8 @@ import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
@@ -35,6 +37,7 @@ public class MohBillingFacilityServiceFormController extends
 	protected final Log log = LogFactory.getLog(getClass());
 
 	@Override
+	@RequestMapping(value = "module/mohbilling/facilityService.form", method = RequestMethod.POST)
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 												 HttpServletResponse response) throws Exception {
 

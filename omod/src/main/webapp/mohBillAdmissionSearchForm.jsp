@@ -1,5 +1,7 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
+<openmrs:require privilege="Manage Admission" otherwise="/login.htm" redirect="/module/@MODULE_ID@/admissionSearch.form" />
+
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ taglib prefix="mohbilling_tag" tagdir="/WEB-INF/tags/module/mohbilling" %>
 

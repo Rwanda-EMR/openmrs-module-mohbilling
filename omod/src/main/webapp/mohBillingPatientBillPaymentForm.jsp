@@ -2,6 +2,9 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
+<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/patientBillPayment.form" />
+
+
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
@@ -347,8 +350,12 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 			<td colspan="2"><div><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&type=epson">EPSON Printer</a></div></td>
 			</tr>-->
 		</table>
+		<c:if test="${empty consommation.patientBill.payments && !consommation.globalBill.closed}">
+		<openmrs:hasPrivilege privilege="Add Item">
 		Private Card Number: <input type="text" name="privateCardNumber" size="11"/>
         <input type="submit" name="billTransferItems" value="Confirm Items transfer" style="min-width: 200px;"/>
+        </openmrs:hasPrivilege>
+        </c:if>
 </form>
 </div>
 <br/>

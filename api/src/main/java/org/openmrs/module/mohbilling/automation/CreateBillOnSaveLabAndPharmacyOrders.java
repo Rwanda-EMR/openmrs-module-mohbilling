@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.openmrs.Concept;
 import org.openmrs.Drug;
@@ -28,7 +29,7 @@ import org.openmrs.module.mohbilling.utils.Utils;
 
 public class CreateBillOnSaveLabAndPharmacyOrders{
 
-public static void createBillOnSaveLabOrders(List<Concept> labOrdersConceptsList, Patient patient){
+public static void createBillOnSaveLabOrders(Set<Concept> labOrdersConceptsList, Patient patient){
     Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
     String insuranceCardNumber=null;
     List<Obs> currentInsuranceId=Utils.getLastNObservations(1,patient,Context.getConceptService().getConcept(insuranceNumberConceptID),false);
@@ -71,6 +72,7 @@ public static void createBillOnSaveLabOrders(List<Concept> labOrdersConceptsList
 
 if(psbList.size()>0) {
     GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
+    BigDecimal total=gb.getGlobalAmount().add(totalMaximaTopay);
     BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
     gb.setGlobalAmount(globalAmount);
     gb = GlobalBillUtil.saveGlobalBill(gb);

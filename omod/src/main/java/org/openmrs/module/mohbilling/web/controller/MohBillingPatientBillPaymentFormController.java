@@ -8,6 +8,8 @@ import org.openmrs.module.mohbilling.businesslogic.*;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -29,6 +31,7 @@ public class MohBillingPatientBillPaymentFormController extends
 	protected final Log log = LogFactory.getLog(getClass());
 
 	@Override
+	@RequestMapping(value = "module/mohbilling/patientBillPayment.form", method = RequestMethod.POST)
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 												 HttpServletResponse response) throws Exception {
 

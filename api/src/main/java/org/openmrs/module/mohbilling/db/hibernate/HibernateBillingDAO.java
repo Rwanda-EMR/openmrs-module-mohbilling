@@ -132,6 +132,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		return (BillableService) sessionFactory.getCurrentSession()
 				.createCriteria(BillableService.class)
 				.add(Restrictions.eq("facilityServicePrice", price))
+				.add(Restrictions.eq("retired", false))
 				.add(Restrictions.eq("insurance", insurance)).uniqueResult();
 	}
 
@@ -615,6 +616,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		return (FacilityServicePrice) sessionFactory.getCurrentSession()
 				.createCriteria(FacilityServicePrice.class)
+				.add(Restrictions.eq("retired", false))
 				.add(Restrictions.eq("concept", concept)).uniqueResult();
 	}
 
@@ -1589,7 +1591,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
 		return (FacilityServicePrice) sessionFactory.getCurrentSession()
 				.createCriteria(FacilityServicePrice.class)
-				.add(Restrictions.eq("name", name)).uniqueResult();
+				.add(Restrictions.eq("name", name)).add(Restrictions.eq("retired", false)).uniqueResult();
 	}
 
 }

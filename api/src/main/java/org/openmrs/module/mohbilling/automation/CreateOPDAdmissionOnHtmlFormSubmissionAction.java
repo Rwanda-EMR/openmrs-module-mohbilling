@@ -124,6 +124,7 @@ public class CreateOPDAdmissionOnHtmlFormSubmissionAction implements CustomFormS
                                 for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
                                     if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
                                         dp = dept;
+                                        break;
                                     }
                                 }
                             }

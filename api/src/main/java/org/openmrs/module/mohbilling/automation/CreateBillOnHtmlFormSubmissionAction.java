@@ -59,6 +59,7 @@ if(currentInsuranceId.size()>=1)
               for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
                   if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
                       department = dept;
+                      break;
                   }
               }
           }
@@ -100,7 +101,6 @@ if(currentInsuranceId.size()>=1)
                     psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
                     psb.setCreator(Context.getAuthenticatedUser());
                     psb.setCreatedDate(new Date());
-
                     psbList.add(psb);
                 }
 

@@ -76,164 +76,210 @@
 	<bean id="billingPortletController" class="org.openmrs.module.mohbilling.web.controller.BillingDashboardPortletController" />
 
 	<bean id="mohBillingThirdPatryFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingThirdPatryFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingThirdPartyForm</value></property>
 	</bean>
 	<bean id="mohBillingInsuranceListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsuranceList</value></property>
 	</bean>
 
 	<bean id="mohBillingInsuranceFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsuranceForm</value></property>
 	</bean>
 
 	<bean id="mohBillingInsuranceServiceCategoryListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceServiceCategoryListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsuranceServiceCategoryList</value></property>
 	</bean>
 
 	<bean id="mohBillingInsuranceServiceCategoryFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceServiceCategoryFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsuranceServiceCategoryForm</value></property>
 	</bean>
 
 	<bean id="mohBillingFacilityServiceFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingFacilityServiceFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingFacilityServiceForm</value></property>
 	</bean>
 
 	<bean id="mohBillingFacilityServiceListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingFacilityServiceListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingFacilityServiceList</value></property>
 	</bean>
 
 	<bean id="mohBillingFacilityServiceByInsuranceCompanyListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingFacilityServiceByInsuranceCompanyListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingFacilityServiceByInsuranceCompanyList</value></property>
 	</bean>
 
 	<bean id="mohBillingBillableServiceFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillableServiceFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsuranceBillableServiceForm</value></property>
 	</bean>
 
 	<bean id="mohBillingBillableServiceListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillableServiceListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsuranceBillableServiceList</value></property>
 	</bean>
 
 	<bean id="mohBillingBillableServiceByServiceCategoryListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillableServiceByServiceCategoryListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsuranceBillableServiceByServiceCategoryList</value></property>
 	</bean>
 
 	<bean id="mohBillingBillingFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillingFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingBillingForm</value></property>
 	</bean>
 
 	<bean id="mohBillingBillingPatientSearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillingPatientSearchFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingBillingPatientSearchForm</value></property>
 	</bean>
 
 	<bean id="mohBillingPatientBillPaymentFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingPatientBillPaymentFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingPatientBillPaymentForm</value></property>
 	</bean>
 
 	<bean id="mohBillingInsurancePolicySearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsurancePolicySearchFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsurancePolicySearchForm</value></property>
 	</bean>
 
 	<bean id="mohBillingInsurancePolicyFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsurancePolicyFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/@MODULE_ID@/mohBillingInsurancePolicyForm</value></property>
 	</bean>
 
 	<bean id="mohBillingReceivedController" class="org.openmrs.module.mohbilling.web.controller.MohBillingrReceivedAmountController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingReceivedAmount</value></property>
 	</bean>
 	<bean id="mohBillingRefundReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundReportController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingRefundReport</value></property>
 	</bean>
 	<bean id="mohBillingAdminFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdminFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingAdminForm</value></property>
 	</bean>
 
 	<bean id="mohBillingDepartmentFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingDepartmentForm</value></property>
 	</bean>
 
 	<bean id="mohBillingAdmissionFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdmissionFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingAdmissionForm</value></property>
 	</bean>
 	<bean id="mohBillingDepartmentListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingDepartmentList</value></property>
 	</bean>
 	<bean id="mohBillingHopServiceListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingHopServiceListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingHopServiceList</value></property>
 	</bean>
 	<bean id="mohBillingHopserviceFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingHopserviceFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingHopServiceForm</value></property>
 	</bean>
 	<bean id="mohBillingAdmissionSearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdmissionSearchFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillAdmissionSearchForm</value></property>
 	</bean>
 	<bean id="mohBillingGlobalBillListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingGlobalBillListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingGlobalBillList</value></property>
 	</bean>
 	<bean id="mohBillingConsommationListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingConsommationListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingConsommationList</value></property>
 	</bean>
 	<bean id="mohBillingSearchPatientAccountFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingSearchPatientAccountFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingSearchPatientAccountForm</value></property>
 	</bean>
 	<bean id="mohBillingTransactionFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingTransactionFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingTransactionForm</value></property>
 	</bean>
 	<bean id="mohBillingBillSearchFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillSearchFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingBillSearchForm</value></property>
 	</bean>
 	<bean id="mohBillingConsommationFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingConsommationFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingConsommationForm</value></property>
 	</bean>
 	<bean id="mohBillingSearchBillPaymentController" class="org.openmrs.module.mohbilling.web.controller.MohBillingSearchBillPaymentController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingBillPaymentSearch</value></property>
 	</bean>
 	<bean id="mohBillingRefundFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingRefundForm</value></property>
 	</bean>
 	<bean id="mohBillingConfigurationFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingConfigurationFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingConfigurationForm</value></property>
 	</bean>
 	<bean id="mohBillingReportFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingReportFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingReportForm</value></property>
 	</bean>
 
 	<bean id="mohBillingRefundedItemListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRefundedItemListController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingRefundedItemList</value></property>
 	</bean>
 
 	<bean id="mohBillingCashierReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCashierReportController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingCashierReportForm</value></property>
 	</bean>
 
 	<bean id="mohBillingServiceRevenueReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingServiceRevenueReportController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingServiceRevenueReport</value></property>
 	</bean>
 
 	<bean id="mohBillingInsuranceReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceReportController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceReport</value></property>
 	</bean>
 
 	<bean id="mohBillingThirdPartyReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingThirdPartyReportController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingThirdPartyReport</value></property>
 	</bean>
 
 	<bean id="mohBillingViewRefundedItemsController" class="org.openmrs.module.mohbilling.web.controller.MohBillingViewRefundedItemsController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingViewRefundedItems</value></property>
 	</bean>
 	<bean id="mohBillingViewGlobalBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingViewGlobalBillController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingViewGlobalBill</value></property>
 	</bean>
 	<bean id="mohBillingCohortBuilderFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCohortBuilderFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingCohortBuilderForm</value></property>
 	</bean>
 	<bean id="mohBillingDepositReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepositReportController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingDepositReport</value></property>
 	</bean>
 	<bean id="mohBillingsessionControlFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingsessionControlFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingsessionControlForm</value></property>
 	</bean>
 	<bean id="beforemigrationmohBillingCashierReportController" class="org.openmrs.module.mohbilling.web.controller.BeforeMigrationMohBillingCashierReportController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/beforeMigrationmohBillingCashierReportForm</value></property>
 	</bean>
 

@@ -13,7 +13,7 @@
 <!-- script to create a pop up windows for unpaid bills -->
 <openmrs:htmlInclude file="/moduleResources/mohbilling/pop_style.css" /> 
 
-
+<openmrs:require privilege="Billing Configuration - View Billing Admin" otherwise="/login.htm" redirect="/module/@MODULE_ID@/billingAdmin.form" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
 
