@@ -28,9 +28,9 @@
 
 	<openmrs:hasPrivilege privilege="Manage Billing Reports">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
-			<a href="cashierReport.form"><spring:message
+		<a href="cohort.form"><spring:message
 					code="@MODULE_ID@.billing.report" /></a>
-		</li>
+						</li>
 	</openmrs:hasPrivilege>
 
 	<openmrs:hasPrivilege privilege="Billing Configuration - View Billing Admin">

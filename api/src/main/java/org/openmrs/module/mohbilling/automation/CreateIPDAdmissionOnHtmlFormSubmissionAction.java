@@ -161,4 +161,3 @@ if(currentInsuranceId.size()>=1)
         }
     }
 
-}

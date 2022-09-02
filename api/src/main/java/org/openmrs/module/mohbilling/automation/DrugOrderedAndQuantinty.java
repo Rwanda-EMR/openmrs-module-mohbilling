@@ -7,6 +7,15 @@ import java.math.BigDecimal;
 public class DrugOrderedAndQuantinty {
     public Drug drug;
     public BigDecimal quantity;
+    public String drugFrequency;
+
+    public String getDrugFrequency() {
+        return drugFrequency;
+    }
+
+    public void setDrugFrequency(String drugFrequency) {
+        this.drugFrequency = drugFrequency;
+    }
 
     public Drug getDrug() {
         return drug;
