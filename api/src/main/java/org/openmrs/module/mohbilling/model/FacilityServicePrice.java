@@ -38,34 +38,34 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	private Boolean hidden =false;
 
 
-	private Boolean itemType;
-	private Boolean hideItem;
+	private Integer itemType;
+	private Integer hideItem;
 
 	
 	/**
 	 * @return the item type status
 	 */
-	public Boolean getItemType(){
+	public Integer getItemType(){
 		return itemType;
 	}
 
 	/**
 	 * @param itemType
 	 */
-	public void setItemType(Boolean itemType){
+	public void setItemType(Integer itemType){
 		this.itemType = itemType;
 	}
 
 	/**
 	 * @return the hide item status
 	 */
-	public Boolean getHideItem(){
+	public Integer getHideItem(){
 		return hideItem;
 	}
 	/**
 	 * @param hideItem
 	 */
-	public void setHideItem(Boolean hideItem){
+	public void setHideItem(Integer hideItem){
 		this.hideItem = hideItem;
 	}
 
@@ -417,7 +417,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 				+ "\n - Full Price : " + this.fullPrice + "\n - Location : "
 				+ this.location.getName() + "\n - Concept :"
 				+ this.concept.getDisplayString() + "\n - Creator : "
-				+ this.creator.getUsername();
+				+ this.creator.getUsername()
+				;
 	}
 
 	/**
