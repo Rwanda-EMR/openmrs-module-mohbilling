@@ -35,6 +35,48 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	private Concept concept;
 	private User creator;
 	private User retiredBy;
+	private Boolean hidden =false;
+
+
+	private Integer itemType;
+	private Integer hideItem;
+
+	
+	/**
+	 * @return the item type status
+	 */
+	public Integer getItemType(){
+		return itemType;
+	}
+
+	/**
+	 * @param itemType
+	 */
+	public void setItemType(Integer itemType){
+		this.itemType = itemType;
+	}
+
+	/**
+	 * @return the hide item status
+	 */
+	public Integer getHideItem(){
+		return hideItem;
+	}
+	/**
+	 * @param hideItem
+	 */
+	public void setHideItem(Integer hideItem){
+		this.hideItem = hideItem;
+	}
+
+	public boolean isHidden (){
+		return hidden;
+	}
+
+	public void setHidden(Boolean hidden) {
+		this.hidden = hidden;
+	}
+
 	private Set<BillableService> billableServices;
 
 	/**
@@ -375,7 +417,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 				+ "\n - Full Price : " + this.fullPrice + "\n - Location : "
 				+ this.location.getName() + "\n - Concept :"
 				+ this.concept.getDisplayString() + "\n - Creator : "
-				+ this.creator.getUsername();
+				+ this.creator.getUsername()
+				;
 	}
 
 	/**
