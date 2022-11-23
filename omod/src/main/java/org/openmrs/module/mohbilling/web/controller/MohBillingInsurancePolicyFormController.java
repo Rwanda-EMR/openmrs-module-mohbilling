@@ -174,10 +174,10 @@ public class MohBillingInsurancePolicyFormController extends
 		/*end Edit insurance*/
 
 		InsurancePolicy card = null;
-
+		String dateCausingIssue = "";
 		try {
 			// insurancePolicy
-/*			if (request.getParameter("cardId") != null
+			/*if (request.getParameter("cardId") != null
 					&& !request.getParameter("cardId").equals("")) {
 				card = Context
 						.getService(BillingService.class)
@@ -206,7 +206,7 @@ public class MohBillingInsurancePolicyFormController extends
 					&& !request
 					.getParameter("insurancePolicyCoverageStartDate")
 					.equals("")) {
-
+				dateCausingIssue = "1." + request.getParameter("insurancePolicyCoverageStartDate");
 				card.setCoverageStartDate(Context
 						.getDateFormat()
 						.parse(request
@@ -216,7 +216,7 @@ public class MohBillingInsurancePolicyFormController extends
 			if (request.getParameter("insurancePolicyExpirationDate") != null
 					&& !request.getParameter("insurancePolicyExpirationDate")
 					.equals("")) {
-
+				dateCausingIssue = "2." + request.getParameter("insurancePolicyExpirationDate");
 				card.setExpirationDate(Context.getDateFormat().parse(
 						request.getParameter("insurancePolicyExpirationDate")));
 			}
@@ -295,7 +295,7 @@ public class MohBillingInsurancePolicyFormController extends
 					b.setOwnerCode(request.getParameter("ownerCode"));
 					b.setLevel(Integer.parseInt(request.getParameter("level")));
 					b.setCompany(request.getParameter("company"));
-				}else{
+				} else {
 					b.setOwnerName(request.getParameter(" "));
 					b.setOwnerCode(request.getParameter(" "));
 					b.setLevel(0);
@@ -303,10 +303,13 @@ public class MohBillingInsurancePolicyFormController extends
 				}
 				InsurancePolicyUtil.createInsurancePolicy(card, b);
 
+				// DateFormat sdf = new SimpleDateFormat("Mm/dd/yyyy");
 				DateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
 				Calendar cal = Calendar.getInstance();
+				dateCausingIssue = "3." + request.getParameter("insurancePolicyExpirationDate");
 				Date exp=Context.getDateFormat().parse(request.getParameter("insurancePolicyExpirationDate"));
+				dateCausingIssue = "4." + sdf.format(cal.getTime());
 				Date now=Context.getDateFormat().parse(sdf.format(cal.getTime()));
 
 				if(exp.before(now)){
@@ -330,7 +333,7 @@ public class MohBillingInsurancePolicyFormController extends
 
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					"The insurance policy has not been saved !");
-			log.error(">>>>MOH>>BILLING>> " + e.getMessage());
+			log.error(">>>>MOH>>BILLING>> " + e.getMessage() + " \nThe error message was at stage " + dateCausingIssue);
 			e.printStackTrace();
 
 			return false;
