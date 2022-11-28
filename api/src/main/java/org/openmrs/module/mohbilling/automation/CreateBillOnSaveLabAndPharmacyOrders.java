@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.openmrs.Concept;
-import org.openmrs.Drug;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
@@ -27,76 +26,119 @@ import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.utils.Utils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class CreateBillOnSaveLabAndPharmacyOrders{
 
-public static void createBillOnSaveLabOrders(Set<Concept> labOrdersConceptsList, Patient patient){
-    Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
-    String insuranceCardNumber=null;
-    List<Obs> currentInsuranceId=Utils.getLastNObservations(1,patient,Context.getConceptService().getConcept(insuranceNumberConceptID),false);
-    if(currentInsuranceId.size()>=1)
-        insuranceCardNumber=currentInsuranceId.get(0).getValueText();
-    InsurancePolicy ip =Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
+    protected static final Log log = LogFactory.getLog(CreateBillOnSaveLabAndPharmacyOrders.class);
 
+    public static List<Concept> notAvailableOnFacilityPriceList(List<Concept> labOrdersConceptsList){
+        //log.error("\n\n\n\notAvailableOnFacilityPriceList----------------------------------\n::::::::::::::;:::" + labOrdersConceptsList.size());
+        List<Concept> concepts = new ArrayList<>();
+        for(int count=0; count < labOrdersConceptsList.size(); count++){
+            //for (Concept concept:labOrdersConceptsList) {
+            Concept concept = labOrdersConceptsList.get(count);
+            log.error(concept.getDisplayString() + " is being checked for FSP existence!");
+            try{
+                FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(concept);
+                if (fsp!=null) {
+                    log.info(concept.getId() + " is found in the Facility Price List.");
+                } else {
+                    //log.error("The current concept of " + concept.getId() + "::" + concept.getUuid() + " is not in the facility service price: =======> \n");
 
-    List<PatientServiceBill> psbList=new ArrayList<PatientServiceBill>();
-    Department department=null;
-    if (department==null) {
-        for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
-            if ("LABORATOIRE".equals(dept.getName().trim()) || "LABORATORY".equals(dept.getName().trim()) ) {
-                department = dept;
-                break;
+                    concepts.add(concept);
+                }
+            } catch(Exception e){
+                //log.error("The current concept of " + concept.getId() + "::" + concept.getUuid() + " is not in the facility service price: =======> \n" + e.getMessage());
+
+                concepts.add(concept);
             }
         }
-    }
-    //List<Obs> obs=session.getSubmissionActions().getObsToCreate();
-    BigDecimal totalMaximaTopay=new BigDecimal(0);
-    for (Concept concept:labOrdersConceptsList) {
-        System.out.println("Billing: Concept Lab Test: " + concept);
+        //log.error("\n\n\n\nGetting out the function now ----------------------------------\n\n\n");
+        return concepts;
 
-        PatientServiceBill psb=new PatientServiceBill();
-            FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(concept);
-            if (fsp!=null) {
-                BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
-                totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay());
-                psb.setService(bs);
-                psb.setServiceDate(new Date());
-                psb.setUnitPrice(bs.getMaximaToPay());
-                psb.setQuantity(new BigDecimal(1));
-                psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
-                psb.setCreator(Context.getAuthenticatedUser());
-                psb.setCreatedDate(new Date());
-                psbList.add(psb);
+    }
+
+    public static void createBillOnSaveLabOrders(Set<Concept> labOrdersConceptsList, Patient patient){
+        
+        Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
+        String insuranceCardNumber=null;
+        List<Obs> currentInsuranceId=Utils.getLastNObservations(1,patient,Context.getConceptService().getConcept(insuranceNumberConceptID),false);
+        if(currentInsuranceId.size()>=1)
+            insuranceCardNumber=currentInsuranceId.get(0).getValueText();
+        InsurancePolicy ip =Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
+        
+
+        List<PatientServiceBill> psbList=new ArrayList<PatientServiceBill>();
+        Department department=null;
+        if (department==null) {
+            for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
+                if ("LABORATOIRE".equals(dept.getName().trim()) || "LABORATORY".equals(dept.getName().trim()) ) {
+                    department = dept;
+                    break;
+                }
             }
+        }
+        
+        //List<Obs> obs=session.getSubmissionActions().getObsToCreate();
+        BigDecimal totalMaximaTopay=new BigDecimal(0);
+        for (Concept concept:labOrdersConceptsList) {
+            // System.out.println("Billing: Concept Lab Test: " + concept);
+            //log.error("The Found concept is this: " + concept);
+            PatientServiceBill psb=new PatientServiceBill();
+            try{
+                FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(concept);
+                //log.error("Found Facility Service Price: " + fsp.getName());
+                // if(true){
+                //     continue;
+                // }
+                if (fsp!=null) {
+                    BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
+                    totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay());
+                    psb.setService(bs);
+                    psb.setServiceDate(new Date());
+                    psb.setUnitPrice(bs.getMaximaToPay());
+                    psb.setQuantity(new BigDecimal(1));
+                    psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
+                    psb.setCreator(Context.getAuthenticatedUser());
+                    psb.setCreatedDate(new Date());
+                    psbList.add(psb);
+                }
+            } catch(Exception e){
+                //log.error("The current concept of " + concept.getId() + "::" + concept.getUuid() + " is not in the facility service price: =======> \n" + e.getMessage());
+            }
+        }
+        // if(true){
+        //     return;
+        // }
+        if(psbList.size()>0) {
+            GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
+            BigDecimal total=gb.getGlobalAmount().add(totalMaximaTopay);
+            BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
+            gb.setGlobalAmount(globalAmount);
+            gb = GlobalBillUtil.saveGlobalBill(gb);
+
+            PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
+            InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
+
+            Consommation cons = new Consommation();
+            cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));
+            cons.setPatientBill(pb);
+            cons.setInsuranceBill(ib);
+            cons.setGlobalBill(gb);
+            cons.setCreatedDate(new Date());
+            cons.setCreator(Context.getAuthenticatedUser());
+            cons.setDepartment(department);
+            ConsommationUtil.saveConsommation(cons);
+
+            for (PatientServiceBill psb : psbList) {
+                psb.setConsommation(cons);
+                ConsommationUtil.createPatientServiceBill(psb);
+            }
+
+        }
     }
-
-
-if(psbList.size()>0) {
-    GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
-    BigDecimal total=gb.getGlobalAmount().add(totalMaximaTopay);
-    BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
-    gb.setGlobalAmount(globalAmount);
-    gb = GlobalBillUtil.saveGlobalBill(gb);
-
-    PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
-    InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
-
-    Consommation cons = new Consommation();
-    cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));
-    cons.setPatientBill(pb);
-    cons.setInsuranceBill(ib);
-    cons.setGlobalBill(gb);
-    cons.setCreatedDate(new Date());
-    cons.setCreator(Context.getAuthenticatedUser());
-    cons.setDepartment(department);
-    ConsommationUtil.saveConsommation(cons);
-
-    for (PatientServiceBill psb : psbList) {
-        psb.setConsommation(cons);
-        ConsommationUtil.createPatientServiceBill(psb);
-    }
-
-}
-}
 public static void checkBilling(){
     System.out.println("Billing is checked");
 }
