@@ -19,11 +19,10 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
+
+
 
 /**
  * @author EMR@RBC
@@ -304,20 +303,32 @@ public class MohBillingInsurancePolicyFormController extends
 				InsurancePolicyUtil.createInsurancePolicy(card, b);
 
 				// DateFormat sdf = new SimpleDateFormat("Mm/dd/yyyy");
-				DateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+				//DateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
-				Calendar cal = Calendar.getInstance();
+
+				//Calendar cal = Calendar.getInstance();
 				dateCausingIssue = "3." + request.getParameter("insurancePolicyExpirationDate");
 				Date exp=Context.getDateFormat().parse(request.getParameter("insurancePolicyExpirationDate"));
-				dateCausingIssue = "4." + sdf.format(cal.getTime());
+				/*dateCausingIssue = "4." + sdf.format(cal.getTime());
 				Date now=Context.getDateFormat().parse(sdf.format(cal.getTime()));
 
-				if(exp.before(now)){
+				String expirationDate = request.getParameter("insurancePolicyExpirationDate");
+				DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ENGLISH);*/
+        
+				Date currentDate = new Date();
+				if(currentDate.before(exp)){
+					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,"The insurance policy has been created successfully !");
+				} else {
+					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+							"Attention!!!!!!!!! The insurance policy has been created successfully! But you selected past date");
+				}
+
+				/*if(exp.before(now)){
 					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 							"Attention!!!!!!!!! The insurance policy has been created successfully! But you selected past date");
 				}else {
 					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,"The insurance policy has been created successfully !");
-				}
+				}*/
 			}
 		} catch(ConstraintViolationException cve){
 
