@@ -140,7 +140,7 @@ public class FileExporter {
 		c1.setBorder(Rectangle.NO_BORDER);
 		tableLeft.addCell(c1);
 
-		c1 = new PdfPCell(normal.process("Patient_ID: "+transaction.getPatientAccount().getPatient().getPatientIdentifier(3)));
+		c1 = new PdfPCell(normal.process("Patient_ID: "+transaction.getPatientAccount().getPatient().getPatientIdentifier(8)));
 		c1.setBorder(Rectangle.NO_BORDER);
 		tableLeft.addCell(c1);
 
@@ -179,7 +179,7 @@ public class FileExporter {
 		}
 		BigDecimal patientRate = new BigDecimal(""+patRate);
 
-		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(3));
+		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(8));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -556,7 +556,7 @@ public class FileExporter {
 		document.add(heading2Tab);
 
 		//END HEADING
-		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+consommation.getGlobalBill().getBillIdentifier()+" - "+consommation.getCreatedDate()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(3));
+		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+consommation.getGlobalBill().getBillIdentifier()+" - "+consommation.getCreatedDate()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(8));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -969,7 +969,7 @@ public class FileExporter {
 		document.add(heading2Tab);
 		//end header
 
-		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+gb.getBillIdentifier()+" - "+df.format(gb.getCreatedDate())+ " Patient_ID: " + gb.getAdmission().getInsurancePolicy().getOwner().getPatientIdentifier(3));
+		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+gb.getBillIdentifier()+" - "+df.format(gb.getCreatedDate())+ " Patient_ID: " + gb.getAdmission().getInsurancePolicy().getOwner().getPatientIdentifier(8));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -1609,7 +1609,7 @@ public class FileExporter {
 		String insuranceDetails =consommation.getBeneficiary().getInsurancePolicy().getInsurance().getName()+"\n"+
 				" Card Nbr: "+ consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo();
 
-		String primarycareId =" Patient_ID: "+ consommation.getBeneficiary().getPatient().getPatientIdentifier(3);
+		String primarycareId =" Patient_ID: "+ consommation.getBeneficiary().getPatient().getPatientIdentifier(8);
 
 		String patientDetails = consommation.getBeneficiary().getPatient().getFamilyName()+" "
 				+ consommation.getBeneficiary().getPatient().getGivenName()+"\n"
@@ -1951,7 +1951,7 @@ public class FileExporter {
 		c1.setBorder(Rectangle.NO_BORDER);
 		table.addCell(c1);
 
-		c1 = new PdfPCell(normal.process("Patient_ID:  "+transaction.getPatientAccount().getPatient().getPatientIdentifier(3)));
+		c1 = new PdfPCell(normal.process("Patient_ID:  "+transaction.getPatientAccount().getPatient().getPatientIdentifier(8)));
 		c1.setBorder(Rectangle.NO_BORDER);
 		table.addCell(c1);
 
@@ -2083,7 +2083,7 @@ public class FileExporter {
 		String insuranceDetails =consommation.getBeneficiary().getInsurancePolicy().getInsurance().getName()+"\n"+
 				" Card Nbr: "+ consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo();
 
-		String primarycareId =" Patient_ID: "+ consommation.getBeneficiary().getPatient().getPatientIdentifier(3);
+		String primarycareId =" Patient_ID: "+ consommation.getBeneficiary().getPatient().getPatientIdentifier(8);
 
 		String patientDetails = consommation.getBeneficiary().getPatient().getFamilyName()+" "
 				+ consommation.getBeneficiary().getPatient().getGivenName()+"\n"
@@ -2252,7 +2252,7 @@ public class FileExporter {
 		float patRate = 100f - insuranceRate;
 		BigDecimal patientRate = new BigDecimal(""+patRate);
 
-		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(3));
+		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(8));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
