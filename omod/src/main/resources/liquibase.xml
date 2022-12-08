@@ -1611,4 +1611,14 @@
 			ALTER TABLE moh_bill_insurance_policy ADD UNIQUE INDEX moh_bill_insurance_policy_insurance_card_no_UNIQUE (insurance_card_no);
 		</sql>
 	</changeSet>
+	<changeSet id="moh_bill_patient_service_bill_date_created" author="benjamin">
+		<sql>
+			ALTER TABLE moh_bill_patient_service_bill MODIFY created_date datetime DEFAULT NULL;
+		</sql>
+	</changeSet>
+	<changeSet id="moh_bill_patient_service_bill_service_date" author="benjamin">
+		<sql>
+			ALTER TABLE moh_bill_patient_service_bill MODIFY service_date datetime DEFAULT NULL;
+		</sql>
+	</changeSet>
 </databaseChangeLog>
