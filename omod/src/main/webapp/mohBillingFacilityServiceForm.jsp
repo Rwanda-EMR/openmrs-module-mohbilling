@@ -60,6 +60,22 @@
 				<td>Item Type</td>
 
 				<td><select name="facilityServiceItemType" required>
+					<option value="">Please!!!Select Item Type</option>						<option value=""
+					<option value="1">ORDINARY ITEM</option>								<c:if test="${tItem==null}"> selected="selected"</c:if>
+					<option value="2">DCP ITEM</option>						>Please!!!Select Item Type</option>
+					<option value="1"
+							<c:if test="${tItem=='1'}"> selected="selected"</c:if>
+					>ORDINARY ITEM</option>
+					<option value="2"
+							<c:if test="${tItem=='2'}"> selected="selected"</c:if>
+					>DCP ITEM</option>
+				</select>					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Item Type</td>
+
+				<td><select name="facilityServiceItemType" required>
 					<option value=""
 							<c:if test="${tItem==null}"> selected="selected"</c:if>
 					>Please!!!Select Item Type</option>

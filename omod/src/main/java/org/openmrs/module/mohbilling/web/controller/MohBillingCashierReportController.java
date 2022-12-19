@@ -8,8 +8,10 @@ import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.*;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
+import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -102,6 +104,7 @@ public class MohBillingCashierReportController extends
 					 }
 					 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(cashPayments);
 						mav.addObject("reportMsg", "Cash Payments From "+startDateStr+" To "+endDateStr);
+						
 					 }
 					 else if(request.getParameter("paymentType").equals("depositPayment")){
 						 for (BillPayment bp : payments) {
@@ -117,11 +120,23 @@ public class MohBillingCashierReportController extends
 					 }
 				 mav.addObject("reportMsg1", "Total Received Amount From "+startDateStr+" To "+endDateStr);
 				 
-				 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
+				 List<HopService> reportColumns=null;
+				 if (request.getParameter("reportType")!=null && request.getParameter("reportType")!=""){
+					 if(request.getParameter("reportType").equals("NO_DCP_Report")){
+						 reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
+					 }else if(request.getParameter("reportType").equals("DCP_Report")){
+						 reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumnsDcp");
+					 }
+					 else {
+						 reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumnsAll");
+					 }
+				 }
+				 else {
+					 request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,"Please!!!! Dear " +Context.getAuthenticatedUser()+ " Select Report Type");
+					 return new ModelAndView(new RedirectView("cashierReport.form"));
+				 }
 			
 	
-//				 try {
-					 
 					 Consommation c = ConsommationUtil.getConsommationByPatientBill(payments.get(0).getPatientBill());
 			      		if(c!=null && c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
 			      			paidItems = BillPaymentUtil.getOldPaidItems(payments);
@@ -134,13 +149,28 @@ public class MohBillingCashierReportController extends
 					 
 					 List<PaymentRevenue> paymentRevenues =  new ArrayList<PaymentRevenue>();
 					 for (BillPayment pay : payments) {
-						 PaymentRevenue br= ReportsUtil.getRevenuesByPayment(pay, columns);
+						PaymentRevenue br =null;
+						if(request.getParameter("reportType")!=null && request.getParameter("reportType").equals("NO_DCP_Report")) {
+							br = ReportsUtil.getRevenuesByPayment(pay, columns);
+						}
+						else if(request.getParameter("reportType")!=null && request.getParameter("reportType").equals("DCP_Report")){
+							br = ReportsUtil.getRevenuesByPaymentDCP(pay, columns);
+							}
+						else {
+							br = ReportsUtil.getRevenuesByPaymentAll(pay,columns);
+						}
 						 if(br!=null){
 							 paymentRevenues.add(br);
 						 }
 					}
 					 
-					 List<PaidServiceRevenue> services = paymentRevenues.get(0).getPaidServiceRevenues();
+					List<PaidServiceRevenue> services=null;
+					if (paymentRevenues.size()<=0){
+						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,"No data in the selected interval of time");
+					}
+					else{
+						services = paymentRevenues.get(0).getPaidServiceRevenues();
+					}
 					 List<BigDecimal> subTotals = new ArrayList<BigDecimal>();
 					 BigDecimal bigTotal = new BigDecimal(0);
 					 for (String s : columns) {

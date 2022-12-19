@@ -9,6 +9,7 @@ import org.openmrs.Patient;
 import org.openmrs.Person;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil.HeaderFooter;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -22,6 +23,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -1443,6 +1445,88 @@ public class FileExporter {
 
 
 		document.add(table);
+	}
+
+	public static void exportDCPData(HttpServletRequest request, HttpServletResponse response,List<AllServiceRevenueCons> listOfAllServicesRevenue,List<String> columns) throws Exception{
+
+		Date date = new Date();
+		SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+
+		PrintWriter dcp = response.getWriter();
+		response.setContentType("text/plain");
+		response.setHeader("Content-Disposition", "attachment; filename=\"releve_"+f.format(date)+".csv\"");
+
+		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+		dcp.println();
+		dcp.println();
+
+		dcp.println(","+","+","+"DCP PROVIDER REPORT");
+		dcp.println();
+		dcp.println();
+
+		dcp.print("#,Beneficiary Name,Insurance Name,Insurance Card No,Date Created,Creator");
+		for (String service : columns){
+			dcp.print(","+service);
+		}
+		dcp.print(",GRAND TOT(100%),INSURANCE TOT,PATIENT TOT");
+
+		dcp.println();
+		Float insuranceDueByConsom = 0.0f;
+		BigDecimal insurancePercentage = new BigDecimal(100);
+		float pRate = 0.0f;
+
+		int i=0;
+		for (AllServiceRevenueCons asr : listOfAllServicesRevenue){
+			i++;
+			dcp.print(i
+					+ "," + asr.getConsommation().getBeneficiary().getPatient().getPersonName()
+					+ "," + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getName()
+					+ ",'" + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+					+ "," + f.format(asr.getConsommation().getCreatedDate())
+					+ "," + asr.getConsommation().getCreator().getPersonName()
+			);
+			float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+			pRate=100-insuranceRate;
+			for (ServiceRevenue serviceRevenue : asr.getRevenues()){
+				List<PatientServiceBill> billItems = new ArrayList<PatientServiceBill>();
+				if (pRate>0){
+					dcp.print(","+ReportsUtil.roundTwoDecimals(serviceRevenue.getDueAmount().multiply(insurancePercentage).divide(BigDecimal.valueOf(pRate)).doubleValue()));
+				}
+				else if (pRate==0){
+					BigDecimal amount = new BigDecimal(0);
+					for (PatientServiceBill psb : serviceRevenue.getBillItems()){
+						billItems.add(psb);
+						amount = amount.add(psb.getQuantity().multiply(psb.getUnitPrice()));
+					}
+					dcp.print(","+ReportsUtil.roundTwoDecimals(amount.doubleValue()));
+				}
+				else {
+					dcp.print(","+0);
+				}
+			}
+			Consommation cons = asr.getConsommation();
+			BigDecimal totalConsAmount = new BigDecimal(0);
+			for (PatientServiceBill psb : cons.getBillItems()){
+				BigDecimal reqQty = psb.getQuantity();
+				BigDecimal unitPrice =psb.getUnitPrice();
+				totalConsAmount =totalConsAmount.add(reqQty.multiply(unitPrice));
+			}
+			BigDecimal totalASR = new BigDecimal(0);
+			BigDecimal totalPatientASR = new BigDecimal(0);
+			totalASR = totalConsAmount.multiply(BigDecimal.valueOf(insuranceRate)).divide(new BigDecimal(100));
+			totalPatientASR = totalConsAmount.multiply(BigDecimal.valueOf(pRate)).divide(new BigDecimal(100));
+
+			dcp.print(","+ReportsUtil.roundTwoDecimals(totalConsAmount.doubleValue()));
+			dcp.print(","+ReportsUtil.roundTwoDecimals(totalASR.doubleValue()));
+			dcp.print(","+ReportsUtil.roundTwoDecimals(totalPatientASR.doubleValue()));
+			dcp.println();
+
+		}
+		dcp.println();
+		dcp.flush();
+		dcp.close();
 	}
 	//export to excel
 	public static void exportData(HttpServletRequest request, HttpServletResponse response, Insurance insurance, List<String> columns,List<AllServicesRevenue> listOfAllServicesRevenue)throws Exception,

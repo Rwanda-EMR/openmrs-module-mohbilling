@@ -948,6 +948,10 @@ public class BillingServiceImpl implements BillingService {
 			Insurance insurance, ThirdParty tp, User billCreator,Department department) {
 		return billingDAO.getConsommations(startDate, endDate, insurance, tp, billCreator,department);
 	}
+	@Override
+	public List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator) {
+		return billingDAO.getDCPConsommations(startDate, endDate,billCreator);
+	}
 
 	@Override
 	public void updateOtherInsurances( ServiceCategory sc) {

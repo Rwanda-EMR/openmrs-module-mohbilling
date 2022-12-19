@@ -378,7 +378,7 @@
         <name>Migration Cashier</name>
         <description>Allows the user to viewer Migration Cashier </description>
     </privilege>
-
+    View Provider DCP Report
     <privilege>
         <name>View Bulk Update</name>
         <description>Allows the user to view View Facility service by insurance campanies</description>
@@ -389,6 +389,10 @@
         <description>Allows the user to print only selected items during payment</description>
     </privilege>
 
+    <privilege>
+        <name>View Provider DCP Report</name>
+        <description>View Provider DCP Report</description>
+    </privilege>
 
 
     <!-- Internationalization -->

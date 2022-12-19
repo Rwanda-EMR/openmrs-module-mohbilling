@@ -41,20 +41,6 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	private Integer itemType;
 	private Integer hideItem;
 
-	
-	/**
-	 * @return the item type status
-	 */
-	public Integer getItemType(){
-		return itemType;
-	}
-
-	/**
-	 * @param itemType
-	 */
-	public void setItemType(Integer itemType){
-		this.itemType = itemType;
-	}
 
 	/**
 	 * @return the hide item status
@@ -78,6 +64,14 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	private Set<BillableService> billableServices;
+
+	public Integer getItemType() {
+		return itemType;
+	}
+
+	public void setItemType(Integer itemType) {
+		this.itemType = itemType;
+	}
 
 	/**
 	 * @return list of BillableServices
