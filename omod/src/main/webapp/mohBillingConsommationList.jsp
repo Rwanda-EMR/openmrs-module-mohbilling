@@ -5,7 +5,11 @@
 	<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/consommation.list" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
-
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-3.5.1.js" />
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-ui.js" />
+<openmrs:htmlInclude file="/moduleResources/mohbilling/jquery-ui.css" />
+<%@ page import = "java.util.Date" %>
+<%@ page import = "java.text.SimpleDateFormat" %>
 
 <h2>Consommations List</h2>
 
@@ -22,6 +26,9 @@
  <openmrs:hasPrivilege privilege="Discharge Patient">
  <a href="javascript:window.open('admission.form?globalBillId=${globalBill.globalBillId}&insurancePolicyId=${insurancePolicy.insurancePolicyId }&ipCardNumber=${insurancePolicy.insuranceCardNo}&discharge=true', 'dischargeWindow', 'height=300,width=450,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=yes').focus()">Discharge the Patient |</a>
  </openmrs:hasPrivilege>
+ <%--<openmrs:hasPrivilege privilege="Discharge Patient">
+ 		<button id="btn">Discharge Patient</button>
+ </openmrs:hasPrivilege>--%>
  <openmrs:hasPrivilege privilege="Add Consommation">
 <a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">Add Consommation</a></div>
  </openmrs:hasPrivilege>
@@ -31,7 +38,7 @@
 	<table>
 		<tr>
 			<th>#.</th>
-			<th>Created Date</>
+			<th>Created Date</th>
 			<th>Consom ID</th>
 			<th>Service</th>
 			<th>created By</th>
@@ -80,3 +87,4 @@
 	</table>
 </div>
 <%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="templates/dischargePatient.jsp"%>

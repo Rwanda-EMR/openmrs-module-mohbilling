@@ -388,7 +388,10 @@
         <name>Patient Receipts - Print Only Paid Items</name>
         <description>Allows the user to print only selected items during payment</description>
     </privilege>
-
+    <privilege>
+        <name>Revert Patient Bill</name>
+        <description>Allow the user to open a bill closed during that day</description>
+    </privilege>
 
 
     <!-- Internationalization -->

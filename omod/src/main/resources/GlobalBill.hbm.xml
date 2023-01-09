@@ -19,7 +19,9 @@
 		<property name="closed" column="closed" type="boolean"/>
 		<property name="voided" column="voided" type="boolean"/>
 		<property name="voidedDate" column="voided_date" />
-		<property name="voidReason" column="void_reason" type="text" />			
+		<property name="voidReason" column="void_reason" type="text" />
+		<property name="closingReason" column="closed_reason" type="text"/>
+		<property name="editingReason" column="edit_reason" type="text"/>
 		   
         <many-to-one name="admission" class="org.openmrs.module.mohbilling.model.Admission"
             column="admission_id" unique="true" not-null="true"        cascade="all" />
@@ -27,6 +29,7 @@
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 		<many-to-one name="closedBy" class="org.openmrs.User" column="closed_by"/>
+		<many-to-one name="editedBy" class="org.openmrs.User" column="edited_by"/>
 
 		<many-to-one name="insurance" class="org.openmrs.module.mohbilling.model.Insurance"
 					 column="insurance_id" unique="false" not-null="true"        cascade="all" />

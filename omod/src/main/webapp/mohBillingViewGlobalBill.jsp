@@ -4,7 +4,55 @@
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-3.5.1.js" />
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-ui.js" />
+<openmrs:htmlInclude file="/moduleResources/mohbilling/jquery-ui.css" />
 
+<style>
+	.ui-widget-header,.ui-state-default, ui-button{
+		background:lightseagreen;
+		color: white;
+		border: 1px solid #20B2AA;
+		font-weight:  bold;
+	}
+	#invalid{
+		color: red;
+		font-size: large;
+		font-weight: bold;
+	}
+</style>
+
+<script>
+	$(function(){
+		$("#revert_discharge").dialog({
+			autoOpen: false,
+			resizeable: false,
+			buttons: {
+				Cancel: function() {$(this).dialog("close");},
+			},
+			position: {
+				my: "center",
+				at: "center"
+			},
+			title: "Discharge Patient",
+			height: 450,
+			width: 650
+			/*hide: "slide",
+			show: "slide"*/
+		});
+		$("#btnRevert").on("click",function(){
+			$("#revert_discharge").dialog("open");
+		});
+		$("#uncloseBill").on('click',function (event){
+			if ($("#editGlobalBill option:selected").val() !=""){
+				$("#revertGB").submit();
+				$("#revert_discharge").dialog("close");
+			}
+			$("#invalid_close").text("Please! Select Reverting Reason").show().fadeOut(4000);
+			event.preventDefault();
+		});
+	});
+</script>
 
 <h2>Global Bill # ${globalBill.billIdentifier} </h2>
 
@@ -67,10 +115,41 @@
 <a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">Add Consommation |</a>
 </openmrs:hasPrivilege>
 <openmrs:hasPrivilege privilege="Discharge Patient">
+<%--<button id="btn">Discharge Patient</button>--%>
 <a href="javascript:window.open('admission.form?globalBillId=${globalBill.globalBillId}&insurancePolicyId=${insurancePolicy.insurancePolicyId }&ipCardNumber=${insurancePolicy.insuranceCardNo}&discharge=true', 'dischargeWindow', 'height=300,width=450,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=yes').focus()">Discharge the Patient</a>
 </openmrs:hasPrivilege>
 </div>
 </c:if>
+
+<div id="revert_discharge">
+    <openmrs:hasPrivilege privilege="Revert Patient Bill">
+	<form action="viewGlobalBill.form?globalBillId=${globalBill.globalBillId}&edit_global_bill=true&revert_global_bill=${revert_global_bill}" method="post" id="revertGB">
+		<table>
+			<tr><td style="font-size:15px">Names</td><td> : <b>${insurancePolicy.owner.personName }</b></td></tr>
+			<tr>
+				<td style="font-size:15px">Admission Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${admissionDate}" /></b></td>
+			</tr>
+			<tr>
+				<td style="font-size:15px">Discharge Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${dischargingDate}" /></b></td>
+			</tr>
+			<tr>
+				<td style="font-size:15px"><b>Reverting Reason</b></td>
+				<td><select name="editGBill" id="editGlobalBill">
+					<option value="">                        </option>
+					<option value="Missing Items">Missing Items</option>
+					<option value="Over Billing">Over Billing</option>
+					<option value="Item(s) Not Available">Item(s) Not Available</option>
+				</select><td>
+			</tr>
+			<tr><td></td><td><span id="invalid_close"></span></td></tr>
+			<tr>
+				<td></td>
+				<td><button id="uncloseBill">Revert Closed Bill</button></td>
+			</tr>
+		</table>
+	</form>
+	</openmrs:hasPrivilege>
+</div>
 
 <div style="float: right;">
 <a href="viewGlobalBill.form?globalBillId=${globalBill.globalBillId}&print=true">Print</a>
@@ -162,3 +241,4 @@
 	</table>
 </div>
 <%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="templates/dischargePatient.jsp"%>
