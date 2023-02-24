@@ -3,6 +3,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <openmrs:require privilege="Manage Admission" otherwise="/login.htm" redirect="/module/@MODULE_ID@/admission.form" />
+<openmrs:require privilege="Create Admission Manually" otherwise="/login.htm" redirect="/module/@MODULE_ID@/admission.form" />
 
 <script type="text/javascript">
 
