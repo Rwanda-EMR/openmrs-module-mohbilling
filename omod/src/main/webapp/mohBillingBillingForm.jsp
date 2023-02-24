@@ -1,6 +1,8 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/headerFull.jsp"%>
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/mohbilling/patientBillPayment.form" />
+<openmrs:require privilege="Create Bill Manually" otherwise="/login.htm" redirect="/module/@MODULE_ID@/admission.form" />
+
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <script type="text/javascript">

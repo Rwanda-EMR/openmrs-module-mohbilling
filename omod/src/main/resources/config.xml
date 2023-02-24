@@ -21,6 +21,7 @@
     <!-- /Base Module Properties -->
 
     <require_version>${openMRSVersion}</require_version>
+
     <require_modules>
         <require_module>org.openmrs.module.htmlformentry</require_module>
     </require_modules>
@@ -392,7 +393,14 @@
         <name>Revert Patient Bill</name>
         <description>Allow the user to open a bill closed during that day</description>
     </privilege>
-
+    <privilege>
+        <name>Create Admission Manually</name>
+        <description>Allow the user to admit insurance policy manually</description>
+    </privilege>
+    <privilege>
+        <name>Create Bill Manually</name>
+        <description>Allow the user to create a bill manually</description>
+    </privilege>
 
     <!-- Internationalization -->
     <!-- All message codes should start with @MODULE_ID@.* -->
