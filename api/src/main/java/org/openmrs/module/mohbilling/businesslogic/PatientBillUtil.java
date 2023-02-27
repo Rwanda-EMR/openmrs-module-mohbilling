@@ -173,7 +173,20 @@ public class PatientBillUtil {
 		 ThirdParty thirdParty =ip.getThirdParty();
 		 
 		 Float rateToPay=null;		//rate based on which the amount is calculated	 
-		
+
+		if( ip.getInsurance().getCurrentRate().getFlatFee().compareTo(BigDecimal.ZERO)>0){
+
+			BigDecimal  pbAmount = BigDecimal.ZERO;
+
+			PatientBill pb = new PatientBill();
+			pb.setAmount(pbAmount);
+			pb.setCreatedDate(new Date());
+			pb.setCreator(Context.getAuthenticatedUser());
+			pb.setVoided(false);
+			pb =savePatientBill(pb);
+			return pb;
+		}
+
 		if(thirdParty == null)
 			  rateToPay = 100-validRate.getRate();			
 		else			

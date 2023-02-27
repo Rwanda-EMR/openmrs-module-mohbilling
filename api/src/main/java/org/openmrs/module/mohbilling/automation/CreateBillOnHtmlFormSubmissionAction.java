@@ -54,6 +54,7 @@ if(currentInsuranceId.size()>=1)
         BigDecimal totalMaximaTopay=new BigDecimal(0);
         for (Obs o:obs) {
             PatientServiceBill psb=new PatientServiceBill();
+            psb.setServiceDate(new Date());
 
           if (department==null && o.getValueCoded()!=null ) {
               for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
@@ -131,11 +132,11 @@ if(currentInsuranceId.size()>=1)
 
         //drugs start
 
-        List<Order> orders=session.getSubmissionActions().getCurrentEncounter().getOrdersWithoutOrderGroups();
+      /*  List<Order> orders=session.getSubmissionActions().getCurrentEncounter().getOrdersWithoutOrderGroups();
         for (Order order:orders) {
             DrugOrder drugOrder=(DrugOrder)order;
            //Billng code here
-        }
+        }*/
 
         //Drugs end
 
@@ -169,6 +170,7 @@ if(currentInsuranceId.size()>=1)
             //Context.getService(BillingService.class).saveConsommation(cons);
 
             for (PatientServiceBill psb : psbList) {
+                psb.setServiceDate(new Date());
                 psb.setConsommation(cons);
                 ConsommationUtil.createPatientServiceBill(psb);
                 //cons.addBillItem(psb);

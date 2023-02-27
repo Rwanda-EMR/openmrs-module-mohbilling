@@ -61,7 +61,20 @@
 			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${admissionDate}</td>
 			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${dischargingDate}</td>
 			<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billIdentifier}</td>
-			<td class="rowValue center ${(status.count%2!=0)?'even':''}"> <fmt:formatNumber value="${(globalBill.globalAmount*patientRate)/100}" type="number" pattern="#.##"/> </td>
+
+
+			<c:choose>
+                <c:when test="${not empty globalBill.admission.insurancePolicy.insurance.currentRate.flatFee}">
+                   <td class="rowValue center ${(status.count%2!=0)?'even':''}"> <fmt:formatNumber value="${globalBill.admission.insurancePolicy.insurance.currentRate.flatFee}" type="number" pattern="#.##"/> </td>
+                </c:when>
+                <c:otherwise>
+                 <td class="rowValue center ${(status.count%2!=0)?'even':''}"> <fmt:formatNumber value="${(globalBill.globalAmount*patientRate)/100}" type="number" pattern="#.##"/> </td>
+                </c:otherwise>
+            </c:choose>
+
+
+
+
 		    <td class="rowValue right ${(status.count%2!=0)?'even':''}"> <fmt:formatNumber value="${billingtag:amountPaidByGlobalBill(globalBill.globalBillId)}" type="number" pattern="#.##"/> </td>
 		    <c:if test="${globalBill.closed}">
 		    <td class="rowValue center ${(status.count%2!=0)?'even':''}"><span title='Closed' class='closedStutus'><b>X</b></span></td>
