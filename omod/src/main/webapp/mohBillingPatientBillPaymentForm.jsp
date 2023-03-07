@@ -334,7 +334,17 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 			<!-- <td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td> -->
 				<td>
 				<div class="amount" style="text-align: right"><b>
-				 <input type="text" disabled="disabled" value="${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}" id="rest" style="border: none;background-color: #aabbcc"/>
+
+
+				  <c:choose>
+                          <c:when test="${not empty insurancePolicy.insurance.currentRate.flatFee}">
+                            <input type="text" disabled="disabled" value="0" id="rest" style="border: none;background-color: #aabbcc"/>
+                          </c:when>
+                          <c:otherwise>
+                           <input type="text" disabled="disabled" value="${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}" id="rest" style="border: none;background-color: #aabbcc"/>
+                          </c:otherwise>
+                  </c:choose>
+
 				</b></div>
 			   </td>
 			</tr>

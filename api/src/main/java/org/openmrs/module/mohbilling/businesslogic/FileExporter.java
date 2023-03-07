@@ -402,7 +402,11 @@ public class FileExporter {
 		c1 = new PdfPCell(boldFont.process("Rest: "+0));
 		else
 			c1 = new PdfPCell(boldFont.process("Rest: "+consommation.getPatientBill().getAmount().subtract(totalPaid)));*/
-		c1 = new PdfPCell(boldFont.process("Rest: "+rest));
+		if(consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee()!=null) {
+			c1 = new PdfPCell(boldFont.process("Rest: " + "0.00"));
+		}else {
+			c1 = new PdfPCell(boldFont.process("Rest: " + rest));
+		}
 		c1.setBorder(Rectangle.NO_BORDER);
 		serviceTotPat.addCell(c1);
 
@@ -726,6 +730,40 @@ public class FileExporter {
 		c = new PdfPCell(fontSelector.process(patientRate+"%"));
 		cell.setBorder(Rectangle.NO_BORDER);
 		summaryTable.addCell(c);
+
+	if(consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee()!=null && consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee().compareTo(BigDecimal.ZERO)>0)	{
+		c = new PdfPCell(fontSelector.process("Ticket Moderateur"));
+		cell.setBorder(Rectangle.NO_BORDER);
+		summaryTable.addCell(c);
+
+//		c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
+		c = new PdfPCell(fontSelector.process(""+consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee()));
+		cell.setBorder(Rectangle.NO_BORDER);
+		summaryTable.addCell(c);
+
+		c = new PdfPCell(fontSelector.process("Flat fee"));
+		cell.setBorder(Rectangle.NO_BORDER);
+		summaryTable.addCell(c);
+	}else {
+		c = new PdfPCell(fontSelector.process("Ticket Moderateur"));
+		cell.setBorder(Rectangle.NO_BORDER);
+		summaryTable.addCell(c);
+
+//		c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
+		c = new PdfPCell(fontSelector.process(""+formatter.format(total.multiply(patientRate).divide(new BigDecimal(100)))));
+		cell.setBorder(Rectangle.NO_BORDER);
+		summaryTable.addCell(c);
+
+		c = new PdfPCell(fontSelector.process(patientRate+"%"));
+		cell.setBorder(Rectangle.NO_BORDER);
+		summaryTable.addCell(c);
+
+	}
+
+
+
+
+
 
 		c = new PdfPCell(fontSelector.process(""+consommation.getBeneficiary().getInsurancePolicy().getInsurance().getName()));
 		cell.setBorder(Rectangle.NO_BORDER);
@@ -1734,8 +1772,11 @@ public class FileExporter {
 		String rest = formatter.format((totalDueAmount).subtract(totalPaid));
 		document.add(fontTotals.process("Due Amount: "+ ReportsUtil.roundTwoDecimals(totalDueAmount.doubleValue())+"\n"));
 		document.add(fontTotals.process("Paid: "+ ReportsUtil.roundTwoDecimals(totalPaid.doubleValue())+"\n"));
-		document.add(fontTotals.process("Rest :"+rest));
-
+		if(consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee()!=null){
+			document.add(fontTotals.process("Rest :" + "0.00"));
+		}else {
+			document.add(fontTotals.process("Rest :" + rest));
+		}
 
 		// Table of signatures;
 		table = new PdfPTable(1);
@@ -2217,8 +2258,11 @@ public class FileExporter {
 		String rest = formatter.format((totalDueAmount).subtract(totalPaid));
 		document.add(fontTotals.process("Due Amount: "+ ReportsUtil.roundTwoDecimals(totalDueAmount.doubleValue())+"\n"));
 		document.add(fontTotals.process("Paid: "+ ReportsUtil.roundTwoDecimals(totalPaid.doubleValue())+"\n"));
-		document.add(fontTotals.process("Rest :"+rest));
-
+		if(consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee()!=null){
+			document.add(fontTotals.process("Rest :" + "0.00"));
+		}else {
+			document.add(fontTotals.process("Rest :" + rest));
+		}
 
 		// Table of signatures;
 		table = new PdfPTable(1);
@@ -2372,7 +2416,11 @@ public class FileExporter {
 		c1 = new PdfPCell(boldFont.process("Rest: "+0));
 		else
 			c1 = new PdfPCell(boldFont.process("Rest: "+consommation.getPatientBill().getAmount().subtract(totalPaid)));*/
-		c1 = new PdfPCell(boldFont.process("Rest: "+rest));
+		if(consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee()!=null) {
+			c1 = new PdfPCell(boldFont.process("Rest: " + rest));
+		}else {
+			c1 = new PdfPCell(boldFont.process("Rest: " + rest));
+		}
 		c1.setBorder(Rectangle.NO_BORDER);
 		serviceTotPat.addCell(c1);
 

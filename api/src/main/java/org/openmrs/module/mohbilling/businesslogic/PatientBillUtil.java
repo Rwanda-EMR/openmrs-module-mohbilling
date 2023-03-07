@@ -174,7 +174,7 @@ public class PatientBillUtil {
 		 
 		 Float rateToPay=null;		//rate based on which the amount is calculated	 
 
-		if( ip.getInsurance().getCurrentRate().getFlatFee().compareTo(BigDecimal.ZERO)>0){
+		if( ip.getInsurance().getCurrentRate().getFlatFee()!=null && ip.getInsurance().getCurrentRate().getFlatFee().compareTo(BigDecimal.ZERO)>0){
 
 			BigDecimal  pbAmount = BigDecimal.ZERO;
 
