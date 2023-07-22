@@ -109,22 +109,22 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 
 		    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
-			<fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.globalBill.createdDate}" />
+			<fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.admissionDate}" />
 			</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
-            <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.globalBill.closingDate}" />
+            <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.closingDate}" />
             </td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.personName}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.ownerName}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.ownerCode}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.level}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.globalBill.billIdentifier}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insuranceCardNo}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.company}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.age}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.beneficiary.patient.birthdate}" />  </td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.gender}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.consommation.globalBill.closedBy.familyName}  ${asr.consommation.globalBill.closedBy.givenName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiaryName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.householdHeadName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.familyCode}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiaryLevel}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.globalBillIdentifier}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.cardNumber}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.companyName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.age}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.birthDate}" />  </td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.gender}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.consommation.doctorName}</td>
 
 			<c:forEach items="${asr.revenues }" var="revenue">
 				<c:if test="${patientRate > 0}">

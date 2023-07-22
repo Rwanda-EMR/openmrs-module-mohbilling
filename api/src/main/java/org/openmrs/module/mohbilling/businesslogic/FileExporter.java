@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -1480,16 +1481,20 @@ public class FileExporter {
     }
 
     //export to excel
-    public static void exportData(HttpServletRequest request, HttpServletResponse response, Insurance insurance, List<String> columns, List<AllServicesReportRevenue> listOfAllServicesRevenue)
+    public static void exportData(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  Insurance insurance,
+                                  List<String> columns,
+                                  List<AllServicesReportRevenue> listOfAllServicesRevenue)
             throws Exception {
 
         Date date = new Date();
-        SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 
         PrintWriter op = response.getWriter();
 
         response.setContentType("text/plain");
-        response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + f.format(date) + ".csv\"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + formatter.format(date) + ".csv\"");
 
         op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
         op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
@@ -1500,6 +1505,8 @@ public class FileExporter {
         op.println("," + "," + "," + "SUMMARY OF VOUCHERS FOR " + insurance.getName());
         op.println();
         op.println();
+
+        System.out.println("Additional Column count: " + columns.size());
 
         op.print("#,Admission Date,Closing Date,BENEFICIARY'S NAMES,HEAD HOUSEHOLD'S NAMES,FAMILY'S CODE,LEVEL,Card NUMBER,COMPANY,AGE,BIRTH DATE,GENDER,DOCTOR");
         for (String col : columns) {
@@ -1515,14 +1522,15 @@ public class FileExporter {
         for (AllServicesReportRevenue services : listOfAllServicesRevenue) {
 
             PatientServiceBillReport report = services.getConsommation();
-            Float insuranceRate = report.getCurrentInsuranceRate();
+            //Float insuranceRate = report.getCurrentInsuranceRate();
+            Float insuranceRate = insurance.getCurrentRate().getRate();
             Float insuranceDue = services.getAllDueAmounts().floatValue() * insuranceRate / 100;
             Float patientDue = services.getAllDueAmounts().floatValue() * ((100 - insuranceRate) / 100);
             i++;
 
             op.print(i
-                    + "," + f.format(report.getAdmissionDate())
-                    + "," + f.format(report.getClosingDate())
+                    + "," + formatter.format(report.getAdmissionDate())
+                    + "," + formatter.format(report.getClosingDate())
                     + "," + report.getBeneficiaryName()
                     + "," + report.getHouseholdHeadName()
                     + ",'" + report.getFamilyCode()
@@ -1530,7 +1538,7 @@ public class FileExporter {
                     + ",'" + report.getCardNumber()
                     + "," + report.getCompanyName()
                     + "," + report.getAge()
-                    + "," + f.format(report.getBirthDate())
+                    + "," + formatter.format(report.getBirthDate())
                     + "," + report.getGender()
                     + "," + report.getDoctorName()
 
@@ -1554,6 +1562,7 @@ public class FileExporter {
                     op.print("," + 0);
                 }
             }
+
             op.print("," + ReportsUtil.roundTwoDecimals(services.getAllDueAmounts().doubleValue()) +
                     "," + ReportsUtil.roundTwoDecimals(insuranceDue) +
                     "," + ReportsUtil.roundTwoDecimals(patientDue));
@@ -1564,7 +1573,7 @@ public class FileExporter {
 
         op.flush();
         op.close();
-
+        System.out.println("Done flushing..");
     }
 
     public void epsonPrinter(HttpServletRequest request, HttpServletResponse response, BillPayment payment, String filename) throws Exception {

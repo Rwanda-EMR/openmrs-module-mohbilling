@@ -7,7 +7,7 @@
 
     <!--  REPORTING REPORT DESIGN SCHEMA -->
 
-    <!--
+    <!-- TODO:: Temporarily commented out the change sets as they were throwing some errors
     <changeSet id="moh_bill_admission" author="jberchmas">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -1987,7 +1987,6 @@
         </sql>
     </changeSet>
 
-    commented out cuz they already ran and don't have pre-conditions. They were causing module to fail to start
     <changeSet id="moh_bill_patient_service_bill_date_created" author="benjamin">
         <sql>
             ALTER TABLE moh_bill_patient_service_bill MODIFY created_date datetime DEFAULT NULL;

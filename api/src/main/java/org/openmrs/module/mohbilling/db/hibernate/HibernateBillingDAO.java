@@ -37,6 +37,8 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
@@ -1409,9 +1411,14 @@ public class HibernateBillingDAO implements BillingDAO {
     @Override
     public List<PatientServiceBillReport> getBillItemsByCategoryFromMamba(Integer insuranceIdentifier, Date startDate, Date endDate) {
 
+        System.out.println("parameters for sp insurance : " + insuranceIdentifier);
+        System.out.println("parameters for sp start_date: " + startDate);
+        System.out.println("parameters for sp end_date  : " + endDate);
+
         List<PatientServiceBillReport> billItems = new ArrayList<>();
 
-        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
         SQLQuery billingReportQuery = sessionFactory.getCurrentSession().createSQLQuery(
                 "CALL sp_mamba_fact_patient_service_bill_query(:insurance_id, :start_date, :end_date)"
         );
@@ -1420,22 +1427,20 @@ public class HibernateBillingDAO implements BillingDAO {
         billingReportQuery.setParameter("start_date", startDate);
         billingReportQuery.setParameter("end_date", endDate);
 
-        //TODO: Create a hibernate Object for this resultset type
+        //TODO: Create a hibernate Object for this result-set type
         List<Object[]> resultSet = billingReportQuery.list();
-        System.out.println("Patient Bills size: " + resultSet.size());
-
         for (Object[] objects : resultSet) {
 
             Integer id = (objects[0] != null) ? Integer.parseInt(objects[0].toString()) : null;
             Date admissionDate = null;
             try {
-                admissionDate = (objects[1] != null) ? dateFormat.parse(objects[1].toString()) : null;
+                admissionDate = (objects[1] != null) ? dateFormat.parse(objects[1].toString().substring(0, 10)) : null;
             } catch (ParseException e) {
                 e.printStackTrace();
             }
             Date closingDate = null;
             try {
-                closingDate = (objects[2] != null) ? dateFormat.parse(objects[2].toString()) : null;
+                closingDate = (objects[2] != null) ? dateFormat.parse(objects[2].toString().substring(0, 10)) : null;
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -1448,7 +1453,7 @@ public class HibernateBillingDAO implements BillingDAO {
             Integer age = (objects[9] != null) ? Integer.parseInt(objects[9].toString()) : null;
             Date birthDate = null;
             try {
-                birthDate = (objects[10] != null) ? dateFormat.parse(objects[10].toString()) : null;
+                birthDate = (objects[10] != null) ? dateFormat.parse(objects[10].toString().substring(0, 10)) : null;
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -1460,6 +1465,7 @@ public class HibernateBillingDAO implements BillingDAO {
             Integer hopServiceId = (objects[16] != null) ? Integer.parseInt(objects[16].toString()) : null;
             Integer globalBillId = (objects[17] != null) ? Integer.parseInt(objects[17].toString()) : null;
             String hopServiceName = (objects[18] != null) ? objects[18].toString() : null;
+            String globalBillIdentifier = (objects[19] != null) ? objects[19].toString() : null;
 
             PatientServiceBillReport report = new PatientServiceBillReport();
             report.setId(id);
@@ -1481,6 +1487,7 @@ public class HibernateBillingDAO implements BillingDAO {
             report.setHopServiceId(hopServiceId);
             report.setGlobalBillId(globalBillId);
             report.setHopServiceName(hopServiceName);
+            report.setGlobalBillIdentifier(globalBillIdentifier);
 
             billItems.add(report);
         }
@@ -1696,4 +1703,26 @@ public class HibernateBillingDAO implements BillingDAO {
                 .add(Restrictions.eq("name", name)).add(Restrictions.eq("retired", false)).uniqueResult();
     }
 
+    private DateFormat getDateFormatter(String dateString) {
+        DateFormat dateFormat;
+        if (dateString.length() > 10) {
+            dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        } else {
+            dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        }
+        return dateFormat;
+    }
+
+    private DateTimeFormatter getDateFormatter2(String dateString) {
+
+        DateTimeFormatter dateFormatter;
+        if (dateString.length() > 10) {
+            dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        } else {
+            dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        }
+        //LocalDate date = LocalDate.parse(dateString, dateFormatter);
+        //LocalDateTime dateTime = LocalDateTime.parse(dateString, dateFormatter);
+        return dateFormatter;
+    }
 }

@@ -29,6 +29,7 @@ public class PatientServiceBillReport {
     private Float currentInsuranceRate;
     private Double currentInsuranceRateFlatFee;
     private String hopServiceName;
+    private String globalBillIdentifier;
 
     public Integer getId() {
         return id;
@@ -196,5 +197,40 @@ public class PatientServiceBillReport {
 
     public void setHopServiceName(String hopServiceName) {
         this.hopServiceName = hopServiceName;
+    }
+
+    public String getGlobalBillIdentifier() {
+        return globalBillIdentifier;
+    }
+
+    public void setGlobalBillIdentifier(String globalBillIdentifier) {
+        this.globalBillIdentifier = globalBillIdentifier;
+    }
+
+    @Override
+    public String toString() {
+        return "PatientServiceBillReport{" +
+                "id=" + id +
+                ", admissionDate=" + admissionDate +
+                ", closingDate=" + closingDate +
+                ", beneficiaryName='" + beneficiaryName + '\'' +
+                ", householdHeadName='" + householdHeadName + '\'' +
+                ", familyCode='" + familyCode + '\'' +
+                ", beneficiaryLevel=" + beneficiaryLevel +
+                ", cardNumber='" + cardNumber + '\'' +
+                ", companyName='" + companyName + '\'' +
+                ", age=" + age +
+                ", birthDate=" + birthDate +
+                ", gender='" + gender + '\'' +
+                ", doctorName='" + doctorName + '\'' +
+                ", serviceBillQuantity=" + serviceBillQuantity +
+                ", serviceBillUnitPrice=" + serviceBillUnitPrice +
+                ", insuranceId=" + insuranceId +
+                ", hopServiceId=" + hopServiceId +
+                ", globalBillId=" + globalBillId +
+                ", currentInsuranceRate=" + currentInsuranceRate +
+                ", currentInsuranceRateFlatFee=" + currentInsuranceRateFlatFee +
+                ", hopServiceName='" + hopServiceName + '\'' +
+                '}';
     }
 }
