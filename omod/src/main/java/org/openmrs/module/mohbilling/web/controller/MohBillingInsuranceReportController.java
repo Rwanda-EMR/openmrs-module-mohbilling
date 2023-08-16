@@ -13,12 +13,10 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -94,8 +92,10 @@ public class MohBillingInsuranceReportController extends
                     columns.addAll(getColumns(reportColumns));
 
                     System.out.println("Columns here 1: " + columns);
-
+                    int i = 0;
                     for (Map.Entry<Integer, List<PatientServiceBillReport>> entry : globalBillsMap.entrySet()) {
+
+                        System.out.println("in map..");
 
                         List<ServiceReportRevenue> billRevenues = new ArrayList<>();
                         for (HopService hopService : reportColumns) {
@@ -118,12 +118,15 @@ public class MohBillingInsuranceReportController extends
                         servicesRevenue.setConsommation(initialReport);//get any, they have some similar values we want
 
                         listOfAllServicesRevenue.add(servicesRevenue);
+
+                        System.out.println("item: " + i++);
                     }
 
                     for (String serviceName : columns) {
                         totals.add(ReportsUtil.getTotalByBillReportCategorizedItems(patientBillsList, serviceName));
                         total100 = total100.add(ReportsUtil.getTotalByBillReportCategorizedItems(patientBillsList, serviceName));
                     }
+                    System.out.println("exiting here..");
                 }
 
             } catch (Exception e) {
@@ -150,6 +153,8 @@ public class MohBillingInsuranceReportController extends
 
             mav.addObject("insuranceRate", insuranceRate.getRate());
             mav.addObject("total100", total100);
+
+            System.out.println("and now here...");
         }
 
         if (request.getParameter("export") != null) {
@@ -168,9 +173,6 @@ public class MohBillingInsuranceReportController extends
                 .map(HopService::getName)
                 .distinct()
                 .collect(Collectors.toList());
-
-        System.out.println("Columns here 2: " + columns);
-        System.out.println("Columns here 2 count: " + columns.size());
 
         if (!columns.contains("IMAGING")) {
             columns.add("IMAGING");
