@@ -4,14 +4,26 @@
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
+<script>
+	$(function (){
+		$("#hideItem").on("click",function (){
+			if ($("input[name='tinyValue']:checked")){
+				$("#checkStatus").val(true)
+			}
+			else {
+				$("#checkStatus").val(false)
+			}
+		});
+	});
+</script>
 <openmrs:require privilege="Add Facility service" otherwise="/login.htm" redirect="/module/@MODULE_ID@/facilityService.form" />
 
 
-<h2>New Facility Service</h2>
+<h2 class="boxHeader">New Facility Service</h2>
 
 <a href="facilityService.list"><spring:message code="@MODULE_ID@.facility.service.current" /></a>
 <br/><br/>
-
+<c:set var="tItem" value="${facilityService.itemType}"/>
 <div class="box">
 	<form action="facilityService.form?save=true" method="post">
 		<table>
@@ -45,6 +57,26 @@
 				<td>Full Price</td>
 				<td><input autocomplete="off" type="text" name="facilityServiceFullPrice" size="8" class="numbers" value="${facilityService.fullPrice}"/> Rwf</td>
 			</tr>
+			<tr>
+            				<td>Item Type</td>
+
+            				<td><select name="facilityServiceItemType" required>
+            					<option value="">Please!!!Select Item Type</option>
+            					<option value="1">ORDINARY ITEM</option>
+            					<option value="2">DCP ITEM</option>
+            					<option value=""
+            							<c:if test="${tItem==null}"> selected="selected"</c:if>
+            					>Please!!!Select Item Type</option>
+            					<option value="1"
+            							<c:if test="${tItem=='1'}"> selected="selected"</c:if>
+            					>ORDINARY ITEM</option>
+            					<option value="2"
+            							<c:if test="${tItem=='2'}"> selected="selected"</c:if>
+            					>DCP ITEM</option>
+            				</select>
+            				</td>
+            			</tr>
+
 			<tr>
 				<td>Start Date</td>
 				<td><input autocomplete="off" type="text" name="facilityServiceStartDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date="${facilityService.startDate}" type="string"/>"/></td>
@@ -89,5 +121,30 @@
 		</form>
 	</div>
 </c:if>
-
+<c:if test="${param.facilityServiceId ne null}">
+	<b class="boxHeader">Hide/Unhide this Facility Service</b>
+	<div class="box">
+		<form action="facilityService.form?hide=true" method="post" id="hideItem">
+			<table>
+				<tr>
+					<td><input type="hidden" name="facilityServiceId" value="${facilityService.facilityServicePriceId}"/></td>
+				</tr>
+				<tr>
+					<td>Not Ticked-available/Ticked- not available</td>
+					<td><input type="checkbox" name="tinyValue" id="checkStatus" value=""
+							   <c:if test='${checkItem==true}'>checked='checked'</c:if>
+					/></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td><input type="submit"
+							<c:if test="${checkItem==true}">value="Unhide Item"</c:if>
+							   <c:if test="${checkItem==false}">value="Hide Item"</c:if>/>
+					</td>
+				</tr>
+				<tr><td>   </td></tr>
+			</table>
+		</form>
+	</div>
+</c:if>
 <%@ include file="/WEB-INF/template/footer.jsp"%>

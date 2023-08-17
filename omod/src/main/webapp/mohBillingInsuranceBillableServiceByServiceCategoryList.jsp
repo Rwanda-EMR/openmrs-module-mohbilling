@@ -131,7 +131,7 @@ $j(document).ready(function(){
 						out.println("<ul id='itemList'>");
 							for (BillableService bs : billableServices) {
 								//if(!bs.isRetired())
-								if(!bs.isRetired()){
+								if(!bs.isRetired() && !bs.getFacilityServicePrice().isHidden()){
 									/* out.println("<tr>");	
 								    out.println("<td class='submenu'>"); */
 								    out.println("<div class='inTable unselectedService' id='billableService_"+bs.getServiceId()+"' onclick=addServiceToCart('"+bs.getServiceId()+"','"+bs.getFacilityServicePrice().getName().replace("'","&nbsp;").replace(" ","&nbsp;")+"','"+bs.getMaximaToPay()+"')>");

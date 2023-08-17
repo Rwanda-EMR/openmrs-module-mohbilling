@@ -1630,4 +1630,17 @@
 			ALTER TABLE moh_bill_facility_service_price MODIFY COLUMN name VARCHAR(250) NOT NULL;
 		</sql>
 	</changeSet>
+	<changeSet id="alter_moh_bill_facility_service_price_by_adding_hide_item" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_facility_service_price" columnName="hide_item"/></not>
+		</preConditions>
+		<sql>
+			ALTER TABLE moh_bill_facility_service_price ADD hide_item TINYINT(1) DEFAULT 0;
+		</sql>
+	</changeSet>
+	<changeSet id="alter_moh_bill_patient_service_bill_adding_item_type" author="jberchmas">
+		<sql>
+			ALTER TABLE moh_bill_patient_service_bill MODIFY COLUMN item_type TINYINT(1) DEFAULT 1;
+		</sql>
+	</changeSet>
 </databaseChangeLog>
