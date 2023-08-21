@@ -647,7 +647,7 @@ public interface BillingDAO {
      * @param endDate     admission end date
      * @return a list of patient service bills for closed bills
      */
-    List<PatientServiceBillReport> getBillItemsByCategoryFromMamba(Integer insuranceId, Date startDate, Date endDate);
+    InsuranceReport getBillItemsByCategoryFromMamba(Integer insuranceId, Date startDate, Date endDate);
 
     /**
      * gets Global Bills between 2 dates

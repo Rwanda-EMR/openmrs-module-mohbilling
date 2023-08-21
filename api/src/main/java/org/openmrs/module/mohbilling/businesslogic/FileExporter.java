@@ -1480,8 +1480,7 @@ public class FileExporter {
         document.add(table);
     }
 
-    //export to excel
-    public static void exportData(HttpServletRequest request,
+    public static void exportDataOld(HttpServletRequest request,
                                   HttpServletResponse response,
                                   Insurance insurance,
                                   List<String> columns,
@@ -1564,6 +1563,87 @@ public class FileExporter {
             }
 
             op.print("," + ReportsUtil.roundTwoDecimals(services.getAllDueAmounts().doubleValue()) +
+                    "," + ReportsUtil.roundTwoDecimals(insuranceDue) +
+                    "," + ReportsUtil.roundTwoDecimals(patientDue));
+
+            op.println();
+        }
+        op.println();
+
+        op.flush();
+        op.close();
+        System.out.println("Done flushing..");
+    }
+
+    //export to excel
+    public static void exportData(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  Insurance insurance,
+                                  List<String> columns,
+                                  List<InsuranceReportItem> reportRecords)
+            throws Exception {
+
+        Date date = new Date();
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+
+        PrintWriter op = response.getWriter();
+
+        response.setContentType("text/plain");
+        response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + formatter.format(date) + ".csv\"");
+
+        op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+        op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+        op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+        op.println();
+        op.println();
+
+        op.println("," + "," + "," + "SUMMARY OF VOUCHERS FOR " + insurance.getName());
+        op.println();
+        op.println();
+
+        op.print("#,Admission Date,Closing Date,BENEFICIARY'S NAMES,HEAD HOUSEHOLD'S NAMES,FAMILY'S CODE,LEVEL,Card NUMBER,COMPANY,AGE,BIRTH DATE,GENDER,DOCTOR,MEDICAMENTS,CONSULTATION,HOSPITALISATION,LABORATOIRE,FORMALITES ADMINISTRATIVES,AMBULANCE,CONSOMMABLES,OXYGENOTHERAPIE,IMAGING,PROCED.");
+
+        Float insRate = insurance.getCurrentRate().getRate();
+
+        op.print(",100%");
+        op.print("," + insRate + "%");
+        op.println("," + (100 - insRate.floatValue()) + "%");
+
+        int i = 0;
+        for (InsuranceReportItem reportItem : reportRecords) {
+
+            Float insuranceRate = insurance.getCurrentRate().getRate();
+            Float insuranceDue = 0f;
+            Float patientDue = 0f;
+            i++;
+
+            op.print(i
+                    + "," + formatter.format(reportItem.getAdmissionDate())
+                    + "," + formatter.format(reportItem.getClosingDate())
+                    + "," + reportItem.getBeneficiaryName()
+                    + "," + reportItem.getHouseholdHeadName()
+                    + ",'" + reportItem.getFamilyCode()
+                    + "," + reportItem.getBeneficiaryLevel()
+                    + ",'" + reportItem.getCardNumber()
+                    + "," + reportItem.getCompanyName()
+                    + "," + reportItem.getAge()
+                    + "," + formatter.format(reportItem.getBirthDate())
+                    + "," + reportItem.getGender()
+                    + "," + reportItem.getDoctorName()
+
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getMedicament())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getConsultation())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getHospitalisation())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getLaboratoire())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getFormaliteAdministratives())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getAmbulance())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getConsommables())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getOxygenotherapie())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getImaging())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getProced())
+            );
+
+            op.print("," + ReportsUtil.roundTwoDecimals(0.00) +
                     "," + ReportsUtil.roundTwoDecimals(insuranceDue) +
                     "," + ReportsUtil.roundTwoDecimals(patientDue));
 

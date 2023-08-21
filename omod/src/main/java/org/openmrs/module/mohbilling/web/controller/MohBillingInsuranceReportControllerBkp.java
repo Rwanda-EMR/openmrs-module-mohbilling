@@ -2,6 +2,7 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
@@ -19,7 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MohBillingInsuranceReportController extends
+public class MohBillingInsuranceReportControllerBkp extends
         ParameterizableViewController {
     protected final Log log = LogFactory.getLog(getClass());
 
@@ -37,10 +38,9 @@ public class MohBillingInsuranceReportController extends
         if (request.getParameter("formStatus") != null
                 && !request.getParameter("formStatus").equals("")) {
 
-            List<InsuranceReportItem> insuranceReportRecords = new ArrayList<>();
+            List<AllServicesReportRevenue> listOfAllServicesRevenue = new ArrayList<>();
             List<String> columns = new ArrayList<>();
             List<BigDecimal> totals = new ArrayList<BigDecimal>();
-
             BigDecimal total100 = BigDecimal.ZERO;
             BigDecimal insuranceFlatFee = BigDecimal.ZERO;
 
@@ -79,17 +79,55 @@ public class MohBillingInsuranceReportController extends
 
                 if (startDate != null && endDate != null && insuranceId != null) {
 
-                    InsuranceReport reportItems = ReportsUtil.getPatientServiceBillReport(insuranceId, startDate, endDate);
+                    List<PatientServiceBillReport> reportItems = new ArrayList<>();
 
-                    for (Map.Entry<String, BigDecimal> revenueItem : reportItems.getServiceTotalRevenues().entrySet()) {
 
-                        System.out.println("Column Name : " + revenueItem.getKey());
-                        System.out.println("Column Total: " + revenueItem.getValue());
+                    Map<Integer, List<PatientServiceBillReport>> globalBillsMap = new HashMap<>();
 
-                        columns.add(revenueItem.getKey());
-                        totals.add(revenueItem.getValue());
-                        total100 = total100.add(revenueItem.getValue());
+                    for (PatientServiceBillReport bill : reportItems) {
+                        globalBillsMap.computeIfAbsent(bill.getGlobalBillId(), k -> new LinkedList<>()).add(bill);
                     }
+                    System.out.println("Patient Bills list size: " + reportItems.size());
+                    System.out.println("Global Bills map size  : " + globalBillsMap.size());
+
+                    List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.insuranceReportColumns");
+                    columns.addAll(getColumns(reportColumns));
+
+                    System.out.println("Columns here 1: " + columns);
+                    int i = 0;
+                    for (Map.Entry<Integer, List<PatientServiceBillReport>> entry : globalBillsMap.entrySet()) {
+
+                        List<PatientServiceBillReport> groupedPatientBills = entry.getValue();
+
+                        List<ServiceReportRevenue> billRevenues = new ArrayList<>();
+                        for (HopService hopService : reportColumns) {
+                            billRevenues.add(ReportsUtil.getServiceReportRevenues(groupedPatientBills, hopService, insurance));
+                        }
+
+                        ServiceReportRevenue imagingRevenue = ReportsUtil.getServiceReportRevenue(groupedPatientBills, "mohbilling.IMAGING", insurance);
+                        ServiceReportRevenue proceduresRevenue = ReportsUtil.getServiceReportRevenue(groupedPatientBills, "mohbilling.PROCEDURES", insurance);
+                        billRevenues.add(imagingRevenue);
+                        billRevenues.add(proceduresRevenue);
+
+                        BigDecimal allDueAmounts = BigDecimal.ZERO;
+                        allDueAmounts = allDueAmounts.add(ReportsUtil.getTotalByBillReportItems(groupedPatientBills));
+
+                        PatientServiceBillReport initialReport = groupedPatientBills.get(0);
+
+                        AllServicesReportRevenue servicesRevenue = new AllServicesReportRevenue(BigDecimal.ZERO, BigDecimal.ZERO, "2016-09-11");
+                        servicesRevenue.setRevenues(billRevenues);
+                        servicesRevenue.setAllDueAmounts(allDueAmounts);
+                        servicesRevenue.setConsommation(initialReport);//get any, they have some similar values we want
+
+                        listOfAllServicesRevenue.add(servicesRevenue);
+                    }
+
+                    for (String serviceName : columns) {
+                        totals.add(ReportsUtil.getTotalByBillReportCategorizedItems(reportItems, serviceName));
+                        total100 = total100.add(ReportsUtil.getTotalByBillReportCategorizedItems(reportItems, serviceName));
+                    }
+
+                    System.out.println("exiting here..");
                 }
 
             } catch (Exception e) {
@@ -105,11 +143,11 @@ public class MohBillingInsuranceReportController extends
             }
 
             request.getSession().setAttribute("columns", columns);
-            request.getSession().setAttribute("listOfAllServicesRevenue", insuranceReportRecords);
+            request.getSession().setAttribute("listOfAllServicesRevenue", listOfAllServicesRevenue);
 
             mav.addObject("columns", columns);
             mav.addObject("totals", totals);
-            mav.addObject("listOfAllServicesRevenue", insuranceReportRecords);
+            mav.addObject("listOfAllServicesRevenue", listOfAllServicesRevenue);
             mav.addObject("resultMsg", "[" + insurance.getName() + "] " +
                     "Bill from " + convertDate(startDate) + " To " + convertDate(endDate));
             mav.addObject("insuranceFlatFee", insuranceFlatFee);
@@ -122,11 +160,10 @@ public class MohBillingInsuranceReportController extends
 
         if (request.getParameter("export") != null) {
             List<String> columns = (List<String>) request.getSession().getAttribute("columns");
-            List<InsuranceReportItem> insuranceReportRecords = (List<InsuranceReportItem>)
-                    request.getSession()
-                            .getAttribute("listOfAllServicesRevenue");
+            List<AllServicesReportRevenue> listOfAllServicesRevenue = (List<AllServicesReportRevenue>)
+                    request.getSession().getAttribute("listOfAllServicesRevenue");
             Insurance insurance = (Insurance) request.getSession().getAttribute("insurance");
-            FileExporter.exportData(request, response, insurance, columns, insuranceReportRecords);
+            FileExporter.exportDataOld(request, response, insurance, columns, listOfAllServicesRevenue);
         }
         return mav;
     }

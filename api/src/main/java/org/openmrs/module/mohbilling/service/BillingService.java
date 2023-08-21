@@ -701,7 +701,7 @@ public interface BillingService {
 
     public FacilityServicePrice getFacilityServiceByName(String name);
 
-    List<PatientServiceBillReport> getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
+    InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
 
 }

@@ -982,7 +982,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
-    public List<PatientServiceBillReport> getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate) {
+    public InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate) {
         return billingDAO.getBillItemsByCategoryFromMamba(insuranceId, startDate, endDate);
     }
 }

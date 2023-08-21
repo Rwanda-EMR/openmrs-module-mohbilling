@@ -289,64 +289,71 @@ public class ReportsUtil {
         return revenue;
     }
 
-    public static ServiceReportRevenue getServiceReportRevenues(List<PatientServiceBillReport> billItems, HopService hopService, Insurance insurance) {
+    public static ServiceReportRevenue getServiceReportRevenues(
+            List<PatientServiceBillReport> groupedPatientBills, //grouped by globalBillId
+            HopService hopService,
+            Insurance insurance) {
 
         BigDecimal dueAmount = new BigDecimal(0);
         ServiceReportRevenue revenue = null;
-        //due Amount  by Service
-        List<PatientServiceBillReport> serviceItems = new ArrayList<>();
-        float pRate = 0f;
-        for (PatientServiceBillReport psb : billItems) {
 
-            if (Objects.equals(psb.getHopServiceName(), hopService.getName())) {
+        List<PatientServiceBillReport> matchingItems = new ArrayList<>();
+        float pRate = 0f;
+
+        for (PatientServiceBillReport bill : groupedPatientBills) {
+
+            if (Objects.equals(bill.getHopServiceName(), hopService.getName())) {
                 Float insuranceRate = insurance.getCurrentRate().getRate();
                 //Float insuranceRate = psb.getCurrentInsuranceRate();
                 pRate = (100f - insuranceRate) / 100f;
                 BigDecimal patientRte = new BigDecimal("" + pRate);
 
-                BigDecimal reqQty = BigDecimal.valueOf(psb.getServiceBillQuantity());
-                BigDecimal unitPrice = BigDecimal.valueOf(psb.getServiceBillUnitPrice());
+                BigDecimal reqQty = BigDecimal.valueOf(bill.getServiceBillQuantity());
+                BigDecimal unitPrice = BigDecimal.valueOf(bill.getServiceBillUnitPrice());
                 dueAmount = dueAmount.add(reqQty.multiply(unitPrice).multiply(patientRte));
-                serviceItems.add(psb);
+                matchingItems.add(bill);
             }
-
         }
         // ||pRate==0 to fix mutuelle indigent which was not allowing the printout to display some items
         if (dueAmount.compareTo(BigDecimal.ZERO) > 0 || pRate == 0.0) {
             revenue = new ServiceReportRevenue(hopService.getName(), dueAmount);
-            revenue.setBillItems(serviceItems);
+            revenue.setBillItems(matchingItems);
         }
         return revenue;
     }
 
-    public static ServiceReportRevenue getServiceReportRevenue(List<PatientServiceBillReport> billItems, String groupedCategories, Insurance insurance) {
+    public static ServiceReportRevenue getServiceReportRevenue(
+            List<PatientServiceBillReport> groupedPatientBills,
+            String groupedCategories,
+            Insurance insurance) {
 
-        BigDecimal amount = new BigDecimal(0);
+        BigDecimal dueAmount = new BigDecimal(0);
         ServiceReportRevenue revenue = null;
 
-        List<HopService> services = GlobalPropertyConfig.getHospitalServiceByCategory(groupedCategories);
         List<PatientServiceBillReport> matchingItems = new ArrayList<>();
-        //due Amount  by Service
         float pRate = 0;
-        for (HopService hs : services) {
-            for (PatientServiceBillReport psb : billItems) {
-                if (hs.getName().equals(psb.getHopServiceName())) {
+
+        for (HopService hopService : GlobalPropertyConfig.getHospitalServiceByCategory(groupedCategories)) {
+            for (PatientServiceBillReport bill : groupedPatientBills) {
+
+                if (Objects.equals(bill.getHopServiceName(), hopService.getName())) {
                     Float insuranceRate = insurance.getCurrentRate().getRate();
+                    //Float insuranceRate = psb.getCurrentInsuranceRate();
                     pRate = (100f - insuranceRate) / 100f;
                     BigDecimal patientRte = new BigDecimal("" + pRate);
 
-                    BigDecimal reqQty = BigDecimal.valueOf(psb.getServiceBillQuantity());
-                    BigDecimal unitPrice = BigDecimal.valueOf(psb.getServiceBillUnitPrice());
-                    amount = amount.add(reqQty.multiply(unitPrice).multiply(patientRte));
-                    matchingItems.add(psb);
+                    BigDecimal reqQty = BigDecimal.valueOf(bill.getServiceBillQuantity());
+                    BigDecimal unitPrice = BigDecimal.valueOf(bill.getServiceBillUnitPrice());
+                    dueAmount = dueAmount.add(reqQty.multiply(unitPrice).multiply(patientRte));
+                    matchingItems.add(bill);
                 }
             }
         }
         String category = "";
-        if (amount.compareTo(BigDecimal.ZERO) > 0 || pRate == 0.0) {
+        if (dueAmount.compareTo(BigDecimal.ZERO) > 0 || pRate == 0.0) {
             String[] parts = groupedCategories.split("\\.");
             category = parts[1];
-            revenue = new ServiceReportRevenue(category.toUpperCase(), amount);
+            revenue = new ServiceReportRevenue(category.toUpperCase(), dueAmount);
             revenue.setBillItems(matchingItems);
         }
         return revenue;
@@ -805,7 +812,7 @@ public class ReportsUtil {
         return totalByCategory;
     }
 
-    public static List<PatientServiceBillReport> getPatientServiceBillReport(
+    public static InsuranceReport getPatientServiceBillReport(
             Integer insuranceId, Date startDate, Date endDate) {
         return getService().getBillItemsReportByCategory(insuranceId, startDate, endDate);
     }

@@ -37,7 +37,6 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -1409,26 +1408,157 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
-    public List<PatientServiceBillReport> getBillItemsByCategoryFromMamba(Integer insuranceIdentifier, Date startDate, Date endDate) {
+    public InsuranceReport getBillItemsByCategoryFromMamba(Integer insuranceIdentifier, Date startDate, Date endDate) {
 
         System.out.println("parameters for sp insurance : " + insuranceIdentifier);
         System.out.println("parameters for sp start_date: " + startDate);
         System.out.println("parameters for sp end_date  : " + endDate);
 
-        List<PatientServiceBillReport> billItems = new ArrayList<>();
+        System.out.println("Starting.. to Fetch items from MambaETL tables");
+
+        InsuranceReport report = new InsuranceReport();
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
+        long startTime = System.nanoTime();
         SQLQuery billingReportQuery = sessionFactory.getCurrentSession().createSQLQuery(
-                "CALL sp_mamba_fact_patient_service_bill_query(:insurance_id, :start_date, :end_date)"
-        );
+                "CALL sp_mamba_fact_insurance_report_query(:insurance_id, :start_date, :end_date)");
+
+        long endTime = System.nanoTime();
+        double elapsedTimeInSeconds = (endTime - startTime) / 1e9; // Convert nanoseconds to seconds
 
         billingReportQuery.setParameter("insurance_id", insuranceIdentifier);
         billingReportQuery.setParameter("start_date", startDate);
         billingReportQuery.setParameter("end_date", endDate);
-
         //TODO: Create a hibernate Object for this result-set type
         List<Object[]> resultSet = billingReportQuery.list();
+
+        System.out.println("It took MambaETL: " + elapsedTimeInSeconds + " seconds to retrieve: " + resultSet.size() + " items");
+        for (Object[] objects : resultSet) {
+
+            Integer id = (objects[0] != null) ? Integer.parseInt(objects[0].toString()) : null;
+            Date admissionDate = null;
+            try {
+                admissionDate = (objects[1] != null) ? dateFormat.parse(objects[1].toString().substring(0, 10)) : null;
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            Date closingDate = null;
+            try {
+                closingDate = (objects[2] != null) ? dateFormat.parse(objects[2].toString().substring(0, 10)) : null;
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            String beneficiaryName = (objects[3] != null) ? objects[3].toString() : null;
+            String houseHoldHeadName = (objects[4] != null) ? objects[4].toString() : null;
+            String familyCode = (objects[5] != null) ? objects[5].toString() : null;
+            Integer beneficiaryLevel = (objects[6] != null) ? Integer.parseInt(objects[6].toString()) : null;
+            String cardNumber = (objects[7] != null) ? objects[7].toString() : null;
+            String companyName = (objects[8] != null) ? objects[8].toString() : null;
+            Integer age = (objects[9] != null) ? Integer.parseInt(objects[9].toString()) : null;
+            Date birthDate = null;
+            try {
+                birthDate = (objects[10] != null) ? dateFormat.parse(objects[10].toString().substring(0, 10)) : null;
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            String gender = (objects[11] != null) ? objects[11].toString() : null;
+            String doctorName = (objects[12] != null) ? objects[12].toString() : null;
+            Integer insuranceId = (objects[13] != null) ? Integer.parseInt(objects[13].toString()) : null;
+            Integer globalBillId = (objects[14] != null) ? Integer.parseInt(objects[14].toString()) : null;
+            String globalBillIdentifier = (objects[15] != null) ? objects[15].toString() : null;
+
+            //services
+            Double medicament = (objects[16] != null) ? Double.parseDouble(objects[16].toString()) : 0;
+            Double consultation = (objects[17] != null) ? Double.parseDouble(objects[17].toString()) : 0;
+            Double hospitalisation = (objects[18] != null) ? Double.parseDouble(objects[18].toString()) : 0;
+            Double laboratoire = (objects[19] != null) ? Double.parseDouble(objects[19].toString()) : 0;
+            Double formaliteAdministratives = (objects[20] != null) ? Double.parseDouble(objects[20].toString()) : 0;
+            Double ambulance = (objects[21] != null) ? Double.parseDouble(objects[21].toString()) : 0;
+            Double consommables = (objects[22] != null) ? Double.parseDouble(objects[22].toString()) : 0;
+            Double oxygenotherapie = (objects[23] != null) ? Double.parseDouble(objects[23].toString()) : 0;
+            Double imaging = (objects[24] != null) ? Double.parseDouble(objects[24].toString()) : 0;
+            Double proced = (objects[25] != null) ? Double.parseDouble(objects[25].toString()) : 0;
+
+            InsuranceReportItem reportItem = new InsuranceReportItem();
+            reportItem.setId(id);
+            reportItem.setAdmissionDate(admissionDate);
+            reportItem.setClosingDate(closingDate);
+            reportItem.setBeneficiaryName(beneficiaryName);
+            reportItem.setHouseholdHeadName(houseHoldHeadName);
+            reportItem.setFamilyCode(familyCode);
+            reportItem.setBeneficiaryLevel(beneficiaryLevel);
+            reportItem.setCardNumber(cardNumber);
+            reportItem.setCompanyName(companyName);
+            reportItem.setAge(age);
+            reportItem.setBirthDate(birthDate);
+            reportItem.setGender(gender);
+            reportItem.setDoctorName(doctorName);
+            reportItem.setInsuranceId(insuranceId);
+            reportItem.setGlobalBillId(globalBillId);
+            reportItem.setGlobalBillIdentifier(globalBillIdentifier);
+
+            reportItem.setMedicament(medicament);
+            reportItem.setConsultation(consultation);
+            reportItem.setHospitalisation(hospitalisation);
+            reportItem.setLaboratoire(laboratoire);
+            reportItem.setFormaliteAdministratives(formaliteAdministratives);
+            reportItem.setAmbulance(ambulance);
+            reportItem.setConsommables(consommables);
+            reportItem.setOxygenotherapie(oxygenotherapie);
+            reportItem.setImaging(imaging);
+            reportItem.setProced(proced);
+
+            Double total = medicament + consultation + hospitalisation + laboratoire + formaliteAdministratives + ambulance + consommables + oxygenotherapie + imaging + proced;
+            Double total90 = 0.9 * total;
+
+            reportItem.setTotal100(total);
+            reportItem.setTotalInsurance(total90);
+            reportItem.setTotalPatient(total - total90);
+
+            report.addReportItem(reportItem);
+
+            report.addServiceRevenue("MEDICAMENTS", BigDecimal.valueOf(medicament));
+            report.addServiceRevenue("CONSULTATION", BigDecimal.valueOf(consultation));
+            report.addServiceRevenue("HOSPITALISATION", BigDecimal.valueOf(hospitalisation));
+            report.addServiceRevenue("LABORATOIRE", BigDecimal.valueOf(laboratoire));
+            report.addServiceRevenue("FORMALITES ADMINISTRATIVES", BigDecimal.valueOf(formaliteAdministratives));
+            report.addServiceRevenue("AMBULANCE", BigDecimal.valueOf(proced));
+            report.addServiceRevenue("CONSOMMABLES", BigDecimal.valueOf(ambulance));
+            report.addServiceRevenue("OXYGENOTHERAPIE", BigDecimal.valueOf(consommables));
+            report.addServiceRevenue("IMAGING", BigDecimal.valueOf(oxygenotherapie));
+            report.addServiceRevenue("PROCED.", BigDecimal.valueOf(imaging));
+        }
+        System.out.println("Done Fetching Insurance Report of size: " + report.getReportItems().size() + ", from MambaETL tables");
+        return report;
+    }
+
+    public List<PatientServiceBillReport> getBillItemsByCategoryFromMambaOld(Integer insuranceIdentifier, Date startDate, Date endDate) {
+
+        System.out.println("parameters for sp insurance : " + insuranceIdentifier);
+        System.out.println("parameters for sp start_date: " + startDate);
+        System.out.println("parameters for sp end_date  : " + endDate);
+
+        System.out.println("Starting.. to Fetch items from MambaETL tables");
+
+        List<PatientServiceBillReport> billItems = new ArrayList<>();
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        long startTime = System.nanoTime();
+        SQLQuery billingReportQuery = sessionFactory.getCurrentSession().createSQLQuery(
+                "CALL sp_mamba_fact_patient_service_bill_query(:insurance_id, :start_date, :end_date)");
+
+        long endTime = System.nanoTime();
+        double elapsedTimeInSeconds = (endTime - startTime) / 1e9; // Convert nanoseconds to seconds
+
+        billingReportQuery.setParameter("insurance_id", insuranceIdentifier);
+        billingReportQuery.setParameter("start_date", startDate);
+        billingReportQuery.setParameter("end_date", endDate);
+        //TODO: Create a hibernate Object for this result-set type
+        List<Object[]> resultSet = billingReportQuery.list();
+
+        System.out.println("It took MambaETL: " + elapsedTimeInSeconds + " seconds to retrieve: " + resultSet.size() + " items");
         for (Object[] objects : resultSet) {
 
             Integer id = (objects[0] != null) ? Integer.parseInt(objects[0].toString()) : null;
@@ -1491,6 +1621,7 @@ public class HibernateBillingDAO implements BillingDAO {
 
             billItems.add(report);
         }
+        System.out.println("Done Fetching: " + billItems.size() + " Patient Bills (items) from MambaETL tables");
         return billItems;
     }
 
