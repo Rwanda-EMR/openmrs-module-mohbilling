@@ -73,22 +73,6 @@
 				</td>
 			</tr>
 			<tr>
-				<td>Item Type</td>
-
-				<td><select name="facilityServiceItemType" required>
-					<option value=""
-							<c:if test="${tItem==null}"> selected="selected"</c:if>
-					>Please!!!Select Item Type</option>
-					<option value="1"
-							<c:if test="${tItem=='1'}"> selected="selected"</c:if>
-					>ORDINARY ITEM</option>
-					<option value="2"
-							<c:if test="${tItem=='2'}"> selected="selected"</c:if>
-					>DCP ITEM</option>
-				</select>
-				</td>
-			</tr>
-			<tr>
 				<td>Start Date</td>
 				<td><input autocomplete="off" type="text" name="facilityServiceStartDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date="${facilityService.startDate}" type="string"/>"/></td>
 			</tr>

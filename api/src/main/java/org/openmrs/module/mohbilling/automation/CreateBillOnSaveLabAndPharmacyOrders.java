@@ -103,6 +103,7 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
                     psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
                     psb.setCreator(Context.getAuthenticatedUser());
                     psb.setCreatedDate(new Date());
+                    psb.setItemType(1);
                     psbList.add(psb);
                 }
             } catch(Exception e){
@@ -183,6 +184,7 @@ public static void createBillOnSavePharmacyOrders(List<DrugOrderedAndQuantinty> 
                     psb.setCreator(Context.getAuthenticatedUser());
                     psb.setCreatedDate(new Date());
                     psb.setDrugFrequency(drug.getDrugFrequency());
+                    psb.setItemType(1);
                     psbList.add(psb);
                 }
             }

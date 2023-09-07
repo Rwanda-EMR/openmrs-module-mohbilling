@@ -3,6 +3,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <openmrs:require privilege="Manage Admission" otherwise="/login.htm" redirect="/module/@MODULE_ID@/admission.form" />
+<openmrs:require privilege="Create Admission Manually" otherwise="/login.htm" redirect="/module/@MODULE_ID@/admission.form" />
 
 <script type="text/javascript">
 
@@ -128,28 +129,6 @@ function  cancelClosingGlobalBill(){
             				<option value="Other">Other</option>
             				</select></td>
             </tr>
-
-			<tr>
-				<td>Admission Type</td>
-	<c:choose>
-		<c:when test="${insurancePolicy.insurance.category!='MUTUELLE'}">
-			<td>
-				<select name="admissionType" required>
-					<option value="">Please!! Select Admission Type</option>
-					<option value="1">Ordinary Admission</option>
-					<option value="2">DCP Admission</option>
-				</select>
-			</td>
-		</c:when>
-		<c:otherwise>
-			<td>
-				<select name="" disabled>
-					<option value="" >Not Applicable</option>
-				</select>
-			</td>
-		</c:otherwise>
-	</c:choose>
-			</tr>
 
 			<tr>
 				<td>Admission Type</td>

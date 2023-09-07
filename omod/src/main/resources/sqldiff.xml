@@ -753,6 +753,7 @@
 			<!-- ALTER TABLE moh_bill_global_bill ADD closed_reason varchar(150) DEFAULT NULL;
 			ALTER TABLE moh_bill_global_bill ADD edited_by int(11) DEFAULT NULL;
 			ALTER TABLE moh_bill_global_bill ADD edit_reason varchar(150) DEFAULT NULL; -->
+			ALTER TABLE moh_bill_patient_service_bill MODIFY COLUMN item_type TINYINT(1) DEFAULT 1;
 			ALTER TABLE moh_bill_patient_service_bill MODIFY COLUMN drug_frequency VARCHAR(255);
 			ALTER TABLE moh_bill_facility_service_price MODIFY COLUMN name VARCHAR(250) NOT NULL;
 		</sql>

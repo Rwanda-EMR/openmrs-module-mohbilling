@@ -1611,4 +1611,9 @@
 			ALTER TABLE moh_bill_insurance_policy ADD UNIQUE INDEX moh_bill_insurance_policy_insurance_card_no_UNIQUE (insurance_card_no);
 		</sql>
 	</changeSet>
+	<changeSet id="alter_moh_bill_patient_service_bill_adding_item_type" author="emmanuel">
+		<sql>
+			ALTER TABLE moh_bill_patient_service_bill MODIFY COLUMN item_type TINYINT(1) DEFAULT 1;
+		</sql>
+	</changeSet>
 </databaseChangeLog>
