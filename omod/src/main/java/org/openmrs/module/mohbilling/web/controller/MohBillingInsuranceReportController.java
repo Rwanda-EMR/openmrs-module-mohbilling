@@ -80,6 +80,7 @@ public class MohBillingInsuranceReportController extends
                 if (startDate != null && endDate != null && insuranceId != null) {
 
                     InsuranceReport reportItems = ReportsUtil.getPatientServiceBillReport(insuranceId, startDate, endDate);
+                    insuranceReportRecords = reportItems.getReportItems();
 
                     for (Map.Entry<String, BigDecimal> revenueItem : reportItems.getServiceTotalRevenues().entrySet()) {
 
@@ -88,7 +89,6 @@ public class MohBillingInsuranceReportController extends
 
                         columns.add(revenueItem.getKey());
                         totals.add(revenueItem.getValue());
-                        total100 = total100.add(revenueItem.getValue());
                     }
                 }
 

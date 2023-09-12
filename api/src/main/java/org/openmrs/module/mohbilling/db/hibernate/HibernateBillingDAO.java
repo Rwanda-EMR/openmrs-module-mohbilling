@@ -1523,11 +1523,15 @@ public class HibernateBillingDAO implements BillingDAO {
             report.addServiceRevenue("HOSPITALISATION", BigDecimal.valueOf(hospitalisation));
             report.addServiceRevenue("LABORATOIRE", BigDecimal.valueOf(laboratoire));
             report.addServiceRevenue("FORMALITES ADMINISTRATIVES", BigDecimal.valueOf(formaliteAdministratives));
-            report.addServiceRevenue("AMBULANCE", BigDecimal.valueOf(proced));
-            report.addServiceRevenue("CONSOMMABLES", BigDecimal.valueOf(ambulance));
-            report.addServiceRevenue("OXYGENOTHERAPIE", BigDecimal.valueOf(consommables));
-            report.addServiceRevenue("IMAGING", BigDecimal.valueOf(oxygenotherapie));
-            report.addServiceRevenue("PROCED.", BigDecimal.valueOf(imaging));
+            report.addServiceRevenue("AMBULANCE", BigDecimal.valueOf(ambulance));
+            report.addServiceRevenue("CONSOMMABLES", BigDecimal.valueOf(consommables));
+            report.addServiceRevenue("OXYGENOTHERAPIE", BigDecimal.valueOf(oxygenotherapie));
+            report.addServiceRevenue("IMAGING", BigDecimal.valueOf(imaging));
+            report.addServiceRevenue("PROCED.", BigDecimal.valueOf(proced));
+
+            report.addServiceRevenue("100%", BigDecimal.valueOf(reportItem.getTotal100()));
+            report.addServiceRevenue("Insurance (90%)", BigDecimal.valueOf(reportItem.getTotalInsurance()));
+            report.addServiceRevenue("Patient (10%)", BigDecimal.valueOf(reportItem.getTotalPatient()));
         }
         System.out.println("Done Fetching Insurance Report of size: " + report.getReportItems().size() + ", from MambaETL tables");
         return report;

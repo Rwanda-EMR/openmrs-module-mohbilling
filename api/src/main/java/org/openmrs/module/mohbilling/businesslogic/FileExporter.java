@@ -1481,10 +1481,10 @@ public class FileExporter {
     }
 
     public static void exportDataOld(HttpServletRequest request,
-                                  HttpServletResponse response,
-                                  Insurance insurance,
-                                  List<String> columns,
-                                  List<AllServicesReportRevenue> listOfAllServicesRevenue)
+                                     HttpServletResponse response,
+                                     Insurance insurance,
+                                     List<String> columns,
+                                     List<AllServicesReportRevenue> listOfAllServicesRevenue)
             throws Exception {
 
         Date date = new Date();
@@ -1613,25 +1613,23 @@ public class FileExporter {
         for (InsuranceReportItem reportItem : reportRecords) {
 
             Float insuranceRate = insurance.getCurrentRate().getRate();
-            Float insuranceDue = 0f;
-            Float patientDue = 0f;
             i++;
 
             op.print(i
                     + "," + formatter.format(reportItem.getAdmissionDate())
                     + "," + formatter.format(reportItem.getClosingDate())
-                    + "," + reportItem.getBeneficiaryName()
-                    + "," + reportItem.getHouseholdHeadName()
-                    + ",'" + reportItem.getFamilyCode()
-                    + "," + reportItem.getBeneficiaryLevel()
-                    + ",'" + reportItem.getCardNumber()
-                    + "," + reportItem.getCompanyName()
+                    + "," + quoteValue(reportItem.getBeneficiaryName())
+                    + "," + quoteValue(reportItem.getHouseholdHeadName())
+                    + "," + reportItem.getFamilyCode()
+                    + " ," + reportItem.getBeneficiaryLevel()
+                    + "," + reportItem.getCardNumber()
+                    + " ," + reportItem.getCompanyName()
                     + "," + reportItem.getAge()
                     + "," + formatter.format(reportItem.getBirthDate())
                     + "," + reportItem.getGender()
                     + "," + reportItem.getDoctorName()
 
-                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getMedicament())
+                    + "'," + ReportsUtil.roundTwoDecimals(reportItem.getMedicament())
                     + "," + ReportsUtil.roundTwoDecimals(reportItem.getConsultation())
                     + "," + ReportsUtil.roundTwoDecimals(reportItem.getHospitalisation())
                     + "," + ReportsUtil.roundTwoDecimals(reportItem.getLaboratoire())
@@ -1643,9 +1641,9 @@ public class FileExporter {
                     + "," + ReportsUtil.roundTwoDecimals(reportItem.getProced())
             );
 
-            op.print("," + ReportsUtil.roundTwoDecimals(0.00) +
-                    "," + ReportsUtil.roundTwoDecimals(insuranceDue) +
-                    "," + ReportsUtil.roundTwoDecimals(patientDue));
+            op.print("," + ReportsUtil.roundTwoDecimals(reportItem.getTotal100()) +
+                    "," + ReportsUtil.roundTwoDecimals(reportItem.getTotalInsurance()) +
+                    "," + ReportsUtil.roundTwoDecimals(reportItem.getTotalPatient()));
 
             op.println();
         }
@@ -1654,6 +1652,16 @@ public class FileExporter {
         op.flush();
         op.close();
         System.out.println("Done flushing..");
+    }
+
+    private static String quoteValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 
     public void epsonPrinter(HttpServletRequest request, HttpServletResponse response, BillPayment payment, String filename) throws Exception {

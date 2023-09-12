@@ -10,7 +10,7 @@ public class InsuranceReport {
     private List<InsuranceReportItem> reportItems;
 
     public InsuranceReport() {
-        serviceTotalRevenues = new HashMap<>();
+        serviceTotalRevenues = new LinkedHashMap<>();
         reportItems = new ArrayList<>();
     }
 
@@ -31,7 +31,9 @@ public class InsuranceReport {
     }
 
     public void addServiceRevenue(String serviceName, BigDecimal serviceRevenue) {
-        getServiceTotalRevenues().computeIfAbsent(serviceName, k -> BigDecimal.ZERO).add(serviceRevenue);
+        BigDecimal revenue = getServiceTotalRevenues().getOrDefault(serviceName, BigDecimal.ZERO);
+        BigDecimal newRevenue = revenue.add(serviceRevenue);
+        getServiceTotalRevenues().put(serviceName, newRevenue);
     }
 
     public void addReportItem(InsuranceReportItem reportItem) {
