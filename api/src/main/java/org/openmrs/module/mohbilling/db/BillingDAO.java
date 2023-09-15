@@ -631,6 +631,16 @@ public interface BillingDAO {
 	public List<GlobalBill> getGlobalBills(Date date1, Date date2);
 
 	/**
+     * Pulls an insurance billing report from MambaETL
+     *
+     * @param insuranceId insurance ID
+     * @param startDate   admission start date
+     * @param endDate     admission end date
+     * @return a list of patient service bills for closed bills
+     */
+    InsuranceReport getBillItemsByCategoryFromMamba(Integer insuranceId, Date startDate, Date endDate);
+
+	/**
 	 * gets Global Bills between 2 dates
 	 * @param date1
 	 * @param date2

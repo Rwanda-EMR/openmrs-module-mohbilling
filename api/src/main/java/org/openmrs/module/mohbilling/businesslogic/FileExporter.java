@@ -1448,15 +1448,6 @@ public class FileExporter {
         document.add(table);
     }
 
-    public static void exportDataOld(HttpServletRequest request,
-                                     HttpServletResponse response,
-                                     Insurance insurance,
-                                     List<String> columns,
-                                     List<AllServicesReportRevenue> listOfAllServicesRevenue)
-            throws Exception {
-		document.add(table);
-	}
-
 	public static void exportDCPData(HttpServletRequest request, HttpServletResponse response,List<AllServiceRevenueCons> listOfAllServicesRevenue,List<String> columns) throws Exception{
 
 		Date date = new Date();
@@ -1538,97 +1529,6 @@ public class FileExporter {
 		dcp.flush();
 		dcp.close();
 	}
-	//export to excel
-	public static void exportData(HttpServletRequest request, HttpServletResponse response, Insurance insurance, List<String> columns,List<AllServicesRevenue> listOfAllServicesRevenue)throws Exception,
-			Exception {
-
-        Date date = new Date();
-        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-
-        PrintWriter op = response.getWriter();
-
-        response.setContentType("text/plain");
-        response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + formatter.format(date) + ".csv\"");
-
-        op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
-        op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
-        op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
-        op.println();
-        op.println();
-
-        op.println("," + "," + "," + "SUMMARY OF VOUCHERS FOR " + insurance.getName());
-        op.println();
-        op.println();
-
-        System.out.println("Additional Column count: " + columns.size());
-
-        op.print("#,Admission Date,Closing Date,BENEFICIARY'S NAMES,HEAD HOUSEHOLD'S NAMES,FAMILY'S CODE,LEVEL,Card NUMBER,COMPANY,AGE,BIRTH DATE,GENDER,DOCTOR");
-        for (String col : columns) {
-            op.print("," + col);
-        }
-        Float insRate = insurance.getCurrentRate().getRate();
-
-        op.print(",100%");
-        op.print("," + insRate + "%");
-        op.println("," + (100 - insRate.floatValue()) + "%");
-
-        int i = 0;
-        for (AllServicesReportRevenue services : listOfAllServicesRevenue) {
-
-            PatientServiceBillReport report = services.getConsommation();
-            //Float insuranceRate = report.getCurrentInsuranceRate();
-            Float insuranceRate = insurance.getCurrentRate().getRate();
-            Float insuranceDue = services.getAllDueAmounts().floatValue() * insuranceRate / 100;
-            Float patientDue = services.getAllDueAmounts().floatValue() * ((100 - insuranceRate) / 100);
-            i++;
-
-            op.print(i
-                    + "," + formatter.format(report.getAdmissionDate())
-                    + "," + formatter.format(report.getClosingDate())
-                    + "," + report.getBeneficiaryName()
-                    + "," + report.getHouseholdHeadName()
-                    + ",'" + report.getFamilyCode()
-                    + "," + report.getBeneficiaryLevel()
-                    + ",'" + report.getCardNumber()
-                    + "," + report.getCompanyName()
-                    + "," + report.getAge()
-                    + "," + formatter.format(report.getBirthDate())
-                    + "," + report.getGender()
-                    + "," + report.getDoctorName()
-
-            );
-
-            for (ServiceReportRevenue r : services.getRevenues()) {
-
-                if (r != null && (100 - insuranceRate) != 0.0) {
-                    op.print("," + ReportsUtil.roundTwoDecimals(r.getDueAmount().floatValue() * 100 / (100 - insuranceRate)));
-
-                } else if (r != null && (100 - insuranceRate) == 0.0) {
-
-                    BigDecimal amount = new BigDecimal(0);
-                    for (PatientServiceBillReport item : r.getBillItems()) {
-                        amount = amount.add(BigDecimal.valueOf(item.getServiceBillUnitPrice())
-                                .multiply(BigDecimal.valueOf(item.getServiceBillQuantity())));
-                    }
-                    op.print("," + ReportsUtil.roundTwoDecimals(amount.floatValue()));
-
-                } else {
-                    op.print("," + 0);
-                }
-            }
-
-            op.print("," + ReportsUtil.roundTwoDecimals(services.getAllDueAmounts().doubleValue()) +
-                    "," + ReportsUtil.roundTwoDecimals(insuranceDue) +
-                    "," + ReportsUtil.roundTwoDecimals(patientDue));
-
-            op.println();
-        }
-        op.println();
-
-        op.flush();
-        op.close();
-        System.out.println("Done flushing..");
-    }
 
     //export to excel
     public static void exportData(HttpServletRequest request,

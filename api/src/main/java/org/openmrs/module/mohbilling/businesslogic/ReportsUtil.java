@@ -466,99 +466,22 @@ public class ReportsUtil {
 
     }
 
-	/**
-	 * takes a list of paiditems and returns PaidServiceRevenue by a given category
-	 * @param paidItems
-	 * @param categ
-	 * @return PaidServiceRevenue
-	 */
-	public static PaidServiceRevenue getPaidServiceRevenue(List<PaidServiceBill> paidItems, String categ){
-		BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
-		for (PaidServiceBill pi : paidItems) {
-			if (!pi.getVoided() && !pi.getBillItem().getItemType().equals(2)) {
-				if (categ.equals(pi.getBillItem().getHopService().getName())) {
-					InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
-					if (insurancePolicy.getInsurance().getCurrentRate() != null) {
-						float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
-						float pRate = (100f - insuranceRate) / 100f;
-
-						if (insurancePolicy.getThirdParty() != null) {
-							float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
-							pRate = (100f - insuranceRate - thirdPartyRate) / 100f;
-						}
-						BigDecimal patientRte = new BigDecimal("" + pRate);
-						BigDecimal paidQty = pi.getPaidQty();
-						BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
-						paidAmountOnThisCategory = paidAmountOnThisCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));
-					}
-				}
-			}
-		}
-		PaidServiceRevenue paidRevenue = null;
-
-		if(paidAmountOnThisCategory.compareTo(BigDecimal.ZERO)>0){
-			paidRevenue = new PaidServiceRevenue();
-			paidRevenue.setService(categ);
-			paidRevenue.setPaidItems(paidItems);
-			paidRevenue.setPaidAmount(paidAmountOnThisCategory);
-		}
-		else{
-			paidRevenue = new PaidServiceRevenue();
-			paidRevenue.setService(categ);
-			paidRevenue.setPaidItems(null);
-			paidRevenue.setPaidAmount(new BigDecimal(0));
-		}
-		return paidRevenue;
-		}
-
-	public static PaidServiceRevenue getPaidServiceRevenueDCP(List<PaidServiceBill> paidItems, String categ){
-		BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
-		for (PaidServiceBill pi : paidItems) {
-			if (!pi.getVoided() && pi.getBillItem().getItemType().equals(2)) {
-				if (categ.equals(pi.getBillItem().getHopService().getName())) {
-					InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
-					if (insurancePolicy.getInsurance().getCurrentRate() != null) {
-						float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
-						float pRate = (100f - insuranceRate) / 100f;
-
-						if (insurancePolicy.getThirdParty() != null) {
-							float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
-							pRate = (100f - insuranceRate - thirdPartyRate) / 100f;
-						}
-						BigDecimal patientRte = new BigDecimal("" + pRate);
-						BigDecimal paidQty = pi.getPaidQty();
-						BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
-						paidAmountOnThisCategory = paidAmountOnThisCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));
-					}
-				}
-			}
-		}
-		PaidServiceRevenue paidRevenue = null;
-
-		if(paidAmountOnThisCategory.compareTo(BigDecimal.ZERO)>0){
-			paidRevenue = new PaidServiceRevenue();
-			paidRevenue.setService(categ);
-			paidRevenue.setPaidItems(paidItems);
-			paidRevenue.setPaidAmount(paidAmountOnThisCategory);
-		}
-		else{
-			paidRevenue = new PaidServiceRevenue();
-			paidRevenue.setService(categ);
-			paidRevenue.setPaidItems(null);
-			paidRevenue.setPaidAmount(new BigDecimal(0));
-		}
-		return paidRevenue;
-
-	}
-	public static PaidServiceRevenue getPaidServiceRevenueAll(List<PaidServiceBill> paidItems, String categ){
-		BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
-		for (PaidServiceBill pi : paidItems) {
-			if (!pi.getVoided()) {
-				if (categ.equals(pi.getBillItem().getHopService().getName())) {
-					InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
-					if (insurancePolicy.getInsurance().getCurrentRate() != null) {
-						float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
-						float pRate = (100f - insuranceRate) / 100f;
+    /**
+     * takes a list of paiditems and returns PaidServiceRevenue by a given category
+     *
+     * @param paidItems
+     * @param categ
+     * @return PaidServiceRevenue
+     */
+    public static PaidServiceRevenue getPaidServiceRevenue(List<PaidServiceBill> paidItems, String categ) {
+        BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
+        for (PaidServiceBill pi : paidItems) {
+            if (!pi.getVoided() && !pi.getBillItem().getItemType().equals(2)) {
+                if (categ.equals(pi.getBillItem().getHopService().getName())) {
+                    InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
+                    if (insurancePolicy.getInsurance().getCurrentRate() != null) {
+                        float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
+                        float pRate = (100f - insuranceRate) / 100f;
 
                         if (insurancePolicy.getThirdParty() != null) {
                             float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
@@ -574,36 +497,114 @@ public class ReportsUtil {
         }
         PaidServiceRevenue paidRevenue = null;
 
-		if(paidAmountOnThisCategory.compareTo(BigDecimal.ZERO)>0){
-			paidRevenue = new PaidServiceRevenue();
-			paidRevenue.setService(categ);
-			paidRevenue.setPaidItems(paidItems);
-			paidRevenue.setPaidAmount(paidAmountOnThisCategory);
-		}
-		else{
-			paidRevenue = new PaidServiceRevenue();
-			paidRevenue.setService(categ);
-			paidRevenue.setPaidItems(null);
-			paidRevenue.setPaidAmount(new BigDecimal(0));
-		}
-		return paidRevenue;
-	}
-	/**
-	 * get revenues by categories and by each department
-	 * @param paidItems
-	 * @param d
-	 * @param columns
-	 * @return DepartmentRevenues
-	 */
-	public static DepartmentRevenues getRevenuesByDepartment(List<PaidServiceBill> paidItems,Department d,List<String> columns) {
-		List<PaidServiceBill> itemsByDepart = new ArrayList<PaidServiceBill>();
-	//	List<HopService> services =GlobalPropertyConfig.getHospitalServiceByCategory(columns);
-		for (PaidServiceBill pi : paidItems) {
-			if(pi.getBillItem().getConsommation().getDepartment().getName().equals(d.getName())){
-		       itemsByDepart.add(pi);
-			}
-		}
-		List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
+        if (paidAmountOnThisCategory.compareTo(BigDecimal.ZERO) > 0) {
+            paidRevenue = new PaidServiceRevenue();
+            paidRevenue.setService(categ);
+            paidRevenue.setPaidItems(paidItems);
+            paidRevenue.setPaidAmount(paidAmountOnThisCategory);
+        } else {
+            paidRevenue = new PaidServiceRevenue();
+            paidRevenue.setService(categ);
+            paidRevenue.setPaidItems(null);
+            paidRevenue.setPaidAmount(new BigDecimal(0));
+        }
+        return paidRevenue;
+    }
+
+    public static PaidServiceRevenue getPaidServiceRevenueDCP(List<PaidServiceBill> paidItems, String categ) {
+        BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
+        for (PaidServiceBill pi : paidItems) {
+            if (!pi.getVoided() && pi.getBillItem().getItemType().equals(2)) {
+                if (categ.equals(pi.getBillItem().getHopService().getName())) {
+                    InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
+                    if (insurancePolicy.getInsurance().getCurrentRate() != null) {
+                        float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
+                        float pRate = (100f - insuranceRate) / 100f;
+
+                        if (insurancePolicy.getThirdParty() != null) {
+                            float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
+                            pRate = (100f - insuranceRate - thirdPartyRate) / 100f;
+                        }
+                        BigDecimal patientRte = new BigDecimal("" + pRate);
+                        BigDecimal paidQty = pi.getPaidQty();
+                        BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
+                        paidAmountOnThisCategory = paidAmountOnThisCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));
+                    }
+                }
+            }
+        }
+        PaidServiceRevenue paidRevenue = null;
+
+        if (paidAmountOnThisCategory.compareTo(BigDecimal.ZERO) > 0) {
+            paidRevenue = new PaidServiceRevenue();
+            paidRevenue.setService(categ);
+            paidRevenue.setPaidItems(paidItems);
+            paidRevenue.setPaidAmount(paidAmountOnThisCategory);
+        } else {
+            paidRevenue = new PaidServiceRevenue();
+            paidRevenue.setService(categ);
+            paidRevenue.setPaidItems(null);
+            paidRevenue.setPaidAmount(new BigDecimal(0));
+        }
+        return paidRevenue;
+
+    }
+
+    public static PaidServiceRevenue getPaidServiceRevenueAll(List<PaidServiceBill> paidItems, String categ) {
+        BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
+        for (PaidServiceBill pi : paidItems) {
+            if (!pi.getVoided()) {
+                if (categ.equals(pi.getBillItem().getHopService().getName())) {
+                    InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
+                    if (insurancePolicy.getInsurance().getCurrentRate() != null) {
+                        float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
+                        float pRate = (100f - insuranceRate) / 100f;
+
+                        if (insurancePolicy.getThirdParty() != null) {
+                            float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
+                            pRate = (100f - insuranceRate - thirdPartyRate) / 100f;
+                        }
+                        BigDecimal patientRte = new BigDecimal("" + pRate);
+                        BigDecimal paidQty = pi.getPaidQty();
+                        BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
+                        paidAmountOnThisCategory = paidAmountOnThisCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));
+                    }
+                }
+            }
+        }
+        PaidServiceRevenue paidRevenue = null;
+
+        if (paidAmountOnThisCategory.compareTo(BigDecimal.ZERO) > 0) {
+            paidRevenue = new PaidServiceRevenue();
+            paidRevenue.setService(categ);
+            paidRevenue.setPaidItems(paidItems);
+            paidRevenue.setPaidAmount(paidAmountOnThisCategory);
+        } else {
+            paidRevenue = new PaidServiceRevenue();
+            paidRevenue.setService(categ);
+            paidRevenue.setPaidItems(null);
+            paidRevenue.setPaidAmount(new BigDecimal(0));
+        }
+        return paidRevenue;
+    }
+
+    /**
+     * get revenues by categories and by each department
+     *
+     * @param paidItems
+     * @param d
+     * @param columns
+     * @return DepartmentRevenues
+     */
+    public static DepartmentRevenues getRevenuesByDepartment(List<PaidServiceBill> paidItems, Department d, List<String> columns) {
+        List<PaidServiceBill> itemsByDepart = new ArrayList<PaidServiceBill>();
+        //	List<HopService> services =GlobalPropertyConfig.getHospitalServiceByCategory(columns);
+        for (PaidServiceBill pi : paidItems) {
+            if (pi.getBillItem().getConsommation().getDepartment().getName().equals(d.getName())) {
+                itemsByDepart.add(pi);
+            }
+        }
+        List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
 //		List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory(columns);
         BigDecimal totalByDepartment = new BigDecimal(0);
         for (String col : columns) {
@@ -682,39 +683,41 @@ public class ReportsUtil {
         return params;
     }
 
-	public static List<PatientServiceBill> getAllItemsByGlobalBill(GlobalBill gb){
-		List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
-		for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
-			for (PatientServiceBill item : c.getBillItems()) {
-				if (!item.getVoided() && !item.getItemType().equals(2)) {
-					items.add(item);
-				}
-			}
-		}
-		return items;
-	}
-	public static List<PatientServiceBill> getAllItemsByGlobalBillDcp(GlobalBill gb){
-		List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
-		for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
-			for (PatientServiceBill item : c.getBillItems()) {
-				if (!item.getVoided() && item.getItemType().equals(2)) {
-					items.add(item);
-				}
-			}
-		}
-		return items;
-	}
-	public static List<PatientServiceBill> getAllItemsByGlobalBillAll(GlobalBill gb){
-		List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
-		for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
-			for (PatientServiceBill item : c.getBillItems()) {
-				if (!item.getVoided()) {
-					items.add(item);
-				}
-			}
-		}
-		return items;
-	}
+    public static List<PatientServiceBill> getAllItemsByGlobalBill(GlobalBill gb) {
+        List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
+        for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
+            for (PatientServiceBill item : c.getBillItems()) {
+                if (!item.getVoided() && !item.getItemType().equals(2)) {
+                    items.add(item);
+                }
+            }
+        }
+        return items;
+    }
+
+    public static List<PatientServiceBill> getAllItemsByGlobalBillDcp(GlobalBill gb) {
+        List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
+        for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
+            for (PatientServiceBill item : c.getBillItems()) {
+                if (!item.getVoided() && item.getItemType().equals(2)) {
+                    items.add(item);
+                }
+            }
+        }
+        return items;
+    }
+
+    public static List<PatientServiceBill> getAllItemsByGlobalBillAll(GlobalBill gb) {
+        List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
+        for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
+            for (PatientServiceBill item : c.getBillItems()) {
+                if (!item.getVoided()) {
+                    items.add(item);
+                }
+            }
+        }
+        return items;
+    }
 
     public static Consommation getConsommationByGlobalBill(GlobalBill gb) {
         Consommation c = null;
@@ -732,190 +735,205 @@ public class ReportsUtil {
         BigDecimal amount = new BigDecimal(0);
         ServiceRevenue revenue = null;
 
-		List<HopService> services = GlobalPropertyConfig.getHospitalServiceByCategory(groupedCategories);
-		List<PatientServiceBill> matchingItems = new ArrayList<PatientServiceBill>();
-		//due Amount  by Service
-		float pRate=0;
-		for (HopService hs : services) {
-			for (PatientServiceBill psb : billItems) {
-				if(hs.equals(psb.getHopService())){
-					Float insuranceRate = psb.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-					pRate = (100f - insuranceRate) / 100f;
-					BigDecimal patientRte = new BigDecimal(""+pRate);
-					
-					BigDecimal reqQty = psb.getQuantity();
-					BigDecimal unitPrice =psb.getUnitPrice();
-					amount =amount.add(reqQty.multiply(unitPrice).multiply(patientRte));	 
-					matchingItems.add(psb);
-				}
-			}
-		}
-		String category="";
-		if(amount.compareTo(BigDecimal.ZERO)>0 || pRate==0.0){
-			String[]	parts =  groupedCategories.split("\\.");
-			category = parts[1]; 
-	        revenue = new ServiceRevenue(category.toUpperCase(), amount);
-	        revenue.setBillItems(matchingItems);
-		}
-		return revenue;
-	}
-	
-	public static BigDecimal getTotalByItems(List<PatientServiceBill> billItems){
-		BigDecimal total = new BigDecimal(0);
-		for (PatientServiceBill psb : billItems) {
-				BigDecimal reqQty = psb.getQuantity();
-				BigDecimal unitPrice =psb.getUnitPrice();
-				total =total.add(reqQty.multiply(unitPrice));	
-		}
-		return total;
-	}
-	/**
-	 * gets total of items matching one category
-	 * @param billItems
-	 * @param category
-	 * @return
-	 */
-	public static BigDecimal getTotalByCategorizedItems(List<PatientServiceBill> billItems,String category){
-		BigDecimal totalByCategory = new BigDecimal(0);
-		for (PatientServiceBill psb : billItems) {
-			if(psb.getHopService().getName().equals(category)){
-				BigDecimal reqQty = psb.getQuantity();
-				BigDecimal unitPrice =psb.getUnitPrice();
-				totalByCategory =totalByCategory.add(reqQty.multiply(unitPrice));	
-			}
-		}
-		return totalByCategory;
-	}
-	/**
-	 * gets total of items matching any of grouped category
-	 * @param billItems
-	 * @param hopServices
-	 * @return
-	 */
-	public static BigDecimal getTotalByCategorizedItems(List<PatientServiceBill> billItems,List<HopService> hopServices){
-		BigDecimal totalByCategory = new BigDecimal(0);
-		for (PatientServiceBill psb : billItems) {
-			for (HopService hs : hopServices) {
-				if(psb.getHopService().getName().equals(hs.getName())){
-					BigDecimal reqQty = psb.getQuantity();
-					BigDecimal unitPrice =psb.getUnitPrice();
-					totalByCategory =totalByCategory.add(reqQty.multiply(unitPrice));	
-				}
-			}
-		}
-		return totalByCategory;
-	}
-	/**
-	 * gets a list of items from multiple global bills
-	 * @param globalBills
-	 * @return
-	 */
-	public static List<PatientServiceBill> getBillItemsByAllGlobalBills(List<GlobalBill> globalBills){
-		List<PatientServiceBill> allItems = new ArrayList<PatientServiceBill>();
-		for (GlobalBill gb : globalBills) {
-			for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
-				for (PatientServiceBill psb : c.getBillItems()) {
-					if(!psb.getVoided())
-					allItems.add(psb);
-				}
-			}
-		}
-		return allItems;
-	}
-	
-	/**
-	 * gets revenues by payment and category
-	 * @param payment
-	 * @param columns
-	 * @return revenues by payment and category
-	 */
-	public static PaymentRevenue getRevenuesByPayment(BillPayment payment,List<String> columns) {
-		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
-		
-		List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
-		BigDecimal totalByPayment= new BigDecimal(0);
-		for (String col : columns) {
-			if(getPaidServiceRevenue(paidItems, col)!=null){
-			paidSr.add(getPaidServiceRevenue(paidItems, col));
-			totalByPayment=totalByPayment.add(getPaidServiceRevenue(paidItems, col).getPaidAmount());
-			}
-	    }
-		PaymentRevenue paymentRevenues = null;
-		if(totalByPayment.compareTo(BigDecimal.ZERO)>0){	
-			paymentRevenues = new PaymentRevenue();
-			paymentRevenues.setAmount(totalByPayment);
-			paymentRevenues.setPayment(payment);
-			paymentRevenues.setPaidServiceRevenues(paidSr);
-			if ((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill()))!=null)
-			paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
-		}
-		return paymentRevenues;
-	}
-	public static PaymentRevenue getRevenuesByPaymentDCP(BillPayment payment,List<String> columns) {
-		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+        List<HopService> services = GlobalPropertyConfig.getHospitalServiceByCategory(groupedCategories);
+        List<PatientServiceBill> matchingItems = new ArrayList<PatientServiceBill>();
+        //due Amount  by Service
+        float pRate = 0;
+        for (HopService hs : services) {
+            for (PatientServiceBill psb : billItems) {
+                if (hs.equals(psb.getHopService())) {
+                    Float insuranceRate = psb.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+                    pRate = (100f - insuranceRate) / 100f;
+                    BigDecimal patientRte = new BigDecimal("" + pRate);
 
-		List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
-		BigDecimal totalByPayment= new BigDecimal(0);
-		for (String col : columns) {
-			if(getPaidServiceRevenueDCP(paidItems, col)!=null){
-				paidSr.add(getPaidServiceRevenueDCP(paidItems, col));
-				totalByPayment=totalByPayment.add(getPaidServiceRevenueDCP(paidItems, col).getPaidAmount());
-			}
-		}
-		PaymentRevenue paymentRevenues = null;
-		if(totalByPayment.compareTo(BigDecimal.ZERO)>0){
-			paymentRevenues = new PaymentRevenue();
-			paymentRevenues.setAmount(totalByPayment);
-			paymentRevenues.setPayment(payment);
-			paymentRevenues.setPaidServiceRevenues(paidSr);
-			if ((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill()))!=null)
-				paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
-		}
-		return paymentRevenues;
-	}
-	public static PaymentRevenue getRevenuesByPaymentAll(BillPayment payment,List<String> columns) {
-		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+                    BigDecimal reqQty = psb.getQuantity();
+                    BigDecimal unitPrice = psb.getUnitPrice();
+                    amount = amount.add(reqQty.multiply(unitPrice).multiply(patientRte));
+                    matchingItems.add(psb);
+                }
+            }
+        }
+        String category = "";
+        if (amount.compareTo(BigDecimal.ZERO) > 0 || pRate == 0.0) {
+            String[] parts = groupedCategories.split("\\.");
+            category = parts[1];
+            revenue = new ServiceRevenue(category.toUpperCase(), amount);
+            revenue.setBillItems(matchingItems);
+        }
+        return revenue;
+    }
 
-		List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
-		BigDecimal totalByPayment= new BigDecimal(0);
-		for (String col : columns) {
-			if(getPaidServiceRevenueAll(paidItems, col)!=null){
-				paidSr.add(getPaidServiceRevenueAll(paidItems, col));
-				totalByPayment=totalByPayment.add(getPaidServiceRevenueAll(paidItems, col).getPaidAmount());
-			}
-		}
-		PaymentRevenue paymentRevenues = null;
-		if(totalByPayment.compareTo(BigDecimal.ZERO)>0){
-			paymentRevenues = new PaymentRevenue();
-			paymentRevenues.setAmount(totalByPayment);
-			paymentRevenues.setPayment(payment);
-			paymentRevenues.setPaidServiceRevenues(paidSr);
-			if ((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill()))!=null)
-				paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
-		}
-		return paymentRevenues;
-	}
-	/**
-	 * calculates sub totals on reports
-	 * @param paidItems
-	 * @param category
-	 * @return total by category of items
-	 */
-	public static BigDecimal getTotalByCategorizedPaidItems(List<PaidServiceBill> paidItems,String category){
-		BigDecimal totalByCategory = new BigDecimal(0);
-			for (PaidServiceBill pi : paidItems) {
-				if (pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate() != null) {
-					Float insuranceRate = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-					Float pRate = (100f - insuranceRate) / 100f;
-					BigDecimal patientRte = new BigDecimal("" + pRate);
-					if (pi.getBillItem().getHopService().getName().equals(category) && pi.getBillItem().getConsommation().getThirdPartyBill() == null) {
-						BigDecimal reqQty = pi.getBillItem().getQuantity();
-						BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
-						totalByCategory = totalByCategory.add(reqQty.multiply(unitPrice).multiply(patientRte));
-					}
-				}
-			}
-		return totalByCategory;
-	}
-	
+    public static BigDecimal getTotalByItems(List<PatientServiceBill> billItems) {
+        BigDecimal total = new BigDecimal(0);
+        for (PatientServiceBill psb : billItems) {
+            BigDecimal reqQty = psb.getQuantity();
+            BigDecimal unitPrice = psb.getUnitPrice();
+            total = total.add(reqQty.multiply(unitPrice));
+        }
+        return total;
+    }
+
+    /**
+     * gets total of items matching one category
+     *
+     * @param billItems
+     * @param category
+     * @return
+     */
+    public static BigDecimal getTotalByCategorizedItems(List<PatientServiceBill> billItems, String category) {
+        BigDecimal totalByCategory = new BigDecimal(0);
+        for (PatientServiceBill psb : billItems) {
+            if (psb.getHopService().getName().equals(category)) {
+                BigDecimal reqQty = psb.getQuantity();
+                BigDecimal unitPrice = psb.getUnitPrice();
+                totalByCategory = totalByCategory.add(reqQty.multiply(unitPrice));
+            }
+        }
+        return totalByCategory;
+    }
+
+    /**
+     * gets total of items matching any of grouped category
+     *
+     * @param billItems
+     * @param hopServices
+     * @return
+     */
+    public static BigDecimal getTotalByCategorizedItems(List<PatientServiceBill> billItems, List<HopService> hopServices) {
+        BigDecimal totalByCategory = new BigDecimal(0);
+        for (PatientServiceBill psb : billItems) {
+            for (HopService hs : hopServices) {
+                if (psb.getHopService().getName().equals(hs.getName())) {
+                    BigDecimal reqQty = psb.getQuantity();
+                    BigDecimal unitPrice = psb.getUnitPrice();
+                    totalByCategory = totalByCategory.add(reqQty.multiply(unitPrice));
+                }
+            }
+        }
+        return totalByCategory;
+    }
+
+    /**
+     * gets a list of items from multiple global bills
+     *
+     * @param globalBills
+     * @return
+     */
+    public static List<PatientServiceBill> getBillItemsByAllGlobalBills(List<GlobalBill> globalBills) {
+        List<PatientServiceBill> allItems = new ArrayList<PatientServiceBill>();
+        for (GlobalBill gb : globalBills) {
+            for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
+                for (PatientServiceBill psb : c.getBillItems()) {
+                    if (!psb.getVoided())
+                        allItems.add(psb);
+                }
+            }
+        }
+        return allItems;
+    }
+
+    /**
+     * gets revenues by payment and category
+     *
+     * @param payment
+     * @param columns
+     * @return revenues by payment and category
+     */
+    public static PaymentRevenue getRevenuesByPayment(BillPayment payment, List<String> columns) {
+        List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+
+        List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
+        BigDecimal totalByPayment = new BigDecimal(0);
+        for (String col : columns) {
+            if (getPaidServiceRevenue(paidItems, col) != null) {
+                paidSr.add(getPaidServiceRevenue(paidItems, col));
+                totalByPayment = totalByPayment.add(getPaidServiceRevenue(paidItems, col).getPaidAmount());
+            }
+        }
+        PaymentRevenue paymentRevenues = null;
+        if (totalByPayment.compareTo(BigDecimal.ZERO) > 0) {
+            paymentRevenues = new PaymentRevenue();
+            paymentRevenues.setAmount(totalByPayment);
+            paymentRevenues.setPayment(payment);
+            paymentRevenues.setPaidServiceRevenues(paidSr);
+            if ((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())) != null)
+                paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
+        }
+        return paymentRevenues;
+    }
+
+    public static PaymentRevenue getRevenuesByPaymentDCP(BillPayment payment, List<String> columns) {
+        List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+
+        List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
+        BigDecimal totalByPayment = new BigDecimal(0);
+        for (String col : columns) {
+            if (getPaidServiceRevenueDCP(paidItems, col) != null) {
+                paidSr.add(getPaidServiceRevenueDCP(paidItems, col));
+                totalByPayment = totalByPayment.add(getPaidServiceRevenueDCP(paidItems, col).getPaidAmount());
+            }
+        }
+        PaymentRevenue paymentRevenues = null;
+        if (totalByPayment.compareTo(BigDecimal.ZERO) > 0) {
+            paymentRevenues = new PaymentRevenue();
+            paymentRevenues.setAmount(totalByPayment);
+            paymentRevenues.setPayment(payment);
+            paymentRevenues.setPaidServiceRevenues(paidSr);
+            if ((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())) != null)
+                paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
+        }
+        return paymentRevenues;
+    }
+
+    public static PaymentRevenue getRevenuesByPaymentAll(BillPayment payment, List<String> columns) {
+        List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+
+        List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
+        BigDecimal totalByPayment = new BigDecimal(0);
+        for (String col : columns) {
+            if (getPaidServiceRevenueAll(paidItems, col) != null) {
+                paidSr.add(getPaidServiceRevenueAll(paidItems, col));
+                totalByPayment = totalByPayment.add(getPaidServiceRevenueAll(paidItems, col).getPaidAmount());
+            }
+        }
+        PaymentRevenue paymentRevenues = null;
+        if (totalByPayment.compareTo(BigDecimal.ZERO) > 0) {
+            paymentRevenues = new PaymentRevenue();
+            paymentRevenues.setAmount(totalByPayment);
+            paymentRevenues.setPayment(payment);
+            paymentRevenues.setPaidServiceRevenues(paidSr);
+            if ((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())) != null)
+                paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
+        }
+        return paymentRevenues;
+    }
+
+    /**
+     * calculates sub totals on reports
+     *
+     * @param paidItems
+     * @param category
+     * @return total by category of items
+     */
+    public static BigDecimal getTotalByCategorizedPaidItems(List<PaidServiceBill> paidItems, String category) {
+        BigDecimal totalByCategory = new BigDecimal(0);
+        for (PaidServiceBill pi : paidItems) {
+            if (pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate() != null) {
+                Float insuranceRate = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+                Float pRate = (100f - insuranceRate) / 100f;
+                BigDecimal patientRte = new BigDecimal("" + pRate);
+                if (pi.getBillItem().getHopService().getName().equals(category) && pi.getBillItem().getConsommation().getThirdPartyBill() == null) {
+                    BigDecimal reqQty = pi.getBillItem().getQuantity();
+                    BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
+                    totalByCategory = totalByCategory.add(reqQty.multiply(unitPrice).multiply(patientRte));
+                }
+            }
+        }
+        return totalByCategory;
+    }
+
+    public static InsuranceReport getPatientServiceBillReport(
+            Integer insuranceId, Date startDate, Date endDate) {
+        return getService().getBillItemsReportByCategory(insuranceId, startDate, endDate);
+    }
 }
