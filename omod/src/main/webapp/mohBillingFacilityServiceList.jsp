@@ -23,13 +23,19 @@
 			<th class="columnHeader">Description</th>
 			<th class="columnHeader">Related Concept</th>
 			<th class="columnHeader">Full Price</th>
+			<th class="columnHeader">Item Type</th>
+			<td class="columnHeader">Item Status</td>
 			<!-- <th class="columnHeader">Start Date</td>-->
 			<!-- <th class="columnHeader">Location</td>-->
 			<th class="columnHeader"></th>
 		</tr>
 		<c:if test="${empty facilityServices}"><tr><td colspan="9"><center>No Facility Services found !</center></td></tr></c:if>
 		<c:forEach items="${facilityServices}" var="facilityService" varStatus="status">
-			<tr>
+
+<c:set var="checkStatus" value="${facilityService.hidden}"/>
+			<tr
+					<c:if test="${checkStatus==true}">bgcolor="#d2b48c" </c:if>
+			>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}. </td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="facilityService.form?facilityServiceId=${facilityService.facilityServicePriceId}">${facilityService.name}</a></td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">
@@ -43,6 +49,8 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: blue;">${facilityService.fullPrice}</b> Rwf</td>
 				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}"><openmrs:formatDate date="${facilityService.startDate}" type="medium"/></td>-->
 				<!-- <td class="rowValue ${(status.count%2!=0)?'even':''}">${facilityService.location.name}</td>-->
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${(facilityService.itemType=='1')?'Ordinary':'DCP'}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${(facilityService.hidden==false)?'Available':'Not Available'}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">
 					<openmrs:hasPrivilege privilege="View Bulk Update">
 						<a href="facilityServiceByInsuranceCompany.list?facilityServiceId=${facilityService.facilityServicePriceId}">Details</a>
