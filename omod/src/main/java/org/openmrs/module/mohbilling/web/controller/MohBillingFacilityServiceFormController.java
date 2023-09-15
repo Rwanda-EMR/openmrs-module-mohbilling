@@ -60,6 +60,12 @@ public class MohBillingFacilityServiceFormController extends
 						new RedirectView("facilityService.list"));
 		}
 
+		if(request.getParameter("hide") != null){
+			boolean hiddden = handleHideFacilityService(request,mav);
+			if (hiddden)
+				return new ModelAndView(
+						new RedirectView("facilityService.list"));
+		}
 		if (request.getParameter("facilityServiceId") != null) {
 			try {
 				mav.addObject("facilityService", (Context
@@ -90,7 +96,42 @@ public class MohBillingFacilityServiceFormController extends
 
 	}
 
+	private boolean handleHideFacilityService(HttpServletRequest request, ModelAndView mav) {
+		FacilityServicePrice fs = null;
+		try {
+			// check if the facilityService is NEW or if you are trying to
+			// UPDATE an
+			// existing facilityService
+			if (request.getParameter("facilityServiceId") != null) {
+				fs = Context.getService(BillingService.class)
+						.getFacilityServicePrice(
+								Integer.valueOf(request
+										.getParameter("facilityServiceId")));
+
+				/*Create new facilityService*/
+				fs.setHidden(Boolean.valueOf(request.getParameter("tinyValue")));
+				FacilityServicePriceUtil.createFacilityService(fs);
+			}
+			if (Boolean.valueOf(request.getParameter("tinyValue"))==false){
+				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+						"The '" +fs.getName()+ "' is activated, providers can add it to the consommation");
+			}
+			else {request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+					"The '" +fs.getName()+ "' is deactivated, providers cannot add it to the consommation");
+
+			}
+
+		} catch (Exception e) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+					"The Facility Service has not been saved !");
+			log.error(">>>>MOH>>BILLING>> " + e.getMessage());
+			e.printStackTrace();
+		}
+		return true;
+	}
+
 	private static BillingService getService() {
+
 		return Context.getService(BillingService.class);
 	}
 
@@ -119,8 +160,9 @@ public class MohBillingFacilityServiceFormController extends
 
 				// keep previews fs info before setting new price
 				fspCopy.setName(fs.getName());
-				fspCopy.setConcept(fs.getConcept());
+				/*fspCopy.setConcept(fs.getConcept());*/
 				fspCopy.setDescription(fs.getDescription());
+				fspCopy.setItemType(fs.getItemType());
 				fspCopy.setCategory(fs.getCategory());
 				fspCopy.setFullPrice(oldfs.getFullPrice());
 				fspCopy.setStartDate(fs.getStartDate());
@@ -148,8 +190,11 @@ public class MohBillingFacilityServiceFormController extends
 		try {
 			/*Create new facilityService*/
 			fs.setName(request.getParameter("facilityServiceName"));
-			fs.setConcept(Context.getConceptService().getConcept(Integer.valueOf(request
-					.getParameter("facilityServiceRelatedConcept"))));
+			/*fs.setConcept(Context.getConceptService().getConcept(Integer.valueOf(request
+					.getParameter("facilityServiceRelatedConcept"))));*/
+		/*	fs.setConcept(Context.getConceptService().getConcept(Integer.valueOf(request
+					.getParameter("facilityServiceRelatedConcept"))));*/
+			fs.setItemType(1);
 			fs.setShortName(request.getParameter("facilityServiceShortName"));
 			fs.setDescription(request
 					.getParameter("facilityServiceDescription"));

@@ -60,7 +60,7 @@ a.print {
 		<td>No</td>
 		<td>Date</td>
 		<td>Department</td>
-		<td> Creator</td>
+		<td>Creator</td>
 		<td>Policy Id Number</td>
 		<td>Beneficiary</td>
 

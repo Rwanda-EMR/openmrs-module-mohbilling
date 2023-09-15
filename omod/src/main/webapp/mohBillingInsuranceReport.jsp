@@ -77,27 +77,15 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		<th class="columnHeader">Gender</th>
 		<th class="columnHeader">DOCTOR</th>
 
-
 		<c:forEach items="${columns }" var="categ">
-        		 <c:if test="${categ eq 'FORMALITES ADMINISTRATIVES' }">
-        		  <th class="columnHeader">OTHERCONSUM. </th>
-        		 </c:if>
-		 <c:if test="${categ != 'FORMALITES ADMINISTRATIVES' }">
-		  		<th class="columnHeader">${categ } </th>
-		 </c:if>
-
+			 <c:if test="${categ eq 'FORMALITES ADMINISTRATIVES' }">
+				<th class="columnHeader">OTHERCONSUM. </th>
+			 </c:if>
+			 <c:if test="${categ != 'FORMALITES ADMINISTRATIVES' }">
+				 <th class="columnHeader">${categ } </th>
+			 </c:if>
 		</c:forEach>
-	<!--	<th class="columnHeader">Acts</th> -->
-		<th class="columnHeader">100%</th>
-		<c:if test="${insuranceFlatFee > 0}">
-		<th class="columnHeader">FlatFeee:<b> <fmt:formatNumber value="${insuranceFlatFee}" type="number" pattern="#.##"/></b></th>
-		<th class="columnHeader">Insurance:<b> <fmt:formatNumber value="${insuranceRate }" type="number" pattern="#.##"/>% - <fmt:formatNumber value="${insuranceFlatFee}" type="number" pattern="#.##"/> </b></th>
-		<th class="columnHeader">Patient:<b> <fmt:formatNumber value="${100-insuranceRate}" type="number" pattern="#.##"/>% + <fmt:formatNumber value="${insuranceFlatFee}" type="number" pattern="#.##"/></b></th>
-	    </c:if>
-	    <c:if test="${empty insuranceFlatFee}">
-        		<th class="columnHeader">Insurance:<b> <fmt:formatNumber value="${insuranceRate }" type="number" pattern="#.##"/>% </b></th>
-        		<th class="columnHeader">Patient:<b> <fmt:formatNumber value="${100-insuranceRate}" type="number" pattern="#.##"/>%</b></th>
-       </c:if>
+
 	</tr>
 
 	<c:set var="patientRate" value="${100-insuranceRate}"/>
@@ -109,43 +97,37 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 
 		    <td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
-			<fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.globalBill.createdDate}" />
+			<fmt:formatDate pattern="dd/MM/yyyy" value="${asr.admissionDate}" />
 			</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
-            <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.globalBill.closingDate}" />
+            <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.closingDate}" />
             </td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.personName}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.ownerName}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.ownerCode}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.level}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.globalBill.billIdentifier}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.insurancePolicy.insuranceCardNo}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.company}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.age}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.consommation.beneficiary.patient.birthdate}" />  </td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.consommation.beneficiary.patient.gender}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.consommation.globalBill.closedBy.familyName}  ${asr.consommation.globalBill.closedBy.givenName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.beneficiaryName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.householdHeadName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.familyCode}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.beneficiaryLevel}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.globalBillIdentifier}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.cardNumber}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.companyName}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.age}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.birthDate}" />  </td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.gender}</td>
+            <td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.doctorName}</td>
 
-			<c:forEach items="${asr.revenues }" var="revenue">
-				<c:if test="${patientRate > 0}">
-			 		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${revenue.dueAmount*100/patientRate}" type="number" pattern="#.##"/></td>
-				</c:if>
-				<c:if test="${patientRate==0}">
-					<c:set var="amount" value="0" />
-					<c:forEach items="${revenue.billItems}" var="item">
-						<c:set var="amount" value="${amount + (item.unitPrice)*(item.quantity)}" />
-					</c:forEach>
-                 	<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${amount}" type="number" pattern="#.##"/></td>
-                 </c:if>
-			</c:forEach>
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts}" type="number" pattern="#.##"/></td>
-		<c:if test="${insuranceFlatFee > 0}">
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${insuranceFlatFee}" type="number" pattern="#.##"/></td>
-		</c:if>
-		<c:set var="totalFlatFee" value="${totalFlatFee + insuranceFlatFee}"/>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.medicament}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.consultation}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.hospitalisation}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.laboratoire}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.formaliteAdministratives}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.ambulance}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.consommables}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.oxygenotherapie}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.imaging}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.proced}" type="number" pattern="#.##"/></td>
 
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*insuranceRate/100 - insuranceFlatFee}" type="number" pattern="#.##"/></td>
-		<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.allDueAmounts*patientRate/100 + insuranceFlatFee}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.total100}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.totalInsurance}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.totalPatient}" type="number" pattern="#.##"/></td>
 	    </tr>
 	</c:forEach>
 

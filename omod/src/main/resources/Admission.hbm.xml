@@ -24,6 +24,7 @@
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 		<property name="diseaseType" column="disease_type" type="text" />
+		<property name="AdmissionType" column="admission_type" type="int" />
 
 	</class>
 	

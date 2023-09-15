@@ -5,8 +5,11 @@ import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.*;
+import org.openmrs.Patient;
+import org.openmrs.Person;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil.HeaderFooter;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -16,10 +19,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -27,9 +32,6 @@ public class FileExporter {
 	//private Log log = LogFactory.getLog(this.getClass());
 	private static final String WHITESPACE = " ";
 	protected final Log log = LogFactory.getLog(getClass());
-	private PatientIdentifierType patientID= Context.getPatientService().getPatientIdentifierType(Integer.valueOf(Context.getAdministrationService().getGlobalProperty(
-									BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE)));
-
 
 	public void printTransaction(HttpServletRequest request,	HttpServletResponse response, Transaction transaction,String filename) throws Exception{
 		response.setContentType("application/pdf");
@@ -141,7 +143,7 @@ public class FileExporter {
 		c1.setBorder(Rectangle.NO_BORDER);
 		tableLeft.addCell(c1);
 
-		c1 = new PdfPCell(normal.process("Patient_ID: "+transaction.getPatientAccount().getPatient().getPatientIdentifier(patientID)));
+		c1 = new PdfPCell(normal.process("Patient_ID: "+transaction.getPatientAccount().getPatient().getPatientIdentifier(3)));
 		c1.setBorder(Rectangle.NO_BORDER);
 		tableLeft.addCell(c1);
 
@@ -180,7 +182,7 @@ public class FileExporter {
 		}
 		BigDecimal patientRate = new BigDecimal(""+patRate);
 
-		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(patientID));
+		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(3));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -557,7 +559,7 @@ public class FileExporter {
 		document.add(heading2Tab);
 
 		//END HEADING
-		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+consommation.getGlobalBill().getBillIdentifier()+" - "+consommation.getCreatedDate()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(patientID));
+		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+consommation.getGlobalBill().getBillIdentifier()+" - "+consommation.getCreatedDate()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(3));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -832,7 +834,6 @@ public class FileExporter {
 		table.setWidthPercentage(100f);
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat dfgb = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
 		FontSelector boldFont = new FontSelector();
 		boldFont.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
@@ -971,7 +972,7 @@ public class FileExporter {
 		document.add(heading2Tab);
 		//end header
 
-		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+gb.getBillIdentifier()+" - "+df.format(gb.getCreatedDate())+ " Patient_ID: " + gb.getAdmission().getInsurancePolicy().getOwner().getPatientIdentifier(patientID));
+		Chunk chk = new Chunk("FACTURE DES PRESTATIONS DE SOINS DE SANTE #"+gb.getBillIdentifier()+" - "+df.format(gb.getCreatedDate())+ " Patient_ID: " + gb.getAdmission().getInsurancePolicy().getOwner().getPatientIdentifier(3));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
@@ -1043,7 +1044,7 @@ public class FileExporter {
 					if(!item.getVoided()){
 						cell = new PdfPCell(fontSelector.process(""+i));
 						table.addCell(cell);
-						cell = new PdfPCell(fontSelector.process(""+dfgb.format(item.getServiceDate())));
+						cell = new PdfPCell(fontSelector.process(""+df.format(item.getServiceDate())));
 						table.addCell(cell);
 						cell = new PdfPCell(fontSelector.process(""+item.getService().getFacilityServicePrice().getName()));
 						table.addCell(cell);
@@ -1444,102 +1445,183 @@ public class FileExporter {
 		table.addCell(cell);
 
 
-		document.add(table);
-	}
-	//export to excel
-	public static void exportData(HttpServletRequest request, HttpServletResponse response, Insurance insurance, List<String> columns,List<AllServicesRevenue> listOfAllServicesRevenue)throws Exception,
-			Exception {
+        document.add(table);
+    }
+
+	public static void exportDCPData(HttpServletRequest request, HttpServletResponse response,List<AllServiceRevenueCons> listOfAllServicesRevenue,List<String> columns) throws Exception{
 
 		Date date = new Date();
 		SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
 
-		PrintWriter op = response.getWriter();
-
+		PrintWriter dcp = response.getWriter();
 		response.setContentType("text/plain");
 		response.setHeader("Content-Disposition", "attachment; filename=\"releve_"+f.format(date)+".csv\"");
 
-		op.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
-		op.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
-		op.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
-		op.println();
-		op.println();
+		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+		dcp.println();
+		dcp.println();
 
+		dcp.println(","+","+","+"DCP PROVIDER REPORT");
+		dcp.println();
+		dcp.println();
 
-		op.println(","+","+","+"SUMMARY OF VOUCHERS FOR "+insurance.getName());
-		op.println();
-		op.println();
-
-		op.print("#,Admission Date,Closing Date,BENEFICIARY'S NAMES,HEAD HOUSEHOLD'S NAMES,FAMILY'S CODE,LEVEL,Card NUMBER,COMPANY,AGE,BIRTH DATE,GENDER,DOCTOR");
-		for (String col : columns) {
-			op.print(","+col);
+		dcp.print("#,Beneficiary Name,Insurance Name,Insurance Card No,Date Created,Creator");
+		for (String service : columns){
+			dcp.print(","+service);
 		}
-		Float insRate = insurance.getCurrentRate().getRate();
+		dcp.print(",GRAND TOT(100%),INSURANCE TOT,PATIENT TOT");
 
-		op.print(",100%");
-		op.print(","+insRate+"%");
-		op.println(","+(100-insRate.floatValue())+"%");
+		dcp.println();
+		Float insuranceDueByConsom = 0.0f;
+		BigDecimal insurancePercentage = new BigDecimal(100);
+		float pRate = 0.0f;
 
 		int i=0;
-		for (AllServicesRevenue asr : listOfAllServicesRevenue) {
-			Consommation c = asr.getConsommation();
-			Float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-			Float insuranceDue = asr.getAllDueAmounts().floatValue()*insuranceRate/100;
-			Float patientDue= asr.getAllDueAmounts().floatValue()*((100-insuranceRate)/100);
+		for (AllServiceRevenueCons asr : listOfAllServicesRevenue){
 			i++;
-
-			/*if(c.getCreator()!=null) {
-				System.out.println("DOCTORDOCTORDOCTORDOCTORDOCTOR" + c.getCreator().getUsername());
-*/
-
-
-
-			//Person doctor=Context.getService(BillingService.class).getConsommation(c.getConsommationId()).getGlobalBill().getAdmission().getCreator().getPerson();
-			Person doctor=Context.getService(BillingService.class).getConsommation(c.getConsommationId()).getGlobalBill().getClosedBy().getPerson();
-
-			op.print(i
-					+ "," + f.format(c.getGlobalBill().getCreatedDate())
-					+ "," + f.format(c.getGlobalBill().getClosingDate())
-					+ "," + c.getBeneficiary().getPatient().getPersonName()
-					+ "," + c.getBeneficiary().getOwnerName()
-					//+ "," + c.getBeneficiary().getOwnerCode()
-					+ ",'" + c.getBeneficiary().getOwnerCode()
-					+ "," + c.getBeneficiary().getLevel()
-					//+ "," + c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
-					+ ",'" + c.getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
-					+ "," + c.getBeneficiary().getCompany()
-					+ "," + c.getBeneficiary().getPatient().getAge()
-					+ "," + f.format(c.getBeneficiary().getPatient().getBirthdate())
-					+ "," + c.getBeneficiary().getPatient().getGender()
-					+ "," + doctor.getPersonName().getFamilyName()+" "+doctor.getPersonName().getGivenName()
-
+			dcp.print(i
+					+ "," + asr.getConsommation().getBeneficiary().getPatient().getPersonName()
+					+ "," + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getName()
+					+ ",'" + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+					+ "," + f.format(asr.getConsommation().getCreatedDate())
+					+ "," + asr.getConsommation().getCreator().getPersonName()
 			);
-			//}
-			for (ServiceRevenue r : asr.getRevenues()) {
-				if(r!=null && (100 - insuranceRate)!=0.0)
-					op.print(","+ ReportsUtil.roundTwoDecimals(r.getDueAmount().floatValue() * 100 / (100 - insuranceRate)));
-				else if(r!=null && (100 - insuranceRate)==0.0){
-					BigDecimal amount=new BigDecimal(0);
-					for (PatientServiceBill item:r.getBillItems()){
-						//amount=amount.add(item.getService().getMaximaToPay().multiply(item.getQuantity()));
-						amount=amount.add(item.getUnitPrice().multiply(item.getQuantity()));
-					}
-					op.print(","+ ReportsUtil.roundTwoDecimals(amount.floatValue()));
+			float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+			pRate=100-insuranceRate;
+			for (ServiceRevenue serviceRevenue : asr.getRevenues()){
+				List<PatientServiceBill> billItems = new ArrayList<PatientServiceBill>();
+				if (pRate>0){
+					dcp.print(","+ReportsUtil.roundTwoDecimals(serviceRevenue.getDueAmount().multiply(insurancePercentage).divide(BigDecimal.valueOf(pRate)).doubleValue()));
 				}
-				else
-					op.print(","+0);
+				else if (pRate==0){
+					BigDecimal amount = new BigDecimal(0);
+					for (PatientServiceBill psb : serviceRevenue.getBillItems()){
+						billItems.add(psb);
+						amount = amount.add(psb.getQuantity().multiply(psb.getUnitPrice()));
+					}
+					dcp.print(","+ReportsUtil.roundTwoDecimals(amount.doubleValue()));
+				}
+				else {
+					dcp.print(","+0);
+				}
 			}
-			op.print("," + ReportsUtil.roundTwoDecimals(asr.getAllDueAmounts().doubleValue()) + "," + ReportsUtil.roundTwoDecimals(insuranceDue) + "," + ReportsUtil.roundTwoDecimals(patientDue));
-			op.println();
+			Consommation cons = asr.getConsommation();
+			BigDecimal totalConsAmount = new BigDecimal(0);
+			for (PatientServiceBill psb : cons.getBillItems()){
+				BigDecimal reqQty = psb.getQuantity();
+				BigDecimal unitPrice =psb.getUnitPrice();
+				totalConsAmount =totalConsAmount.add(reqQty.multiply(unitPrice));
+			}
+			BigDecimal totalASR = new BigDecimal(0);
+			BigDecimal totalPatientASR = new BigDecimal(0);
+			totalASR = totalConsAmount.multiply(BigDecimal.valueOf(insuranceRate)).divide(new BigDecimal(100));
+			totalPatientASR = totalConsAmount.multiply(BigDecimal.valueOf(pRate)).divide(new BigDecimal(100));
+
+			dcp.print(","+ReportsUtil.roundTwoDecimals(totalConsAmount.doubleValue()));
+			dcp.print(","+ReportsUtil.roundTwoDecimals(totalASR.doubleValue()));
+			dcp.print(","+ReportsUtil.roundTwoDecimals(totalPatientASR.doubleValue()));
+			dcp.println();
+
 		}
-		op.println();
-
-		op.flush();
-		op.close();
-
+		dcp.println();
+		dcp.flush();
+		dcp.close();
 	}
-	public void epsonPrinter(HttpServletRequest request,HttpServletResponse response,BillPayment payment,String filename) throws Exception {
-		Rectangle pagesize = new Rectangle(216f, 1300f);
-		Document document = new Document(pagesize, 16f, 16f, 0f, 0f);
+
+    //export to excel
+    public static void exportData(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  Insurance insurance,
+                                  List<String> columns,
+                                  List<InsuranceReportItem> reportRecords)
+            throws Exception {
+
+        Date date = new Date();
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+
+        PrintWriter op = response.getWriter();
+
+        response.setContentType("text/plain");
+        response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + formatter.format(date) + ".csv\"");
+
+        op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+        op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+        op.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+        op.println();
+        op.println();
+
+        op.println("," + "," + "," + "SUMMARY OF VOUCHERS FOR " + insurance.getName());
+        op.println();
+        op.println();
+
+        op.print("#,Admission Date,Closing Date,BENEFICIARY'S NAMES,HEAD HOUSEHOLD'S NAMES,FAMILY'S CODE,LEVEL,Card NUMBER,COMPANY,AGE,BIRTH DATE,GENDER,DOCTOR,MEDICAMENTS,CONSULTATION,HOSPITALISATION,LABORATOIRE,FORMALITES ADMINISTRATIVES,AMBULANCE,CONSOMMABLES,OXYGENOTHERAPIE,IMAGING,PROCED.");
+
+        Float insRate = insurance.getCurrentRate().getRate();
+
+        op.print(",100%");
+        op.print("," + insRate + "%");
+        op.println("," + (100 - insRate.floatValue()) + "%");
+
+        int i = 0;
+        for (InsuranceReportItem reportItem : reportRecords) {
+
+            Float insuranceRate = insurance.getCurrentRate().getRate();
+            i++;
+
+            op.print(i
+                    + "," + formatter.format(reportItem.getAdmissionDate())
+                    + "," + formatter.format(reportItem.getClosingDate())
+                    + "," + quoteValue(reportItem.getBeneficiaryName())
+                    + "," + quoteValue(reportItem.getHouseholdHeadName())
+                    + "," + reportItem.getFamilyCode()
+                    + " ," + reportItem.getBeneficiaryLevel()
+                    + "," + reportItem.getCardNumber()
+                    + " ," + reportItem.getCompanyName()
+                    + "," + reportItem.getAge()
+                    + "," + formatter.format(reportItem.getBirthDate())
+                    + "," + reportItem.getGender()
+                    + "," + reportItem.getDoctorName()
+
+                    + "'," + ReportsUtil.roundTwoDecimals(reportItem.getMedicament())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getConsultation())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getHospitalisation())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getLaboratoire())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getFormaliteAdministratives())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getAmbulance())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getConsommables())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getOxygenotherapie())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getImaging())
+                    + "," + ReportsUtil.roundTwoDecimals(reportItem.getProced())
+            );
+
+            op.print("," + ReportsUtil.roundTwoDecimals(reportItem.getTotal100()) +
+                    "," + ReportsUtil.roundTwoDecimals(reportItem.getTotalInsurance()) +
+                    "," + ReportsUtil.roundTwoDecimals(reportItem.getTotalPatient()));
+
+            op.println();
+        }
+        op.println();
+
+        op.flush();
+        op.close();
+        System.out.println("Done flushing..");
+    }
+
+    private static String quoteValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
+    public void epsonPrinter(HttpServletRequest request, HttpServletResponse response, BillPayment payment, String filename) throws Exception {
+        Rectangle pagesize = new Rectangle(216f, 1300f);
+        Document document = new Document(pagesize, 16f, 16f, 0f, 0f);
 
 		Image image = Image.getInstance(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO));
 		image.scaleToFit(60, 60);
@@ -1611,7 +1693,7 @@ public class FileExporter {
 		String insuranceDetails =consommation.getBeneficiary().getInsurancePolicy().getInsurance().getName()+"\n"+
 				" Card Nbr: "+ consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo();
 
-		String primarycareId =" Patient_ID: "+ consommation.getBeneficiary().getPatient().getPatientIdentifier(patientID);
+		String primarycareId =" Patient_ID: "+ consommation.getBeneficiary().getPatient().getPatientIdentifier(3);
 
 		String patientDetails = consommation.getBeneficiary().getPatient().getFamilyName()+" "
 				+ consommation.getBeneficiary().getPatient().getGivenName()+"\n"
@@ -1953,7 +2035,7 @@ public class FileExporter {
 		c1.setBorder(Rectangle.NO_BORDER);
 		table.addCell(c1);
 
-		c1 = new PdfPCell(normal.process("Patient_ID:  "+transaction.getPatientAccount().getPatient().getPatientIdentifier(patientID)));
+		c1 = new PdfPCell(normal.process("Patient_ID:  "+transaction.getPatientAccount().getPatient().getPatientIdentifier(3)));
 		c1.setBorder(Rectangle.NO_BORDER);
 		table.addCell(c1);
 
@@ -2085,7 +2167,7 @@ public class FileExporter {
 		String insuranceDetails =consommation.getBeneficiary().getInsurancePolicy().getInsurance().getName()+"\n"+
 				" Card Nbr: "+ consommation.getBeneficiary().getInsurancePolicy().getInsuranceCardNo();
 
-		String primarycareId =" Patient_ID: "+ consommation.getBeneficiary().getPatient().getPatientIdentifier(patientID);
+		String primarycareId =" Patient_ID: "+ consommation.getBeneficiary().getPatient().getPatientIdentifier(3);
 
 		String patientDetails = consommation.getBeneficiary().getPatient().getFamilyName()+" "
 				+ consommation.getBeneficiary().getPatient().getGivenName()+"\n"
@@ -2254,7 +2336,7 @@ public class FileExporter {
 		float patRate = 100f - insuranceRate;
 		BigDecimal patientRate = new BigDecimal(""+patRate);
 
-		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(patientID));
+		Chunk chk = new Chunk("RECEIPT#"+payment.getBillPaymentId()+"BILL#"+consommation.getConsommationId()+" GB#"+consommation.getGlobalBill().getBillIdentifier()+" - "+payment.getDateReceived()+ " Patient_ID: "+consommation.getBeneficiary().getPatient().getPatientIdentifier(3));
 		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		chk.setUnderline(0.2f, -2f);
 		Paragraph pa = new Paragraph();
