@@ -1,9 +1,8 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
-
+<openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-3.5.1.js" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-
 <script>
 	$(function (){
 		$("#hideItem").on("click",function (){
@@ -58,25 +57,21 @@
 				<td><input autocomplete="off" type="text" name="facilityServiceFullPrice" size="8" class="numbers" value="${facilityService.fullPrice}"/> Rwf</td>
 			</tr>
 			<tr>
-            				<td>Item Type</td>
+				<td>Item Type</td>
 
-            				<td><select name="facilityServiceItemType" required>
-            					<option value="">Please!!!Select Item Type</option>
-            					<option value="1">ORDINARY ITEM</option>
-            					<option value="2">DCP ITEM</option>
-            					<option value=""
-            							<c:if test="${tItem==null}"> selected="selected"</c:if>
-            					>Please!!!Select Item Type</option>
-            					<option value="1"
-            							<c:if test="${tItem=='1'}"> selected="selected"</c:if>
-            					>ORDINARY ITEM</option>
-            					<option value="2"
-            							<c:if test="${tItem=='2'}"> selected="selected"</c:if>
-            					>DCP ITEM</option>
-            				</select>
-            				</td>
-            			</tr>
-
+				<td><select name="facilityServiceItemType" required>
+					<option value="">Please!!!Select Item Type</option>						<option value=""
+					<option value="1">ORDINARY ITEM</option>								<c:if test="${tItem==null}"> selected="selected"</c:if>
+					<option value="2">DCP ITEM</option>						>Please!!!Select Item Type</option>
+					<option value="1"
+							<c:if test="${tItem=='1'}"> selected="selected"</c:if>
+					>ORDINARY ITEM</option>
+					<option value="2"
+							<c:if test="${tItem=='2'}"> selected="selected"</c:if>
+					>DCP ITEM</option>
+				</select>					</select>
+				</td>
+			</tr>
 			<tr>
 				<td>Start Date</td>
 				<td><input autocomplete="off" type="text" name="facilityServiceStartDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date="${facilityService.startDate}" type="string"/>"/></td>
@@ -103,7 +98,6 @@
 	</form>
 </div>
 <br/>
-
 <c:if test="${param.facilityServiceId ne null}">
 	<b class="boxHeader">Retire this Facility Service</b>
 	<div class="box">
@@ -121,6 +115,8 @@
 		</form>
 	</div>
 </c:if>
+
+<c:set var="checkItem" value="${facilityService.hidden}"/>
 <c:if test="${param.facilityServiceId ne null}">
 	<b class="boxHeader">Hide/Unhide this Facility Service</b>
 	<div class="box">

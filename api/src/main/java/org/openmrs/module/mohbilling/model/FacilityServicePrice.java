@@ -35,9 +35,43 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	private Concept concept;
 	private User creator;
 	private User retiredBy;
+	private Boolean hidden =false;
+
+
 	private Integer itemType;
-	private Boolean hidden = false;
+	private Integer hideItem;
+
+
+	/**
+	 * @return the hide item status
+	 */
+	public Integer getHideItem(){
+		return hideItem;
+	}
+	/**
+	 * @param hideItem
+	 */
+	public void setHideItem(Integer hideItem){
+		this.hideItem = hideItem;
+	}
+
+	public boolean isHidden (){
+		return hidden;
+	}
+
+	public void setHidden(Boolean hidden) {
+		this.hidden = hidden;
+	}
+
 	private Set<BillableService> billableServices;
+
+	public Integer getItemType() {
+		return itemType;
+	}
+
+	public void setItemType(Integer itemType) {
+		this.itemType = itemType;
+	}
 
 	/**
 	 * @return list of BillableServices
@@ -61,7 +95,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param facilityServicePriceId the facilityServicePriceId to set
+	 * @param facilityServicePriceId
+	 *            the facilityServicePriceId to set
 	 */
 	public void setFacilityServicePriceId(Integer facilityServicePriceId) {
 		this.facilityServicePriceId = facilityServicePriceId;
@@ -75,7 +110,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param name the name to set
+	 * @param name
+	 *            the name to set
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -89,7 +125,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param shortName the shortName to set
+	 * @param shortName
+	 *            the shortName to set
 	 */
 	public void setShortName(String shortName) {
 		this.shortName = shortName;
@@ -103,7 +140,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param description the description to set
+	 * @param description
+	 *            the description to set
 	 */
 	public void setDescription(String description) {
 		this.description = description;
@@ -131,7 +169,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param fullPrice the fullPrice to set
+	 * @param fullPrice
+	 *            the fullPrice to set
 	 */
 	public void setFullPrice(BigDecimal fullPrice) {
 		this.fullPrice = fullPrice;
@@ -145,7 +184,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param startDate the startDate to set
+	 * @param startDate
+	 *            the startDate to set
 	 */
 	public void setStartDate(Date startDate) {
 		this.startDate = startDate;
@@ -159,7 +199,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param endDate the endDate to set
+	 * @param endDate
+	 *            the endDate to set
 	 */
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
@@ -173,7 +214,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param createdDate the createdDate to set
+	 * @param createdDate
+	 *            the createdDate to set
 	 */
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
@@ -187,7 +229,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param retired the retired to set
+	 * @param retired
+	 *            the retired to set
 	 */
 	public void setRetired(Boolean retired) {
 		this.retired = retired;
@@ -201,7 +244,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param retiredDate the retiredDate to set
+	 * @param retiredDate
+	 *            the retiredDate to set
 	 */
 	public void setRetiredDate(Date retiredDate) {
 		this.retiredDate = retiredDate;
@@ -215,7 +259,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param retireReason the retireReason to set
+	 * @param retireReason
+	 *            the retireReason to set
 	 */
 	public void setRetireReason(String retireReason) {
 		this.retireReason = retireReason;
@@ -229,7 +274,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param location the location to set
+	 * @param location
+	 *            the location to set
 	 */
 	public void setLocation(Location location) {
 		this.location = location;
@@ -243,7 +289,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param concept the concept to set
+	 * @param concept
+	 *            the concept to set
 	 */
 	public void setConcept(Concept concept) {
 		this.concept = concept;
@@ -257,7 +304,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param creator the creator to set
+	 * @param creator
+	 *            the creator to set
 	 */
 	public void setCreator(User creator) {
 		this.creator = creator;
@@ -271,7 +319,8 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	/**
-	 * @param retiredBy the retiredBy to set
+	 * @param retiredBy
+	 *            the retiredBy to set
 	 */
 	public void setRetiredBy(User retiredBy) {
 		this.retiredBy = retiredBy;
@@ -280,10 +329,11 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	/**
 	 * Adds a Billable Service to the List of Billable Services for this
 	 * FacilityServicePrice object
-	 *
-	 * @param bs ,the BillableService to be added
+	 * 
+	 * @param bs
+	 *            ,the BillableService to be added
 	 * @return true when the Billable Service is added successfully, false
-	 * otherwise
+	 *         otherwise
 	 */
 	public boolean addBillableService(BillableService bs) {
 		if (bs != null) {
@@ -299,10 +349,11 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	/**
 	 * Removes a Billable Service from the List of Billable Services for this
 	 * FacilityServicePrice object
-	 *
-	 * @param bs ,the BillableService to be removed
+	 * 
+	 * @param bs
+	 *            ,the BillableService to be removed
 	 * @return true when the Billable Service is removed successfully, false
-	 * otherwise
+	 *         otherwise
 	 */
 	public boolean removeBillableService(BillableService bs) {
 		if (billableServices != null)
@@ -312,7 +363,7 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -325,7 +376,7 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 		FacilityServicePrice other = (FacilityServicePrice) obj;
 		if (other.getFacilityServicePriceId() != null
 				&& other.getFacilityServicePriceId().equals(
-				this.getFacilityServicePriceId())
+						this.getFacilityServicePriceId())
 				&& this.hashCode() == other.hashCode()) {
 			return true;
 		}
@@ -335,7 +386,7 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -348,7 +399,7 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -360,11 +411,13 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 				+ "\n - Full Price : " + this.fullPrice + "\n - Location : "
 				+ this.location.getName() + "\n - Concept :"
 				+ this.concept.getDisplayString() + "\n - Creator : "
-				+ this.creator.getUsername();
+				+ this.creator.getUsername()
+				;
 	}
 
 	/**
-	 * @param other ,the Facility to be compared to
+	 * @param other
+	 *            ,the Facility to be compared to
 	 * @return -1 when this is less than the passed value, +1 otherwise
 	 */
 	@Override
@@ -380,20 +433,4 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 		return ret;
 	}
 
-	public Integer getItemType() {
-		return itemType;
-	}
-
-	public void setItemType(Integer itemType) {
-		this.itemType = itemType;
-
-	}
-
-	public Boolean getHidden() {
-		return hidden;
-	}
-
-	public void setHidden(Boolean hidden) {
-		this.hidden = hidden;
-	}
 }

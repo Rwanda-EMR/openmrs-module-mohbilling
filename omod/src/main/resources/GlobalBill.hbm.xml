@@ -19,8 +19,7 @@
 		<property name="closed" column="closed" type="boolean"/>
 		<property name="voided" column="voided" type="boolean"/>
 		<property name="voidedDate" column="voided_date" />
-		<property name="voidReason" column="void_reason" type="text" />
-		<property name="closingReason" column="closed_reason" type="text"/>
+		<property name="voidReason" column="void_reason" type="text" /><property name="closingReason" column="closed_reason" type="text"/>
 		<property name="editingReason" column="edit_reason" type="text"/>
 		   
         <many-to-one name="admission" class="org.openmrs.module.mohbilling.model.Admission"

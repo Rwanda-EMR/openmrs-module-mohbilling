@@ -635,55 +635,54 @@ public interface BillingService {
 
     public List<GlobalBill> getGlobalBillsWithNullInsurance();
 
-    public List<Consommation> getConsommationByGlobalBills(
-            List<GlobalBill> globalBills);
-
-    /**
-     * gets all submitted payment refunds
-     * @return
-     */
-    public List<PaymentRefund> getAllSubmittedPaymentRefunds();
-
-    /**
-     * get refund by id
-     * @param id
-     * @return
-     */
-    public PaymentRefund getRefundById(Integer id);
-
-    public PaidServiceBillRefund getPaidServiceBillRefund(Integer paidSviceBillRefundid);
-
-    public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment);
-
-    /**
-     * get all confirmed refunds between two dates and by a given collector
-     * @param startDate
-     * @param endDate
-     * @param collector
-     * @return list of PaymentRefund
-     */
-    public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(Date startDate, Date endDate, User collector);
-
-    /**
-     * get InsurancePolicy by a given third party
-     * @param t
-     * @return InsurancePolicy
-     */
-    public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t);
-
-    /**
-     * get all consommations by provided parameters
-     * @param startDate
-     * @param endDate
-     * @param insurance
-     * @param tp
-     * @param billCreator
-     * @return consommation list
-     */
-    public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
-
-    public void updateOtherInsurances(ServiceCategory sc);
-
+	public List<Consommation> getConsommationByGlobalBills(
+			List<GlobalBill> globalBills);
+	
+	/**
+	 * gets all submitted payment refunds
+	 * @return
+	 */
+	public List<PaymentRefund> getAllSubmittedPaymentRefunds();
+	
+	/**
+	 * get refund by id
+	 * @param id
+	 * @return
+	 */
+	public PaymentRefund getRefundById(Integer id);
+	
+	public PaidServiceBillRefund getPaidServiceBillRefund(Integer paidSviceBillRefundid);
+	
+	public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment);
+	/**
+	 * get all confirmed refunds between two dates and by a given collector
+	 * @param startDate
+	 * @param endDate
+	 * @param collector
+	 * @return list of PaymentRefund
+	 */
+	public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(Date startDate, Date endDate, User collector);
+	
+	/**
+	 * get InsurancePolicy by a given third party
+	 * @param t
+	 * @return InsurancePolicy
+	 */
+	public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t);
+	
+	/**
+	 * get all consommations by provided parameters
+	 * @param startDate
+	 * @param endDate
+	 * @param insurance
+	 * @param tp
+	 * @param billCreator
+	 * @return consommation list
+	 */
+	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+	public List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator);
+	public void updateOtherInsurances(ServiceCategory sc);
+	
 
     /**
      * gets transactions by type,in a period and by cashier
@@ -702,6 +701,4 @@ public interface BillingService {
     public FacilityServicePrice getFacilityServiceByName(String name);
 
     InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
-
-
 }

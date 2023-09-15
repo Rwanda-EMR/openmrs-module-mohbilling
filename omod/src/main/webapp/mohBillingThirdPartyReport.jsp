@@ -23,7 +23,7 @@
 
 
 <style>
-.insurances,.time,.collector,.billCreator,.timelabel,.billStatus,.services,.deposit,.paymentType{
+.insurances,.time,.collector,.billCreator,.timelabel,.billStatus,.services,.deposit,.paymentType,.reportType{
      display: none;
 }
 a.print {

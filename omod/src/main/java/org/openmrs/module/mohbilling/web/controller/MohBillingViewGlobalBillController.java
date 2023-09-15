@@ -3,24 +3,24 @@ package org.openmrs.module.mohbilling.web.controller;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.PatientIdentifier;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.*;
+import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
-import org.openmrs.api.context.Context;
-import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class MohBillingViewGlobalBillController extends
 		ParameterizableViewController {
@@ -66,6 +66,9 @@ public class MohBillingViewGlobalBillController extends
 			ServiceRevenue actsRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.ACTS");
 			if(actsRevenue!=null)
 				serviceRevenueList.add(actsRevenue);
+				ServiceRevenue actsDCPRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.DCPACTS");
+				if(actsRevenue!=null)
+					serviceRevenueList.add(actsDCPRevenue);
 
 			ServiceRevenue autreRevenue = ReportsUtil.getServiceRevenue(allItems, "mohbilling.AUTRES");
 			if(autreRevenue!=null)
@@ -108,5 +111,4 @@ public class MohBillingViewGlobalBillController extends
 		}
 		return mav;
 	}
-
 }

@@ -130,6 +130,28 @@ function  cancelClosingGlobalBill(){
             				</select></td>
             </tr>
 
+			<tr>
+				<td>Admission Type</td>
+				<c:choose>
+					<c:when test="${insurancePolicy.insurance.category!='MUTUELLE'}">
+						<td>
+							<select name="admissionType" required>
+								<option value="">Please!! Select Admission Type</option>
+								<option value="1">Ordinary Admission</option>
+								<option value="2">DCP Admission</option>
+							</select>
+						</td>
+					</c:when>
+					<c:otherwise>
+						<td>
+							<select name="" disabled>
+								<option value="" >Not Applicable</option>
+							</select>
+						</td>
+					</c:otherwise>
+				</c:choose>
+			</tr>
+
 
 		</table>
 	</div>
@@ -159,7 +181,8 @@ function  cancelClosingGlobalBill(){
 		<th class="columnHeader">Card Number</th>
 		<th class="columnHeader">Admission Type</th>
 		<th class="columnHeader">admission date</th>	
-		<th class="columnHeader">Discharge date</th>			
+		<th class="columnHeader">Discharge date</th>	
+		<th class="columnHeader">Admission Type</th>		
 		<th class="columnHeader">Bill</th>
 		</tr>
 		<c:forEach items="${globalBills}" var="gb" varStatus="status">
@@ -176,8 +199,8 @@ function  cancelClosingGlobalBill(){
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">OPD</td>
 			</c:if>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd hh:mm" value="${gb.admission.admissionDate}" /></td>	
-			
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd hh:mm" value="${gb.closingDate}" /></td>	
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatDate pattern="yyyy-MM-dd hh:mm" value="${gb.closingDate}" /></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}">${(gb.admission.admissionType=='1')?'Ordinary Clinic':'Dual Clinic'} </b></td>	
 			<c:if test="${gb.closingDate==null }">
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
 			<openmrs:hasPrivilege privilege="ADD CONS.">
