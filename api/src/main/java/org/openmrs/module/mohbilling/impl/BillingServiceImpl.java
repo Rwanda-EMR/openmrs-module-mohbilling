@@ -980,4 +980,9 @@ public class BillingServiceImpl implements BillingService {
 	public FacilityServicePrice getFacilityServiceByName(String name) {
 		return billingDAO.getFacilityServiceByName(name);
 	}
+
+	    @Override
+    public InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate) {
+        return billingDAO.getBillItemsByCategoryFromMamba(insuranceId, startDate, endDate);
+    }
 }

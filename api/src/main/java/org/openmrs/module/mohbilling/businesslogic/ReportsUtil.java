@@ -855,5 +855,8 @@ public class ReportsUtil {
 			}
 		return totalByCategory;
 	}
-	
+	public static InsuranceReport getPatientServiceBillReport(
+            Integer insuranceId, Date startDate, Date endDate) {
+        return getService().getBillItemsReportByCategory(insuranceId, startDate, endDate);
+    }
 }

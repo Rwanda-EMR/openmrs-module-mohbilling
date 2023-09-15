@@ -687,4 +687,6 @@ public interface BillingService {
 	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException;
 	public FacilityServicePrice getFacilityServiceByName(String name);
 
+	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
+
 }
