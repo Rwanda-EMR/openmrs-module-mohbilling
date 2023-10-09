@@ -125,6 +125,7 @@
 	<div style="float: left;">
 		<button id="btnRevert">Edit Global Bill</button>
 	</div>
+
 </c:if>
 <div id="revert_discharge">
 	<form action="viewGlobalBill.form?globalBillId=${globalBill.globalBillId}&edit_global_bill=true&revert_global_bill=${revert_global_bill}" method="post" id="revertGB">
@@ -152,6 +153,36 @@
 			</tr>
 		</table>
 	</form>
+</div>
+
+<div id="revert_discharge">
+    <openmrs:hasPrivilege privilege="Revert Patient Bill">
+	<form action="viewGlobalBill.form?globalBillId=${globalBill.globalBillId}&edit_global_bill=true&revert_global_bill=${revert_global_bill}" method="post" id="revertGB">
+		<table>
+			<tr><td style="font-size:15px">Names</td><td> : <b>${insurancePolicy.owner.personName }</b></td></tr>
+			<tr>
+				<td style="font-size:15px">Admission Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${admissionDate}" /></b></td>
+			</tr>
+			<tr>
+				<td style="font-size:15px">Discharge Date</td><td> : <b><fmt:formatDate pattern="yyyy-MM-dd" value="${dischargingDate}" /></b></td>
+			</tr>
+			<tr>
+				<td style="font-size:15px"><b>Reverting Reason</b></td>
+				<td><select name="editGBill" id="editGlobalBill">
+					<option value="">                        </option>
+					<option value="Missing Items">Missing Items</option>
+					<option value="Over Billing">Over Billing</option>
+					<option value="Item(s) Not Available">Item(s) Not Available</option>
+				</select><td>
+			</tr>
+			<tr><td></td><td><span id="invalid_close"></span></td></tr>
+			<tr>
+				<td></td>
+				<td><button id="uncloseBill">Revert Closed Bill</button></td>
+			</tr>
+		</table>
+	</form>
+	</openmrs:hasPrivilege>
 </div>
 
 <div style="float: right;">
@@ -245,3 +276,4 @@
 </div>
 <%@ include file="templates/dischargePatient.jsp"%>
 <%@ include file="/WEB-INF/template/footer.jsp"%>
+

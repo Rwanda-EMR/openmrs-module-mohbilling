@@ -36,10 +36,13 @@ public class MohBillingFacilityServiceByInsuranceCompanyListController extends
 		
 		
 		if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")
-				&& request.getParameter("facilityServiceId") != null && !request.getParameter("facilityServiceId").equals("")) {			
+				&& request.getParameter("facilityServiceId") != null && !request.getParameter("facilityServiceId").equals("") && request.getParameter("whichitem") != null && !request.getParameter("whichitem").equals("") && request.getParameter("whichitem").equalsIgnoreCase("thisitem")) {
 			mav.addObject("msg", FacilityServicePriceUtil.saveBillableServiceByInsurance(request));
 		}
-		
+		if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("") && request.getParameter("whichitem") != null && !request.getParameter("whichitem").equals("") && request.getParameter("whichitem").equalsIgnoreCase("allitems")) {
+			mav.addObject("msg", FacilityServicePriceUtil.saveAllBillableServicesByInsurance(request));
+		}
+
 		try {
 			FacilityServicePrice facilityService = Context.getService(
 					BillingService.class).getFacilityServicePrice(

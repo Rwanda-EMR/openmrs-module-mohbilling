@@ -901,7 +901,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		//List<ServiceCategory> ramaSC = crit.list();
 		List <Object[]> ramaSC=sessionFactory.getCurrentSession().createSQLQuery("select distinct name,description from moh_bill_hop_service").list();
 		// map service category to insurance
-
+System.out.println("HOP Servises size: "+ramaSC.size());
 		List<ServiceCategory> serviceCategoryCheckList=Context.getService(BillingService.class).getAllServiceCategories();
 		for (Object[] sc : ramaSC) {
 			ServiceCategory scToMapToInsurance = new ServiceCategory();
@@ -922,10 +922,8 @@ public class HibernateBillingDAO implements BillingDAO {
 			//insurance.addServiceCategory(scToMapToInsurance);
 			Context.getService(BillingService.class).saveInsurance(insurance);
 		}
-		System.out.println("After Saving an Insurance");
 		List<Object[]> baseBillableServices = getBaseBillableServices(insurance);
 		List<Object[]> basePharmacyItems = getPharmacyBaseBillableServices(insurance);
-
 		//retrieve billables(acts) from RAMA and add them on new insurance
 		BillableService newBS = null;
 		for (Object[] b : baseBillableServices) {
@@ -1735,11 +1733,20 @@ public class HibernateBillingDAO implements BillingDAO {
 
 	@Override
 	public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo) {
-		Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
-				.add(Restrictions.like("billIdentifier",insuranceCardNo+"%")).add(Restrictions.eq("closed",false));
+		try {
+			Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
+					.add(Restrictions.like("billIdentifier",insuranceCardNo+"%")).add(Restrictions.eq("closed",false));
 
-		GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
-		return globalBill;	}
+			System.out.println("Find GBBBBBBBBBBBBBBBBBBBBBBBBBB: "+crit.list().size());
+
+			GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
+
+
+			return globalBill;
+		}catch (Exception e){
+			return null;
+		}
+			}
 
 	@Override
 	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException {

@@ -28,6 +28,11 @@
                 	var id=$j(this).val();
                 	var paidQty = $j('#paidQty_'+id).val();
                 	var up=$j('#up_'+id).val();
+
+                	var flat = $j('#flat').val();
+                	if(flat>0){
+                	up=0;
+                	}
                 	var cost=paidQty*up;
                 	if(!isNaN(cost))
                     total += parseFloat(cost*patientRate);
@@ -194,7 +199,18 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 				<th class="columnHeader right">Unit Price (Rwf)</th>
 				<th class="columnHeader right">Price (Rwf)</th>
 				<th class="columnHeader right">Insurance : ${insurancePolicy.insurance.currentRate.rate} %</th>
-				<th class="columnHeader right">Patient : ${100-insurancePolicy.insurance.currentRate.rate} %</th>
+					<c:choose>
+                                    <c:when test="${not empty insurancePolicy.insurance.currentRate.flatFee}">
+                                       <th class="columnHeader right">Patient to pay ${insurancePolicy.insurance.currentRate.flatFee}
+                                       <input type="hidden" id="flat"  value="${insurancePolicy.insurance.currentRate.flatFee}" />
+                                       </th>
+                                    </c:when>
+                                    <c:otherwise>
+                                      <th class="columnHeader right">Patient : ${100-insurancePolicy.insurance.currentRate.rate} %
+                                       <input type="hidden" id="flat"  value="0" />
+                                      </th>
+                                    </c:otherwise>
+                                </c:choose>
 				<th></th>
 			</tr>
 			<c:if test="${empty consommation.billItems}"><tr><td colspan="7"><center>No consommation found !</center></td></tr></c:if>
@@ -224,7 +240,6 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 					<input type="text" size="3" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="${pendingQty }" onKeyUp="calculateCost(${billItem.patientServiceBillId});validateQties(${billItem.patientServiceBillId})" style="text-align: center;" class="paying"/>
 					</c:if>
 					<c:if test="${pendingQty<=0}">
-
 						<input type="text" size="4" name="paidQty_${billItem.patientServiceBillId}" id="paidQty_${billItem.patientServiceBillId}" value="F.PAID" style="text-align: center;border: none;" disabled="disabled"/>
 					</c:if>
 					</td>
@@ -245,11 +260,20 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 						<input value="${((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100}" id="insuranceCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="insuranceCol"/>
 						<c:set var="totalBillInsurance" value="${totalBillInsurance+(((billItem.unitPrice*billItem.quantity)*insurancePolicy.insurance.currentRate.rate)/100)}" />
 					</td>
-					<td class="rowValue right ${(status.count%2!=0)?'even':''}">
-					<!-- <fmt:formatNumber value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" type="number" pattern="#.##"/> -->
-						<input value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" id="patientCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="patientCol"/>
-						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
-					</td>
+						<c:choose>
+                                        <c:when test="${not empty insurancePolicy.insurance.currentRate.flatFee}">
+                                           <td class="rowValue right ${(status.count%2!=0)?'even':''}">
+                                           						<input value="0" id="patientCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="patientCol"/>
+                                           						 <c:set var="totalBillPatient" value="0"/>
+                                           					</td>
+                                        </c:when>
+                                        <c:otherwise>
+                                        <td class="rowValue right ${(status.count%2!=0)?'even':''}">
+                                        						<input value="${((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100}" id="patientCost_${billItem.patientServiceBillId}" style="border:none; text-align: center;" class="patientCol"/>
+                                        						 <c:set var="totalBillPatient" value="${totalBillPatient+(((billItem.unitPrice*billItem.quantity)*(100-insurancePolicy.insurance.currentRate.rate))/100)}"/>
+                                        					</td>
+                                        </c:otherwise>
+                        </c:choose>
 					<td>
 					<c:if test="${pendingQty<=0}">
 					<input name="${fieldName}" class="items" value="${billItem.patientServiceBillId}" type="checkbox" checked="checked" disabled="disabled">
@@ -310,7 +334,17 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 			<!-- <td><div class="amount">${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}</div></td> -->
 				<td>
 				<div class="amount" style="text-align: right"><b>
-				 <input type="text" disabled="disabled" value="${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}" id="rest" style="border: none;background-color: #aabbcc"/>
+
+
+				  <c:choose>
+                          <c:when test="${not empty insurancePolicy.insurance.currentRate.flatFee}">
+                            <input type="text" disabled="disabled" value="0" id="rest" style="border: none;background-color: #aabbcc"/>
+                          </c:when>
+                          <c:otherwise>
+                           <input type="text" disabled="disabled" value="${billingtag:amountNotPaidForPatientBill(consommation.consommationId)}" id="rest" style="border: none;background-color: #aabbcc"/>
+                          </c:otherwise>
+                  </c:choose>
+
 				</b></div>
 			   </td>
 			</tr>
@@ -332,7 +366,21 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 			  <td><input type="checkbox" id="cashCheckbox" name="cashPayment" value="cashPayment" checked="checked" > </td>
 			  <td class="cashPayment">
 			  <table><tr>
-			  <td><b>Received Cash</b><input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/></td>
+			  <td><b>Received Cash</b>
+
+			  <c:choose>
+                                                      <c:when test="${not empty insurancePolicy.insurance.currentRate.flatFee}">
+                                                       <input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value="0" readonly="true" />
+                                                      </c:when>
+                                                      <c:otherwise>
+                                                      <input type="text" autocomplete="off" name="receivedCash" size="11" class="numbers" value=""/>
+                                                      </c:otherwise>
+                                      </c:choose>
+
+
+
+
+			  </td>
 			  </tr>
 			  </table>
 			  </td>

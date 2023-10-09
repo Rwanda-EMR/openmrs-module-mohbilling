@@ -87,3 +87,4 @@
 </div>
 <%@ include file="templates/dischargePatient.jsp"%>
 <%@ include file="/WEB-INF/template/footer.jsp"%>
+

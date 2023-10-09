@@ -38,8 +38,11 @@
 		<table width="100%">
 			<tr>
 				<td>Start Date <input type="hidden" name="facilityServiceId" value="${param.facilityServiceId}" />
-				 : <input autocomplete="off" type="text" name="startDate" size="11" onclick="showCalendar(this);"/>
+				 : <input autocomplete="off" type="text" name="startDate" size="11" onclick="showCalendar(this);"/></td>
 			</tr>
+			<tr>
+            				<td>Which Item(s): <select name="whichitem"><option value="thisitem">This Item</option> <option value="allitems">All Items</option></select> </td>
+            			</tr>
 			<tr>
 				<td><input type="submit" value="Bulk Update" /></td>
 			</tr>

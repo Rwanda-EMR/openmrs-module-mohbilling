@@ -53,7 +53,7 @@ a.print {
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
 
-<a href="#" class="print">PDF</a></b>
+<a href="cohort.form?print=true" class="print">PDF</a></b>
 <div class="box">
 <table width="99%">
 	<tr>

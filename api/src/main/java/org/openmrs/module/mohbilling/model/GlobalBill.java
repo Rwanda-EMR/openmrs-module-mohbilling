@@ -45,6 +45,35 @@ public class GlobalBill {
 	private String voidReason;
 
 	private Insurance insurance;
+	private String closingReason;
+
+	private String editingReason;
+
+	private User editedBy;
+
+	public String getClosingReason() {
+		return closingReason;
+	}
+
+	public void setClosingReason(String closingReason) {
+		this.closingReason = closingReason;
+	}
+
+	public String getEditingReason() {
+		return editingReason;
+	}
+
+	public void setEditingReason(String editingReason) {
+		this.editingReason = editingReason;
+	}
+
+	public User getEditedBy() {
+		return editedBy;
+	}
+
+	public void setEditedBy(User editedBy) {
+		this.editedBy = editedBy;
+	}
 
 	private String closingReason;
 

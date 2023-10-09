@@ -26,6 +26,7 @@
 			<th class="columnHeader">Item Type</th>
 			<td class="columnHeader">Item Status</td>
 			<td class="columnHeader">Details</td>
+
 			<!-- <th class="columnHeader">Start Date</td>-->
 			<!-- <th class="columnHeader">Location</td>-->
 			<th class="columnHeader"></th>
@@ -33,6 +34,7 @@
 		<c:if test="${empty facilityServices}"><tr><td colspan="9"><center>No Facility Services found !</center></td></tr></c:if>
 		<c:forEach items="${facilityServices}" var="facilityService" varStatus="status">
 			<c:set var="checkStatus" value="${facilityService.hidden}"/>
+
 			<tr
 					<c:if test="${checkStatus==true}">bgcolor="#d2b48c" </c:if>
 			>

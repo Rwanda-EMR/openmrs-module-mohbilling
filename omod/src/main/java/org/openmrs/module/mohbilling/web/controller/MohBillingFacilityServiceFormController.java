@@ -66,6 +66,7 @@ public class MohBillingFacilityServiceFormController extends
 				return new ModelAndView(
 						new RedirectView("facilityService.list"));
 		}
+
 		if (request.getParameter("facilityServiceId") != null) {
 			try {
 				mav.addObject("facilityService", (Context
@@ -95,6 +96,17 @@ public class MohBillingFacilityServiceFormController extends
 		return mav;
 
 	}
+	private boolean handleHideFacilityService(HttpServletRequest request, ModelAndView mav) {
+		FacilityServicePrice fs = null;
+		try {
+			// check if the facilityService is NEW or if you are trying to
+			// UPDATE an
+			// existing facilityService
+			if (request.getParameter("facilityServiceId") != null) {
+				fs = Context.getService(BillingService.class)
+						.getFacilityServicePrice(
+								Integer.valueOf(request
+										.getParameter("facilityServiceId")));
 
 	private boolean handleHideFacilityService(HttpServletRequest request, ModelAndView mav) {
 		FacilityServicePrice fs = null;
@@ -200,6 +212,7 @@ public class MohBillingFacilityServiceFormController extends
 					.getParameter("facilityServiceDescription"));
 			fs.setCategory(request
 					.getParameter("facilityServiceCategory"));
+			fs.setItemType(Integer.parseInt(request.getParameter("facilityServiceItemType")));
 			fs.setStartDate(Context.getDateFormat().parse(
 					request.getParameter("facilityServiceStartDate")));
 

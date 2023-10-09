@@ -612,6 +612,134 @@ public class FacilityServicePriceUtil {
 		return msg;
 	}
 
+	public static String saveAllBillableServicesByInsurance(HttpServletRequest request) {
+		List<Insurance> insurances = getService().getAllInsurances();
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+		List<FacilityServicePrice> fsps = Context.getService(BillingService.class).getAllFacilityServicePrices();
+		BillableService bs = new BillableService();
+
+		BillableService bscopy = new BillableService();
+
+		String startDateStr = null, msg = null;
+		Date startDate = null;
+
+		if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")) {
+
+			startDateStr = request.getParameter("startDate");
+
+			try {
+				startDate = sdf.parse(startDateStr.split("/")[2] + "-" + startDateStr.split("/")[1] + "-" + startDateStr.split("/")[0]);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+
+			//fsp = getService().getFacilityServicePrice(Integer.valueOf(request.getParameter("facilityServiceId")));
+		}
+
+		BigDecimal quarter = new BigDecimal(25).divide(new BigDecimal(100));
+		BigDecimal fifth = new BigDecimal(20).divide(new BigDecimal(100));
+
+		for (FacilityServicePrice fsp:fsps) {
+			for (Insurance insurance : insurances) {
+				if (!insurance.isVoided() && !fsp.isRetired())
+					try {
+						if (!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables") && !fsp.getCategory().equals("AUTRES")) {
+
+							if (FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
+								System.out.println("The bill exist already");
+
+								bs = getService().getBillableServiceByConcept(fsp, insurance);
+								bs.setStartDate(startDate);
+								bs.setInsurance(insurance);
+								bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+								bs.setCreatedDate(new Date());
+								bs.setRetired(false);
+								bs.setCreator(Context.getAuthenticatedUser());
+								bs.setFacilityServicePrice(fsp);
+
+							/*if(insurance.getCategory().toLowerCase().equals("base")) {
+								bs.setMaximaToPay(fsp.getFullPrice());
+							}*/
+								if (insurance.getCategory().toLowerCase().equals("mmi_ur")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.15))).setScale(0, RoundingMode.CEILING));
+								} else if (insurance.getCategory().toLowerCase().equals("rssb")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.25))).setScale(0, RoundingMode.CEILING));
+								} else if (insurance.getCategory().toLowerCase().equals("mutuelle")) {
+									bs.setMaximaToPay((fsp.getFullPrice().divide(new BigDecimal(2))).setScale(0, RoundingMode.CEILING));
+								} /*else if(insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+							}*/ else if (insurance.getCategory().toLowerCase().equals("private")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.4375))).setScale(0, RoundingMode.CEILING));
+								} else if (insurance.getCategory().toLowerCase().equals("none")) {
+									BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+									bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
+								}
+
+							} else {
+								bs = new BillableService();
+								bs.setStartDate(startDate);
+								bs.setInsurance(insurance);
+								bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+								bs.setCreatedDate(new Date());
+								bs.setRetired(false);
+								bs.setCreator(Context.getAuthenticatedUser());
+								bs.setFacilityServicePrice(fsp);
+							/*if(insurance.getCategory().toLowerCase().equals("base")) {
+								bs.setMaximaToPay(fsp.getFullPrice());
+							}*/
+								if (insurance.getCategory().toLowerCase().equals("mmi_ur")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.15))).setScale(0, RoundingMode.CEILING));
+								} else if (insurance.getCategory().toLowerCase().equals("rssb")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.25))).setScale(0, RoundingMode.CEILING));
+								} else if (insurance.getCategory().toLowerCase().equals("mutuelle")) {
+									bs.setMaximaToPay((fsp.getFullPrice().divide(new BigDecimal(2))).setScale(0, RoundingMode.CEILING));
+								} else if (insurance.getCategory().toLowerCase().equals("private")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.4375))).setScale(0, RoundingMode.CEILING));
+								} else if (insurance.getCategory().toLowerCase().equals("none")) {
+									BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+									bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
+								}
+							}
+						} else {
+							if (FacilityServicePriceUtil.isBillableCreated(fsp, insurance)) {
+								System.out.println("Existing tarrif item");
+								bs = getService().getBillableServiceByConcept(fsp, insurance);
+								bs.setStartDate(startDate);
+								bs.setInsurance(insurance);
+								bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+								bs.setCreatedDate(new Date());
+								bs.setRetired(false);
+								bs.setCreator(Context.getAuthenticatedUser());
+								bs.setFacilityServicePrice(fsp);
+								bs.setMaximaToPay(fsp.getFullPrice());
+							} else {
+								System.out.println("New Tarrif item");
+								bs = new BillableService();
+								bs.setStartDate(startDate);
+								bs.setInsurance(insurance);
+								bs.setServiceCategory(getService().getServiceCategoryByName(fsp.getCategory(), insurance));
+								bs.setCreatedDate(new Date());
+								bs.setRetired(false);
+								bs.setCreator(Context.getAuthenticatedUser());
+								bs.setFacilityServicePrice(fsp);
+								bs.setMaximaToPay(fsp.getFullPrice());
+							}
+						}
+
+						fsp.addBillableService(bs);
+						getService().saveFacilityServicePrice(fsp);
+						msg = "Updated Successfully";
+					} catch (Exception e) {
+						log.error(">>>MOH>>BILLING>>BULK UPDATE>> " + e.getMessage());
+						e.printStackTrace();
+					}
+			}
+		}
+		return msg;
+	}
+
 	public static void cascadeUpdateFacilityService(FacilityServicePrice fsp) {
 
 		List<Insurance> insurances = getService().getAllInsurances();
