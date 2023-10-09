@@ -32,17 +32,17 @@ public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissio
 
     @Override
     public void applyAction(FormEntrySession session) {
-Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
+        Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
 
-String insuranceCardNumber=null;
+        String insuranceCardNumber=null;
 //GlobalBill gb =null;
 
 
 
-List<Obs> currentInsuranceId=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
+        List<Obs> currentInsuranceId=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
 
-if(currentInsuranceId.size()>=1)
-    insuranceCardNumber=currentInsuranceId.get(0).getValueText();
+        if(currentInsuranceId.size()>=1)
+            insuranceCardNumber=currentInsuranceId.get(0).getValueText();
 
 
         InsurancePolicy ip =Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
@@ -54,16 +54,15 @@ if(currentInsuranceId.size()>=1)
         BigDecimal totalMaximaTopay=new BigDecimal(0);
         for (Obs o:obs) {
             PatientServiceBill psb=new PatientServiceBill();
-            psb.setServiceDate(new Date());
 
-          if (department==null && o.getValueCoded()!=null ) {
-              for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
-                  if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
-                      department = dept;
-                      break;
-                  }
-              }
-          }
+            if (department==null && o.getValueCoded()!=null ) {
+                for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
+                    if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
+                        department = dept;
+                        break;
+                    }
+                }
+            }
 
             //value coded
             if (o.getValueCoded()!=null) {
@@ -134,11 +133,11 @@ if(currentInsuranceId.size()>=1)
 
         //drugs start
 
-      /*  List<Order> orders=session.getSubmissionActions().getCurrentEncounter().getOrdersWithoutOrderGroups();
+        List<Order> orders=session.getSubmissionActions().getCurrentEncounter().getOrdersWithoutOrderGroups();
         for (Order order:orders) {
             DrugOrder drugOrder=(DrugOrder)order;
-           //Billng code here
-        }*/
+            //Billng code here
+        }
 
         //Drugs end
 
@@ -172,7 +171,6 @@ if(currentInsuranceId.size()>=1)
             //Context.getService(BillingService.class).saveConsommation(cons);
 
             for (PatientServiceBill psb : psbList) {
-                psb.setServiceDate(new Date());
                 psb.setConsommation(cons);
                 ConsommationUtil.createPatientServiceBill(psb);
                 //cons.addBillItem(psb);

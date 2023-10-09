@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.model;
 
@@ -15,65 +15,36 @@ import java.util.TreeSet;
  *
  */
 public class GlobalBill {
-	
+
 	private Integer globalBillId;
-	
+
 	private Admission admission;
-	
+
 	private String billIdentifier;
-	
+
 	private BigDecimal globalAmount = new BigDecimal(0);
-	
+
 	private Set<Consommation> consommations;
-	
-    private Date createdDate;
-    
-    private User creator;
-    
-    private Date closingDate;
-    
-    private User closedBy;
-    
-    private Boolean closed = Boolean.FALSE;;
-	
+
+	private Date createdDate;
+
+	private User creator;
+
+	private Date closingDate;
+
+	private User closedBy;
+
+	private Boolean closed = Boolean.FALSE;;
+
 	private Boolean voided = false;
-	
+
 	private User voidedBy;
-	
+
 	private Date voidedDate;
-	
+
 	private String voidReason;
 
 	private Insurance insurance;
-	private String closingReason;
-
-	private String editingReason;
-
-	private User editedBy;
-
-	public String getClosingReason() {
-		return closingReason;
-	}
-
-	public void setClosingReason(String closingReason) {
-		this.closingReason = closingReason;
-	}
-
-	public String getEditingReason() {
-		return editingReason;
-	}
-
-	public void setEditingReason(String editingReason) {
-		this.editingReason = editingReason;
-	}
-
-	public User getEditedBy() {
-		return editedBy;
-	}
-
-	public void setEditedBy(User editedBy) {
-		this.editedBy = editedBy;
-	}
 
 	private String closingReason;
 
@@ -241,8 +212,8 @@ public class GlobalBill {
 	public Boolean getClosed() {
 		return closed;
 	}
-	
-	
+
+
 	/**
 	 * @return
 	 */
@@ -320,7 +291,7 @@ public class GlobalBill {
 		this.voidReason = voidReason;
 	}
 	public void addConsommation(Consommation consommation){
-		
+
 		if (consommations == null)
 			consommations = new TreeSet<Consommation>();
 		if (consommation != null) {

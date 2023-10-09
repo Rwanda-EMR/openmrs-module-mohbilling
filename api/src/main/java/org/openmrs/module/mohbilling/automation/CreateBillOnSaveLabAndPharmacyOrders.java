@@ -61,14 +61,14 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
     }
 
     public static void createBillOnSaveLabOrders(Set<Concept> labOrdersConceptsList, Patient patient){
-        
+
         Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
         String insuranceCardNumber=null;
         List<Obs> currentInsuranceId=Utils.getLastNObservations(1,patient,Context.getConceptService().getConcept(insuranceNumberConceptID),false);
         if(currentInsuranceId.size()>=1)
             insuranceCardNumber=currentInsuranceId.get(0).getValueText();
         InsurancePolicy ip =Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
-        
+
 
         List<PatientServiceBill> psbList=new ArrayList<PatientServiceBill>();
         Department department=null;
@@ -80,7 +80,7 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
                 }
             }
         }
-        
+
         //List<Obs> obs=session.getSubmissionActions().getObsToCreate();
         BigDecimal totalMaximaTopay=new BigDecimal(0);
         for (Concept concept:labOrdersConceptsList) {
@@ -140,13 +140,13 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
 
         }
     }
-public static void checkBilling(){
-    System.out.println("Billing is checked");
-}
+    public static void checkBilling(){
+        System.out.println("Billing is checked");
+    }
 
 
 
-public static void createBillOnSavePharmacyOrders(List<DrugOrderedAndQuantinty> phamacyDrugOrderList, Patient patient){
+    public static void createBillOnSavePharmacyOrders(List<DrugOrderedAndQuantinty> phamacyDrugOrderList, Patient patient){
         Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
         String insuranceCardNumber=null;
         List<Obs> currentInsuranceId=Utils.getLastNObservations(1,patient,Context.getConceptService().getConcept(insuranceNumberConceptID),false);
