@@ -68,7 +68,7 @@ if(currentInsuranceId.size()>=1)
             //value coded
             if (o.getValueCoded()!=null) {
                 FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(o.getValueCoded());
-                if (fsp!=null) {
+                if (fsp!=null && fsp.isHidden()== false) {
                     System.out.println("FacilityServicePrice Found: " + fsp.getName());
                     BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
                     totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay());
@@ -81,6 +81,7 @@ if(currentInsuranceId.size()>=1)
                     psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
                     psb.setCreator(Context.getAuthenticatedUser());
                     psb.setCreatedDate(new Date());
+                    psb.setItemType(1);
 
                     psbList.add(psb);
                 }
@@ -89,7 +90,7 @@ if(currentInsuranceId.size()>=1)
             //value Numeric
             if (o.getValueNumeric()!=null) {
                 FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(o.getConcept());
-                if (fsp!=null) {
+                if (fsp!=null && fsp.isHidden()== false) {
                     System.out.println("FacilityServicePrice Found: " + fsp.getName());
                     BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
                     totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay().multiply(new BigDecimal(o.getValueNumeric())));
@@ -102,6 +103,7 @@ if(currentInsuranceId.size()>=1)
                     psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
                     psb.setCreator(Context.getAuthenticatedUser());
                     psb.setCreatedDate(new Date());
+                    psb.setItemType(1);
                     psbList.add(psb);
                 }
 
@@ -109,7 +111,7 @@ if(currentInsuranceId.size()>=1)
             //value Numeric
             if (o.getValueBoolean()!=null) {
                 FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(o.getConcept());
-                if (fsp!=null) {
+                if (fsp!=null && fsp.isHidden()== false) {
                     System.out.println("FacilityServicePrice Found: " + fsp.getName());
                     BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
                     totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay());

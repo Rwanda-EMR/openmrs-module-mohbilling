@@ -10,11 +10,10 @@
 	<input type="hidden" name="formStatus" id="formStatusId" value="" />
 		<table>
 			<tr class="dates">
-				<td width="10%">When?</td>
 				<td>
 					<table>
 						<tr>
-							<td>On Or After <input type="text" size="11"
+							<td>Start Date:</td> <td> <input type="text" size="11"
 								value="${startDate}" name="startDate"
 								onclick="showCalendar(this)" /></td>
 							<td class="timelabel" >hh</td>
@@ -45,6 +44,15 @@
 
 				             </select>
 						  </td>
+						  <td class="reportType">Report Type</td>
+							<td class="reportType">
+								<select name="reportType">
+									<option value="">Please!!! Select Report Type </option>
+									<option value="NO_DCP_Report">Ordinary Report</option>
+									<option value="DCP_Report">DCP Report</option>
+									<option value="All">All</option>
+								</select>
+							</td>
 						  <td class="deposit">Type</td>
 						  <td class="deposit">
 						  <select name="transactionType">
@@ -57,7 +65,7 @@
 							<td class="billCreator"><openmrs_tag:userField formFieldName="billCreator" initialValue="${billCreator}"/></td>
 						</tr>
 						<tr>
-							<td>On Or Before <input type="text" size="11"
+							<td>End Date:</td> <td> <input type="text" size="11"
 								value="${endDate}" name="endDate" onclick="showCalendar(this)" /></td>
 							<td class="timelabel" >hh</td>
 							<td>
@@ -111,10 +119,44 @@
 								</td>
 						</tr>
 
+						<tr class="insurances">
+							<td class="insurances">Insurance: </td>
+							<td class="insurances">
+								<select name="insuranceId" class="insurance">
+									<option value="">--select--</option>
+									<c:forEach items="${insurances }" var="insurance">
+										<option value="${insurance.insuranceId }">${insurance.name }</option>
+									</c:forEach>
+								</select>
+							</td>
+						</tr>
+						<tr class="services">
+							<td class="services">Service : </td>
+							<td class="services">
+								<select name="departmentId">
+									<option value="">--select--</option>
+									<c:forEach items="${departments }" var="department">
+										<option value="${department.departmentId }">${department.name }</option>
+									</c:forEach>
+								</select>
+							</td>
+						</tr>
+						<tr class="thirdParties">
+							<td class="thirdParties">Third Party : </td>
+							<td class="thirdParties">
+								<select name="thirdPartyId" class="thirdParty">
+									<option value="">--select--</option>
+									<c:forEach items="${thirdParties }" var="thirdParty">
+										<option value="${thirdParty.thirdPartyId }">${thirdParty.name }</option>
+									</c:forEach>
+								</select>
+							</td>
+						</tr>
+
 					</table>
 				</td>
 
-			</tr>
+			<!-- </tr>
 
 			<tr class="insurances">
 			<td>Insurance : </td>
@@ -147,7 +189,7 @@
 				    <option value="${thirdParty.thirdPartyId }">${thirdParty.name }</option>
 				    </c:forEach>
 				  </select>
-				</td>
+				</td> -->
 			</tr>
 		</table>
 		<input type="submit" value="Search" id="submitId" />

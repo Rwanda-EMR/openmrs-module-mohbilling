@@ -43,6 +43,7 @@ public class CreateOPDAdmissionOnHtmlFormSubmissionAction implements CustomFormS
             admission.setAdmissionDate(new Date());
             admission.setInsurancePolicy(ip);
             admission.setIsAdmitted(false);
+            admission.setAdmissionType(1);
             admission.setCreator(Context.getAuthenticatedUser());
             admission.setCreatedDate(new Date());
 

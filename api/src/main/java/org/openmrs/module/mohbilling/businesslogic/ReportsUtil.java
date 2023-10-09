@@ -415,7 +415,7 @@ public class ReportsUtil {
 	public static PaidServiceRevenue getPaidServiceRevenue(List<PaidServiceBill> paidItems, String categ){
 		BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
 		for (PaidServiceBill pi : paidItems) {
-			if (!pi.getVoided()) {
+			if (!pi.getVoided() && !pi.getBillItem().getItemType().equals(2)) {
 				if (categ.equals(pi.getBillItem().getHopService().getName())) {
 					InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
 					if (insurancePolicy.getInsurance().getCurrentRate() != null) {
@@ -449,7 +449,84 @@ public class ReportsUtil {
 			paidRevenue.setPaidAmount(new BigDecimal(0));
 		}
 		return paidRevenue;
-		
+		}
+
+	public static PaidServiceRevenue getPaidServiceRevenueDCP(List<PaidServiceBill> paidItems, String categ){
+		BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
+		for (PaidServiceBill pi : paidItems) {
+			if (!pi.getVoided() && pi.getBillItem().getItemType().equals(2)) {
+				if (categ.equals(pi.getBillItem().getHopService().getName())) {
+					InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
+					if (insurancePolicy.getInsurance().getCurrentRate() != null) {
+						float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
+						float pRate = (100f - insuranceRate) / 100f;
+
+						if (insurancePolicy.getThirdParty() != null) {
+							float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
+							pRate = (100f - insuranceRate - thirdPartyRate) / 100f;
+						}
+						BigDecimal patientRte = new BigDecimal("" + pRate);
+						BigDecimal paidQty = pi.getPaidQty();
+						BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
+						paidAmountOnThisCategory = paidAmountOnThisCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));
+					}
+				}
+			}
+		}
+		PaidServiceRevenue paidRevenue = null;
+
+		if(paidAmountOnThisCategory.compareTo(BigDecimal.ZERO)>0){
+			paidRevenue = new PaidServiceRevenue();
+			paidRevenue.setService(categ);
+			paidRevenue.setPaidItems(paidItems);
+			paidRevenue.setPaidAmount(paidAmountOnThisCategory);
+		}
+		else{
+			paidRevenue = new PaidServiceRevenue();
+			paidRevenue.setService(categ);
+			paidRevenue.setPaidItems(null);
+			paidRevenue.setPaidAmount(new BigDecimal(0));
+		}
+		return paidRevenue;
+
+	}
+	public static PaidServiceRevenue getPaidServiceRevenueAll(List<PaidServiceBill> paidItems, String categ){
+		BigDecimal paidAmountOnThisCategory = new BigDecimal(0);
+		for (PaidServiceBill pi : paidItems) {
+			if (!pi.getVoided()) {
+				if (categ.equals(pi.getBillItem().getHopService().getName())) {
+					InsurancePolicy insurancePolicy = pi.getBillItem().getConsommation().getBeneficiary().getInsurancePolicy();
+					if (insurancePolicy.getInsurance().getCurrentRate() != null) {
+						float insuranceRate = insurancePolicy.getInsurance().getCurrentRate().getRate();
+						float pRate = (100f - insuranceRate) / 100f;
+
+						if (insurancePolicy.getThirdParty() != null) {
+							float thirdPartyRate = insurancePolicy.getThirdParty().getRate();
+							pRate = (100f - insuranceRate - thirdPartyRate) / 100f;
+						}
+						BigDecimal patientRte = new BigDecimal("" + pRate);
+						BigDecimal paidQty = pi.getPaidQty();
+						BigDecimal unitPrice = pi.getBillItem().getUnitPrice();
+						paidAmountOnThisCategory = paidAmountOnThisCategory.add(paidQty.multiply(unitPrice).multiply(patientRte));
+					}
+				}
+			}
+		}
+		PaidServiceRevenue paidRevenue = null;
+
+		if(paidAmountOnThisCategory.compareTo(BigDecimal.ZERO)>0){
+			paidRevenue = new PaidServiceRevenue();
+			paidRevenue.setService(categ);
+			paidRevenue.setPaidItems(paidItems);
+			paidRevenue.setPaidAmount(paidAmountOnThisCategory);
+		}
+		else{
+			paidRevenue = new PaidServiceRevenue();
+			paidRevenue.setService(categ);
+			paidRevenue.setPaidItems(null);
+			paidRevenue.setPaidAmount(new BigDecimal(0));
+		}
+		return paidRevenue;
 	}
 	/**
 	 * get revenues by categories and by each department
@@ -545,6 +622,28 @@ public class ReportsUtil {
 	}
 
 	public static List<PatientServiceBill> getAllItemsByGlobalBill(GlobalBill gb){
+		List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
+		for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
+			for (PatientServiceBill item : c.getBillItems()) {
+				if (!item.getVoided() && !item.getItemType().equals(2)) {
+					items.add(item);
+				}
+			}
+		}
+		return items;
+	}
+	public static List<PatientServiceBill> getAllItemsByGlobalBillDcp(GlobalBill gb){
+		List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
+		for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
+			for (PatientServiceBill item : c.getBillItems()) {
+				if (!item.getVoided() && item.getItemType().equals(2)) {
+					items.add(item);
+				}
+			}
+		}
+		return items;
+	}
+	public static List<PatientServiceBill> getAllItemsByGlobalBillAll(GlobalBill gb){
 		List<PatientServiceBill> items = new ArrayList<PatientServiceBill>();
 		for (Consommation c : ConsommationUtil.getConsommationsByGlobalBill(gb)) {
 			for (PatientServiceBill item : c.getBillItems()) {
@@ -690,6 +789,50 @@ public class ReportsUtil {
 		}
 		return paymentRevenues;
 	}
+	public static PaymentRevenue getRevenuesByPaymentDCP(BillPayment payment,List<String> columns) {
+		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+
+		List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
+		BigDecimal totalByPayment= new BigDecimal(0);
+		for (String col : columns) {
+			if(getPaidServiceRevenueDCP(paidItems, col)!=null){
+				paidSr.add(getPaidServiceRevenueDCP(paidItems, col));
+				totalByPayment=totalByPayment.add(getPaidServiceRevenueDCP(paidItems, col).getPaidAmount());
+			}
+		}
+		PaymentRevenue paymentRevenues = null;
+		if(totalByPayment.compareTo(BigDecimal.ZERO)>0){
+			paymentRevenues = new PaymentRevenue();
+			paymentRevenues.setAmount(totalByPayment);
+			paymentRevenues.setPayment(payment);
+			paymentRevenues.setPaidServiceRevenues(paidSr);
+			if ((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill()))!=null)
+				paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
+		}
+		return paymentRevenues;
+	}
+	public static PaymentRevenue getRevenuesByPaymentAll(BillPayment payment,List<String> columns) {
+		List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(payment);
+
+		List<PaidServiceRevenue> paidSr = new ArrayList<PaidServiceRevenue>();
+		BigDecimal totalByPayment= new BigDecimal(0);
+		for (String col : columns) {
+			if(getPaidServiceRevenueAll(paidItems, col)!=null){
+				paidSr.add(getPaidServiceRevenueAll(paidItems, col));
+				totalByPayment=totalByPayment.add(getPaidServiceRevenueAll(paidItems, col).getPaidAmount());
+			}
+		}
+		PaymentRevenue paymentRevenues = null;
+		if(totalByPayment.compareTo(BigDecimal.ZERO)>0){
+			paymentRevenues = new PaymentRevenue();
+			paymentRevenues.setAmount(totalByPayment);
+			paymentRevenues.setPayment(payment);
+			paymentRevenues.setPaidServiceRevenues(paidSr);
+			if ((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill()))!=null)
+				paymentRevenues.setBeneficiary((ConsommationUtil.getConsommationByPatientBill(payment.getPatientBill())).getBeneficiary());
+		}
+		return paymentRevenues;
+	}
 	/**
 	 * calculates sub totals on reports
 	 * @param paidItems
@@ -712,5 +855,8 @@ public class ReportsUtil {
 			}
 		return totalByCategory;
 	}
-	
+	public static InsuranceReport getPatientServiceBillReport(
+            Integer insuranceId, Date startDate, Date endDate) {
+        return getService().getBillItemsReportByCategory(insuranceId, startDate, endDate);
+    }
 }

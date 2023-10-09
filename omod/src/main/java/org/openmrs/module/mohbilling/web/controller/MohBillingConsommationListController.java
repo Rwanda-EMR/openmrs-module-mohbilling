@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.web.controller;
 
@@ -19,6 +19,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
 import java.util.Date;
 
@@ -32,11 +33,8 @@ public class MohBillingConsommationListController extends ParameterizableViewCon
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected ModelAndView handleRequestInternal(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
-		
+	protected ModelAndView handleRequestInternal(HttpServletRequest request,HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView();
-
 		String discharge = request.getParameter("discharge");
 		Integer globalBillId = Integer.valueOf(request.getParameter("globalBillId"));
 		String  insuranceCardNo =request.getParameter("ipCardNumber");
@@ -79,8 +77,6 @@ public class MohBillingConsommationListController extends ParameterizableViewCon
 		}
 		mav.addObject("discharge",discharge);
 		mav.setViewName(getViewName());
-		
 		return mav;
 	}
-
 }

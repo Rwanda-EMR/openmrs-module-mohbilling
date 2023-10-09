@@ -379,7 +379,6 @@
         <name>Migration Cashier</name>
         <description>Allows the user to viewer Migration Cashier </description>
     </privilege>
-
     <privilege>
         <name>View Bulk Update</name>
         <description>Allows the user to view View Facility service by insurance campanies</description>
@@ -389,6 +388,12 @@
         <name>Patient Receipts - Print Only Paid Items</name>
         <description>Allows the user to print only selected items during payment</description>
     </privilege>
+
+    <privilege>
+        <name>View Provider DCP Report</name>
+        <description>View Provider DCP Report</description>
+    </privilege>
+
     <privilege>
         <name>Revert Patient Bill</name>
         <description>Allow the user to open a bill closed during that day</description>
@@ -401,6 +406,7 @@
         <name>Create Bill Manually</name>
         <description>Allow the user to create a bill manually</description>
     </privilege>
+
 
     <!-- Internationalization -->
     <!-- All message codes should start with @MODULE_ID@.* -->

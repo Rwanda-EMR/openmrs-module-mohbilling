@@ -669,7 +669,7 @@ public interface BillingService {
 	 * @return consommation list
 	 */
 	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
-	
+	public List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator);
 	public void updateOtherInsurances(ServiceCategory sc);
 	
 
@@ -686,5 +686,7 @@ public interface BillingService {
 	public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo);
 	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException;
 	public FacilityServicePrice getFacilityServiceByName(String name);
+
+	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
 }
