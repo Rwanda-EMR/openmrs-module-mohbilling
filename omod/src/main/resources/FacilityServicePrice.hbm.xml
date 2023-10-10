@@ -31,8 +31,7 @@
 		<many-to-one name="concept" class="org.openmrs.Concept" column="concept_id" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 		<many-to-one name="retiredBy" class="org.openmrs.User" column="retired_by" />
-		<property name="itemType" column="item_type" type="java.lang.Integer" />
-		<property name="hidden" column="hide_item" type="boolean" />
+
 		
 		<set name="billableServices" lazy="false" inverse="true"
 			cascade="all-delete-orphan" sort="natural"
