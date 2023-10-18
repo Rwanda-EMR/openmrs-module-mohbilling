@@ -1616,4 +1616,15 @@
 			ALTER TABLE moh_bill_patient_service_bill MODIFY COLUMN item_type TINYINT(1) DEFAULT 1;
 		</sql>
 	</changeSet>
+	<changeSet id="alter_moh_bill_patient_bill_adding_field_for_MoMo_integration" author="jberchmas">
+		<sql>
+			ALTER TABLE moh_bill_patient_bill
+			ADD COLUMN phoneNumber VARCHAR(13) NULL AFTER creator,
+			ADD COLUMN referenceId VARCHAR(38) NULL AFTER phoneNumber,
+			ADD COLUMN transactionStatus VARCHAR(50) NULL AFTER referenceId,
+			ADD COLUMN paymentConfirmed TINYINT(1) NULL AFTER transactionStatus,
+			ADD COLUMN paymentConfirmedBy INT NULL AFTER paymentConfirmed,
+			ADD COLUMN paymentConfirmedDate DATETIME NULL AFTER paymentConfirmedBy;
+		</sql>
+	</changeSet>
 </databaseChangeLog>

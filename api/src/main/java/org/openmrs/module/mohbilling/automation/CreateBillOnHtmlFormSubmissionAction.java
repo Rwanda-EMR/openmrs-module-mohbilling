@@ -1,9 +1,12 @@
 package org.openmrs.module.mohbilling.automation;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.openmrs.DrugOrder;
 import org.openmrs.Obs;
@@ -32,9 +35,24 @@ public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissio
 
     @Override
     public void applyAction(FormEntrySession session) {
+
+        MTNMomoApiIntegrationRequestToPay momo=new MTNMomoApiIntegrationRequestToPay();
+        String currentPhoneNumber=null;
+        String referenceId = (UUID.randomUUID()).toString();
+        String epaymentPhoneNumberUUID=Context.getAdministrationService().getGlobalProperty("registration.ePaymentPhoneNumberConcept");
+        List<Obs> currentPhoneNumbers=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConceptByUuid(epaymentPhoneNumberUUID),false);
+
+        if(currentPhoneNumbers.size()>=1) {
+            currentPhoneNumber = currentPhoneNumbers.get(0).getValueText();
+            //currentPhoneNumber = "250788312518"; // For testing
+        }
+
+
+
         Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
 
         String insuranceCardNumber=null;
+
 //GlobalBill gb =null;
 
 
@@ -43,6 +61,8 @@ public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissio
 
         if(currentInsuranceId.size()>=1)
             insuranceCardNumber=currentInsuranceId.get(0).getValueText();
+
+
 
 
         InsurancePolicy ip =Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
@@ -158,6 +178,19 @@ public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissio
             PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
             InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
 
+            if (currentPhoneNumber!=null){
+                pb = PatientBillUtil.createPatientBillWithMoMoRequestToPay(totalMaximaTopay, ip,currentPhoneNumber,referenceId);
+                try {
+                    momo.requesttopay(referenceId,pb.getAmount().setScale(0, RoundingMode.UP).toString(),currentPhoneNumber);
+                    //pb.setTransactionStatus("PENDING");
+                   pb.setTransactionStatus(momo.getransactionStatus(referenceId));
+                    pb =PatientBillUtil.savePatientBill(pb);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+
             Consommation cons = new Consommation();
             cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));
             cons.setPatientBill(pb);
@@ -168,6 +201,9 @@ public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissio
             //cons.setDepartment(Context.getService(BillingService.class).getDepartement(2));
             cons.setDepartment(department);
             ConsommationUtil.saveConsommation(cons);
+
+
+
             //Context.getService(BillingService.class).saveConsommation(cons);
 
             for (PatientServiceBill psb : psbList) {

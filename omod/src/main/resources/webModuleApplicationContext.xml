@@ -66,6 +66,7 @@
 				<prop key="module/@MODULE_ID@/depositReport.form">mohBillingDepositReportController</prop>
 				<prop key="module/@MODULE_ID@/billingsessionControl.form">mohBillingsessionControlFormController</prop>
 				<prop key="module/@MODULE_ID@/beforeMigrationcashierReport.form">beforemigrationmohBillingCashierReportController</prop>
+				<prop key="module/@MODULE_ID@/openConfirmationPage.form">mohBillingOpenBillConfirmationPageFormController</prop>
 				<!-- <prop key="module/@MODULE_ID@/providerDCPReport.form">mohBillingProviderReportController</prop> -->
 			</props>
 		</property>
@@ -269,6 +270,10 @@
 	<bean id="mohBillingCohortBuilderFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCohortBuilderFormController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingCohortBuilderForm</value></property>
+	</bean>
+	<bean id="mohBillingOpenBillConfirmationPageFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingOpenBillConfirmationPageFormController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingOpenBillConfirmationForm</value></property>
 	</bean>
 	<bean id="mohBillingDepositReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepositReportController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />

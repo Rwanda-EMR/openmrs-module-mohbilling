@@ -28,6 +28,13 @@ public class PatientBill {
 	private String voidReason;
 	private Set<BillPayment> payments;
 
+	private String phoneNumber;
+	private String referenceId;
+	private String transactionStatus;
+	private boolean paymentConfirmed;
+	private User paymentConfirmedBy;
+	private Date paymentConfirmedDate;
+
 	/**
 	 * @return the patientBillId
 	 */
@@ -293,4 +300,52 @@ public class PatientBill {
 
 	}
 
+
+	public String getPhoneNumber() {
+		return phoneNumber;
+	}
+
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
+	}
+
+	public String getReferenceId() {
+		return referenceId;
+	}
+
+	public void setReferenceId(String referenceId) {
+		this.referenceId = referenceId;
+	}
+
+	public String getTransactionStatus() {
+		return transactionStatus;
+	}
+
+	public void setTransactionStatus(String transactionStatus) {
+		this.transactionStatus = transactionStatus;
+	}
+
+	public boolean isPaymentConfirmed() {
+		return paymentConfirmed;
+	}
+
+	public void setPaymentConfirmed(boolean paymentConfirmed) {
+		this.paymentConfirmed = paymentConfirmed;
+	}
+
+	public User getPaymentConfirmedBy() {
+		return paymentConfirmedBy;
+	}
+
+	public void setPaymentConfirmedBy(User paymentConfirmedBy) {
+		this.paymentConfirmedBy = paymentConfirmedBy;
+	}
+
+	public Date getPaymentConfirmedDate() {
+		return paymentConfirmedDate;
+	}
+
+	public void setPaymentConfirmedDate(Date paymentConfirmedDate) {
+		this.paymentConfirmedDate = paymentConfirmedDate;
+	}
 }

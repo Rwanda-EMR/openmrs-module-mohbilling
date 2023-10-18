@@ -1,10 +1,9 @@
 package org.openmrs.module.mohbilling.automation;
 
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.math.RoundingMode;
+import java.util.*;
 
 import org.openmrs.Concept;
 import org.openmrs.Obs;
@@ -61,6 +60,23 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
     }
 
     public static void createBillOnSaveLabOrders(Set<Concept> labOrdersConceptsList, Patient patient){
+
+
+
+
+        MTNMomoApiIntegrationRequestToPay momo=new MTNMomoApiIntegrationRequestToPay();
+        String currentPhoneNumber=null;
+        String referenceId = (UUID.randomUUID()).toString();
+        String epaymentPhoneNumberUUID=Context.getAdministrationService().getGlobalProperty("registration.ePaymentPhoneNumberConcept");
+        List<Obs> currentPhoneNumbers=Utils.getLastNObservations(1,patient,Context.getConceptService().getConceptByUuid(epaymentPhoneNumberUUID),false);
+
+        if(currentPhoneNumbers.size()>=1) {
+            currentPhoneNumber = currentPhoneNumbers.get(0).getValueText();
+            //currentPhoneNumber = "250788312518"; // For testing
+        }
+
+
+
 
         Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
         String insuranceCardNumber=null;
@@ -123,6 +139,21 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
             PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
             InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
 
+
+
+            if (currentPhoneNumber!=null){
+                pb = PatientBillUtil.createPatientBillWithMoMoRequestToPay(totalMaximaTopay, ip,currentPhoneNumber,referenceId);
+                try {
+                    momo.requesttopay(referenceId,pb.getAmount().setScale(0, RoundingMode.UP).toString(),currentPhoneNumber);
+                    //pb.setTransactionStatus("PENDING");
+                    pb.setTransactionStatus(momo.getransactionStatus(referenceId));
+                    pb =PatientBillUtil.savePatientBill(pb);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+
             Consommation cons = new Consommation();
             cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));
             cons.setPatientBill(pb);
@@ -147,6 +178,21 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
 
 
     public static void createBillOnSavePharmacyOrders(List<DrugOrderedAndQuantinty> phamacyDrugOrderList, Patient patient){
+
+        MTNMomoApiIntegrationRequestToPay momo=new MTNMomoApiIntegrationRequestToPay();
+        String currentPhoneNumber=null;
+        String referenceId = (UUID.randomUUID()).toString();
+        String epaymentPhoneNumberUUID=Context.getAdministrationService().getGlobalProperty("registration.ePaymentPhoneNumberConcept");
+        List<Obs> currentPhoneNumbers=Utils.getLastNObservations(1,patient,Context.getConceptService().getConceptByUuid(epaymentPhoneNumberUUID),false);
+
+        if(currentPhoneNumbers.size()>=1) {
+            currentPhoneNumber = currentPhoneNumbers.get(0).getValueText();
+            //currentPhoneNumber = "250788312518"; // For testing
+        }
+
+
+
+
         Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
         String insuranceCardNumber=null;
         List<Obs> currentInsuranceId=Utils.getLastNObservations(1,patient,Context.getConceptService().getConcept(insuranceNumberConceptID),false);
@@ -199,6 +245,19 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
 
             PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
             InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
+
+
+            if (currentPhoneNumber!=null){
+                pb = PatientBillUtil.createPatientBillWithMoMoRequestToPay(totalMaximaTopay, ip,currentPhoneNumber,referenceId);
+                try {
+                    momo.requesttopay(referenceId,pb.getAmount().setScale(0, RoundingMode.UP).toString(),currentPhoneNumber);
+                    //pb.setTransactionStatus("PENDING");
+                    pb.setTransactionStatus(momo.getransactionStatus(referenceId));
+                    pb =PatientBillUtil.savePatientBill(pb);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
             Consommation cons = new Consommation();
             cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));

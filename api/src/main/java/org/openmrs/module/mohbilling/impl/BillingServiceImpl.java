@@ -949,6 +949,10 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getConsommations(startDate, endDate, insurance, tp, billCreator,department);
 	}
 	@Override
+	public List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate, Date endDate) {
+		return billingDAO.getConsommationsWithPatientNotConfirmed(startDate, endDate);
+	}
+	@Override
 	public List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator) {
 		return billingDAO.getDCPConsommations(startDate, endDate,billCreator);
 	}

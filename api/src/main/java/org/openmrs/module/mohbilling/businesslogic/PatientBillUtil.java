@@ -203,9 +203,48 @@ public class PatientBillUtil {
 			pb =savePatientBill(pb);
 			
 		return pb;
-		
-	}
 
+	}
+	public static PatientBill createPatientBillWithMoMoRequestToPay(BigDecimal totalAmount,InsurancePolicy ip,String phoneNumber,String referenceId){
+
+		InsuranceRate validRate = ip.getInsurance().getRateOnDate(new Date());
+		ThirdParty thirdParty =ip.getThirdParty();
+
+		Float rateToPay=null;		//rate based on which the amount is calculated
+
+		if( ip.getInsurance().getCurrentRate().getFlatFee()!=null && ip.getInsurance().getCurrentRate().getFlatFee().compareTo(BigDecimal.ZERO)>0){
+
+			BigDecimal  pbAmount = BigDecimal.ZERO;
+
+			PatientBill pb = new PatientBill();
+			pb.setAmount(pbAmount);
+			pb.setCreatedDate(new Date());
+			pb.setCreator(Context.getAuthenticatedUser());
+			pb.setVoided(false);
+
+			pb =savePatientBill(pb);
+			return pb;
+		}
+
+		if(thirdParty == null)
+			rateToPay = 100-validRate.getRate();
+		else
+			rateToPay = (100-validRate.getRate())-thirdParty.getRate();
+
+		BigDecimal  pbAmount = totalAmount.multiply(BigDecimal.valueOf((rateToPay)/100));
+
+		PatientBill pb = new PatientBill();
+		pb.setAmount(pbAmount);
+		pb.setCreatedDate(new Date());
+		pb.setCreator(Context.getAuthenticatedUser());
+		pb.setVoided(false);
+		pb.setPhoneNumber(phoneNumber);
+		pb.setReferenceId(referenceId);
+		pb =savePatientBill(pb);
+
+		return pb;
+
+	}
 	
 
 	/**
