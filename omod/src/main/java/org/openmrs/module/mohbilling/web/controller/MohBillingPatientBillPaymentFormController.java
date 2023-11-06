@@ -128,6 +128,7 @@ public class MohBillingPatientBillPaymentFormController extends
 				cpyPay.setAmountPaid(newAmount);
 				Context.getService(BillingService.class).saveBillPayment(cpyPay);
 
+
 				List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(billPayment);
 
 				//recreate services which has been paid
@@ -183,6 +184,21 @@ public class MohBillingPatientBillPaymentFormController extends
 					cp = PatientBillUtil.createCashPayment(cp);
 					billPayment =cp;
 					createPaidServiceBill(request, consommation, cp);
+
+	                System.out.println("From Paymenttttttttttttttttt1:"+pb.getAmountPaid());
+					System.out.println("From patient billlllllllllll1:"+pb.getAmount());
+
+
+					if (pb.getAmountPaid().doubleValue() == pb.getAmount().doubleValue()){
+						pb.setPaymentConfirmed(true);
+						pb.setPaymentConfirmedDate(new Date());
+						pb.setPaymentConfirmedBy(Context.getAuthenticatedUser());
+						System.out.println("Inside1");
+						pb=PatientBillUtil.savePatientBill(pb);
+					}
+
+
+
 					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 							"The Bill Payment with cash has been saved successfully !");
 				}
@@ -209,6 +225,15 @@ public class MohBillingPatientBillPaymentFormController extends
 
 						billPayment = dp;
 
+						System.out.println("From Paymenttttttttttttttttt2:"+consommation.getPatientBill().getAmountPaid());
+						System.out.println("From patient billlllllllllll2:"+consommation.getPatientBill().getAmount());
+
+						if (consommation.getPatientBill().getAmountPaid().doubleValue()==consommation.getPatientBill().getAmount().doubleValue()){
+							pb.setPaymentConfirmed(true);
+							pb.setPaymentConfirmedDate(new Date());
+							pb.setPaymentConfirmedBy(Context.getAuthenticatedUser());
+							pb=PatientBillUtil.savePatientBill(pb);
+						}
 						request.getSession().setAttribute(
 								WebConstants.OPENMRS_MSG_ATTR,
 								"The Bill Payment with deposit has been saved successfully !");

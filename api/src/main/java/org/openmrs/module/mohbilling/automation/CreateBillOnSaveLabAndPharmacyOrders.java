@@ -9,19 +9,8 @@ import org.openmrs.Concept;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
-import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
-import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
-import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
-import org.openmrs.module.mohbilling.model.BillableService;
-import org.openmrs.module.mohbilling.model.Consommation;
-import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.FacilityServicePrice;
-import org.openmrs.module.mohbilling.model.GlobalBill;
-import org.openmrs.module.mohbilling.model.InsuranceBill;
-import org.openmrs.module.mohbilling.model.InsurancePolicy;
-import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.businesslogic.*;
+import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.utils.Utils;
 
@@ -137,6 +126,7 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
             gb = GlobalBillUtil.saveGlobalBill(gb);
 
             PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
+            ThirdPartyBill tpb= ThirdPartyBillUtil.createThirdPartyBill(ip,totalMaximaTopay);
             InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
 
 
@@ -157,6 +147,7 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
             Consommation cons = new Consommation();
             cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));
             cons.setPatientBill(pb);
+            cons.setThirdPartyBill(tpb);
             cons.setInsuranceBill(ib);
             cons.setGlobalBill(gb);
             cons.setCreatedDate(new Date());
@@ -244,6 +235,7 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
             gb = GlobalBillUtil.saveGlobalBill(gb);
 
             PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
+            ThirdPartyBill tpb= ThirdPartyBillUtil.createThirdPartyBill(ip,totalMaximaTopay);
             InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
 
 
@@ -262,6 +254,7 @@ public class CreateBillOnSaveLabAndPharmacyOrders{
             Consommation cons = new Consommation();
             cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));
             cons.setPatientBill(pb);
+            cons.setThirdPartyBill(tpb);
             cons.setInsuranceBill(ib);
             cons.setGlobalBill(gb);
             cons.setCreatedDate(new Date());
