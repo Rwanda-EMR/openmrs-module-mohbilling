@@ -167,6 +167,7 @@ public class BeforeMigrationFileExporter {
 	public void displayPaidItems(Document document,BillPayment payment,Consommation consommation,FontSelector fontSelector) throws DocumentException {
 		NumberFormat formatter = new DecimalFormat("#0.00");
 		Float insuranceRate = consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+
 		float patRate = 100f - insuranceRate;
 		BigDecimal patientRate = new BigDecimal(""+patRate);
 
@@ -409,9 +410,12 @@ public class BeforeMigrationFileExporter {
 		 revenueList.add(autresRevenue);
 		 
 		 Float insRate = consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+
+
 		 float patRate = 100f - insRate;
 		 BigDecimal patientRate = new BigDecimal(""+patRate);
 		 BigDecimal insuranceRate = new BigDecimal(""+insRate);
+
 		 
 		 BigDecimal total = new BigDecimal(0);
 		 
@@ -419,7 +423,7 @@ public class BeforeMigrationFileExporter {
 		 if(revenueList!=null)
 		 for (ServiceRevenue sr : revenueList) {
 			//if(sr!=null&& sr.getDueAmount().compareTo(BigDecimal.ZERO)!=0){
-				if(sr!=null && sr.getBillItems().size()!=0){
+				if(sr!=null && sr.getBillItems().size()!=0 ){
 
 					cell = new PdfPCell(fontSelector.process(""));
 				 table.addCell(cell);
@@ -694,6 +698,7 @@ public class BeforeMigrationFileExporter {
 		table.addCell(cell);
 		
 		Float insuranceRate = gb.getAdmission().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+
 		Float patientRate = 100-insuranceRate;
 		
 		cell = new PdfPCell(boldFont.process(insuranceRate+"%"));
@@ -886,8 +891,9 @@ public class BeforeMigrationFileExporter {
 
 		int i=0;
 		for (PaidServiceRevenue psr : paidServiceRevenues) {
+
 			i++; 
-			if(psr!=null&&psr.getPaidAmount().compareTo(BigDecimal.ZERO)!=0){
+			if(psr!=null && psr.getPaidAmount().compareTo(BigDecimal.ZERO)!=0){
 			 cell = new PdfPCell(fontSelector.process(""+i));
 			 table.addCell(cell);
 			 
@@ -1143,7 +1149,9 @@ public class BeforeMigrationFileExporter {
 			for (AllServicesRevenue asr : listOfAllServicesRevenue) {
 				Consommation c = asr.getConsommation();
 				Float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+
 				Float insuranceDue = asr.getAllDueAmounts().floatValue()*insuranceRate/100;
+
 				Float patientDue= asr.getAllDueAmounts().floatValue()*((100-insuranceRate)/100);
 				i++;
 				op.print(i

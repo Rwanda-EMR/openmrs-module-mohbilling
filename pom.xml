@@ -38,6 +38,8 @@
 	<properties>
 		<openMRSVersion>2.3.3</openMRSVersion>
 		<htmlformentryVersion>4.4.0</htmlformentryVersion>
+		<apachePoiVersion>5.2.4</apachePoiVersion>
+		<commonsIoVersion>2.15.0</commonsIoVersion>
 	</properties>
 
 	<dependencyManagement>
@@ -61,6 +63,24 @@
 				<artifactId>htmlformentry-api</artifactId>
 				<version>${htmlformentryVersion}</version>
 				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi</artifactId>
+				<version>${apachePoiVersion}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi-ooxml</artifactId>
+				<version>${apachePoiVersion}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commonsIoVersion}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
