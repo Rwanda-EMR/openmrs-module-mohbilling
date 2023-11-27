@@ -65,7 +65,7 @@ public class MohBillingInsuranceReportController extends
 
                 DateFormat formatter;
                 try {
-                    formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                    formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
                     startDate = formatter.parse(startDateStr + " 00:00:00");
                     endDate = formatter.parse(endDateStr + " 23:59:59");
                 } catch (ParseException | IllegalArgumentException | NullPointerException ex) {

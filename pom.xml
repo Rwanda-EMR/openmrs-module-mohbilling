@@ -38,6 +38,8 @@
 	<properties>
 		<openMRSVersion>2.3.3</openMRSVersion>
 		<htmlformentryVersion>4.4.0</htmlformentryVersion>
+		<apachePoiVersion>5.2.4</apachePoiVersion>
+		<commonsIoVersion>2.15.0</commonsIoVersion>
 	</properties>
 
 	<dependencyManagement>
