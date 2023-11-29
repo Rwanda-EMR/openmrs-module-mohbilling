@@ -1583,13 +1583,8 @@ public class FileExporter {
                                   List<InsuranceReportItem> reportRecords) {
 
         if (response == null || insurance == null || reportRecords == null) {
-            log.error("exportData method expects non-null parameters. " +
-                    "One of response, insurance or reportRecords parameters is null");
-        }
-
-        if(reportRecords.isEmpty()){
-            log.info("Trying to export Empty data to Excel File");
-            return;
+            throw new IllegalArgumentException("exportData method expects non-null parameters. " +
+                    "One of 'response', 'insurance' or 'reportRecords' parameters is null");
         }
 
         Date date = new Date();
