@@ -14,4 +14,4 @@ omod/target/
 *.iml
 .idea/
 .idea/libraries/*.*
-
+.DS_Store
