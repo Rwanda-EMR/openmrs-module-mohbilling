@@ -1,5 +1,7 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/template/headerMinimal.jsp" %>
+
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables.css" />
 <%@ taglib prefix="mohbilling_tag" tagdir="/WEB-INF/tags/module/mohbilling" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
@@ -119,4 +121,3 @@
 </c:if>
 </c:if>
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>

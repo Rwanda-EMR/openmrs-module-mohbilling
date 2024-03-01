@@ -132,7 +132,7 @@ public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissio
                     psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
                     psb.setCreator(Context.getAuthenticatedUser());
                     psb.setCreatedDate(new Date());
-
+                    psb.setItemType(1);
                     psbList.add(psb);
                 }
 

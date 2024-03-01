@@ -1635,4 +1635,9 @@
 			ALTER TABLE moh_bill_facility_service_price ADD hide_item TINYINT(1) DEFAULT 0;
 		</sql>
 	</changeSet>
+	<changeSet id="alter_moh_bill_patient_bill_make_paymentConfirmed_default_0" author="jberchmas">
+		<sql>
+			ALTER TABLE moh_bill_patient_bill CHANGE COLUMN paymentConfirmed paymentConfirmed TINYINT(1) NOT NULL DEFAULT 0;
+		</sql>
+	</changeSet>
 </databaseChangeLog>

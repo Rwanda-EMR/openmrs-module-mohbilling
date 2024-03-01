@@ -1,6 +1,8 @@
 
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/template/headerMinimal.jsp" %>
+
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables.css" />
 <%@ taglib prefix="mohbilling_tag" tagdir="/WEB-INF/tags/module/mohbilling" %>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
@@ -44,10 +46,3 @@
 		</table>
 </form>
 </div>
-
-<%@ include file="/WEB-INF/template/footer.jsp"%>
-
-
-
-
-
