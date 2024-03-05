@@ -64,7 +64,7 @@ a.print {
 		<td>Policy Id Number</td>
 		<td>Beneficiary</td>
 
-		<td>Billable Services</td>
+		<!-- <td>Billable Services</td> -->
 
 		<td>Insurance Name</td>
 		<td>Total</td>
@@ -92,6 +92,11 @@ a.print {
 			<td class="rowValue">${c.creator.person.familyName}&nbsp;${c.creator.person.givenName}</td>
 			<td class="rowValue"><b>${c.beneficiary.policyIdNumber}</b></td>
 			<td class="rowValue">${c.beneficiary.patient.personName}</td>
+
+			<c:set var="insuranceRate" value="${(c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100 }"/>
+            <c:set var="patientRate" value="${(100-c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100}"/>
+			<c:set var="totalAmountByConsom" value="${c.insuranceBill.amount + c.patientBill.amount}" />
+			<%--
 			<td class="rowValue">
 
 			<table>
@@ -122,7 +127,7 @@ a.print {
 					</c:if>
 				</c:forEach>
 			</table>
-			</td>
+			</td> --%>
 			<c:set var="totalAmountPaidByCons" value="${billingtag:amountPaidByConsommation(c.consommationId)}"/>
 			<td class="rowValue">${c.beneficiary.insurancePolicy.insurance.name}</td>
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom}" type="number" pattern="#.##"/></td>
@@ -169,7 +174,7 @@ a.print {
 	<c:set var="totalPatients" value="${totalPatients+(totalAmountByConsom*patientRate)}" />
 	</c:forEach>
 	<tr>
-		<td class="rowTotalValue" colspan="8"><b style="color: blue;font-size: 14px;">TOTAL</b></td>
+		<td class="rowTotalValue" colspan="7"><b style="color: blue;font-size: 14px;">TOTAL</b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalAmountAllConsom}" type="number" pattern="#.##"/></b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalInsurances}" type="number" pattern="#.##"/></b></td>
 		<td class="rowTotalValue"><b style="color: blue;font-size: 14px;"><fmt:formatNumber value="${totalPatients}" type="number" pattern="#.##"/></b></td>
