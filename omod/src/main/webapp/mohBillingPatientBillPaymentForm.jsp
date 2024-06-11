@@ -20,6 +20,7 @@
                 calculateSum();
                 validateQties();
             });
+
             var patientRate = $j('#patientRate').val();
             function calculateSum() {
                 var $checked = $j('.items:checked');
@@ -84,6 +85,54 @@ $j(document).ready(function(){
 		    else
 		    	 $j('.submitBtn').attr('disabled', false);
 		});
+
+		$j('#selectAll').click(function() {
+        		  if ($j(this).is(":checked")) {
+                        checkAllInClass("billItem");
+                            var total;
+                            var patientRate = $j('#patientRate').val();
+                                        var $checked = $j('.items:checked');
+                                        total = 0.0;
+                                        $checked.each(function () {
+                                        	var id=$j(this).val();
+                                        	var paidQty = $j('#paidQty_'+id).val();
+                                        	var up=$j('#up_'+id).val();
+
+                                        	var flat = $j('#flat').val();
+                                        	if(flat>0){
+                                        	up=0;
+                                        	}
+                                        	var cost=paidQty*up;
+                                        	if(!isNaN(cost))
+                                            total += parseFloat(cost*patientRate);
+                                        });
+                                        $j('#tot').text("Your Payable  Is: " + total.toFixed(2));
+                    }
+        		  else{
+        			 uncheckAllInClass("billItem");
+        			 var total;
+                     var patientRate = $j('#patientRate').val();
+                     var $checked = $j('.items:checked');
+                     total = 0.0;
+                     $checked.each(function () {
+                        var id=$j(this).val();
+                        var paidQty = $j('#paidQty_'+id).val();
+                        var up=$j('#up_'+id).val();
+
+                        var flat = $j('#flat').val();
+                        if(flat>0){
+                        up=0;
+                        }
+                        var cost=paidQty*up;
+                        if(!isNaN(cost))
+                         total += parseFloat(cost*patientRate);
+                     });
+                     $j('#tot').text("Your Payable  Is: " + total.toFixed(2));
+        			  }
+        	});
+
+
+
 });
 </script>
 <script type="text/javascript">
@@ -149,6 +198,24 @@ function recalculateTotals() {
 }
 </script>
 
+<script>
+// Function to check all checkboxes within <tr> elements with a specific class
+function checkAllInClass(className) {
+    var checkboxes = document.querySelectorAll('tr.' + className + ' input[type="checkbox"]');
+    checkboxes.forEach(function(checkbox) {
+        checkbox.checked = true;
+    });
+}
+
+// Function to uncheck all checkboxes within <tr> elements with a specific class
+function uncheckAllInClass(className) {
+    var checkboxes = document.querySelectorAll('tr.' + className + ' input[type="checkbox"]');
+    checkboxes.forEach(function(checkbox) {
+        checkbox.checked = false;
+    });
+}
+</script>
+
 <h2>Patient Bill Payment</h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
@@ -211,7 +278,7 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
                                       </th>
                                     </c:otherwise>
                                 </c:choose>
-				<th></th>
+				<th><input type="checkbox" id="selectAll"><label for="selectAll"> Select All</label></th>
 			</tr>
 			<c:if test="${empty consommation.billItems}"><tr><td colspan="7"><center>No consommation found !</center></td></tr></c:if>
 			<c:set var="totalBillInsurance" value="0"/>
@@ -220,7 +287,7 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 			<c:set var="service" value="${billItem.service.facilityServicePrice}"/>
 			<c:set var="fieldName" value="item-${consommation.consommationId}-${billItem.patientServiceBillId}"/>
 			<c:if test="${not billItem.voided}">
-				<tr>
+				<tr class="billItem">
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}.</td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}">${service.name}</td>
 					<td class="rowValue center ${(status.count%2!=0)?'even':''}">${billItem.quantity}</td>
