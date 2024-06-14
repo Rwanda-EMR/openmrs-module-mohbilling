@@ -126,7 +126,7 @@ public class MohBillingInsuranceReportController extends
                     request.getSession()
                             .getAttribute("listOfAllServicesRevenue");
             Insurance insurance = (Insurance) request.getSession().getAttribute("insurance");
-            FileExporter.exportData(request, response, insurance, columns, insuranceReportRecords);
+            FileExporter.exportData(response, insurance, insuranceReportRecords);
         }
         return mav;
     }
