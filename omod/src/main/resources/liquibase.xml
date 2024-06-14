@@ -8,12 +8,12 @@
 	<!--  REPORTING REPORT DESIGN SCHEMA -->
 
 	<changeSet id="moh_bill_admission" author="jberchmas">
-        <preConditions onFail="MARK_RAN">
-        	<not><tableExists tableName="moh_bill_admission" /></not>
-        </preConditions>
-        <comment>
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_admission" /></not>
+		</preConditions>
+		<comment>
 			Create table moh_bill_admission
-        </comment>
+		</comment>
 		<sql>
 			CREATE TABLE moh_bill_admission (
 			admission_id int(11) NOT NULL AUTO_INCREMENT,
@@ -1611,36 +1611,28 @@
 			ALTER TABLE moh_bill_insurance_policy ADD UNIQUE INDEX moh_bill_insurance_policy_insurance_card_no_UNIQUE (insurance_card_no);
 		</sql>
 	</changeSet>
-	<changeSet id="moh_bill_patient_service_bill_date_created" author="benjamin">
+	<changeSet id="alter_moh_bill_patient_service_bill_adding_item_type" author="emmanuel">
 		<sql>
-			ALTER TABLE moh_bill_patient_service_bill MODIFY created_date datetime DEFAULT NULL;
+			ALTER TABLE moh_bill_patient_service_bill MODIFY COLUMN item_type TINYINT(1) DEFAULT 1;
 		</sql>
 	</changeSet>
-	<changeSet id="moh_bill_patient_service_bill_service_date" author="benjamin">
+	<changeSet id="alter_moh_bill_patient_bill_adding_field_for_MoMo_integration" author="jberchmas">
 		<sql>
-			ALTER TABLE moh_bill_patient_service_bill MODIFY service_date datetime DEFAULT NULL;
+			ALTER TABLE moh_bill_patient_bill
+			ADD COLUMN phoneNumber VARCHAR(13) NULL AFTER creator,
+			ADD COLUMN referenceId VARCHAR(38) NULL AFTER phoneNumber,
+			ADD COLUMN transactionStatus VARCHAR(50) NULL AFTER referenceId,
+			ADD COLUMN paymentConfirmed TINYINT(1) NULL AFTER transactionStatus,
+			ADD COLUMN paymentConfirmedBy INT NULL AFTER paymentConfirmed,
+			ADD COLUMN paymentConfirmedDate DATETIME NULL AFTER paymentConfirmedBy;
 		</sql>
 	</changeSet>
-	<changeSet id="Alter_moh_bill_global_bill_table" author="benjamin">
-		<sql>
-			ALTER TABLE moh_bill_global_bill ADD closed_reason varchar(150) DEFAULT NULL;
-			ALTER TABLE moh_bill_global_bill ADD edited_by int(11) DEFAULT NULL;
-			ALTER TABLE moh_bill_global_bill ADD edit_reason varchar(150) DEFAULT NULL;
-			ALTER TABLE moh_bill_patient_service_bill MODIFY COLUMN drug_frequency VARCHAR(255);
-			ALTER TABLE moh_bill_facility_service_price MODIFY COLUMN name VARCHAR(250) NOT NULL;
-		</sql>
-	</changeSet>
-	<changeSet id="alter_moh_bill_facility_service_price_by_adding_hide_item" author="jberchmas">
+	<changeSet id="alter_moh_bill_facility_service_price_by_adding_hide_item" author="Emmanuel">
 		<preConditions onFail="MARK_RAN">
 			<not><columnExists tableName="moh_bill_facility_service_price" columnName="hide_item"/></not>
 		</preConditions>
 		<sql>
 			ALTER TABLE moh_bill_facility_service_price ADD hide_item TINYINT(1) DEFAULT 0;
-		</sql>
-	</changeSet>
-	<changeSet id="alter_moh_bill_patient_service_bill_adding_item_type" author="jberchmas">
-		<sql>
-			ALTER TABLE moh_bill_patient_service_bill MODIFY COLUMN item_type TINYINT(1) DEFAULT 1;
 		</sql>
 	</changeSet>
 </databaseChangeLog>

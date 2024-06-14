@@ -115,8 +115,8 @@
 		</form>
 	</div>
 </c:if>
-<c:set var="checkItem" value="${facilityService.hidden}"/>
 
+<c:set var="checkItem" value="${facilityService.hidden}"/>
 <c:if test="${param.facilityServiceId ne null}">
 	<b class="boxHeader">Hide/Unhide this Facility Service</b>
 	<div class="box">

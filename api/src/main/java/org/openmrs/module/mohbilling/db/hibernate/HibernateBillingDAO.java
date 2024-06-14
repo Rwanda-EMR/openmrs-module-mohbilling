@@ -1658,6 +1658,23 @@ System.out.println("HOP Servises size: "+ramaSC.size());
 
 		return consommations;
 	}
+	@Override
+	public List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate,
+											   Date endDate) {
+		Session session = sessionFactory.getCurrentSession();
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		StringBuilder combinedSearch = new StringBuilder("");
+
+		combinedSearch.append("SELECT c.* FROM moh_bill_consommation c "
+				+" inner join moh_bill_patient_bill pb on pb.patient_bill_id=c.patient_bill_id and paymentConfirmed=0"
+				+ " and c.created_date between '"+df.format(startDate)+" 00:00:00 "+"' AND '"+df.format(endDate)+" 23:59:59'");
+
+		List<Consommation> consommations = session
+				.createSQLQuery(combinedSearch.toString())
+				.addEntity("c", Consommation.class).list();
+
+		return consommations;
+	}
 
 	@Override
 	public List<Consommation> getDCPConsommations(Date startDate,Date endDate,User billCreator) {

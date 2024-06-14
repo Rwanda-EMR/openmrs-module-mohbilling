@@ -700,6 +700,7 @@ public interface BillingDAO {
 	 * @return consommation list
 	 */
 	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+	List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate, Date endDate);
 	public List<Consommation> getDCPConsommations(Date startDate, Date endDate, User billCreator);
 	public void updateOtherInsurances(ServiceCategory sc);
 	/**

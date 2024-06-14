@@ -5,6 +5,7 @@ package org.openmrs.module.mohbilling.businesslogic;
 
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.automation.MTNMomoApiIntegrationRequestToPay;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
@@ -366,7 +368,22 @@ public class ConsommationUtil {
 													  User billCreator,Department department){
 		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
 	}
+	public static List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate,
+													  Date endDate) throws IOException {
+		List<Consommation> cons=getService().getConsommationsWithPatientNotConfirmed(startDate, endDate);
+		MTNMomoApiIntegrationRequestToPay momo=new MTNMomoApiIntegrationRequestToPay();
+		for (Consommation c:cons) {
+			PatientBill pb=c.getPatientBill();
+			if (pb.getTransactionStatus()!=null && pb.getTransactionStatus().equals("PENDING")){
+				pb.setTransactionStatus(momo.getransactionStatus(pb.getReferenceId()));
+				pb=PatientBillUtil.savePatientBill(pb);
+			}
+		}
 
+		return cons;
+
+
+	}
 	public static List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator){
 		return getService().getDCPConsommations(startDate, endDate,billCreator);
 	}

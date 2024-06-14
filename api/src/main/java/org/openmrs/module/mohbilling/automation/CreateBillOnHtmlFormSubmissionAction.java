@@ -1,9 +1,12 @@
 package org.openmrs.module.mohbilling.automation;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.openmrs.DrugOrder;
 import org.openmrs.Obs;
@@ -11,19 +14,8 @@ import org.openmrs.Order;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.htmlformentry.CustomFormSubmissionAction;
 import org.openmrs.module.htmlformentry.FormEntrySession;
-import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
-import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
-import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
-import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
-import org.openmrs.module.mohbilling.model.BillableService;
-import org.openmrs.module.mohbilling.model.Consommation;
-import org.openmrs.module.mohbilling.model.Department;
-import org.openmrs.module.mohbilling.model.FacilityServicePrice;
-import org.openmrs.module.mohbilling.model.GlobalBill;
-import org.openmrs.module.mohbilling.model.InsuranceBill;
-import org.openmrs.module.mohbilling.model.InsurancePolicy;
-import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.businesslogic.*;
+import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.utils.Utils;
 
@@ -32,17 +24,34 @@ public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissio
 
     @Override
     public void applyAction(FormEntrySession session) {
-Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
 
-String insuranceCardNumber=null;
+        MTNMomoApiIntegrationRequestToPay momo=new MTNMomoApiIntegrationRequestToPay();
+        String currentPhoneNumber=null;
+        String referenceId = (UUID.randomUUID()).toString();
+        String epaymentPhoneNumberUUID=Context.getAdministrationService().getGlobalProperty("registration.ePaymentPhoneNumberConcept");
+        List<Obs> currentPhoneNumbers=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConceptByUuid(epaymentPhoneNumberUUID),false);
+
+        if(currentPhoneNumbers.size()>=1) {
+            currentPhoneNumber = currentPhoneNumbers.get(0).getValueText();
+            //currentPhoneNumber = "250788312518"; // For testing
+        }
+
+
+
+        Integer insuranceNumberConceptID=Integer.parseInt(Context.getAdministrationService().getGlobalProperty("registration.insuranceNumberConcept"));
+
+        String insuranceCardNumber=null;
+
 //GlobalBill gb =null;
 
 
 
-List<Obs> currentInsuranceId=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
+        List<Obs> currentInsuranceId=Utils.getLastNObservations(1,session.getPatient(),Context.getConceptService().getConcept(insuranceNumberConceptID),false);
 
-if(currentInsuranceId.size()>=1)
-    insuranceCardNumber=currentInsuranceId.get(0).getValueText();
+        if(currentInsuranceId.size()>=1)
+            insuranceCardNumber=currentInsuranceId.get(0).getValueText();
+
+
 
 
         InsurancePolicy ip =Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
@@ -54,16 +63,15 @@ if(currentInsuranceId.size()>=1)
         BigDecimal totalMaximaTopay=new BigDecimal(0);
         for (Obs o:obs) {
             PatientServiceBill psb=new PatientServiceBill();
-            psb.setServiceDate(new Date());
 
-          if (department==null && o.getValueCoded()!=null ) {
-              for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
-                  if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
-                      department = dept;
-                      break;
-                  }
-              }
-          }
+            if (department==null && o.getValueCoded()!=null ) {
+                for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
+                    if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
+                        department = dept;
+                        break;
+                    }
+                }
+            }
 
             //value coded
             if (o.getValueCoded()!=null) {
@@ -134,11 +142,11 @@ if(currentInsuranceId.size()>=1)
 
         //drugs start
 
-      /*  List<Order> orders=session.getSubmissionActions().getCurrentEncounter().getOrdersWithoutOrderGroups();
+        List<Order> orders=session.getSubmissionActions().getCurrentEncounter().getOrdersWithoutOrderGroups();
         for (Order order:orders) {
             DrugOrder drugOrder=(DrugOrder)order;
-           //Billng code here
-        }*/
+            //Billng code here
+        }
 
         //Drugs end
 
@@ -157,22 +165,39 @@ if(currentInsuranceId.size()>=1)
             System.out.println("Totalllllllllllllllllllllllllll: " + totalMaximaTopay);
 
             PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
+            ThirdPartyBill tpb= ThirdPartyBillUtil.createThirdPartyBill(ip,totalMaximaTopay);
             InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
+
+            if (currentPhoneNumber!=null){
+                pb = PatientBillUtil.createPatientBillWithMoMoRequestToPay(totalMaximaTopay, ip,currentPhoneNumber,referenceId);
+                try {
+                    momo.requesttopay(referenceId,pb.getAmount().setScale(0, RoundingMode.UP).toString(),currentPhoneNumber);
+                    //pb.setTransactionStatus("PENDING");
+                   pb.setTransactionStatus(momo.getransactionStatus(referenceId));
+                    pb =PatientBillUtil.savePatientBill(pb);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
 
             Consommation cons = new Consommation();
             cons.setBeneficiary(Context.getService(BillingService.class).getBeneficiaryByPolicyNumber(insuranceCardNumber));
             cons.setPatientBill(pb);
             cons.setInsuranceBill(ib);
+            cons.setThirdPartyBill(tpb);
             cons.setGlobalBill(gb);
             cons.setCreatedDate(new Date());
             cons.setCreator(Context.getAuthenticatedUser());
             //cons.setDepartment(Context.getService(BillingService.class).getDepartement(2));
             cons.setDepartment(department);
             ConsommationUtil.saveConsommation(cons);
+
+
+
             //Context.getService(BillingService.class).saveConsommation(cons);
 
             for (PatientServiceBill psb : psbList) {
-                psb.setServiceDate(new Date());
                 psb.setConsommation(cons);
                 ConsommationUtil.createPatientServiceBill(psb);
                 //cons.addBillItem(psb);

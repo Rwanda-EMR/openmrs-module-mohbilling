@@ -23,6 +23,13 @@
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 
+		<property name="phoneNumber" column="phoneNumber" type="text" />
+		<property name="referenceId" column="referenceId" type="text" />
+		<property name="transactionStatus" column="transactionStatus" type="text" />
+		<property name="paymentConfirmed" column="paymentConfirmed" type="boolean" />
+		<many-to-one name="paymentConfirmedBy" class="org.openmrs.User" column="paymentConfirmedBy" />
+		<property name="paymentConfirmedDate" column="paymentConfirmedDate" type="java.util.Date" />
+
 
 		<set name="payments" lazy="false" inverse="true"
 			 cascade="all-delete-orphan" sort="natural"

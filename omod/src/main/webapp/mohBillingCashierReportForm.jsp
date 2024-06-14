@@ -71,6 +71,7 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 		</c:forEach> 
 		<th class="columnHeader"><b>TOTAL Due</b></th>
 		<th class="columnHeader"><b>TOTAL Paid</b></th>
+		<th class="columnHeader"><b>Payment through API</b></th>
 	</tr>
 
  	<c:forEach items="${paymentRevenues}" var="pr" varStatus="status">
@@ -84,6 +85,9 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 	  <td><b><fmt:formatNumber value="${pr.amount}" type="number" pattern="#.##"/></b></td>
 	 <c:set var="pt" value="${pr.payment}"/>
 	  <td><b><fmt:formatNumber value="${pt.amountPaid}" type="number" pattern="#.##"/></b></td>
+	  <c:if test="${pr.payment.patientBill.transactionStatus=='SUCCESSFUL'}">
+	  <td>${pr.payment.patientBill.phoneNumber}</td>
+      </c:if>
 	</tr>
 	</c:forEach> 
 	<tr>

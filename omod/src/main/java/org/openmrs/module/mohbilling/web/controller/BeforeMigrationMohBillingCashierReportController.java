@@ -5,10 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
-import org.openmrs.module.mohbilling.businesslogic.BeforeMigrationFileExporter;
-import org.openmrs.module.mohbilling.businesslogic.BeforeMigrationReportsUtil;
-import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
-import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.businesslogic.*;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
@@ -74,8 +71,15 @@ public class BeforeMigrationMohBillingCashierReportController extends
 
 			 //try {
 				  
-					 List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate, collector);
-					 
+					 List<BillPayment> paymentss = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate, collector);
+
+			        List<BillPayment> payments = new ArrayList<BillPayment>();
+						for (BillPayment bp : paymentss) {
+							if (ConsommationUtil.getConsommationByPatientBill(bp.getPatientBill()).getThirdPartyBill()==null){
+								payments.add(bp);
+							}
+						}
+
 					 List<BillPayment> cashPayments = new ArrayList<BillPayment>();
 					 List<BillPayment> depositPayments= new ArrayList<BillPayment>();
 					 List<PaidServiceBill> paidItems = null;
@@ -90,7 +94,7 @@ public class BeforeMigrationMohBillingCashierReportController extends
 					 else if(request.getParameter("paymentType").equals("depositPayment")){
 						 for (BillPayment bp : payments) {
 								if(bp instanceof DepositPayment)
-									depositPayments.add(bp);
+							 depositPayments.add(bp);
 							 }
 					  paidItems = BillPaymentUtil.getPaidItemsByBillPayments(depositPayments);
 					  mav.addObject("reportMsg", "Deposit Payments From "+startDateStr+" To "+endDateStr);
