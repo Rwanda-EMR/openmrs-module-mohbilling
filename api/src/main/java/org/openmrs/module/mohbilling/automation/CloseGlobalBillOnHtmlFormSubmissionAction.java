@@ -1,8 +1,6 @@
 package org.openmrs.module.mohbilling.automation;
 
-import org.openmrs.DrugOrder;
-import org.openmrs.Obs;
-import org.openmrs.Order;
+import org.openmrs.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.htmlformentry.CustomFormSubmissionAction;
 import org.openmrs.module.htmlformentry.FormEntrySession;
@@ -72,8 +70,10 @@ if(currentInsurance.size()>=1)
                 }
             }
         }
-
-
+        List<Visit> activeVisits= Context.getVisitService().getActiveVisitsByPatient(session.getPatient());
+        for (Visit v:activeVisits){
+            Context.getVisitService().endVisit(v,new Date());
+        }
     }
 
 
