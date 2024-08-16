@@ -38,6 +38,7 @@
 	<properties>
 		<openMRSVersion>2.3.3</openMRSVersion>
 		<htmlformentryVersion>4.4.0</htmlformentryVersion>
+		<apache.commons.dbcp>2.11.0</apache.commons.dbcp>
 		<apachePoiVersion>5.2.4</apachePoiVersion>
 		<commonsIoVersion>2.15.0</commonsIoVersion>
 	</properties>
@@ -63,6 +64,21 @@
 				<artifactId>htmlformentry-api</artifactId>
 				<version>${htmlformentryVersion}</version>
 				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-dbcp2</artifactId>
+				<version>${apache.commons.dbcp}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>jakarta.transaction</groupId>
+						<artifactId>jakarta.transaction-api</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

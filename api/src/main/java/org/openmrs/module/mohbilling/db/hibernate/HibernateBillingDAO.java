@@ -30,6 +30,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.businesslogic.*;
 import org.openmrs.module.mohbilling.db.BillingDAO;
+import org.openmrs.module.mohbilling.db.ConnectionPoolManager;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 
@@ -38,16 +39,18 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
+import javax.sql.DataSource;
+import java.sql.*;
 
 /**
  * @author EMR@RBC
- *
  */
 @SuppressWarnings("unchecked")
 public class HibernateBillingDAO implements BillingDAO {
 
-    /** Logger for this class and subclasses */
+    /**
+     * Logger for this class and subclasses
+     */
     protected final Log log = LogFactory.getLog(getClass());
 
     private SessionFactory sessionFactory;
@@ -60,8 +63,7 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     /**
-     * @param sessionFactory
-     *            the sessionFactory to set
+     * @param sessionFactory the sessionFactory to set
      */
     public void setSessionFactory(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
@@ -71,7 +73,7 @@ public class HibernateBillingDAO implements BillingDAO {
      * (non-Javadoc)
      *
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurance(org.openmrs .
-     *      module.mohbilling.model.Insurance)
+     * module.mohbilling.model.Insurance)
      */
     @Override
     public Insurance getInsurance(Integer insuranceId) {
@@ -125,7 +127,7 @@ public class HibernateBillingDAO implements BillingDAO {
      * (non-Javadoc)
      *
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillableServiceByConcept(Concept
-     *      concept, Insurance insurance)
+     * concept, Insurance insurance)
      */
     @Override
     public BillableService getBillableServiceByConcept(
@@ -151,7 +153,7 @@ public class HibernateBillingDAO implements BillingDAO {
      * (non-Javadoc)
      *
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getPatientBill(org.openmrs
-     *      .module.mohbilling.model.PatientBill)
+     * .module.mohbilling.model.PatientBill)
      */
     @Override
     public PatientBill getPatientBill(Integer billId) {
@@ -164,7 +166,7 @@ public class HibernateBillingDAO implements BillingDAO {
      * (non-Javadoc)
      *
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getPatientBill(org.openmrs
-     *      .module.mohbilling.model.PatientBill)
+     * .module.mohbilling.model.PatientBill)
      */
     @Override
     public ThirdParty getThirdParty(Integer thirdPartyId) {
@@ -176,8 +178,7 @@ public class HibernateBillingDAO implements BillingDAO {
     /**
      * (non-Javadoc)
      *
-     * @see org.openmrs.module.mohbilling.db.BillingDAO#saveThirdParty(org.openmrs
-     *      .module.mohbilling.model.ThirdParty)
+     * @see org.openmrs.module.mohbilling.db.BillingDAO#saveThirdParty(org.openmrs.module.mohbilling.model.ThirdParty)
      */
     @Override
     public void saveThirdParty(ThirdParty thirdParty) {
@@ -188,8 +189,7 @@ public class HibernateBillingDAO implements BillingDAO {
     /**
      * (non-Javadoc)
      *
-     * @see org.openmrs.module.mohbilling.db.BillingDAO#saveInsurance(org.openmrs
-     *      .module.mohbilling.model.Insurance)
+     * @see org.openmrs.module.mohbilling.db.BillingDAO#saveInsurance(org.openmrs.module.mohbilling.model.Insurance)
      */
     @Override
     public void saveInsurance(Insurance insurance) {
@@ -200,8 +200,7 @@ public class HibernateBillingDAO implements BillingDAO {
     /**
      * (non-Javadoc)
      *
-     * @see org.openmrs.module.mohbilling.db.BillingDAO#saveInsurancePolicy(org.openmrs
-     *      .module.mohbilling.model.InsurancePolicy)
+     * @see org.openmrs.module.mohbilling.db.BillingDAO#saveInsurancePolicy(org.openmrs.module.mohbilling.model.InsurancePolicy)
      */
     @Override
     public void saveInsurancePolicy(InsurancePolicy card) {
@@ -214,7 +213,7 @@ public class HibernateBillingDAO implements BillingDAO {
      * (non-Javadoc)
      *
      * @see org.openmrs.module.mohbilling.db.BillingDAO#savePatientBill(org.openmrs
-     *      .module.mohbilling.model.PatientBill)
+     * .module.mohbilling.model.PatientBill)
      */
     @Override
     public void savePatientBill(PatientBill bill) {
@@ -365,7 +364,7 @@ public class HibernateBillingDAO implements BillingDAO {
      * (non-Javadoc)
      *
      * @see org.openmrs.module.mohbilling.db.BillingDAO#buildCohort(org.openmrs.module.mohbilling.model.Insurance,
-     *      Date, Date, Integer, String)
+     * Date, Date, Integer, String)
      */
     @Override
     public List<PatientBill> billCohortBuilder(Insurance insurance,
@@ -686,7 +685,7 @@ public class HibernateBillingDAO implements BillingDAO {
      * (non-Javadoc)
      *
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getBillableServiceByConcept(Concept
-     *      concept, Insurance insurance)
+     * concept, Insurance insurance)
      */
     @Override
     public ServiceCategory getServiceCategoryByName(String name,
@@ -1417,6 +1416,7 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
+
     public InsuranceReport getBillItemsByCategoryFromMamba(Integer insuranceIdentifier, Date startDate, Date endDate) {
 
         System.out.println("parameters for sp insurance : " + insuranceIdentifier);
@@ -1430,132 +1430,317 @@ public class HibernateBillingDAO implements BillingDAO {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         long startTime = System.nanoTime();
-        SQLQuery billingReportQuery = sessionFactory.getCurrentSession().createSQLQuery(
-                "CALL sp_mamba_fact_insurance_report_query(:insurance_id, :start_date, :end_date)");
 
-        long endTime = System.nanoTime();
-        double elapsedTimeInSeconds = (endTime - startTime) / 1e9; // Convert nanoseconds to seconds
-
-        billingReportQuery.setParameter("insurance_id", insuranceIdentifier);
-        billingReportQuery.setParameter("start_date", startDate);
-        billingReportQuery.setParameter("end_date", endDate);
-        //TODO: Create a hibernate Object for this result-set type
-        List<Object[]> resultSet = billingReportQuery.list();
-
-        System.out.println("It took MambaETL: " + elapsedTimeInSeconds + " seconds to retrieve: " + resultSet.size() + " items");
-
+        DataSource dataSource = ConnectionPoolManager
+                .getInstance()
+                .getEtlDataSource();
 
         Insurance insurance = InsuranceUtil.getInsurance(insuranceIdentifier);
         InsuranceRate insuranceRate = insurance.getCurrentRate();
         Float insuranceFirmRate = insuranceRate.getRate();
         Float insurancePatientRate = 100 - insuranceRate.getRate();
 
-        //Double totalInsuranceFirm = 0.9 * total;
+        try (Connection connection = dataSource.getConnection();
+             CallableStatement statement = connection.prepareCall("{CALL sp_mamba_fact_insurance_report_query(?, ?, ?)}")) {
 
-        for (Object[] objects : resultSet) {
+            statement.setInt("insurance_id", insuranceIdentifier);
+            statement.setDate("start_date", startDate);
+            statement.setDate("end_date", endDate);
 
-            Integer id = (objects[0] != null) ? Integer.parseInt(objects[0].toString()) : null;
-            Date admissionDate = null;
-            try {
-                admissionDate = (objects[1] != null) ? dateFormat.parse(objects[1].toString().substring(0, 10)) : null;
-            } catch (ParseException e) {
-                e.printStackTrace();
+            boolean hasResults = statement.execute();
+
+            while (hasResults) {
+
+                ResultSet resultSet = statement.getResultSet();
+                while (resultSet.next()) {
+
+
+
+
+                    Integer id = resultSet.getInt(1);
+
+
+
+                    Date admissionDate = null;
+                    try {
+                        if (resultSet.getDate(2) != null) {
+                            admissionDate = resultSet.getDate(2);
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+                    Date closingDate = null;
+                    try {
+                        if (resultSet.getDate(3) != null) {
+                            closingDate = resultSet.getDate(3);
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+
+                    String beneficiaryName = resultSet.getString(4);
+                    String houseHoldHeadName = resultSet.getString(5);
+                    String familyCode = resultSet.getString(6);
+                    Integer beneficiaryLevel = resultSet.getInt(7);
+                    String cardNumber = resultSet.getString(8);
+                    String companyName = resultSet.getString(9);
+                    Integer age = resultSet.getInt(10);
+                    Date birthDate = null;
+                    try {
+                        if (resultSet.getDate(11) != null) {
+                            birthDate = resultSet.getDate(11);
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+                    String gender = resultSet.getString(12);
+                    String doctorName = resultSet.getString(13);
+                    Integer insuranceId = resultSet.getInt(14);
+                    Integer globalBillId = resultSet.getInt(15);
+                    String globalBillIdentifier = resultSet.getString(16);;
+
+                    //services
+                    Double consultation = resultSet.getDouble(17);
+                    Double laboratoire = resultSet.getDouble(18);
+                    Double hospitalisation = resultSet.getDouble(19);
+                    Double formaliteAdministratives = resultSet.getDouble(20);
+                    Double ambulance = resultSet.getDouble(21);
+                    Double consommables = resultSet.getDouble(22);
+                    Double medicament = resultSet.getDouble(23);
+                    Double oxygenotherapie = resultSet.getDouble(24);
+                    Double imaging = resultSet.getDouble(25);
+                    Double proced = resultSet.getDouble(26);
+
+                    InsuranceReportItem reportItem = new InsuranceReportItem();
+                    reportItem.setId(id);
+                    reportItem.setAdmissionDate(admissionDate);
+                    reportItem.setClosingDate(closingDate);
+                    reportItem.setBeneficiaryName(beneficiaryName);
+                    reportItem.setHouseholdHeadName(houseHoldHeadName);
+                    reportItem.setFamilyCode(familyCode);
+                    reportItem.setBeneficiaryLevel(beneficiaryLevel);
+                    reportItem.setCardNumber(cardNumber);
+                    reportItem.setCompanyName(companyName);
+                    reportItem.setAge(age);
+                    reportItem.setBirthDate(birthDate);
+                    reportItem.setGender(gender);
+                    reportItem.setDoctorName(doctorName);
+                    reportItem.setInsuranceId(insuranceId);
+                    reportItem.setGlobalBillId(globalBillId);
+                    reportItem.setGlobalBillIdentifier(globalBillIdentifier);
+
+                    reportItem.setMedicament(medicament);
+                    reportItem.setConsultation(consultation);
+                    reportItem.setHospitalisation(hospitalisation);
+                    reportItem.setLaboratoire(laboratoire);
+                    reportItem.setFormaliteAdministratives(formaliteAdministratives);
+                    reportItem.setAmbulance(ambulance);
+                    reportItem.setConsommables(consommables);
+                    reportItem.setOxygenotherapie(oxygenotherapie);
+                    reportItem.setImaging(imaging);
+                    reportItem.setProced(proced);
+
+                    Double total = medicament + consultation + hospitalisation + laboratoire + formaliteAdministratives + ambulance + consommables + oxygenotherapie + imaging + proced;
+                    Double totalInsuranceFirm = (insuranceFirmRate/100) * total;
+
+                    reportItem.setTotal100(total);
+                    reportItem.setTotalInsurance(totalInsuranceFirm);
+                    reportItem.setTotalPatient(total - totalInsuranceFirm);
+
+                    report.addReportItem(reportItem);
+
+                    report.addServiceRevenue("MEDICAMENTS", BigDecimal.valueOf(medicament));
+                    report.addServiceRevenue("CONSULTATION", BigDecimal.valueOf(consultation));
+                    report.addServiceRevenue("HOSPITALISATION", BigDecimal.valueOf(hospitalisation));
+                    report.addServiceRevenue("LABORATOIRE", BigDecimal.valueOf(laboratoire));
+                    report.addServiceRevenue("FORMALITES ADMINISTRATIVES", BigDecimal.valueOf(formaliteAdministratives));
+                    report.addServiceRevenue("AMBULANCE", BigDecimal.valueOf(ambulance));
+                    report.addServiceRevenue("CONSOMMABLES", BigDecimal.valueOf(consommables));
+                    report.addServiceRevenue("OXYGENOTHERAPIE", BigDecimal.valueOf(oxygenotherapie));
+                    report.addServiceRevenue("IMAGING", BigDecimal.valueOf(imaging));
+                    report.addServiceRevenue("PROCED.", BigDecimal.valueOf(proced));
+
+                    report.addServiceRevenue("100%", BigDecimal.valueOf(reportItem.getTotal100()));
+                    report.addServiceRevenue("Insurance (" + insuranceFirmRate + "%)", BigDecimal.valueOf(reportItem.getTotalInsurance()));
+                    report.addServiceRevenue("Patient (" + insurancePatientRate + "%)", BigDecimal.valueOf(reportItem.getTotalPatient()));
+                }
+                hasResults = statement.getMoreResults();
             }
-            Date closingDate = null;
-            try {
-                closingDate = (objects[2] != null) ? dateFormat.parse(objects[2].toString().substring(0, 10)) : null;
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            String beneficiaryName = (objects[3] != null) ? objects[3].toString() : null;
-            String houseHoldHeadName = (objects[4] != null) ? objects[4].toString() : null;
-            String familyCode = (objects[5] != null) ? objects[5].toString() : null;
-            Integer beneficiaryLevel = (objects[6] != null) ? Integer.parseInt(objects[6].toString()) : null;
-            String cardNumber = (objects[7] != null) ? objects[7].toString() : null;
-            String companyName = (objects[8] != null) ? objects[8].toString() : null;
-            Integer age = (objects[9] != null) ? Integer.parseInt(objects[9].toString()) : null;
-            Date birthDate = null;
-            try {
-                birthDate = (objects[10] != null) ? dateFormat.parse(objects[10].toString().substring(0, 10)) : null;
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            String gender = (objects[11] != null) ? objects[11].toString() : null;
-            String doctorName = (objects[12] != null) ? objects[12].toString() : null;
-            Integer insuranceId = (objects[13] != null) ? Integer.parseInt(objects[13].toString()) : null;
-            Integer globalBillId = (objects[14] != null) ? Integer.parseInt(objects[14].toString()) : null;
-            String globalBillIdentifier = (objects[15] != null) ? objects[15].toString() : null;
-
-            //services
-            Double consultation = (objects[16] != null) ? Double.parseDouble(objects[16].toString()) : 0;
-            Double laboratoire = (objects[17] != null) ? Double.parseDouble(objects[17].toString()) : 0;
-            Double hospitalisation = (objects[18] != null) ? Double.parseDouble(objects[18].toString()) : 0;
-            Double formaliteAdministratives = (objects[19] != null) ? Double.parseDouble(objects[19].toString()) : 0;
-            Double ambulance = (objects[20] != null) ? Double.parseDouble(objects[20].toString()) : 0;
-            Double consommables = (objects[21] != null) ? Double.parseDouble(objects[21].toString()) : 0;
-            Double medicament = (objects[22] != null) ? Double.parseDouble(objects[22].toString()) : 0;
-            Double oxygenotherapie = (objects[23] != null) ? Double.parseDouble(objects[23].toString()) : 0;
-            Double imaging = (objects[24] != null) ? Double.parseDouble(objects[24].toString()) : 0;
-            Double proced = (objects[25] != null) ? Double.parseDouble(objects[25].toString()) : 0;
-
-            InsuranceReportItem reportItem = new InsuranceReportItem();
-            reportItem.setId(id);
-            reportItem.setAdmissionDate(admissionDate);
-            reportItem.setClosingDate(closingDate);
-            reportItem.setBeneficiaryName(beneficiaryName);
-            reportItem.setHouseholdHeadName(houseHoldHeadName);
-            reportItem.setFamilyCode(familyCode);
-            reportItem.setBeneficiaryLevel(beneficiaryLevel);
-            reportItem.setCardNumber(cardNumber);
-            reportItem.setCompanyName(companyName);
-            reportItem.setAge(age);
-            reportItem.setBirthDate(birthDate);
-            reportItem.setGender(gender);
-            reportItem.setDoctorName(doctorName);
-            reportItem.setInsuranceId(insuranceId);
-            reportItem.setGlobalBillId(globalBillId);
-            reportItem.setGlobalBillIdentifier(globalBillIdentifier);
-
-            reportItem.setMedicament(medicament);
-            reportItem.setConsultation(consultation);
-            reportItem.setHospitalisation(hospitalisation);
-            reportItem.setLaboratoire(laboratoire);
-            reportItem.setFormaliteAdministratives(formaliteAdministratives);
-            reportItem.setAmbulance(ambulance);
-            reportItem.setConsommables(consommables);
-            reportItem.setOxygenotherapie(oxygenotherapie);
-            reportItem.setImaging(imaging);
-            reportItem.setProced(proced);
-
-            Double total = medicament + consultation + hospitalisation + laboratoire + formaliteAdministratives + ambulance + consommables + oxygenotherapie + imaging + proced;
-            Double totalInsuranceFirm = (insuranceFirmRate/100) * total;
-
-            reportItem.setTotal100(total);
-            reportItem.setTotalInsurance(totalInsuranceFirm);
-            reportItem.setTotalPatient(total - totalInsuranceFirm);
-
-            report.addReportItem(reportItem);
-
-            report.addServiceRevenue("MEDICAMENTS", BigDecimal.valueOf(medicament));
-            report.addServiceRevenue("CONSULTATION", BigDecimal.valueOf(consultation));
-            report.addServiceRevenue("HOSPITALISATION", BigDecimal.valueOf(hospitalisation));
-            report.addServiceRevenue("LABORATOIRE", BigDecimal.valueOf(laboratoire));
-            report.addServiceRevenue("FORMALITES ADMINISTRATIVES", BigDecimal.valueOf(formaliteAdministratives));
-            report.addServiceRevenue("AMBULANCE", BigDecimal.valueOf(ambulance));
-            report.addServiceRevenue("CONSOMMABLES", BigDecimal.valueOf(consommables));
-            report.addServiceRevenue("OXYGENOTHERAPIE", BigDecimal.valueOf(oxygenotherapie));
-            report.addServiceRevenue("IMAGING", BigDecimal.valueOf(imaging));
-            report.addServiceRevenue("PROCED.", BigDecimal.valueOf(proced));
-
-            report.addServiceRevenue("100%", BigDecimal.valueOf(reportItem.getTotal100()));
-            report.addServiceRevenue("Insurance (" + insuranceFirmRate + "%)", BigDecimal.valueOf(reportItem.getTotalInsurance()));
-            report.addServiceRevenue("Patient (" + insurancePatientRate + "%)", BigDecimal.valueOf(reportItem.getTotalPatient()));
+        } catch (SQLException e) {
+            log.error("Failed to get MambaReport", e);
         }
+
         System.out.println("Done Fetching Insurance Report of size: " + report.getReportItems().size() + ", from MambaETL tables");
         return report;
     }
 
+
     @Override
+
+    public InsuranceReport getBillItemsByCategoryFromMamba(Integer insuranceIdentifier, Date startDate, Date endDate) {
+
+        System.out.println("parameters for sp insurance : " + insuranceIdentifier);
+        System.out.println("parameters for sp start_date: " + startDate);
+        System.out.println("parameters for sp end_date  : " + endDate);
+
+        System.out.println("Starting.. to Fetch items from MambaETL tables");
+
+        InsuranceReport report = new InsuranceReport();
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        long startTime = System.nanoTime();
+
+        DataSource dataSource = ConnectionPoolManager
+                .getInstance()
+                .getEtlDataSource();
+
+        Insurance insurance = InsuranceUtil.getInsurance(insuranceIdentifier);
+        InsuranceRate insuranceRate = insurance.getCurrentRate();
+        Float insuranceFirmRate = insuranceRate.getRate();
+        Float insurancePatientRate = 100 - insuranceRate.getRate();
+
+        try (Connection connection = dataSource.getConnection();
+             CallableStatement statement = connection.prepareCall("{CALL sp_mamba_fact_insurance_report_query(?, ?, ?)}")) {
+
+            statement.setInt("insurance_id", insuranceIdentifier);
+            statement.setDate("start_date", startDate);
+            statement.setDate("end_date", endDate);
+
+            boolean hasResults = statement.execute();
+
+            while (hasResults) {
+
+                ResultSet resultSet = statement.getResultSet();
+                while (resultSet.next()) {
+
+
+
+
+                    Integer id = resultSet.getInt(1);
+
+
+
+                    Date admissionDate = null;
+                    try {
+                        if (resultSet.getDate(2) != null) {
+                            admissionDate = resultSet.getDate(2);
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+                    Date closingDate = null;
+                    try {
+                        if (resultSet.getDate(3) != null) {
+                            closingDate = resultSet.getDate(3);
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+
+                    String beneficiaryName = resultSet.getString(4);
+                    String houseHoldHeadName = resultSet.getString(5);
+                    String familyCode = resultSet.getString(6);
+                    Integer beneficiaryLevel = resultSet.getInt(7);
+                    String cardNumber = resultSet.getString(8);
+                    String companyName = resultSet.getString(9);
+                    Integer age = resultSet.getInt(10);
+                    Date birthDate = null;
+                    try {
+                        if (resultSet.getDate(11) != null) {
+                            birthDate = resultSet.getDate(11);
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+                    String gender = resultSet.getString(12);
+                    String doctorName = resultSet.getString(13);
+                    Integer insuranceId = resultSet.getInt(14);
+                    Integer globalBillId = resultSet.getInt(15);
+                    String globalBillIdentifier = resultSet.getString(16);;
+
+                    //services
+                    Double consultation = resultSet.getDouble(17);
+                    Double laboratoire = resultSet.getDouble(18);
+                    Double hospitalisation = resultSet.getDouble(19);
+                    Double formaliteAdministratives = resultSet.getDouble(20);
+                    Double ambulance = resultSet.getDouble(21);
+                    Double consommables = resultSet.getDouble(22);
+                    Double medicament = resultSet.getDouble(23);
+                    Double oxygenotherapie = resultSet.getDouble(24);
+                    Double imaging = resultSet.getDouble(25);
+                    Double proced = resultSet.getDouble(26);
+
+                    InsuranceReportItem reportItem = new InsuranceReportItem();
+                    reportItem.setId(id);
+                    reportItem.setAdmissionDate(admissionDate);
+                    reportItem.setClosingDate(closingDate);
+                    reportItem.setBeneficiaryName(beneficiaryName);
+                    reportItem.setHouseholdHeadName(houseHoldHeadName);
+                    reportItem.setFamilyCode(familyCode);
+                    reportItem.setBeneficiaryLevel(beneficiaryLevel);
+                    reportItem.setCardNumber(cardNumber);
+                    reportItem.setCompanyName(companyName);
+                    reportItem.setAge(age);
+                    reportItem.setBirthDate(birthDate);
+                    reportItem.setGender(gender);
+                    reportItem.setDoctorName(doctorName);
+                    reportItem.setInsuranceId(insuranceId);
+                    reportItem.setGlobalBillId(globalBillId);
+                    reportItem.setGlobalBillIdentifier(globalBillIdentifier);
+
+                    reportItem.setMedicament(medicament);
+                    reportItem.setConsultation(consultation);
+                    reportItem.setHospitalisation(hospitalisation);
+                    reportItem.setLaboratoire(laboratoire);
+                    reportItem.setFormaliteAdministratives(formaliteAdministratives);
+                    reportItem.setAmbulance(ambulance);
+                    reportItem.setConsommables(consommables);
+                    reportItem.setOxygenotherapie(oxygenotherapie);
+                    reportItem.setImaging(imaging);
+                    reportItem.setProced(proced);
+
+                    Double total = medicament + consultation + hospitalisation + laboratoire + formaliteAdministratives + ambulance + consommables + oxygenotherapie + imaging + proced;
+                    Double totalInsuranceFirm = (insuranceFirmRate/100) * total;
+
+                    reportItem.setTotal100(total);
+                    reportItem.setTotalInsurance(totalInsuranceFirm);
+                    reportItem.setTotalPatient(total - totalInsuranceFirm);
+
+                    report.addReportItem(reportItem);
+
+                    report.addServiceRevenue("MEDICAMENTS", BigDecimal.valueOf(medicament));
+                    report.addServiceRevenue("CONSULTATION", BigDecimal.valueOf(consultation));
+                    report.addServiceRevenue("HOSPITALISATION", BigDecimal.valueOf(hospitalisation));
+                    report.addServiceRevenue("LABORATOIRE", BigDecimal.valueOf(laboratoire));
+                    report.addServiceRevenue("FORMALITES ADMINISTRATIVES", BigDecimal.valueOf(formaliteAdministratives));
+                    report.addServiceRevenue("AMBULANCE", BigDecimal.valueOf(ambulance));
+                    report.addServiceRevenue("CONSOMMABLES", BigDecimal.valueOf(consommables));
+                    report.addServiceRevenue("OXYGENOTHERAPIE", BigDecimal.valueOf(oxygenotherapie));
+                    report.addServiceRevenue("IMAGING", BigDecimal.valueOf(imaging));
+                    report.addServiceRevenue("PROCED.", BigDecimal.valueOf(proced));
+
+                    report.addServiceRevenue("100%", BigDecimal.valueOf(reportItem.getTotal100()));
+                    report.addServiceRevenue("Insurance (" + insuranceFirmRate + "%)", BigDecimal.valueOf(reportItem.getTotalInsurance()));
+                    report.addServiceRevenue("Patient (" + insurancePatientRate + "%)", BigDecimal.valueOf(reportItem.getTotalPatient()));
+                }
+                hasResults = statement.getMoreResults();
+            }
+        } catch (SQLException e) {
+            log.error("Failed to get MambaReport", e);
+        }
+
+        System.out.println("Done Fetching Insurance Report of size: " + report.getReportItems().size() + ", from MambaETL tables");
+        return report;
+    }
+
+
     public List<GlobalBill> getGlobalBills() {
         Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class);
         return crit.list();

@@ -1583,25 +1583,25 @@ public class FileExporter {
     /*
      * Exports to Excel (.xlsx) format
      */
-    public static void exportData(HttpServletResponse response,
-                                  Insurance insurance,
-                                  List<InsuranceReportItem> reportRecords) {
+	public static void exportData(HttpServletResponse response,
+								  Insurance insurance,
+								  List<InsuranceReportItem> reportRecords) {
 
-        if (response == null || insurance == null || reportRecords == null) {
-            throw new IllegalArgumentException("exportData method expects non-null parameters. " +
-                    "One of 'response', 'insurance' or 'reportRecords' parameters is null");
-        }
+		if (response == null || insurance == null || reportRecords == null) {
+			throw new IllegalArgumentException("exportData method expects non-null parameters. " +
+					"One of 'response', 'insurance' or 'reportRecords' parameters is null");
+		}
 
-        Date date = new Date();
-        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+		Date date = new Date();
+		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");  // Ensure this line exists
 
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + formatter.format(date) + ".xlsx\"");
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + formatter.format(date) + ".xlsx\"");
 
-        try (Workbook workbook = new SXSSFWorkbook();
-             OutputStream outputStream = response.getOutputStream()) {
+		try (Workbook workbook = new SXSSFWorkbook();
+			 OutputStream outputStream = response.getOutputStream()) {
 
-            Sheet sheet = workbook.createSheet("Insurance Report");
+			Sheet sheet = workbook.createSheet("Insurance Report");
 
             Row facilityNameRow = sheet.createRow(0);
             facilityNameRow.createCell(0).setCellValue(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
