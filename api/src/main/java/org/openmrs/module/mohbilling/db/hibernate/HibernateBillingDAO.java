@@ -1487,13 +1487,13 @@ public class HibernateBillingDAO implements BillingDAO {
             String globalBillIdentifier = (objects[15] != null) ? objects[15].toString() : null;
 
             //services
-            Double medicament = (objects[16] != null) ? Double.parseDouble(objects[16].toString()) : 0;
-            Double consultation = (objects[17] != null) ? Double.parseDouble(objects[17].toString()) : 0;
+            Double consultation = (objects[16] != null) ? Double.parseDouble(objects[16].toString()) : 0;
+            Double laboratoire = (objects[17] != null) ? Double.parseDouble(objects[17].toString()) : 0;
             Double hospitalisation = (objects[18] != null) ? Double.parseDouble(objects[18].toString()) : 0;
-            Double laboratoire = (objects[19] != null) ? Double.parseDouble(objects[19].toString()) : 0;
-            Double formaliteAdministratives = (objects[20] != null) ? Double.parseDouble(objects[20].toString()) : 0;
-            Double ambulance = (objects[21] != null) ? Double.parseDouble(objects[21].toString()) : 0;
-            Double consommables = (objects[22] != null) ? Double.parseDouble(objects[22].toString()) : 0;
+            Double formaliteAdministratives = (objects[19] != null) ? Double.parseDouble(objects[19].toString()) : 0;
+            Double ambulance = (objects[20] != null) ? Double.parseDouble(objects[20].toString()) : 0;
+            Double consommables = (objects[21] != null) ? Double.parseDouble(objects[21].toString()) : 0;
+            Double medicament = (objects[22] != null) ? Double.parseDouble(objects[22].toString()) : 0;
             Double oxygenotherapie = (objects[23] != null) ? Double.parseDouble(objects[23].toString()) : 0;
             Double imaging = (objects[24] != null) ? Double.parseDouble(objects[24].toString()) : 0;
             Double proced = (objects[25] != null) ? Double.parseDouble(objects[25].toString()) : 0;
