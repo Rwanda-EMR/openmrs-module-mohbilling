@@ -12,6 +12,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -23,12 +24,31 @@ public class MohBillingInsuranceReportController extends
         ParameterizableViewController {
     protected final Log log = LogFactory.getLog(getClass());
 
+    private void handleExportRequest(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        List<String> columns = (List<String>) request.getSession().getAttribute("columns");
+        List<InsuranceReportItem> insuranceReportRecords = (List<InsuranceReportItem>) request.getSession().getAttribute("listOfAllServicesRevenue");
+
+        if (insuranceReportRecords != null) {
+            FileExporter.exportData(response, insuranceReportRecords);
+        } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing export data.");
+        }
+    }
+
     /* (non-Javadoc)
      * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
     @Override
     protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
             throws Exception {
+
+        if (Boolean.parseBoolean(request.getParameter("export"))) {
+            System.out.println("Exporting data...");
+            handleExportRequest(request, response);
+            return null; //avoid further processing
+        }
 
         ModelAndView mav = new ModelAndView();
         mav.setViewName(getViewName());
@@ -83,10 +103,6 @@ public class MohBillingInsuranceReportController extends
                     insuranceReportRecords = reportItems.getReportItems();
 
                     for (Map.Entry<String, BigDecimal> revenueItem : reportItems.getServiceTotalRevenues().entrySet()) {
-
-                        System.out.println("Column Name : " + revenueItem.getKey());
-                        System.out.println("Column Total: " + revenueItem.getValue());
-
                         columns.add(revenueItem.getKey());
                         totals.add(revenueItem.getValue());
                     }
@@ -116,17 +132,6 @@ public class MohBillingInsuranceReportController extends
 
             mav.addObject("insuranceRate", insuranceRate.getRate());
             mav.addObject("total100", total100);
-
-            System.out.println("and now here...");
-        }
-
-        if (request.getParameter("export") != null) {
-            List<String> columns = (List<String>) request.getSession().getAttribute("columns");
-            List<InsuranceReportItem> insuranceReportRecords = (List<InsuranceReportItem>)
-                    request.getSession()
-                            .getAttribute("listOfAllServicesRevenue");
-            Insurance insurance = (Insurance) request.getSession().getAttribute("insurance");
-            FileExporter.exportData(response, insurance, insuranceReportRecords);
         }
         return mav;
     }

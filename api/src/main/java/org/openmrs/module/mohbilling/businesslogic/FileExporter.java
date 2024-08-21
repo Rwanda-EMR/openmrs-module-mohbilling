@@ -1,14 +1,14 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.write.builder.ExcelWriterBuilder;
 import com.itextpdf.text.*;
 import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+//import org.apache.poi.ss.usermodel.Row;
+//import org.apache.poi.ss.usermodel.Sheet;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifierType;
 import org.openmrs.User;
@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -119,105 +120,138 @@ public class FileExporter {
     }
 
     public static void exportData(HttpServletResponse response,
-                                  Insurance insurance,
-                                  List<InsuranceReportItem> reportRecords) {
+                                  List<InsuranceReportItem> reportRecords) throws IOException {
 
-        // Validate input parameters
-        if (response == null || insurance == null || reportRecords == null) {
-            throw new IllegalArgumentException("exportData method expects non-null parameters.");
-        }
-
-        // Prepare the response headers for Excel export
-        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        String fileName = String.format("releve_%s.xlsx", formatter.format(new Date()));
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+        response.setCharacterEncoding("UTF-8");
+        String fileName = URLEncoder.encode("example", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName + ".xlsx");
 
-        try (Workbook workbook = new SXSSFWorkbook(); OutputStream outputStream = response.getOutputStream()) {
-            // Create a sheet and write header information
-            Sheet sheet = workbook.createSheet("Insurance Report");
-            writeHeaderInfo(sheet);
+        // Prepare the data
+        List<SimpleData> dataList = new ArrayList<>();
+        dataList.add(new SimpleData("Alice", 23, "A001"));
+        dataList.add(new SimpleData("Bob", 25, "A002"));
+        dataList.add(new SimpleData("Charlie", 22, "A003"));
 
-            // Write the report data into the sheet
-            writeReportData(sheet, insurance, reportRecords, formatter);
-
-            // Write the workbook to the output stream
-            workbook.write(outputStream);
-            outputStream.flush();
-
-        } catch (IOException e) {
-            log.error("Failed to write to Excel file: " + e.getMessage(), e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        // Write data to the Excel file
+        try (OutputStream out = response.getOutputStream()) {
+            ExcelWriterBuilder writerBuilder = EasyExcel.write(out, SimpleData.class);
+            writerBuilder.sheet("Sheet1").doWrite(dataList);
         }
+//
+//
+//        // Validate input parameters
+//        if (response == null || reportRecords == null) {
+//            throw new IllegalArgumentException("exportData method expects non-null parameters.");
+//        }
+//
+//        // Prepare the response headers for Excel export
+//        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+//        String fileName = String.format("releve_%s.xlsx", formatter.format(new Date()));
+//        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+//        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+//
+//        //try (Workbook workbook = new SXSSFWorkbook(); OutputStream outputStream = response.getOutputStream()) {
+//
+//        Workbook workbook = null;
+//        ServletOutputStream outputStream = null;
+//        try {
+//
+//            workbook = new SXSSFWorkbook();
+//            outputStream = response.getOutputStream();
+//
+//            Sheet sheet = workbook.createSheet("Insurance Report");
+//            writeHeaderInfo(sheet);
+//
+//            //writeReportData(sheet, reportRecords, formatter);
+//
+//            workbook.write(outputStream);
+//            outputStream.flush();
+//
+//        } catch (Exception e) {
+//            log.error("Failed to write to Excel file.: " + e.getMessage());
+//            e.printStackTrace();
+//            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//        } finally {
+//            try {
+//                if (workbook != null) {
+//                    workbook.close();
+//                }
+//                if (outputStream != null) {
+//                    outputStream.close();
+//                }
+//            } catch (IOException e) {
+//                log.error("Failed to close resources: " + e.getMessage(), e);
+//            }
+//        }
     }
 
     // Method to write header information
-    private static void writeHeaderInfo(Sheet sheet) {
-        Row facilityNameRow = sheet.createRow(0);
-        facilityNameRow.createCell(0).setCellValue(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
-
-        Row facilityAddressRow = sheet.createRow(1);
-        facilityAddressRow.createCell(0).setCellValue(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
-
-        Row facilityEmailRow = sheet.createRow(2);
-        facilityEmailRow.createCell(0).setCellValue(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
-
-        // Report title row
-        Row reportTitle = sheet.createRow(5);
-        reportTitle.createCell(10).setCellValue("SUMMARY OF VOUCHERS");
-
-        // Header row for data columns
-        Row headerRow = sheet.createRow(8);
-        String[] headers = {
-                "#", "Admission Date", "Closing Date", "BENEFICIARY'S NAMES",
-                "HEAD HOUSEHOLD'S NAMES", "FAMILY'S CODE", "LEVEL", "Card NUMBER",
-                "COMPANY", "AGE", "BIRTH DATE", "GENDER", "DOCTOR", "MEDICAMENTS",
-                "CONSULTATION", "HOSPITALISATION", "LABORATOIRE", "FORMALITES ADMINISTRATIVES",
-                "AMBULANCE", "CONSOMMABLES", "OXYGENOTHERAPIE", "IMAGING", "PROCED.",
-                "100%", "Insurance Rate", "Patient Share"
-        };
-
-        for (int i = 0; i < headers.length; i++) {
-            headerRow.createCell(i).setCellValue(headers[i]);
-        }
-    }
-
-    // Method to write report data
-    private static void writeReportData(Sheet sheet, Insurance insurance, List<InsuranceReportItem> reportRecords, DateFormat formatter) {
-        Float insRate = insurance.getCurrentRate().getRate();
-
-        for (int i = 0; i < reportRecords.size(); i++) {
-            InsuranceReportItem reportItem = reportRecords.get(i);
-            Row dataRow = sheet.createRow(i + 9);
-
-            dataRow.createCell(0).setCellValue(i + 1);
-            dataRow.createCell(1).setCellValue(formatter.format(reportItem.getAdmissionDate()));
-            dataRow.createCell(2).setCellValue(formatter.format(reportItem.getClosingDate()));
-            dataRow.createCell(3).setCellValue(reportItem.getBeneficiaryName());
-            dataRow.createCell(4).setCellValue(reportItem.getHouseholdHeadName());
-            dataRow.createCell(5).setCellValue(reportItem.getFamilyCode());
-            dataRow.createCell(6).setCellValue(reportItem.getBeneficiaryLevel());
-            dataRow.createCell(7).setCellValue(reportItem.getCardNumber());
-            dataRow.createCell(8).setCellValue(reportItem.getCompanyName());
-            dataRow.createCell(9).setCellValue(reportItem.getAge());
-            dataRow.createCell(10).setCellValue(formatter.format(reportItem.getBirthDate()));
-            dataRow.createCell(11).setCellValue(reportItem.getGender());
-            dataRow.createCell(12).setCellValue(reportItem.getDoctorName());
-            dataRow.createCell(13).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getMedicament()));
-            dataRow.createCell(14).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getConsultation()));
-            dataRow.createCell(15).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getHospitalisation()));
-            dataRow.createCell(16).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getLaboratoire()));
-            dataRow.createCell(17).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getFormaliteAdministratives()));
-            dataRow.createCell(18).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getAmbulance()));
-            dataRow.createCell(19).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getConsommables()));
-            dataRow.createCell(20).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getOxygenotherapie()));
-            dataRow.createCell(21).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getImaging()));
-            dataRow.createCell(22).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getProced()));
-            dataRow.createCell(23).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getTotal100()));
-            dataRow.createCell(24).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getTotalInsurance()));
-            dataRow.createCell(25).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getTotalPatient()));
-        }
-    }
+//    private static void writeHeaderInfo(Sheet sheet) {
+//        Row facilityNameRow = sheet.createRow(0);
+//        facilityNameRow.createCell(0).setCellValue(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+//
+//        Row facilityAddressRow = sheet.createRow(1);
+//        facilityAddressRow.createCell(0).setCellValue(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+//
+//        Row facilityEmailRow = sheet.createRow(2);
+//        facilityEmailRow.createCell(0).setCellValue(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+//
+//        // Report title row
+//        Row reportTitle = sheet.createRow(5);
+//        reportTitle.createCell(10).setCellValue("SUMMARY OF VOUCHERS");
+//
+//        // Header row for data columns
+//        Row headerRow = sheet.createRow(8);
+//        String[] headers = {
+//                "#", "Admission Date", "Closing Date", "BENEFICIARY'S NAMES",
+//                "HEAD HOUSEHOLD'S NAMES", "FAMILY'S CODE", "LEVEL", "Card NUMBER",
+//                "COMPANY", "AGE", "BIRTH DATE", "GENDER", "DOCTOR", "MEDICAMENTS",
+//                "CONSULTATION", "HOSPITALISATION", "LABORATOIRE", "FORMALITES ADMINISTRATIVES",
+//                "AMBULANCE", "CONSOMMABLES", "OXYGENOTHERAPIE", "IMAGING", "PROCED.",
+//                "100%", "Insurance Rate", "Patient Share"
+//        };
+//
+//        for (int i = 0; i < headers.length; i++) {
+//            headerRow.createCell(i).setCellValue(headers[i]);
+//        }
+//    }
+//
+//    // Method to write report data
+//    private static void writeReportData(Sheet sheet, List<InsuranceReportItem> reportRecords, DateFormat formatter) {
+//
+//        for (int i = 0; i < reportRecords.size(); i++) {
+//            InsuranceReportItem reportItem = reportRecords.get(i);
+//            Row dataRow = sheet.createRow(i + 9);
+//
+//            dataRow.createCell(0).setCellValue(i + 1);
+//            dataRow.createCell(1).setCellValue(formatter.format(reportItem.getAdmissionDate()));
+//            dataRow.createCell(2).setCellValue(formatter.format(reportItem.getClosingDate()));
+//            dataRow.createCell(3).setCellValue(reportItem.getBeneficiaryName());
+//            dataRow.createCell(4).setCellValue(reportItem.getHouseholdHeadName());
+//            dataRow.createCell(5).setCellValue(reportItem.getFamilyCode());
+//            dataRow.createCell(6).setCellValue(reportItem.getBeneficiaryLevel());
+//            dataRow.createCell(7).setCellValue(reportItem.getCardNumber());
+//            dataRow.createCell(8).setCellValue(reportItem.getCompanyName());
+//            dataRow.createCell(9).setCellValue(reportItem.getAge());
+//            dataRow.createCell(10).setCellValue(formatter.format(reportItem.getBirthDate()));
+//            dataRow.createCell(11).setCellValue(reportItem.getGender());
+//            dataRow.createCell(12).setCellValue(reportItem.getDoctorName());
+//            dataRow.createCell(13).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getMedicament()));
+//            dataRow.createCell(14).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getConsultation()));
+//            dataRow.createCell(15).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getHospitalisation()));
+//            dataRow.createCell(16).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getLaboratoire()));
+//            dataRow.createCell(17).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getFormaliteAdministratives()));
+//            dataRow.createCell(18).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getAmbulance()));
+//            dataRow.createCell(19).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getConsommables()));
+//            dataRow.createCell(20).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getOxygenotherapie()));
+//            dataRow.createCell(21).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getImaging()));
+//            dataRow.createCell(22).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getProced()));
+//            dataRow.createCell(23).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getTotal100()));
+//            dataRow.createCell(24).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getTotalInsurance()));
+//            dataRow.createCell(25).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getTotalPatient()));
+//        }
+//    }
 
     // Utility method to fetch global properties
     private static String getGlobalProperty(String propertyKey) {
