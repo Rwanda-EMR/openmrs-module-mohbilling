@@ -12,7 +12,6 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -25,7 +24,7 @@ public class MohBillingInsuranceReportController extends
     protected final Log log = LogFactory.getLog(getClass());
 
     private void handleExportRequest(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws Exception {
 
         List<String> columns = (List<String>) request.getSession().getAttribute("columns");
         List<InsuranceReportItem> insuranceReportRecords = (List<InsuranceReportItem>) request.getSession().getAttribute("listOfAllServicesRevenue");
