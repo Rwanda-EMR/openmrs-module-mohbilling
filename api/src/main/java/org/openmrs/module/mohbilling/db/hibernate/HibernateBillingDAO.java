@@ -1536,12 +1536,11 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     private double getInsuranceFirmRate(Integer insuranceIdentifier) {
-        Insurance insurance = InsuranceUtil.getInsurance(insuranceIdentifier);
-        return insurance.getCurrentRate().getRate();
+        return InsuranceUtil.getInsuranceFirmRate(insuranceIdentifier);
     }
 
     private double getInsurancePatientRate(Integer insuranceIdentifier) {
-        return 100 - getInsuranceFirmRate(insuranceIdentifier);
+        return InsuranceUtil.getInsurancePatientRate(insuranceIdentifier);
     }
 
     private void logParameters(Integer insuranceIdentifier, Date startDate, Date endDate) {

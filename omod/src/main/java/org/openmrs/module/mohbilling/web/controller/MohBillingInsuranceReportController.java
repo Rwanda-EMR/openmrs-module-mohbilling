@@ -26,11 +26,11 @@ public class MohBillingInsuranceReportController extends
     private void handleExportRequest(HttpServletRequest request, HttpServletResponse response)
             throws Exception {
 
-        List<String> columns = (List<String>) request.getSession().getAttribute("columns");
         List<InsuranceReportItem> insuranceReportRecords = (List<InsuranceReportItem>) request.getSession().getAttribute("listOfAllServicesRevenue");
+        Insurance insurance = (Insurance) request.getSession().getAttribute("insurance");
 
         if (insuranceReportRecords != null) {
-            FileExporter.exportData(response, insuranceReportRecords);
+            FileExporter.exportData(response, insuranceReportRecords, insurance);
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing export data.");
         }
@@ -44,8 +44,9 @@ public class MohBillingInsuranceReportController extends
             throws Exception {
 
         if (Boolean.parseBoolean(request.getParameter("export"))) {
-            System.out.println("Exporting data...");
+            log.info("Exporting report CSV file...");
             handleExportRequest(request, response);
+            log.info("Done exporting!");
             return null; //avoid further processing
         }
 

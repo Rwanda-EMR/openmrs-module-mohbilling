@@ -115,7 +115,7 @@ public class FileExporter {
     }
 
     public static void exportData(HttpServletResponse response,
-                                  List<InsuranceReportItem> reportRecords) throws IOException {
+                                  List<InsuranceReportItem> reportRecords, Insurance insurance) throws IOException {
 
         if (response == null || reportRecords == null) {
             throw new IllegalArgumentException("exportData method expects non-null parameters.");
@@ -129,7 +129,7 @@ public class FileExporter {
 
         try (PrintWriter writer = response.getWriter()) {
 
-            writeHeaderInfo(writer);
+            writeHeaderInfo(writer, insurance);
             writeReportData(writer, reportRecords, formatter);
             writer.flush();
 
@@ -140,23 +140,25 @@ public class FileExporter {
     }
 
     // Method to write header information
-    private static void writeHeaderInfo(PrintWriter writer) {
+    private static void writeHeaderInfo(PrintWriter writer, Insurance insurance) {
 
         writer.println(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
         writer.println(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
         writer.println(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
         writer.println(); // Empty line for spacing
-        writer.println(",,,,,,,,,,,SUMMARY OF VOUCHERS,,,,,,,,,,,");
+        writer.println(",,,,,,,,,,,SUMMARY OF VOUCHERS FOR (" + insurance.getName() + "),,,,,,,,,,,");
         writer.println(); // Empty line for spacing
 
-        // Header row for data columns
+        double patientRate = getInsurancePatientRate(insurance.getInsuranceId());
+        double insuranceRate = getInsuranceFirmRate(insurance.getInsuranceId());
+
         String[] headers = {
                 "#", "Admission Date", "Closing Date", "BENEFICIARY'S NAMES",
                 "HEAD HOUSEHOLD'S NAMES", "FAMILY'S CODE", "LEVEL", "Card NUMBER",
                 "COMPANY", "AGE", "BIRTH DATE", "GENDER", "DOCTOR", "MEDICAMENTS",
                 "CONSULTATION", "HOSPITALISATION", "LABORATOIRE", "FORMALITES ADMINISTRATIVES",
                 "AMBULANCE", "CONSOMMABLES", "OXYGENOTHERAPIE", "IMAGING", "PROCED.",
-                "100%", "Insurance Rate", "Patient Share"
+                "Total (100%)", "Insurance Rate (" + insuranceRate + "%)", "Patient share (" + patientRate + "%)"
         };
 
         writer.println(String.join(",", headers));
@@ -196,9 +198,16 @@ public class FileExporter {
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getTotalInsurance())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getTotalPatient()))
             };
-
             writer.println(String.join(",", data));
         }
+    }
+
+    private static double getInsuranceFirmRate(Integer insuranceIdentifier) {
+        return InsuranceUtil.getInsuranceFirmRate(insuranceIdentifier);
+    }
+
+    private static double getInsurancePatientRate(Integer insuranceIdentifier) {
+        return InsuranceUtil.getInsurancePatientRate(insuranceIdentifier);
     }
 
     private static String getGlobalProperty(String propertyKey) {
