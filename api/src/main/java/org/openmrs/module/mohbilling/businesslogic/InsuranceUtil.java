@@ -729,12 +729,4 @@ public class InsuranceUtil {
 		return getService().getServiceCategory(id);
 	}
 
-	public static double getInsuranceFirmRate(Integer insuranceIdentifier) {
-		Insurance insurance = InsuranceUtil.getInsurance(insuranceIdentifier);
-		return insurance.getCurrentRate().getRate();
-	}
-
-	public static double getInsurancePatientRate(Integer insuranceIdentifier) {
-		return 100 - getInsuranceFirmRate(insuranceIdentifier);
-	}
 }

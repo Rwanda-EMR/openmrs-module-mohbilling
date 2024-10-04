@@ -365,8 +365,8 @@ public class ConsommationUtil {
 	}
 	public static List<Consommation> getConsommations(Date startDate,
 													  Date endDate, Insurance insurance, ThirdParty tp,
-													  User billCreator,Department department){
-		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+													  User billCreator,Department department, int recordsPerPage, int page){
+		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department, recordsPerPage, page);
 	}
 	public static List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate,
 													  Date endDate) throws IOException {
@@ -381,8 +381,6 @@ public class ConsommationUtil {
 		}
 
 		return cons;
-
-
 	}
 	public static List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator){
 		return getService().getDCPConsommations(startDate, endDate,billCreator);
@@ -396,4 +394,11 @@ public class ConsommationUtil {
 		ConsommationUtil.saveConsommation(psb.getConsommation());
 	}
 
+	public static int getTotalConsommations(Date startDate,
+											Date endDate, Insurance insurance, ThirdParty tp,
+											User billCreator, Department department) {
+		return getService().getTotalConsommations(startDate,
+				endDate, insurance, tp,
+				billCreator, department);
+	}
 }

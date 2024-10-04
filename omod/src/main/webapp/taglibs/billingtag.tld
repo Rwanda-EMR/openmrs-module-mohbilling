@@ -47,11 +47,17 @@
 		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
 		<function-signature>java.lang.String getConsommationStatus(java.lang.Integer)</function-signature>
 	</function>
-		<function>
+	<function>
 		<description>Get total amount paid by a given consommation</description>
 		<name>amountPaidByConsommation</name>
 		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
-		<function-signature>java.lang.String getTotalPaidByConsommation(java.lang.Integer)</function-signature>
+		<function-signature>java.lang.Long getTotalPaidByConsommation(java.lang.Integer)</function-signature>
+	</function>
+	<function>
+		<description>Get bill status</description>
+		<name>billStatus</name>
+		<function-class>org.openmrs.module.mohbilling.businesslogic.MohBillingTagUtil</function-class>
+		<function-signature>java.lang.String getBillStatus(java.lang.Long, java.lang.Long)</function-signature>
 	</function>
 	
 </taglib>
