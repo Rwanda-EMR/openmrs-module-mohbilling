@@ -273,9 +273,10 @@ public class FileExporter {
             FontSelector fontselector = new FontSelector();
             fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
             openFile(request, response, document);
-            displayHeader(document, fontselector);
+            /*displayHeader(document, fontselector);
             displayPaidItems(document, payment, consommation, fontselector);
             document.add(new Paragraph("............................................................................................................................................................\n"));
+            document.newPage();*/
             displayAllItems(document, consommation, fontselector);
             document.add(new Paragraph("\n"));
             // displayFooter(document,consommation.getBeneficiary().getPatient(), fontselector);
@@ -858,11 +859,11 @@ public class FileExporter {
 
                             cell = new PdfPCell(fontSelector.process("" + item.getUnitPrice()));
                             table.addCell(cell);
-//					 cell = new PdfPCell(fontSelector.process(""+formatter.format(item.getQuantity().multiply(item.getUnitPrice().multiply(patientRate.divide(new BigDecimal(100) ))))));
+					//  cell = new PdfPCell(fontSelector.process(""+formatter.format(item.getQuantity().multiply(item.getUnitPrice().multiply(patientRate.divide(new BigDecimal(100) ))))));
                             cell = new PdfPCell(fontSelector.process("" + formatter.format(item.getQuantity().multiply(item.getUnitPrice()))));
                             table.addCell(cell);
 
-//					 totalByService=totalByService.add(item.getQuantity().multiply(item.getUnitPrice().multiply(patientRate.divide(new BigDecimal(100) ))));
+					//  totalByService=totalByService.add(item.getQuantity().multiply(item.getUnitPrice().multiply(patientRate.divide(new BigDecimal(100) ))));
                             totalByService = totalByService.add(item.getQuantity().multiply(item.getUnitPrice()));
                             total = total.add(item.getQuantity().multiply(item.getUnitPrice()));
                         }
@@ -897,7 +898,7 @@ public class FileExporter {
         float[] width = {4f, 3f, 3f};
         PdfPTable summaryTable = new PdfPTable(width);
 
-        PdfPCell c = new PdfPCell(boldFont.process("Assurance"));
+        PdfPCell c = new PdfPCell(boldFont.process(""));
         cell.setBorder(Rectangle.NO_BORDER);
         summaryTable.addCell(c);
 
@@ -926,7 +927,7 @@ public class FileExporter {
         cell.setBorder(Rectangle.NO_BORDER);
         summaryTable.addCell(c);
 
-//		c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
+		// c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
         c = new PdfPCell(fontSelector.process("" + formatter.format(total.multiply(patientRate).divide(new BigDecimal(100)))));
         cell.setBorder(Rectangle.NO_BORDER);
         summaryTable.addCell(c);
@@ -940,7 +941,7 @@ public class FileExporter {
             cell.setBorder(Rectangle.NO_BORDER);
             summaryTable.addCell(c);
 
-//		c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
+		// c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
             c = new PdfPCell(fontSelector.process("" + consommation.getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee()));
             cell.setBorder(Rectangle.NO_BORDER);
             summaryTable.addCell(c);
@@ -953,7 +954,7 @@ public class FileExporter {
             cell.setBorder(Rectangle.NO_BORDER);
             summaryTable.addCell(c);
 
-//		c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
+		// c = new PdfPCell(fontSelector.process(""+consommation.getPatientBill().getAmount()));
             c = new PdfPCell(fontSelector.process("" + formatter.format(total.multiply(patientRate).divide(new BigDecimal(100)))));
             cell.setBorder(Rectangle.NO_BORDER);
             summaryTable.addCell(c);
@@ -1485,7 +1486,7 @@ public class FileExporter {
 
             cell = new PdfPCell(boldFont.process("" + formatter.format(dr.getPayment().getAmountPaid())));
             table.addCell(cell);
-            //}
+
         }
         cell = new PdfPCell(boldFont.process(""));
         table.addCell(cell);
@@ -1711,7 +1712,7 @@ public class FileExporter {
                 .toString());// the name of the author
 
         FontSelector fontTitle = new FontSelector();
-        fontTitle.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+        fontTitle.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
         FontSelector fontTotals = new FontSelector();
         fontTotals.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
@@ -1719,7 +1720,7 @@ public class FileExporter {
         /** ------------- Report title ------------- */
 
         Chunk chk = new Chunk("Printed on : " + (new Date()));
-        chk.setFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+        chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
         //Paragraph todayDate = new Paragraph();
         //todayDate.setAlignment(Element.ALIGN_RIGHT);
         //todayDate.add(chk);
@@ -1753,7 +1754,7 @@ public class FileExporter {
 
         // title row
         FontSelector fontTitleSelector = new FontSelector();
-        fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+        fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
         PdfPTable tableHeader = new PdfPTable(1);
         tableHeader.setWidthPercentage(100f);
@@ -1781,7 +1782,7 @@ public class FileExporter {
 
         // normal row
         FontSelector fontselector = new FontSelector();
-        fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+        fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
 
         int number = 0;
@@ -1920,7 +1921,7 @@ public class FileExporter {
         table1.setWidthPercentage(100f);
 
         PdfPCell cell = new PdfPCell(fontselector.process(""));
-        if (user != null) {
+        if (cashier != null) {
             cell = new PdfPCell(fontselector.process("Cashier Signature \n" + cashier.getPersonName() + "\n\n........................."));
             cell.setBorder(Rectangle.NO_BORDER);
             table1.addCell(cell);
