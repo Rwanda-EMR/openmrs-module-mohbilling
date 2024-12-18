@@ -38,7 +38,7 @@ public class MohBillingBillingFormController extends
 
 		//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>edit a consommation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-		System.out.println("yyyyyyyyyyyyyyyyyyyyyyyyy"+request.getParameter("consommationId"));
+		System.out.println("Consomation id: " + request.getParameter("consommationId"));
 		try {
 			if((ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId"))).getPatientBill().getPayments().size()<=0)
 					|| (!ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId"))).getGlobalBill().isClosed())){
@@ -55,9 +55,11 @@ public class MohBillingBillingFormController extends
 				request.getSession().setAttribute(
 						WebConstants.OPENMRS_ERROR_ATTR,"Impossible to edit this 'FICHE DE CONSOMMATION'. It has a payment or the global bill has been closed..");
 			}
+		} catch(NullPointerException npe){
+			log.error(npe.getMessage());
 		} catch (Exception e) {
 			log.error("" + e.getMessage());
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 
 		Consommation addNew = null;

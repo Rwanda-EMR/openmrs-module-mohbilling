@@ -58,6 +58,9 @@ public class InsuranceReportItem {
     }
 
     public Date getClosingDate() {
+        if(closingDate == null){
+            return admissionDate;
+        }
         return closingDate;
     }
 
@@ -66,6 +69,12 @@ public class InsuranceReportItem {
     }
 
     public String getBeneficiaryName() {
+        if(beneficiaryName == null){
+            return "None";
+        }
+        if(beneficiaryName.equalsIgnoreCase(" ") ){
+            return "None";
+        }
         return beneficiaryName;
     }
 
@@ -74,6 +83,12 @@ public class InsuranceReportItem {
     }
 
     public String getHouseholdHeadName() {
+        if(householdHeadName == null){
+            return "None";
+        }
+        if(householdHeadName.equalsIgnoreCase(" ")){
+            return "None";
+        }
         return householdHeadName;
     }
 
@@ -82,6 +97,12 @@ public class InsuranceReportItem {
     }
 
     public String getFamilyCode() {
+        if(familyCode == null){
+            return "None";
+        }
+        if(familyCode.equalsIgnoreCase(" ")){
+            return "None";
+        }
         return familyCode;
     }
 
@@ -98,6 +119,12 @@ public class InsuranceReportItem {
     }
 
     public String getCardNumber() {
+        if(cardNumber == null){
+            return "None";
+        }
+        if(cardNumber.equalsIgnoreCase(" ")){
+            return "None";
+        }
         return cardNumber;
     }
 
@@ -106,6 +133,12 @@ public class InsuranceReportItem {
     }
 
     public String getCompanyName() {
+        if(companyName == null){
+            return "None";
+        }
+        if(companyName.equalsIgnoreCase(" ")){
+            return "None";
+        }
         return companyName;
     }
 
@@ -130,6 +163,12 @@ public class InsuranceReportItem {
     }
 
     public String getGender() {
+        if(gender == null){
+            return "None";
+        }
+        if(gender.equalsIgnoreCase(" ")){
+            return "None";
+        }
         return gender;
     }
 
@@ -138,6 +177,12 @@ public class InsuranceReportItem {
     }
 
     public String getDoctorName() {
+        if(doctorName == null){
+            return "None";
+        }
+        if(doctorName.equalsIgnoreCase(" ")){
+            return "None";
+        }
         return doctorName;
     }
 
@@ -178,6 +223,12 @@ public class InsuranceReportItem {
     }
 
     public String getGlobalBillIdentifier() {
+        if(globalBillIdentifier == null){
+            return "None";
+        }
+        if(globalBillIdentifier.equalsIgnoreCase(" ")){
+            return "None";
+        }
         return globalBillIdentifier;
     }
 

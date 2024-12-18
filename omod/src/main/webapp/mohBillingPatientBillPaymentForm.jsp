@@ -129,6 +129,7 @@ $j(document).ready(function(){
                      });
                      $j('#tot').text("Your Payable  Is: " + total.toFixed(2));
         			  }
+				$j('.items').trigger("change");
         	});
 
 

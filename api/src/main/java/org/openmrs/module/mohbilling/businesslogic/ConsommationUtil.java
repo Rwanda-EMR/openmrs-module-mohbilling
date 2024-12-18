@@ -223,7 +223,8 @@ public class ConsommationUtil {
 						quantity = BigDecimal.valueOf(Double.valueOf(request.getParameter("quantity_" + i)));
 						unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
 						drugf = request.getParameter("frequency_"+i);
-						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf);
+						item_type = bs.getFacilityServicePrice().getItemType().intValue();
+						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf,item_type); // <<<<<<<<<<<<<<<<<<< Here Suspect Number One
 						addedItemTotalAmount=addedItemTotalAmount.add(quantity.multiply(unitPrice));
 							if(existingItemsLoopControl==0) {
 								for (PatientServiceBill pp : existingConsom.getBillItems()) {

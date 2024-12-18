@@ -1373,9 +1373,11 @@ public class HibernateBillingDAO implements BillingDAO {
         List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
         paidItems = criteria.list();
 
-        Consommation c = ConsommationUtil.getConsommationByPatientBill(payments.get(0).getPatientBill());
-        if (c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")) {
-            paidItems = BillPaymentUtil.getOldPaidItems(payments);
+        if(payments.size() > 0){
+            Consommation c = ConsommationUtil.getConsommationByPatientBill(payments.get(0).getPatientBill());
+            if (c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")) {
+                paidItems = BillPaymentUtil.getOldPaidItems(payments);
+            }
         }
         //List<PaidServiceBill> oldItems = BillPaymentUtil.getOldPaidItems(payments);
 //	      		if(oldItems!=null){

@@ -51,9 +51,8 @@ a.print {
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
-
-<a href="cohort.form?print=true" class="print">PDF</a></b>
+<!-- <a href="cohort.form?print=true" class="print">PDF</a> -->
+</b>
 <div class="box">
 <table width="99%">
 	<tr>
@@ -64,7 +63,7 @@ a.print {
 		<td>Policy Id Number</td>
 		<td>Beneficiary</td>
 
-		<!-- <td>Billable Services</td> -->
+		<td>Billable Services</td>
 
 		<td>Insurance Name</td>
 		<td>Total</td>
@@ -96,7 +95,7 @@ a.print {
 			<c:set var="insuranceRate" value="${(c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100 }"/>
             <c:set var="patientRate" value="${(100-c.beneficiary.insurancePolicy.insurance.currentRate.rate)/100}"/>
 			<c:set var="totalAmountByConsom" value="${c.insuranceBill.amount + c.patientBill.amount}" />
-			<%--
+			
 			<td class="rowValue">
 
 			<table>
@@ -127,7 +126,7 @@ a.print {
 					</c:if>
 				</c:forEach>
 			</table>
-			</td> --%>
+			</td>
 			<c:set var="totalAmountPaidByCons" value="${billingtag:amountPaidByConsommation(c.consommationId)}"/>
 			<td class="rowValue">${c.beneficiary.insurancePolicy.insurance.name}</td>
 			<td class="rowAmountValue"><fmt:formatNumber value="${totalAmountByConsom}" type="number" pattern="#.##"/></td>
@@ -163,10 +162,11 @@ a.print {
             </c:choose>
 
 			<td class="rowTotalValue"><a href="patientBillPayment.form?consommationId=${c.consommationId}">View/</a></td>
+			<td class="rowValue">
              <c:forEach items="${c.patientBill.payments}" var="payment" varStatus="status">
-                                 <td class="rowValue">${payment.collector.person.familyName}&nbsp;</br>${payment.collector.person.givenName}</td>
+                ${payment.collector.person.familyName}&nbsp;${payment.collector.person.givenName} <br />
               </c:forEach>
-
+			</td>
 		</tr>
 	<c:set var="totalAmountAllConsom" value="${totalAmountAllConsom+totalAmountByConsom}" />
 	<c:set var="totalAmountPaidAllConsom" value="${totalAmountPaidAllConsom+totalAmountPaidByCons}" />
