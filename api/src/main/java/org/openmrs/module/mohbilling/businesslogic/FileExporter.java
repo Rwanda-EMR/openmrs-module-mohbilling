@@ -232,8 +232,12 @@ public class FileExporter {
         String stringValue = String.valueOf(value);
 
         // If the value is a long number, wrap it in double quotes to prevent scientific notation
-        if (stringValue.matches("\\d{11,}")) {  // Matches numbers with 11 or more digits
-            return "=\"" + stringValue + "\"";  // Forces Excel to treat as text
+        if (stringValue.matches("\\d{1,}")) {  // Matches numbers with 1 or more digits
+            return "'" + stringValue;  // Forces Excel to treat as text
+        }
+
+        if(stringValue.endsWith(".")){
+            return "'" + stringValue;
         }
 
         return stringValue;
@@ -1074,7 +1078,8 @@ public class FileExporter {
         table.setWidthPercentage(100f);
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        SimpleDateFormat dfgb = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
+        SimpleDateFormat dfgb = new SimpleDateFormat("yyyy-MM-dd");
+        // SimpleDateFormat dfgb = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
         FontSelector boldFont = new FontSelector();
         boldFont.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
