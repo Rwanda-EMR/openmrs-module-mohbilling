@@ -47,6 +47,8 @@ public interface BillingDAO {
 	 */
 	public PatientBill getPatientBill(Integer billId) throws DAOException;
 
+	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize) throws DAOException;
+
 	/**
 	 * Gets all existing PatientBills
 	 * 

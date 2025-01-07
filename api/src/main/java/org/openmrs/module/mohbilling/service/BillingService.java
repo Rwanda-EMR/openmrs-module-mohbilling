@@ -40,7 +40,9 @@ public interface BillingService {
 	 * @throws DAOException
 	 */
 	public List<PatientBill> getAllPatientBills() throws DAOException;
-	
+
+	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize) throws DAOException;
+
 	/**
 	 * Gets all existing Bill Payments
 	 * 
@@ -101,7 +103,7 @@ public interface BillingService {
 	 * 
 	 * @throws DAOException
 	 */
-	public void savePatientBill(PatientBill bill) throws DAOException;
+	PatientBill savePatientBill(PatientBill bill) throws DAOException;
 
 
 

@@ -102,6 +102,16 @@ public class HibernateBillingDAO implements BillingDAO {
         return (InsurancePolicy) sessionFactory.getCurrentSession().get(
                 InsurancePolicy.class, cardId);
     }
+    @Override
+    public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize) throws DAOException {
+        Criteria criteria = sessionFactory.getCurrentSession()
+            .createCriteria(PatientBill.class)
+            .setFirstResult(startIndex)
+            .setMaxResults(pageSize)
+            .addOrder(Order.desc("createdDate"));
+
+        return criteria.list();
+    }
 
     /**
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getInsurancePolicyByCardNo(String)
