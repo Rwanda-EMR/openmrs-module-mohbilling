@@ -1,5 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/template/headerMinimal.jsp" %>
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables.css" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
@@ -51,4 +52,3 @@
 	</form>
 </div>
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>

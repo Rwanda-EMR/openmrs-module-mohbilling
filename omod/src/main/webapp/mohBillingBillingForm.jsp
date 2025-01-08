@@ -1,5 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/headerFull.jsp"%>
+<%@ include file="/WEB-INF/template/headerMinimal.jsp" %>
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables.css" />
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/mohbilling/patientBillPayment.form" />
 <openmrs:require privilege="Create Bill Manually" otherwise="/login.htm" redirect="/module/@MODULE_ID@/admission.form" />
 

@@ -98,4 +98,11 @@
 	background: #F0E68C;
 	cursor: pointer;
 }
+	.boxHeader {
+      background-color: #51A351;
+    }
+    .box {
+      border: 1px solid #51A351
+    }
+
 </style>

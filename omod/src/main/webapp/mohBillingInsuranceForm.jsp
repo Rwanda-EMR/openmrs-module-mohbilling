@@ -1,5 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/template/headerMinimal.jsp" %>
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables.css" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <openmrs:require privilege="Add Insurance" otherwise="/login.htm" redirect="/module/mohbilling/insurance.list" />
 
@@ -96,4 +97,4 @@
 
 </c:if>
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+

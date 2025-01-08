@@ -1770,7 +1770,7 @@ public class HibernateBillingDAO implements BillingDAO {
             Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
                     .add(Restrictions.like("billIdentifier", insuranceCardNo + "%")).add(Restrictions.eq("closed", false));
 
-            System.out.println("Find GBBBBBBBBBBBBBBBBBBBBBBBBBB: " + crit.list().size());
+            System.out.println("Patient has number of GB(s) with idintifier starting with "+insuranceCardNo+": " + crit.list().size());
 
             GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
 

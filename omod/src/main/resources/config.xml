@@ -154,6 +154,14 @@
         </description>
     </globalProperty>
 
+    <globalProperty>
+        <property>billing.disableManualAddBillForNonePrivateInsurance</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            This will disable the option of adding bill to admission by using manual process on none private insurances
+        </description>
+    </globalProperty>
+
     <!-- /Required Global Properties -->
 
     <dwr>

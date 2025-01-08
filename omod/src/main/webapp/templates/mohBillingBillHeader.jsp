@@ -95,4 +95,12 @@
 	font-size: 16px;
 	}
 
+		.boxHeader {
+          background-color: #51A351;
+        }
+        .box {
+          border: 1px solid #51A351
+        }
+
+
 </style>

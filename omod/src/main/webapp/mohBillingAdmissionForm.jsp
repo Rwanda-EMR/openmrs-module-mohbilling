@@ -1,4 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
+<%@ include file="/WEB-INF/template/headerMinimal.jsp" %>
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables.css" />
 <%@ taglib prefix="mohbilling_tag" 	tagdir="/WEB-INF/tags/module/mohbilling"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
@@ -81,7 +83,8 @@ function  cancelClosingGlobalBill(){
 </c:if>
 
 <c:if test="${discharge==null }">
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/template/headerMinimal.jsp" %>
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables.css" />
 <%@ taglib prefix="mohbilling_tag" 	tagdir="/WEB-INF/tags/module/mohbilling"%>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
@@ -204,7 +207,10 @@ function  cancelClosingGlobalBill(){
 			<c:if test="${gb.closingDate==null }">
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
 			<openmrs:hasPrivilege privilege="ADD CONS.">
+			<openmrs:globalProperty var="disableManualAddBillForNonePrivateInsurance" key="billing.disableManualAddBillForNonePrivateInsurance"  />
+			<c:if test="${(disableManualAddBillForNonePrivateInsurance == true && gb.insurance.category =='NONE') || disableManualAddBillForNonePrivateInsurance == false}">
 			<a href="billing.form?insurancePolicyId=${gb.admission.insurancePolicy.insurancePolicyId }&ipCardNumber=${gb.admission.insurancePolicy.insuranceCardNo}&globalBillId=${gb.globalBillId}">Add Bill</a>
+			</c:if>
 			</openmrs:hasPrivilege>
 			</td>
 			</c:if>
@@ -217,7 +223,7 @@ function  cancelClosingGlobalBill(){
 	</table>
 </div>
 </c:if>
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+
 </c:if>
 
 
