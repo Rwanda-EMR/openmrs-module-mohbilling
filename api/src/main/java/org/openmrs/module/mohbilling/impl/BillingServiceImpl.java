@@ -45,8 +45,9 @@ public class BillingServiceImpl implements BillingService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize) throws DAOException {
-		return billingDAO.getPatientBillsByPagination(startIndex, pageSize);
+	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
+			String orderBy, String orderDirection) throws DAOException {
+		return billingDAO.getPatientBillsByPagination(startIndex, pageSize, orderBy, orderDirection);
 	}
 
 	/**

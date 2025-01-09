@@ -41,7 +41,8 @@ public interface BillingService {
 	 */
 	public List<PatientBill> getAllPatientBills() throws DAOException;
 
-	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize) throws DAOException;
+	List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize, 
+		String orderBy, String orderDirection) throws DAOException;
 
 	/**
 	 * Gets all existing Bill Payments

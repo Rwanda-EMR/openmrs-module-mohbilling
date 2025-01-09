@@ -290,11 +290,10 @@
 	</bean>
 
 	<!-- Add component scanning -->
-	<context:component-scan base-package="org.openmrs.module.mohbilling.web" />
-	<context:component-scan base-package="org.openmrs.module.mohbilling.web.resource" />
+	<context:component-scan base-package="org.openmrs.module.mohbilling" />
 	
     <!-- Register our REST resources -->
-    <bean id="billingResource" class="org.openmrs.module.mohbilling.web.resource.BillingResource" />
+    <bean id="billingResource" class="org.openmrs.module.mohbilling.rest.resource.BillingResource" />
 
 	<!-- <bean id="mohBillingProviderReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProviderReportController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingProviderDCPReport</value></property>

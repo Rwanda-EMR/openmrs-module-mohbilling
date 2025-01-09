@@ -47,7 +47,18 @@ public interface BillingDAO {
 	 */
 	public PatientBill getPatientBill(Integer billId) throws DAOException;
 
-	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize) throws DAOException;
+	/**
+	 * Gets paginated and ordered list of patient bills
+	 *
+	 * @param startIndex starting index for pagination
+	 * @param pageSize number of records per page
+	 * @param orderBy field to order by
+	 * @param orderDirection asc or desc
+	 * @return List<PatientBill> paginated and ordered list of bills
+	 * @throws DAOException
+	 */
+	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
+		String orderBy, String orderDirection) throws DAOException;
 
 	/**
 	 * Gets all existing PatientBills

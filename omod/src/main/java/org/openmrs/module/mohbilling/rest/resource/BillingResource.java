@@ -1,4 +1,4 @@
-package org.openmrs.module.mohbilling.web.resource;
+package org.openmrs.module.mohbilling.rest.resource;
 
 import java.util.List;
 
@@ -7,21 +7,24 @@ import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingProcessingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
+import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 
-@Resource(name = RestConstants.VERSION_1 + "/mohbilling/bill", 
-          supportedClass = PatientBill.class, 
-          supportedOpenmrsVersions = {"2.0.*", "2.1.*", "2.2.*", "2.3.*", "2.4.*", "2.5.*"})
-    public class BillingResource extends DelegatingCrudResource<PatientBill> {
+@Resource(name = RestConstants.VERSION_1 + "/mohbilling/bill",
+        supportedClass = PatientBill.class,
+        supportedOpenmrsVersions = {"2.0 - 2.*"})
+public class BillingResource extends DelegatingCrudResource<PatientBill> {
 
     @Override
     public PatientBill getByUniqueId(String uniqueId) {
@@ -46,24 +49,33 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
     @Override
     public void purge(PatientBill delegate, RequestContext context) throws ResponseException {
         // Implementation not required unless we'd need to permanently delete bills
-        // BA guidance 
+        // BA guidance
+    }
+
+    @Override
+    protected String getUniqueId(PatientBill delegate) {
+        return String.valueOf(delegate.getPatientBillId());
     }
 
     @Override
     public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
         if (rep instanceof DefaultRepresentation) {
             DelegatingResourceDescription description = new DelegatingResourceDescription();
-            description.addProperty("uuid");
             description.addProperty("patientBillId");
             description.addProperty("amount");
             description.addProperty("createdDate");
             description.addProperty("status");
             description.addProperty("voided");
+            description.addProperty("payments");
+            description.addProperty("phoneNumber");
+            description.addProperty("transactionStatus");
+            description.addProperty("paymentConfirmedBy");
+            description.addProperty("paymentConfirmedDate");
             description.addSelfLink();
+            description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
             return description;
         } else if (rep instanceof FullRepresentation) {
             DelegatingResourceDescription description = new DelegatingResourceDescription();
-            description.addProperty("uuid");
             description.addProperty("patientBillId");
             description.addProperty("amount");
             description.addProperty("createdDate");
@@ -72,6 +84,25 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
             description.addProperty("voidedBy");
             description.addProperty("voidedDate");
             description.addProperty("voidReason");
+            description.addProperty("payments");
+            description.addProperty("phoneNumber");
+            description.addProperty("transactionStatus");
+            description.addProperty("paymentConfirmedBy");
+            description.addProperty("paymentConfirmedDate");
+            description.addSelfLink();
+            return description;
+        } else if (rep instanceof RefRepresentation) {
+            DelegatingResourceDescription description = new DelegatingResourceDescription();
+            description.addProperty("patientBillId");
+            description.addProperty("amount");
+            description.addProperty("createdDate");
+            description.addProperty("status");
+            description.addProperty("voided");
+            description.addProperty("payments");
+            description.addProperty("phoneNumber");
+            description.addProperty("transactionStatus");
+            description.addProperty("paymentConfirmedBy");
+            description.addProperty("paymentConfirmedDate");
             description.addSelfLink();
             return description;
         }
@@ -97,12 +128,42 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
     @Override
     protected PageableResult doSearch(RequestContext context) {
         BillingProcessingService service = Context.getService(BillingProcessingService.class);
-        
+
         Integer startIndex = context.getStartIndex();
         Integer limit = context.getLimit();
-        
-        List<PatientBill> bills = service.getPatientBillsByPagination(startIndex, limit);
-        
+
+        // Get order parameters from request
+        String orderBy = context.getRequest().getParameter("orderBy");
+        String orderDirection = context.getRequest().getParameter("order");
+
+        List<PatientBill> bills = service.getPatientBillsByPagination(
+                startIndex,
+                limit,
+                orderBy,
+                orderDirection
+        );
+
         return new AlreadyPaged<>(context, bills, false);
+    }
+
+    @Override
+    protected PageableResult doGetAll(RequestContext context) throws ResponseException {
+        BillingProcessingService service = Context.getService(BillingProcessingService.class);
+
+        Integer startIndex = context.getStartIndex();
+        Integer limit = context.getLimit();
+
+        // Get order parameters from request
+        String orderBy = context.getRequest().getParameter("orderBy");
+        String orderDirection = context.getRequest().getParameter("order");
+
+        List<PatientBill> bills = service.getPatientBillsByPagination(
+                startIndex,
+                limit,
+                orderBy,
+                orderDirection
+        );
+
+        return new NeedsPaging<PatientBill>(bills, context);
     }
 }
