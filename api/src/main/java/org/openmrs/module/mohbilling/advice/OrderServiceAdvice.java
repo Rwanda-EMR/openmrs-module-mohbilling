@@ -76,11 +76,11 @@ public class OrderServiceAdvice implements AfterReturningAdvice {
 
             if (currentInsuranceId.size() >= 1) {
                 insuranceCardNumber = currentInsuranceId.get(0).getValueText();
-                System.out.println("insuranceCardNumber: " + insuranceCardNumber);
+                log.info("insuranceCardNumber: " + insuranceCardNumber);
             }
 
             InsurancePolicy ip = Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
-            System.out.println("ip: ----------- : " + ip);
+            log.info("ip: ----------- : " + ip);
 
             List<PatientServiceBill> psbList = new ArrayList<>();
             Department department = null;
@@ -97,10 +97,10 @@ public class OrderServiceAdvice implements AfterReturningAdvice {
 
             FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(order.getConcept());
             if (ip != null && fsp != null && !fsp.isHidden()) {
-                System.out.println("FacilityServicePrice Found: " + fsp.getName());
+                log.info("FacilityServicePrice Found: " + fsp.getName());
                 BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp, ip.getInsurance());
                 totalMaximaTopay = totalMaximaTopay.add(bs.getMaximaToPay());
-                System.out.println("BillableService maxima_to_pay: " + bs.getMaximaToPay());
+                log.info("BillableService maxima_to_pay: " + bs.getMaximaToPay());
                 psb.setService(bs);
                 psb.setServiceDate(new Date());
                 psb.setUnitPrice(bs.getMaximaToPay());
@@ -114,30 +114,29 @@ public class OrderServiceAdvice implements AfterReturningAdvice {
             }
 
             if (psbList.size() > 0) {
-                System.out.println("psbList.size(): " + psbList.size());
+                log.info("psbList.size(): " + psbList.size());
                 GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
                 BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
                 gb.setGlobalAmount(globalAmount);
                 gb = GlobalBillUtil.saveGlobalBill(gb);
-                System.out.println("gb: " + gb);
+                log.info("gb: " + gb);
 
                 PatientBill pb = PatientBillUtil.createPatientBill(totalMaximaTopay, ip);
-                System.out.println("pb: " + pb);
+                log.info("pb: " + pb);
                 ThirdPartyBill tpb = ThirdPartyBillUtil.createThirdPartyBill(ip, totalMaximaTopay);
-                System.out.println("tpb: " + tpb);
+                log.info("tpb: " + tpb);
                 InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(ip.getInsurance(), totalMaximaTopay);
-                System.out.println("ib: " + ib);
+                log.info("ib: " + ib);
 
                 if (currentPhoneNumber != null) {
-                    System.out.println("currentPhoneNumber: " + currentPhoneNumber);
+                    log.info("currentPhoneNumber: " + currentPhoneNumber);
                     pb = PatientBillUtil.createPatientBillWithMoMoRequestToPay(totalMaximaTopay, ip, currentPhoneNumber, referenceId);
-                    System.out.println("pb: " + pb);
+                    log.info("pb: " + pb);
                     try {
                         MTNMomoApiIntegrationRequestToPay momo = new MTNMomoApiIntegrationRequestToPay();
                         momo.requesttopay(referenceId, pb.getAmount().setScale(0, RoundingMode.UP).toString(), currentPhoneNumber);
                         pb.setTransactionStatus(momo.getransactionStatus(referenceId));
                         pb = PatientBillUtil.savePatientBill(pb);
-                        System.out.println("pb: " + pb);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -153,13 +152,12 @@ public class OrderServiceAdvice implements AfterReturningAdvice {
                 cons.setCreator(Context.getAuthenticatedUser());
                 cons.setDepartment(department);
                 ConsommationUtil.saveConsommation(cons);
-                System.out.println("cons: " + cons);
+                log.info("cons: " + cons);
 
                 for (PatientServiceBill patientServiceBill : psbList) {
                     patientServiceBill.setConsommation(cons);
                     ConsommationUtil.createPatientServiceBill(patientServiceBill);
-                    System.out.println("patientServiceBill: " + patientServiceBill);
-                    System.out.println("patientServiceBill: " + patientServiceBill.getPatientServiceBillId());
+                    log.info("patientServiceBill: " + patientServiceBill);
                 }
             }
         }
