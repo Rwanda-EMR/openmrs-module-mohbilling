@@ -668,7 +668,9 @@ public interface BillingService {
 	 * @param billCreator
 	 * @return consommation list
 	 */
-	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department, int limit, int offSet);
+	public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+
 	public List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate, Date endDate);
 
 	public List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator);
