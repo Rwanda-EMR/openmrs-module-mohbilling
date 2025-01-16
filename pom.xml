@@ -1,126 +1,126 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.openmrs.module</groupId>
-    <artifactId>mohbilling</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>MoH Billing Module</name>
-    <description>Parent project for MoH Billing Module</description>
+	<groupId>org.openmrs.module</groupId>
+	<artifactId>mohbilling</artifactId>
+	<version>2.0.2-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>MoH Billing Module</name>
+	<description>Parent project for MoH Billing Module</description>
 
-    <url>http://openmrs.org</url>
+	<url>http://openmrs.org</url>
 
-    <scm>
-        <developerConnection>scm:git:https://github.com/Rwanda-EMR/openmrs-module-mohbilling</developerConnection>
-        <url>https://github.com/Rwanda-EMR/openmrs-module-mohbilling/</url>
-        <tag>HEAD</tag>
-    </scm>
+	<scm>
+		<developerConnection>scm:git:https://github.com/Rwanda-EMR/openmrs-module-mohbilling</developerConnection>
+		<url>https://github.com/Rwanda-EMR/openmrs-module-mohbilling/</url>
+		<tag>HEAD</tag>
+	</scm>
 
-    <modules>
-        <module>api</module>
-        <module>omod</module>
-    </modules>
+	<modules>
+		<module>api</module>
+		<module>omod</module>
+	</modules>
 
-    <distributionManagement>
-        <repository>
-            <id>openmrs-repo-modules-rwandaemr</id>
-            <name>rwandaemr-artifactory-primary-0-releases</name>
-            <url>https://openmrs.jfrog.io/artifactory/modules-pih/</url>
-        </repository>
-        <snapshotRepository>
-            <id>openmrs-repo-modules-rwandaemr-snapshots</id>
-            <name>rwandaemr-artifactory-primary-0-snapshots</name>
-            <url>https://openmrs.jfrog.io/artifactory/modules-pih-snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
+	<distributionManagement>
+		<repository>
+			<id>openmrs-repo-modules-rwandaemr</id>
+			<name>rwandaemr-artifactory-primary-0-releases</name>
+			<url>https://openmrs.jfrog.io/artifactory/modules-pih/</url>
+		</repository>
+		<snapshotRepository>
+			<id>openmrs-repo-modules-rwandaemr-snapshots</id>
+			<name>rwandaemr-artifactory-primary-0-snapshots</name>
+			<url>https://openmrs.jfrog.io/artifactory/modules-pih-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 
-    <properties>
-        <openMRSVersion>2.3.3</openMRSVersion>
-        <htmlformentryVersion>4.4.0</htmlformentryVersion>
-        <apachePoiVersion>5.3.0</apachePoiVersion>
-        <commonsIoVersion>2.15.0</commonsIoVersion>
-        <apache.commons.dbcp>2.11.0</apache.commons.dbcp>
-        <easyexcel.version>4.0.2</easyexcel.version>
-    </properties>
+	<properties>
+		<openMRSVersion>2.3.3</openMRSVersion>
+		<htmlformentryVersion>4.4.0</htmlformentryVersion>
+		<apachePoiVersion>5.3.0</apachePoiVersion>
+		<commonsIoVersion>2.15.0</commonsIoVersion>
+		<apache.commons.dbcp>2.11.0</apache.commons.dbcp>
+		<easyexcel.version>4.0.2</easyexcel.version>
+	</properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.openmrs.api</groupId>
-                <artifactId>openmrs-api</artifactId>
-                <version>${openMRSVersion}</version>
-                <type>jar</type>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.openmrs.web</groupId>
-                <artifactId>openmrs-web</artifactId>
-                <version>${openMRSVersion}</version>
-                <type>jar</type>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.openmrs.module</groupId>
-                <artifactId>htmlformentry-api</artifactId>
-                <version>${htmlformentryVersion}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-dbcp2</artifactId>
-                <version>${apache.commons.dbcp}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>jakarta.transaction</groupId>
-                        <artifactId>jakarta.transaction-api</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.openmrs.api</groupId>
+				<artifactId>openmrs-api</artifactId>
+				<version>${openMRSVersion}</version>
+				<type>jar</type>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.openmrs.web</groupId>
+				<artifactId>openmrs-web</artifactId>
+				<version>${openMRSVersion}</version>
+				<type>jar</type>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.openmrs.module</groupId>
+				<artifactId>htmlformentry-api</artifactId>
+				<version>${htmlformentryVersion}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-dbcp2</artifactId>
+				<version>${apache.commons.dbcp}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>jakarta.transaction</groupId>
+						<artifactId>jakarta.transaction-api</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <target>8</target>
-                        <source>8</source>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.openmrs.maven.plugins</groupId>
-                    <artifactId>maven-openmrs-plugin</artifactId>
-                    <version>1.0.1</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<target>8</target>
+						<source>8</source>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.openmrs.maven.plugins</groupId>
+					<artifactId>maven-openmrs-plugin</artifactId>
+					<version>1.0.1</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 
-    <repositories>
-        <repository>
-            <id>openmrs-repo</id>
-            <name>OpenMRS Nexus Repository</name>
-            <url>https://openmrs.jfrog.io/artifactory/public</url>
-        </repository>
-    </repositories>
+	<repositories>
+		<repository>
+			<id>openmrs-repo</id>
+			<name>OpenMRS Nexus Repository</name>
+			<url>https://openmrs.jfrog.io/artifactory/public</url>
+		</repository>
+	</repositories>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>openmrs-repo</id>
-            <name>OpenMRS Nexus Repository</name>
-            <url>https://openmrs.jfrog.io/artifactory/public</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>openmrs-repo</id>
+			<name>OpenMRS Nexus Repository</name>
+			<url>https://openmrs.jfrog.io/artifactory/public</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
 
 </project>
