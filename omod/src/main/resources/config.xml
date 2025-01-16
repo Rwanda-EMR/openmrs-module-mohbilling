@@ -59,6 +59,11 @@
         <class>@MODULE_PACKAGE@.advice.EncounterServiceAdvice</class>
     </advice>
 
+    <advice>
+        <point>org.openmrs.api.OrderService</point>
+        <class>@MODULE_PACKAGE@.advice.OrderServiceAdvice</class>
+    </advice>
+
     <!-- /AOP -->
 
 
