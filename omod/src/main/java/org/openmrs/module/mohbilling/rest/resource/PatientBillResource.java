@@ -21,7 +21,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 
-@Resource(name = RestConstants.VERSION_1 + "/mohbilling/bill",
+@Resource(name = RestConstants.VERSION_1 + "/mohbilling/patientBill",
         supportedClass = PatientBill.class,
         supportedOpenmrsVersions = {"2.0 - 2.*"})
 public class BillingResource extends DelegatingCrudResource<PatientBill> {
