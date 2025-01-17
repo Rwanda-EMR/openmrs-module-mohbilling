@@ -20,6 +20,7 @@
 		<property name="mappings">
 			<props>
 				<prop key="**/billingPortlet.portlet">billingPortletController</prop>
+				<prop key="/ws/rest/v1/mohbilling/*">PatientBillResource</prop>
 				<prop key="module/@MODULE_ID@/insurance.list">mohBillingInsuranceListController</prop>
 				<prop key="module/@MODULE_ID@/insurance.form">mohBillingInsuranceFormController</prop>
 				<prop key="module/@MODULE_ID@/insuranceServiceCategory.list">mohBillingInsuranceServiceCategoryListController</prop>
@@ -287,6 +288,12 @@
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/beforeMigrationmohBillingCashierReportForm</value></property>
 	</bean>
+
+	<!-- Add component scanning -->
+	<context:component-scan base-package="org.openmrs.module.mohbilling" />
+
+	<!-- Register our REST resources -->
+	<bean id="PatientBillResource" class="org.openmrs.module.mohbilling.rest.resource.PatientBillResource" />
 
 	<!-- <bean id="mohBillingProviderReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProviderReportController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingProviderDCPReport</value></property>

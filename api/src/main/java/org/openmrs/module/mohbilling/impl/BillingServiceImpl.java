@@ -37,10 +37,17 @@ public class BillingServiceImpl implements BillingService {
 
     /**
      * @param billingDAO
-     *            the billingDAO to set
+     *                   the billingDAO to set
      */
     public void setBillingDAO(BillingDAO billingDAO) {
         this.billingDAO = billingDAO;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize, String orderBy,
+            String orderDirection) throws DAOException {
+        return billingDAO.getPatientBillsByPagination(startIndex, pageSize, orderBy, orderDirection);
     }
 
     /**
@@ -104,7 +111,7 @@ public class BillingServiceImpl implements BillingService {
     public void saveInsurancePolicy(InsurancePolicy card) {
         if (card.getInsuranceCardNo() == null
                 && !card.getInsurance().getCategory()
-                .equals(InsuranceCategory.NONE.toString())) {
+                        .equals(InsuranceCategory.NONE.toString())) {
             throw new APIException("Insurance Card Number is required");
         } else
             billingDAO.saveInsurancePolicy(card);
@@ -112,13 +119,16 @@ public class BillingServiceImpl implements BillingService {
 
     /**
      * (non-Javadoc)
+     * 
+     * @return
      *
      * @see org.openmrs.module.mohbilling.service.BillingService#savePatientBill(org.openmrs.module.mohbilling.model.PatientBill)
      */
     @Override
-    public void savePatientBill(PatientBill bill) {
+    public PatientBill savePatientBill(PatientBill bill) {
 
         billingDAO.savePatientBill(bill);
+        return bill;
     }
 
     /**
@@ -201,7 +211,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     public Float getPaidAmountPerInsuranceAndPeriod(Insurance insurance,
-                                                    Date startDate, Date endDate) {
+            Date startDate, Date endDate) {
         return billingDAO.getPaidAmountPerInsuranceAndPeriod(insurance,
                 startDate, endDate);
     }
@@ -216,8 +226,8 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     public List<PatientBill> billCohortBuilder(Insurance insurance,
-                                               Date startDate, Date endDate, Integer patientId,
-                                               String serviceName, String billStatus, String billCollector) {
+            Date startDate, Date endDate, Integer patientId,
+            String serviceName, String billStatus, String billCollector) {
         return billingDAO.billCohortBuilder(insurance, startDate, endDate,
                 patientId, serviceName, billStatus, billCollector);
     }
@@ -355,15 +365,15 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     public List<BillPayment> paymentsCohortBuilder(Insurance insurance,
-                                                   Date startDate, Date endDate, Integer patientId,
-                                                   String serviceName, String billStatus, String billCollector) {
+            Date startDate, Date endDate, Integer patientId,
+            String serviceName, String billStatus, String billCollector) {
         return billingDAO.paymentsCohortBuilder(insurance, startDate, endDate,
                 patientId, serviceName, billStatus, billCollector);
     }
 
     @Override
     public ServiceCategory getServiceCategoryByName(String name,
-                                                    Insurance insurance) {
+            Insurance insurance) {
         return billingDAO.getServiceCategoryByName(name, insurance);
     }
 
@@ -379,14 +389,14 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     public Map<String, Double> getRevenueByService(Date receivedDate,
-                                                   String[] serviceCategory, String collector, Insurance insurance) {
+            String[] serviceCategory, String collector, Insurance insurance) {
         return billingDAO.getRevenueByService(receivedDate, serviceCategory,
                 collector, insurance);
     }
 
     @Override
     public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
-                                                        User collector) {
+            User collector) {
         // TODO Auto-generated method stub
         return billingDAO.getPatientBillsByCollector(receivedDate, collector);
     }
@@ -418,7 +428,7 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary,
-                                                   Date startDate, Date endDate) {
+            Date startDate, Date endDate) {
         // TODO Auto-generated method stub
         return billingDAO
                 .getBillsByBeneficiary(beneficiary, startDate, endDate);
@@ -445,7 +455,7 @@ public class BillingServiceImpl implements BillingService {
      */
     @Override
     public Set<PatientBill> getRefundedBills(Date startDate, Date endDate,
-                                             User collector) {
+            User collector) {
         // TODO Auto-generated method stub
         return billingDAO.getRefundedBills(startDate, endDate, collector);
     }
@@ -816,7 +826,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     public Set<Transaction> getTransactions(PatientAccount acc,
-                                            Date startDate, Date endDate, String reason) {
+            Date startDate, Date endDate, String reason) {
         return billingDAO.getTransactions(acc, startDate, endDate, reason);
     }
 
@@ -843,8 +853,12 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getTransactionById(id);
     }
 
-    /* (non-Javadoc)
-     * @see org.openmrs.module.mohbilling.service.BillingService#getServiceByName(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.openmrs.module.mohbilling.service.BillingService#getServiceByName(java.
+     * lang.String)
      */
     @Override
     public HopService getServiceByName(String name) {
@@ -871,8 +885,12 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getBillItemsByGroupedCategories(consommation, services);
     }
 
-    /* (non-Javadoc)
-     * @see org.openmrs.module.mohbilling.service.BillingService#getGlobalBills(java.util.Date, java.util.Date)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.openmrs.module.mohbilling.service.BillingService#getGlobalBills(java.util
+     * .Date, java.util.Date)
      */
     @Override
     public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
@@ -885,7 +903,6 @@ public class BillingServiceImpl implements BillingService {
         // TODO Auto-generated method stub
         return billingDAO.getGlobalBills();
     }
-
 
     @Override
     public List<GlobalBill> getGlobalBills(Date date1, Date date2, Insurance insurance) {
@@ -904,8 +921,11 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getConsommationByGlobalBills(globalBills);
     }
 
-    /* (non-Javadoc)
-     * @see org.openmrs.module.mohbilling.service.BillingService#getAllSubmittedPaymentRefunds()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.openmrs.module.mohbilling.service.BillingService#
+     * getAllSubmittedPaymentRefunds()
      */
     @Override
     public List<PaymentRefund> getAllSubmittedPaymentRefunds() {
@@ -923,15 +943,17 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getPaidServiceBillRefund(paidSviceBillRefundid);
     }
 
-
     @Override
     public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment) {
         return billingDAO.getRefundsByBillPayment(payment);
     }
 
-    /* (non-Javadoc)
-     * @see org.openmrs.module.mohbilling.service.BillingService#getRefundsBetweenDatesAndByCollector(java.util.Date,
-     *  java.util.Date, org.openmrs.User)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.openmrs.module.mohbilling.service.BillingService#
+     * getRefundsBetweenDatesAndByCollector(java.util.Date,
+     * java.util.Date, org.openmrs.User)
      */
     @Override
     public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(
@@ -945,20 +967,25 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getInsurancePolicyByThirdParty(t);
     }
 
-    /* (non-Javadoc)
-     * @see org.openmrs.module.mohbilling.service.BillingService#getConsommations(java.util.Date, java.util.Date, org
-     * .openmrs.module.mohbilling.model.Insurance, org.openmrs.module.mohbilling.model.ThirdParty, org.openmrs.User)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.openmrs.module.mohbilling.service.BillingService#getConsommations(java.
+     * util.Date, java.util.Date, org
+     * .openmrs.module.mohbilling.model.Insurance,
+     * org.openmrs.module.mohbilling.model.ThirdParty, org.openmrs.User)
      */
     @Override
     public List<Consommation> getConsommations(Date startDate, Date endDate,
-                                               Insurance insurance, ThirdParty tp, User billCreator,
-                                               Department department, int limit, int offSet) {
+            Insurance insurance, ThirdParty tp, User billCreator,
+            Department department, int limit, int offSet) {
         return billingDAO.getConsommations(startDate, endDate, insurance, tp, billCreator, department, limit, offSet);
     }
 
     @Override
     public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp,
-                                     User billCreator, Department department) {
+            User billCreator, Department department) {
         return billingDAO.getTotalConsommations(startDate, endDate, insurance, tp, billCreator, department);
     }
 
@@ -978,13 +1005,17 @@ public class BillingServiceImpl implements BillingService {
 
     }
 
-    /* (non-Javadoc)
-     * @see org.openmrs.module.mohbilling.service.BillingService#getTransactions(java.util.Date, java.util.Date, org
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.openmrs.module.mohbilling.service.BillingService#getTransactions(java.
+     * util.Date, java.util.Date, org
      * .openmrs.User, java.lang.String)
      */
     @Override
     public List<Transaction> getTransactions(Date startDate, Date endDate,
-                                             User collector, String type) {
+            User collector, String type) {
         return billingDAO.getTransactions(startDate, endDate, collector, type);
     }
 

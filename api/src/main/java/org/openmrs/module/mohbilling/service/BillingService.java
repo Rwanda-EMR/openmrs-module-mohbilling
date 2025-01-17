@@ -101,8 +101,10 @@ public interface BillingService {
 	 * 
 	 * @throws DAOException
 	 */
-	public void savePatientBill(PatientBill bill) throws DAOException;
+	PatientBill savePatientBill(PatientBill bill) throws DAOException;
 
+	List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
+		String orderBy, String orderDirection) throws DAOException;
 
 
 	/**
