@@ -109,6 +109,30 @@ public class HibernateBillingDAO implements BillingDAO {
                 .uniqueResult();
     }
 
+    @Override
+    public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
+                                                         String orderBy, String orderDirection) throws DAOException {
+
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(PatientBill.class)
+                .setFirstResult(startIndex)
+                .setMaxResults(pageSize);
+
+        // Add ordering
+        if (orderBy != null) {
+            if ("desc".equalsIgnoreCase(orderDirection)) {
+                criteria.addOrder(Order.desc(orderBy));
+            } else {
+                criteria.addOrder(Order.asc(orderBy));
+            }
+        } else {
+            // Default order by createdDate desc
+            criteria.addOrder(Order.desc("createdDate"));
+        }
+
+        return criteria.list();
+    }
+
     /**
      * (non-Javadoc)
      *
