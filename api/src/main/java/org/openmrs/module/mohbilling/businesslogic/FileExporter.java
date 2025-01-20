@@ -1201,6 +1201,26 @@ public class FileExporter {
         head3.setBorder(Rectangle.NO_BORDER);
         heading2Tab.addCell(head3);
 
+        String finalDiagnosisConceptQuestion=Context.getAdministrationService().getGlobalProperty("billing.finalDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill");
+        String differentialDiagnosisConceptQuestion=Context.getAdministrationService().getGlobalProperty("billing.differentialDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill");
+
+        String finalDiagnosis=GlobalBillUtil.getDiagnosisFromAdmissionToDischarge(finalDiagnosisConceptQuestion,gb.getAdmission().getAdmissionDate()+"",gb.getClosingDate()+"",gb.getAdmission().getInsurancePolicy().getOwner().getPatientId());
+        String differentialDiagnosis=GlobalBillUtil.getDiagnosisFromAdmissionToDischarge(differentialDiagnosisConceptQuestion,gb.getAdmission().getAdmissionDate()+"",gb.getClosingDate()+"",gb.getAdmission().getInsurancePolicy().getOwner().getPatientId());
+        head3 = new PdfPCell(fontSelector.process("DIFFERENTIAL DIAGNOSIS: " +differentialDiagnosis ));
+        head3.setBorder(Rectangle.NO_BORDER);
+        heading2Tab.addCell(head3);
+
+        head3 = new PdfPCell(fontSelector.process(""  ));
+        head3.setBorder(Rectangle.NO_BORDER);
+        heading2Tab.addCell(head3);
+
+        head3 = new PdfPCell(fontSelector.process("FINAL DIAGNOSIS: " +finalDiagnosis ));
+        head3.setBorder(Rectangle.NO_BORDER);
+        heading2Tab.addCell(head3);
+
+        head3 = new PdfPCell(fontSelector.process(""  ));
+        head3.setBorder(Rectangle.NO_BORDER);
+        heading2Tab.addCell(head3);
 
         document.add(heading2Tab);
         //end header
