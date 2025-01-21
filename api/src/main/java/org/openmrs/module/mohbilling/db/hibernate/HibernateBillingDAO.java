@@ -15,10 +15,7 @@ package org.openmrs.module.mohbilling.db.hibernate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
-import org.hibernate.SQLQuery;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.*;
 import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
@@ -32,6 +29,7 @@ import org.openmrs.module.mohbilling.businesslogic.*;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.db.ConnectionPoolManager;
 import org.openmrs.module.mohbilling.model.*;
+import org.openmrs.module.mohbilling.model.Transaction;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 import java.math.BigDecimal;
@@ -1794,6 +1792,18 @@ public class HibernateBillingDAO implements BillingDAO {
         return (FacilityServicePrice) sessionFactory.getCurrentSession()
                 .createCriteria(FacilityServicePrice.class)
                 .add(Restrictions.eq("name", name)).add(Restrictions.eq("retired", false)).uniqueResult();
+    }
+
+    @Override
+    public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid) {
+        StringBuilder queryString = new StringBuilder("");
+       queryString.append("select group_concat((select name from concept_name where concept_id=value_coded limit 1)) as Diagnosis from obs where concept_id in ("+primaryAndSecondaryDiagnosis+") and obs_datetime>= '"+startDate+"' and obs_datetime<= '"+endDate+"' and person_id="+patientid+" and voided=0 group by person_id");
+       Query query = sessionFactory.getCurrentSession().createSQLQuery(queryString.toString());
+        List<String> Diagnosis = query.list();
+        if (Diagnosis.size() >= 0 && Diagnosis.get(0)!=null){
+            return Diagnosis.get(0);
+    }
+    return "";
     }
 
 }

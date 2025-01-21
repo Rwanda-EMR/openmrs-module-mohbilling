@@ -79,5 +79,7 @@ public class GlobalBillUtil {
 		return getService().getGlobalBillByBillIdentifier(billIdentifier);
 	}
 
-
+	public static String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid) {
+return getService().getDiagnosisFromAdmissionToDischarge(primaryAndSecondaryDiagnosis, startDate, endDate, patientid);
+	}
 }
