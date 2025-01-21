@@ -1471,16 +1471,15 @@ public class HibernateBillingDAO implements BillingDAO {
             reportItem.setGlobalBillIdentifier(resultSet.getString(16));
 
             // Services
-            reportItem.setMedicament(getDouble(resultSet, 17));
-            reportItem.setConsultation(getDouble(resultSet, 18));
+            reportItem.setConsultation(getDouble(resultSet, 17));
+            reportItem.setLaboratoire(getDouble(resultSet, 18));
             reportItem.setHospitalisation(getDouble(resultSet, 19));
-            reportItem.setLaboratoire(getDouble(resultSet, 20));
+            reportItem.setConsommables(getDouble(resultSet, 20));
             reportItem.setFormaliteAdministratives(getDouble(resultSet, 21));
             reportItem.setAmbulance(getDouble(resultSet, 22));
-            reportItem.setConsommables(getDouble(resultSet, 23));
-            reportItem.setOxygenotherapie(getDouble(resultSet, 24));
-            reportItem.setImaging(getDouble(resultSet, 25));
-            reportItem.setProced(getDouble(resultSet, 26));
+            reportItem.setMedicament(getDouble(resultSet, 23));
+            reportItem.setImaging(getDouble(resultSet, 24));
+            reportItem.setProced(getDouble(resultSet, 25));
 
             calculateAndSetTotals(reportItem, insuranceIdentifier);
             addItemToReport(reportItem, report, insuranceIdentifier);
@@ -1508,7 +1507,7 @@ public class HibernateBillingDAO implements BillingDAO {
         double total = reportItem.getMedicament() + reportItem.getConsultation() + reportItem.getHospitalisation() +
                 reportItem.getLaboratoire() + reportItem.getFormaliteAdministratives() +
                 reportItem.getAmbulance() + reportItem.getConsommables() +
-                reportItem.getOxygenotherapie() + reportItem.getImaging() + reportItem.getProced();
+                reportItem.getImaging() + reportItem.getProced();
 
         double insuranceFirmRate = getInsuranceFirmRate(insuranceIdentifier);
         double totalInsuranceFirm = (insuranceFirmRate / 100) * total;
@@ -1527,7 +1526,6 @@ public class HibernateBillingDAO implements BillingDAO {
         report.addServiceRevenue("FORMALITES ADMINISTRATIVES", BigDecimal.valueOf(reportItem.getFormaliteAdministratives()));
         report.addServiceRevenue("AMBULANCE", BigDecimal.valueOf(reportItem.getAmbulance()));
         report.addServiceRevenue("CONSOMMABLES", BigDecimal.valueOf(reportItem.getConsommables()));
-        report.addServiceRevenue("OXYGENOTHERAPIE", BigDecimal.valueOf(reportItem.getOxygenotherapie()));
         report.addServiceRevenue("IMAGING", BigDecimal.valueOf(reportItem.getImaging()));
         report.addServiceRevenue("PROCED.", BigDecimal.valueOf(reportItem.getProced()));
         report.addServiceRevenue("100%", BigDecimal.valueOf(reportItem.getTotal100()));
