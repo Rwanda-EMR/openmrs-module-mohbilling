@@ -52,6 +52,8 @@ public class GlobalBill {
 
 	private User editedBy;
 
+	private String uuid;
+
 	public String getClosingReason() {
 		return closingReason;
 	}
@@ -300,7 +302,13 @@ public class GlobalBill {
 		}
 	}
 
+	public String getUuid() {
+		return uuid;
+	}
 
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
 
 
 }

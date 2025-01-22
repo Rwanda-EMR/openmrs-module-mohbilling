@@ -34,6 +34,7 @@ public class PatientBill {
 	private boolean paymentConfirmed;
 	private User paymentConfirmedBy;
 	private Date paymentConfirmedDate;
+	private String uuid;
 
 	/**
 	 * @return the patientBillId
@@ -348,4 +349,9 @@ public class PatientBill {
 	public void setPaymentConfirmedDate(Date paymentConfirmedDate) {
 		this.paymentConfirmedDate = paymentConfirmedDate;
 	}
+
+	public String getUuid() { return uuid; }
+
+	public void setUuid(String uuid) { this.uuid = uuid; }
+
 }

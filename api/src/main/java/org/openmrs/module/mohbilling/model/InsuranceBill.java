@@ -30,6 +30,8 @@ public class InsuranceBill {
 	
 	private String voidReason;
 
+	private String uuid;
+
 	/**
 	 * @return the insuranceBillId
 	 */
@@ -141,5 +143,9 @@ public class InsuranceBill {
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
 	}
+
+	public String getUuid() { return uuid; }
+
+	public void setUuid(String uuid) { this.uuid = uuid; }
 
 }
