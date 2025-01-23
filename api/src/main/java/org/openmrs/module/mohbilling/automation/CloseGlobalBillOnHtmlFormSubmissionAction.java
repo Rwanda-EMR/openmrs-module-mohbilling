@@ -46,13 +46,13 @@ if(currentInsurance.size()>=1)
 
         List<Obs> obs = session.getSubmissionActions().getObsToCreate();
 
-        for (Obs o : obs) {
+  /*      for (Obs o : obs) {
             if (o.getConcept().getUuid().equals("61f48c84-714d-42b3-805c-15645370deb8")) {
                 closingDate=o.getValueDate();
             }
 
-        }
-        openGb.setClosingDate(closingDate);
+        }*/
+        openGb.setClosingDate(new Date());
         openGb.setClosed(true);
         openGb.setClosedBy(Context.getAuthenticatedUser());
         openGb = GlobalBillUtil.saveGlobalBill(openGb);
@@ -62,7 +62,7 @@ if(currentInsurance.size()>=1)
             if (insp.getInsurance().getCategory().equals("NONE")) {
                 GlobalBill noneOpenedGB= Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(insp.getInsuranceCardNo());
                 if (noneOpenedGB!=null){
-                    noneOpenedGB.setClosingDate(closingDate);
+                    noneOpenedGB.setClosingDate(new Date());
                     noneOpenedGB.setClosed(true);
                     noneOpenedGB.setClosedBy(Context.getAuthenticatedUser());
                     noneOpenedGB = GlobalBillUtil.saveGlobalBill(noneOpenedGB);
