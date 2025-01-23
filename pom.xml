@@ -42,6 +42,7 @@
 		<commonsIoVersion>2.15.0</commonsIoVersion>
 		<apache.commons.dbcp>2.11.0</apache.commons.dbcp>
 		<easyexcel.version>4.0.2</easyexcel.version>
+		<webservicesRestVersion>2.32.0</webservicesRestVersion>
 	</properties>
 
 	<dependencyManagement>
