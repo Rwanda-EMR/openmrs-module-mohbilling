@@ -1,6 +1,7 @@
 package org.openmrs.module.mohbilling.rest.resource;
 
 import java.util.List;
+import java.math.BigDecimal;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.PatientBill;
@@ -19,6 +20,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResou
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
+import org.openmrs.module.webservices.rest.web.response.ConversionException;
 
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/patientBill",
@@ -165,5 +168,24 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
         );
 
         return new NeedsPaging<PatientBill>(bills, context);
+    }
+
+    @PropertySetter("amount")
+    public void setAmount(PatientBill instance, Object value) {
+        try {
+            if (value == null) {
+                instance.setAmount(null);
+            } else if (value instanceof BigDecimal) {
+                instance.setAmount((BigDecimal) value);
+            } else if (value instanceof Number) {
+                instance.setAmount(new BigDecimal(value.toString()));
+            } else if (value instanceof String) {
+                instance.setAmount(new BigDecimal((String) value));
+            } else {
+                throw new ConversionException("Unable to convert " + value.getClass() + " to BigDecimal");
+            }
+        } catch (Exception e) {
+            throw new ConversionException("Unable to convert " + value + " to BigDecimal: " + e.getMessage());
+        }
     }
 }

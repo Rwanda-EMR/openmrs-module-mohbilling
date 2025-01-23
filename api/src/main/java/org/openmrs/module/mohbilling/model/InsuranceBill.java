@@ -29,7 +29,6 @@ public class InsuranceBill {
 	private Date voidedDate;
 	
 	private String voidReason;
-
 	/**
 	 * @return the insuranceBillId
 	 */
@@ -141,5 +140,4 @@ public class InsuranceBill {
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
 	}
-
 }
