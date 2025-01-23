@@ -1800,10 +1800,11 @@ public class HibernateBillingDAO implements BillingDAO {
        queryString.append("select group_concat((select name from concept_name where concept_id=value_coded limit 1)) as Diagnosis from obs where concept_id in ("+primaryAndSecondaryDiagnosis+") and obs_datetime>= '"+startDate+"' and obs_datetime<= '"+endDate+"' and person_id="+patientid+" and voided=0 group by person_id");
        Query query = sessionFactory.getCurrentSession().createSQLQuery(queryString.toString());
         List<String> Diagnosis = query.list();
-        if (Diagnosis.size() >= 0 && Diagnosis.get(0)!=null){
+        if(Diagnosis.size()==0){
+            return "";
+        }else {
             return Diagnosis.get(0);
-    }
-    return "";
+        }
     }
 
 }
