@@ -29,9 +29,6 @@ private Integer thirdPartyBillId;
 	private Date voidedDate;
 
 	private String voidReason;
-
-    private String uuid;
-
     /**
 	 * @return the thirdPartyBillId
 	 */
@@ -143,13 +140,5 @@ private Integer thirdPartyBillId;
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
 	}
-
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
 
 }
