@@ -65,6 +65,7 @@ public class PatientServiceBillResource extends DelegatingCrudResource<PatientSe
         if (representation instanceof RefRepresentation) {
             description = new DelegatingResourceDescription();
             description.addProperty("serviceDate");
+            description.addProperty("hopService", Representation.REF);
             description.addProperty("unitPrice");
             description.addProperty("quantity");
             description.addProperty("paidQuantity");
@@ -77,6 +78,7 @@ public class PatientServiceBillResource extends DelegatingCrudResource<PatientSe
         } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
             description = new DelegatingResourceDescription();
             description.addProperty("serviceDate");
+            description.addProperty("hopService");
             description.addProperty("unitPrice");
             description.addProperty("quantity");
             description.addProperty("paidQuantity");

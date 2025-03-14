@@ -19,6 +19,7 @@ import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -733,4 +734,7 @@ public interface BillingDAO {
 
 	public FacilityServicePrice getFacilityServiceByName(String name);
 
+	Map<String, BigDecimal> getGlobalBillsSummary();
+
+	List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill);
 }

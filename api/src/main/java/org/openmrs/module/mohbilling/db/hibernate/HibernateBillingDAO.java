@@ -1924,4 +1924,31 @@ public class HibernateBillingDAO implements BillingDAO {
                 .add(Restrictions.eq("name", name)).add(Restrictions.eq("retired", false)).uniqueResult();
     }
 
+    @Override
+    public Map<String, BigDecimal> getGlobalBillsSummary() {
+        Session session = sessionFactory.getCurrentSession();
+        String query = "SELECT SUM(global_amount) FROM moh_bill_global_bill";
+
+        Map<String, BigDecimal> summary = new HashMap<>();
+        BigDecimal amount = (BigDecimal) session.createSQLQuery(query).uniqueResult();
+        summary.put("total", amount);
+
+        String q = query.concat(" WHERE closed = TRUE");
+        amount = (BigDecimal) session.createSQLQuery(q).uniqueResult();
+        summary.put("closed", amount);
+
+        q = query.concat(" WHERE closed = FALSE");
+        amount = (BigDecimal) session.createSQLQuery(q).uniqueResult();
+        summary.put("open", amount);
+
+        return summary;
+    }
+
+    @Override
+    public List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill) {
+        return sessionFactory
+                .getCurrentSession()
+                .createCriteria(BillPayment.class)
+                .add(Restrictions.eq("patientBill", patientBill)).list();
+    }
 }

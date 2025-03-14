@@ -13,6 +13,7 @@ package org.openmrs.module.mohbilling.rest.resource;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
@@ -112,13 +113,24 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
     protected PageableResult doSearch(RequestContext context) {
         String ipCardNumber = context.getRequest().getParameter("ipCardNumber");
         String billIdentifier = context.getRequest().getParameter("billIdentifier");
+        String patientUuid = context.getRequest().getParameter("patient");
         List<GlobalBill> globalBills = new ArrayList<>();
+
+        if (patientUuid != null) {
+            Patient patient = Context.getPatientService().getPatientByUuid(patientUuid);
+            List<InsurancePolicy> insurancePolicies = InsurancePolicyUtil.getInsurancePoliciesByPatient(patient);
+            for (InsurancePolicy insurancePolicy : insurancePolicies) {
+                globalBills.addAll(GlobalBillUtil.getGlobalBillsByInsurancePolicy(insurancePolicy));
+            }
+            return new NeedsPaging<>(globalBills, context);
+        }
 
         if (ipCardNumber != null) {
             Beneficiary ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(ipCardNumber);
             InsurancePolicy ip = InsurancePolicyUtil.getInsurancePolicyByBeneficiary(ben);
             globalBills = GlobalBillUtil.getGlobalBillsByInsurancePolicy(ip);
         }
+
         if (billIdentifier != null) {
             GlobalBill globalBill = GlobalBillUtil.getGlobalBillByBillIdentifier(billIdentifier);
             globalBills.add(globalBill);

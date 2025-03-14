@@ -9,11 +9,14 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import java.math.BigDecimal;
+
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -77,5 +80,10 @@ public class PaidServiceBillResource extends DelegatingCrudResource<PaidServiceB
         }
 
         return description;
+    }
+
+    @PropertySetter("paidQty")
+    public static void setPaidQty(PaidServiceBill paidServiceBill, Object value) {
+        paidServiceBill.setPaidQty(new BigDecimal((Integer) value));
     }
 }

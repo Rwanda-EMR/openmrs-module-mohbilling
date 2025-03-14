@@ -13,6 +13,8 @@ import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -1037,5 +1039,15 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate) {
         return billingDAO.getBillItemsByCategoryFromMamba(insuranceId, startDate, endDate);
+    }
+
+    @Override
+    public Map<String, BigDecimal> getGlobalBillsSummary() {
+        return billingDAO.getGlobalBillsSummary();
+    }
+
+    @Override
+    public List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill) {
+        return billingDAO.getBillPaymentsByPatientBill(patientBill);
     }
 }

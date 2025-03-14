@@ -15,7 +15,7 @@
 		<property name="moduleService">
 			<list>
 				<value>org.openmrs.module.mohbilling.service.BillingService</value>
-				<bean
+				<bean id="billingService"
 					class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
 					<property name="transactionManager">
 						<ref bean="transactionManager" />

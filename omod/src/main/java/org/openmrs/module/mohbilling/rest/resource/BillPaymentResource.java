@@ -9,18 +9,26 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
+import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
@@ -50,13 +58,37 @@ public class BillPaymentResource extends DelegatingCrudResource<BillPayment> {
 
     @Override
     public BillPayment save(BillPayment billPayment) {
+        if (billPayment.getCreator() == null) {
+            billPayment.setCreator(Context.getAuthenticatedUser());
+        }
         Context.getService(BillingService.class).saveBillPayment(billPayment);
+
+        PatientBill patientBill = billPayment.getPatientBill();
+        BigDecimal patientBillAmount = patientBill.getAmount();
+
+        if (patientBillAmount.compareTo(patientBill.getAmountPaid()) == 0 ||
+                patientBillAmount.compareTo(billPayment.getAmountPaid()) == 0) {
+            patientBill.setIsPaid(true);
+            Context.getService(BillingService.class).savePatientBill(patientBill);
+        }
+
         return billPayment;
     }
 
     @Override
     public void purge(BillPayment billPayment, RequestContext requestContext) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("amountPaid");
+        description.addRequiredProperty("patientBill");
+        description.addProperty("dateReceived");
+        description.addProperty("collector");
+        description.addProperty("paidItems");
+        return description;
     }
 
     @Override
@@ -83,5 +115,26 @@ public class BillPaymentResource extends DelegatingCrudResource<BillPayment> {
         }
 
         return description;
+    }
+
+    @PropertySetter("amountPaid")
+    public static void setAmountPaid(BillPayment billPayment, Object value) {
+        billPayment.setAmountPaid(BigDecimal.valueOf((Double) value));
+    }
+
+    @Override
+    protected PageableResult doSearch(RequestContext context) {
+        String patientBill = context.getRequest().getParameter("patientBill");
+        List<BillPayment> billPayments = new ArrayList<>();
+        if (patientBill != null) {
+            PatientBill pBill = Context.getService(BillingService.class).getPatientBill(Integer.parseInt(patientBill));
+            billPayments = Context.getService(BillingService.class).getBillPaymentsByPatientBill(pBill);
+        }
+        return new NeedsPaging<>(billPayments, context);
+    }
+
+    @Override
+    protected PageableResult doGetAll(RequestContext context) throws ResponseException {
+        return new NeedsPaging<>(Context.getService(BillingService.class).getAllBillPayments(), context);
     }
 }

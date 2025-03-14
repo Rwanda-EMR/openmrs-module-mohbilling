@@ -9,7 +9,12 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -60,6 +65,7 @@ public class HopServiceResource extends DelegatingCrudResource<HopService> {
         throw new ResourceDoesNotSupportOperationException();
     }
 
+
     @Override
     public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
         DelegatingResourceDescription description = null;
@@ -84,6 +90,18 @@ public class HopServiceResource extends DelegatingCrudResource<HopService> {
         }
 
         return description;
+    }
+
+    @Override
+    protected PageableResult doSearch(RequestContext context) {
+        String department = context.getRequest().getParameter("department");
+        List<HopService> hopServices = new ArrayList<>();
+        if (department != null) {
+            Department d = Context.getService(BillingService.class).getDepartement(Integer.parseInt(department));
+            hopServices = Context.getService(BillingService.class).getAllHopService().stream().filter(hopService ->
+                    hopService.getDepartment() != null && hopService.getDepartment().equals(d)).collect(Collectors.toList());
+        }
+        return new NeedsPaging<>(hopServices, context);
     }
 
     @Override

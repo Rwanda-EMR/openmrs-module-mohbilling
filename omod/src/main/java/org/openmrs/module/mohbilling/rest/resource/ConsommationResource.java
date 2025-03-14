@@ -85,7 +85,7 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
             description = new DelegatingResourceDescription();
             description.addProperty("consommationId");
             description.addProperty("department", Representation.REF);
-            description.addProperty("billItems", Representation.REF);
+            description.addProperty("billItems");
             description.addProperty("patientBill", Representation.REF);
             description.addProperty("insuranceBill", Representation.REF);
             description.addProperty("thirdPartyBill", Representation.REF);
