@@ -1,14 +1,15 @@
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.util.List;
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingProcessingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
-import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -19,9 +20,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
-import org.openmrs.module.webservices.rest.web.response.ResponseException;
-import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
+import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/patientBill",
@@ -40,8 +40,14 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
     }
 
     @Override
-    public PatientBill save(PatientBill delegate) {
-        return Context.getService(BillingProcessingService.class).savePatientBill(delegate);
+    public PatientBill save(PatientBill patientBill) {
+        if (patientBill.getCreator() == null) {
+            patientBill.setCreator(Context.getAuthenticatedUser());
+        }
+        if (patientBill.getCreatedDate() == null) {
+            patientBill.setCreatedDate(new Date());
+        }
+        return Context.getService(BillingProcessingService.class).savePatientBill(patientBill);
     }
 
     @Override

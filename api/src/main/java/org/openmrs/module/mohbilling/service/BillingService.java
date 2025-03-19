@@ -699,4 +699,6 @@ public interface BillingService {
 	Map<String, BigDecimal> getGlobalBillsSummary();
 
 	List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill);
+
+	Beneficiary getBeneficiary(Integer beneficiaryId);
 }

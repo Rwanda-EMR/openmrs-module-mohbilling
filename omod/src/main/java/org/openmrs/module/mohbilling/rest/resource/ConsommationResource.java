@@ -10,16 +10,20 @@
 package org.openmrs.module.mohbilling.rest.resource;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -59,6 +63,13 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
 
     @Override
     public Consommation save(Consommation consommation) {
+        if (consommation.getCreator() == null) {
+            consommation.setCreator(Context.getAuthenticatedUser());
+        }
+        if (consommation.getCreatedDate() == null) {
+            consommation.setCreatedDate(new Date());
+        }
+
         Context.getService(BillingService.class).saveConsommation(consommation);
         return consommation;
     }
@@ -66,6 +77,17 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
     @Override
     public void purge(Consommation consommation, RequestContext requestContext) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("department");
+        description.addRequiredProperty("beneficiary");
+        description.addRequiredProperty("globalBill");
+        description.addRequiredProperty("patientBill");
+        description.addProperty("billItems");
+        return description;
     }
 
     @Override
@@ -107,5 +129,10 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
             consommations = ConsommationUtil.getConsommationsByGlobalBill(globalBill);
         }
         return new NeedsPaging<>(consommations, context);
+    }
+
+    @PropertySetter("billItems")
+    public void setBillItems(Consommation consommation, Set<PatientServiceBill> billItems) {
+        billItems.stream().forEach(billItem -> consommation.addBillItem(billItem));
     }
 }

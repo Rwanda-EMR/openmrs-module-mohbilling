@@ -9,11 +9,17 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import java.math.BigDecimal;
+import java.util.Date;
+
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -59,12 +65,25 @@ public class PatientServiceBillResource extends DelegatingCrudResource<PatientSe
     }
 
     @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addProperty("serviceDate");
+        description.addProperty("service");
+        description.addProperty("hopService");
+        description.addProperty("unitPrice");
+        description.addProperty("quantity");
+        description.addProperty("paidQuantity");
+        return description;
+    }
+
+    @Override
     public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
         DelegatingResourceDescription description = null;
 
         if (representation instanceof RefRepresentation) {
             description = new DelegatingResourceDescription();
             description.addProperty("serviceDate");
+            description.addProperty("service", Representation.REF);
             description.addProperty("hopService", Representation.REF);
             description.addProperty("unitPrice");
             description.addProperty("quantity");
@@ -78,6 +97,7 @@ public class PatientServiceBillResource extends DelegatingCrudResource<PatientSe
         } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
             description = new DelegatingResourceDescription();
             description.addProperty("serviceDate");
+            description.addProperty("service");
             description.addProperty("hopService");
             description.addProperty("unitPrice");
             description.addProperty("quantity");
@@ -94,5 +114,20 @@ public class PatientServiceBillResource extends DelegatingCrudResource<PatientSe
         }
 
         return description;
+    }
+
+    @PropertySetter("unitPrice")
+    public static void setUnitPrice(PatientServiceBill patientServiceBill, Object value) {
+        patientServiceBill.setUnitPrice(BigDecimal.valueOf((Double) value));
+    }
+
+    @PropertySetter("quantity")
+    public static void setQuantity(PatientServiceBill patientServiceBill, Object value) {
+        patientServiceBill.setQuantity(BigDecimal.valueOf((Integer) value));
+    }
+
+    @PropertySetter("paidQuantity")
+    public static void setPaidQuantity(PatientServiceBill patientServiceBill, Object value) {
+        patientServiceBill.setPaidQuantity(BigDecimal.valueOf((Integer) value));
     }
 }

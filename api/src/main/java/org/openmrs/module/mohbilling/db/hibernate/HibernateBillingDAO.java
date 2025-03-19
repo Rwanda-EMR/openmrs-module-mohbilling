@@ -79,7 +79,8 @@ public class HibernateBillingDAO implements BillingDAO {
                 Insurance.class, insuranceId);
     }
 
-    private Beneficiary getBeneficiary(Integer beneficiaryId) {
+    @Override
+    public Beneficiary getBeneficiary(Integer beneficiaryId) {
         return (Beneficiary) sessionFactory.getCurrentSession().get(
                 Beneficiary.class, beneficiaryId);
     }

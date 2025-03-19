@@ -1050,4 +1050,9 @@ public class BillingServiceImpl implements BillingService {
     public List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill) {
         return billingDAO.getBillPaymentsByPatientBill(patientBill);
     }
+
+    @Override
+    public Beneficiary getBeneficiary(Integer beneficiaryId) {
+        return billingDAO.getBeneficiary(beneficiaryId);
+    }
 }

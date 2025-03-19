@@ -9,14 +9,11 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.math.BigDecimal;
-
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
-import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -27,66 +24,62 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
-@Resource(name = RestConstants.VERSION_1 + "/mohbilling/paidServiceBill",
-        supportedClass = PaidServiceBill.class,
+@Resource(name = RestConstants.VERSION_1 + "/mohbilling/billableService",
+        supportedClass = BillableService.class,
         supportedOpenmrsVersions = {"2.0 - 2.*"})
-public class PaidServiceBillResource extends DelegatingCrudResource<PaidServiceBill> {
+public class BillableServiceResource extends DelegatingCrudResource<BillableService> {
     @Override
-    protected String getUniqueId(PaidServiceBill delegate) {
-        return String.valueOf(delegate.getPaidServiceBillId());
+    protected String getUniqueId(BillableService delegate) {
+        return String.valueOf(delegate.getServiceId());
     }
 
     @Override
-    public PaidServiceBill getByUniqueId(String s) {
-        return Context.getService(BillingService.class).getPaidServiceBill(Integer.valueOf(s));
+    public BillableService getByUniqueId(String s) {
+        return Context.getService(BillingService.class).getBillableService(Integer.parseInt(s));
     }
 
     @Override
-    protected void delete(PaidServiceBill paidServiceBill, String s, RequestContext requestContext) throws ResponseException {
+    protected void delete(BillableService billableService, String s, RequestContext requestContext) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
     }
 
     @Override
-    public PaidServiceBill newDelegate() {
-        return new PaidServiceBill();
+    public BillableService newDelegate() {
+        return new BillableService();
     }
 
     @Override
-    public PaidServiceBill save(PaidServiceBill paidServiceBill) {
-        if (paidServiceBill.getCreator() == null) {
-            paidServiceBill.setCreator(Context.getAuthenticatedUser());
-        }
-        Context.getService(BillingService.class).savePaidServiceBill(paidServiceBill);
-        return paidServiceBill;
+    public BillableService save(BillableService billableService) {
+        throw new ResourceDoesNotSupportOperationException();
     }
 
     @Override
-    public void purge(PaidServiceBill paidServiceBill, RequestContext requestContext) throws ResponseException {
+    public void purge(BillableService billableService, RequestContext requestContext) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
     }
 
     @Override
     public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
         DelegatingResourceDescription description = null;
-
         if (representation instanceof RefRepresentation) {
             description = new DelegatingResourceDescription();
-            description.addProperty("paidQty");
-            description.addSelfLink();
+            description.addProperty("insurance", Representation.REF);
+            description.addProperty("maximaToPay");
+            description.addProperty("facilityServicePrice", Representation.REF);
+            description.addProperty("startDate");
+            description.addProperty("endDate");
         } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
             description = new DelegatingResourceDescription();
-            description.addProperty("paidQty");
-            description.addSelfLink();
+            description.addProperty("insurance");
+            description.addProperty("maximaToPay");
+            description.addProperty("facilityServicePrice");
+            description.addProperty("startDate");
+            description.addProperty("endDate");
             if (representation instanceof DefaultRepresentation) {
                 description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
             }
         }
 
         return description;
-    }
-
-    @PropertySetter("paidQty")
-    public static void setPaidQty(PaidServiceBill paidServiceBill, Object value) {
-        paidServiceBill.setPaidQty(new BigDecimal((Integer) value));
     }
 }
