@@ -13,7 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
+import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
+import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -29,37 +34,37 @@ import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
-@Resource(name = RestConstants.VERSION_1 + "/mohbilling/billableService",
-        supportedClass = BillableService.class,
+@Resource(name = RestConstants.VERSION_1 + "/mohbilling/serviceCategory",
+        supportedClass = ServiceCategory.class,
         supportedOpenmrsVersions = {"2.0 - 2.*"})
-public class BillableServiceResource extends DelegatingCrudResource<BillableService> {
+public class ServiceCategoryResource extends DelegatingCrudResource<ServiceCategory> {
     @Override
-    protected String getUniqueId(BillableService delegate) {
-        return String.valueOf(delegate.getServiceId());
+    protected String getUniqueId(ServiceCategory delegate) {
+        return String.valueOf(delegate.getServiceCategoryId());
     }
 
     @Override
-    public BillableService getByUniqueId(String s) {
-        return Context.getService(BillingService.class).getBillableService(Integer.parseInt(s));
+    public ServiceCategory getByUniqueId(String s) {
+        return Context.getService(BillingService.class).getServiceCategory(Integer.valueOf(s));
     }
 
     @Override
-    protected void delete(BillableService billableService, String s, RequestContext requestContext) throws ResponseException {
+    protected void delete(ServiceCategory serviceCategory, String s, RequestContext requestContext) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
     }
 
     @Override
-    public BillableService newDelegate() {
-        return new BillableService();
+    public ServiceCategory newDelegate() {
+        return new ServiceCategory();
     }
 
     @Override
-    public BillableService save(BillableService billableService) {
+    public ServiceCategory save(ServiceCategory serviceCategory) {
         throw new ResourceDoesNotSupportOperationException();
     }
 
     @Override
-    public void purge(BillableService billableService, RequestContext requestContext) throws ResponseException {
+    public void purge(ServiceCategory serviceCategory, RequestContext requestContext) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
     }
 
@@ -68,39 +73,54 @@ public class BillableServiceResource extends DelegatingCrudResource<BillableServ
         DelegatingResourceDescription description = null;
         if (representation instanceof RefRepresentation) {
             description = new DelegatingResourceDescription();
-            description.addProperty("insurance", Representation.REF);
-            description.addProperty("maximaToPay");
-            description.addProperty("facilityServicePrice", Representation.REF);
-            description.addProperty("startDate");
-            description.addProperty("endDate");
+            description.addProperty("serviceCategoryId");
+            description.addProperty("name");
+            description.addProperty("department", Representation.REF);
+            description.addProperty("hopService", Representation.REF);
+            description.addProperty("description");
+            description.addProperty("price");
+            description.addSelfLink();
         } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
             description = new DelegatingResourceDescription();
-            description.addProperty("insurance");
-            description.addProperty("maximaToPay");
-            description.addProperty("facilityServicePrice");
-            description.addProperty("startDate");
-            description.addProperty("endDate");
+            description.addProperty("serviceCategoryId");
+            description.addProperty("name");
+            description.addProperty("department");
+            description.addProperty("hopService");
+            description.addProperty("description");
+            description.addProperty("price");
+            description.addSelfLink();
             if (representation instanceof DefaultRepresentation) {
                 description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
             }
         }
-
         return description;
     }
 
     @Override
     protected PageableResult doSearch(RequestContext context) {
-        String serviceCategoryId = context.getRequest().getParameter("serviceCategoryId");
-        List<BillableService> billableServices = new ArrayList<>();
-        if (serviceCategoryId != null) {
-            billableServices = Context.getService(BillingService.class).getBillableServiceByCategory(
-                    Context.getService(BillingService.class).getServiceCategory(Integer.parseInt(serviceCategoryId)));
+        String departmentId = context.getRequest().getParameter("departmentId");
+        String ipCardNumber = context.getRequest().getParameter("ipCardNumber");
+
+        Department department = null;
+        if (departmentId != null) {
+            department = DepartementUtil.getDepartement(Integer.valueOf(departmentId));
         }
-        return new NeedsPaging<>(billableServices, context);
+
+        Beneficiary ben = null;
+        if (ipCardNumber != null) {
+            ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(ipCardNumber);
+        }
+
+        List<ServiceCategory> categories = new ArrayList<>();
+        if (department != null && ben != null) {
+            categories.addAll(HopServiceUtil.getServiceCategoryByInsurancePolicyDepartment(ben.getInsurancePolicy(), department));
+        }
+
+        return new NeedsPaging<>(categories, context);
     }
 
     @Override
     protected PageableResult doGetAll(RequestContext context) throws ResponseException {
-        return new NeedsPaging<>(Context.getService(BillingService.class).getAllBillableServices(), context);
+        return new NeedsPaging<>(Context.getService(BillingService.class).getAllServiceCategories(), context);
     }
 }
