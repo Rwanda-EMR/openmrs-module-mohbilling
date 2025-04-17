@@ -1,14 +1,15 @@
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingProcessingService;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
@@ -19,15 +20,19 @@ import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
-import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/patientBill",
         supportedClass = PatientBill.class,
         supportedOpenmrsVersions = {"2.0 - 2.*"})
 public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
+
+    private static final Log log = LogFactory.getLog(PatientBillResource.class);
 
     @Override
     public PatientBill getByUniqueId(String uniqueId) {
@@ -66,6 +71,87 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
         return String.valueOf(delegate.getPatientBillId());
     }
 
+    /**
+     * Property getter for creator name
+     */
+    @PropertyGetter("creator")
+    public String getCreator(PatientBill bill) {
+        if (bill.getCreator() != null && bill.getCreator().getPerson() != null) {
+            return bill.getCreator().getPerson().getPersonName().getFullName();
+        }
+        return "--";
+    }
+
+    /**
+     * Property getter for policyIdNumber
+     */
+    @PropertyGetter("policyIdNumber")
+    public String getPolicyIdNumber(PatientBill bill) {
+        try {
+            Consommation cons = Context.getService(BillingService.class).getConsommationByPatientBill(bill);
+            if (cons != null && cons.getBeneficiary() != null) {
+                return cons.getBeneficiary().getPolicyIdNumber();
+            }
+        } catch (Exception e) {
+            log.error("Error getting policyIdNumber", e);
+        }
+        return "--";
+    }
+
+    /**
+     * Property getter for beneficiaryName
+     */
+    @PropertyGetter("beneficiaryName")
+    public String getBeneficiaryName(PatientBill bill) {
+        try {
+            Consommation cons = Context.getService(BillingService.class).getConsommationByPatientBill(bill);
+            if (cons != null && cons.getBeneficiary() != null) {
+                if (cons.getBeneficiary().getPatient() != null) {
+                    return cons.getBeneficiary().getPatient().getPersonName().getFullName();
+                } else if (cons.getBeneficiary().getOwnerName() != null) {
+                    return cons.getBeneficiary().getOwnerName();
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error getting beneficiaryName", e);
+        }
+        return "--";
+    }
+
+    /**
+     * Property getter for insuranceName
+     */
+    @PropertyGetter("insuranceName")
+    public String getInsuranceName(PatientBill bill) {
+        try {
+            Consommation cons = Context.getService(BillingService.class).getConsommationByPatientBill(bill);
+            if (cons != null && cons.getBeneficiary() != null &&
+                    cons.getBeneficiary().getInsurancePolicy() != null &&
+                    cons.getBeneficiary().getInsurancePolicy().getInsurance() != null) {
+                return cons.getBeneficiary().getInsurancePolicy().getInsurance().getName();
+            }
+        } catch (Exception e) {
+            log.error("Error getting insuranceName", e);
+        }
+        return "--";
+    }
+
+    /**
+     * Property getter for departmentName
+     */
+    @PropertyGetter("departmentName")
+    public String getDepartmentName(PatientBill bill) {
+        try {
+            Consommation cons = Context.getService(BillingService.class).getConsommationByPatientBill(bill);
+            if (cons != null && cons.getDepartment() != null) {
+                return cons.getDepartment().getName();
+            }
+        } catch (Exception e) {
+            log.error("Error getting departmentName", e);
+        }
+        return "Medical Services";
+    }
+
     @Override
     public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
         if (rep instanceof DefaultRepresentation) {
@@ -78,8 +164,14 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
             description.addProperty("payments");
             description.addProperty("phoneNumber");
             description.addProperty("transactionStatus");
-            description.addProperty("paymentConfirmedBy");
             description.addProperty("paymentConfirmedDate");
+
+            description.addProperty("creator");
+            description.addProperty("departmentName");
+            description.addProperty("policyIdNumber");
+            description.addProperty("beneficiaryName");
+            description.addProperty("insuranceName");
+
             description.addSelfLink();
             description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
             return description;
@@ -98,6 +190,13 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
             description.addProperty("transactionStatus");
             description.addProperty("paymentConfirmedBy");
             description.addProperty("paymentConfirmedDate");
+
+            description.addProperty("creator");
+            description.addProperty("departmentName");
+            description.addProperty("policyIdNumber");
+            description.addProperty("beneficiaryName");
+            description.addProperty("insuranceName");
+
             description.addSelfLink();
             return description;
         } else if (rep instanceof RefRepresentation) {
@@ -108,10 +207,11 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
             description.addProperty("status");
             description.addProperty("voided");
             description.addProperty("payments");
-            description.addProperty("phoneNumber");
-            description.addProperty("transactionStatus");
-            description.addProperty("paymentConfirmedBy");
-            description.addProperty("paymentConfirmedDate");
+
+            description.addProperty("policyIdNumber");
+            description.addProperty("beneficiaryName");
+            description.addProperty("insuranceName");
+
             description.addSelfLink();
             return description;
         }
@@ -119,29 +219,14 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
     }
 
     @Override
-    public DelegatingResourceDescription getCreatableProperties() {
-        DelegatingResourceDescription description = new DelegatingResourceDescription();
-        description.addRequiredProperty("amount");
-        description.addRequiredProperty("status");
-        return description;
-    }
+    protected PageableResult doGetAll(RequestContext context) throws ResponseException {
+        log.debug("Starting doGetAll with parameters: startIndex=" + context.getStartIndex() +
+                ", limit=" + context.getLimit());
 
-    @Override
-    public DelegatingResourceDescription getUpdatableProperties() {
-        DelegatingResourceDescription description = new DelegatingResourceDescription();
-        description.addRequiredProperty("amount");
-        description.addRequiredProperty("status");
-        return description;
-    }
-
-    @Override
-    protected PageableResult doSearch(RequestContext context) {
         BillingProcessingService service = Context.getService(BillingProcessingService.class);
 
         Integer startIndex = context.getStartIndex();
         Integer limit = context.getLimit();
-
-        // Get order parameters from request
         String orderBy = context.getRequest().getParameter("orderBy");
         String orderDirection = context.getRequest().getParameter("order");
 
@@ -151,29 +236,10 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
                 orderBy,
                 orderDirection
         );
+
+        log.debug("Retrieved " + (bills != null ? bills.size() : "null") + " bills");
 
         return new AlreadyPaged<>(context, bills, false);
-    }
-
-    @Override
-    protected PageableResult doGetAll(RequestContext context) throws ResponseException {
-        BillingProcessingService service = Context.getService(BillingProcessingService.class);
-
-        Integer startIndex = context.getStartIndex();
-        Integer limit = context.getLimit();
-
-        // Get order parameters from request
-        String orderBy = context.getRequest().getParameter("orderBy");
-        String orderDirection = context.getRequest().getParameter("order");
-
-        List<PatientBill> bills = service.getPatientBillsByPagination(
-                startIndex,
-                limit,
-                orderBy,
-                orderDirection
-        );
-
-        return new NeedsPaging<PatientBill>(bills, context);
     }
 
     @PropertySetter("amount")
