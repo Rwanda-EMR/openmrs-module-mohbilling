@@ -9,6 +9,8 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import java.util.Date;
+
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -51,12 +53,28 @@ public class AdmissionResource extends DelegatingCrudResource<Admission> {
 
     @Override
     public Admission save(Admission admission) {
+        if (admission.getCreator() == null) {
+            admission.setCreator(Context.getAuthenticatedUser());
+        }
+        if (admission.getCreatedDate() == null) {
+            admission.setCreatedDate(new Date());
+        }
+
         return Context.getService(BillingService.class).saveAdmission(admission);
     }
 
     @Override
     public void purge(Admission admission, RequestContext requestContext) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("insurancePolicy");
+        description.addRequiredProperty("admissionDate");
+        description.addRequiredProperty("admissionType");
+        return description;
     }
 
     @Override

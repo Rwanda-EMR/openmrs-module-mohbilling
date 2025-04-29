@@ -11,6 +11,7 @@ package org.openmrs.module.mohbilling.rest.resource;
 
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.openmrs.Patient;
@@ -31,6 +32,7 @@ import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
+import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/globalBill",
@@ -62,11 +64,34 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
     @Override
     public GlobalBill save(GlobalBill globalBill) {
         BillingService billingService = Context.getService(BillingService.class);
+        InsurancePolicy ip = billingService.getInsurancePolicyByCardNo(globalBill.getAdmission().getInsurancePolicy().getInsuranceCardNo());
+        GlobalBill openGlobalBill = billingService.getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
+
+        if (openGlobalBill != null) {
+            return openGlobalBill;
+        }
+
+        if (globalBill.getCreator() == null) {
+            globalBill.setCreator(Context.getAuthenticatedUser());
+        }
+        if (globalBill.getCreatedDate() == null) {
+            globalBill.setCreatedDate(new Date());
+        }
+
+        globalBill.setBillIdentifier(ip.getInsuranceCardNo() + globalBill.getAdmission().getAdmissionId());
+
         return billingService.saveGlobalBill(globalBill);
     }
 
     @Override
     public void purge(GlobalBill globalBill, RequestContext requestContext) throws ResponseException {
+    }
+
+    @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("admission");
+        return description;
     }
 
     @Override
