@@ -11,9 +11,11 @@ package org.openmrs.module.mohbilling.rest.resource;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -62,6 +64,25 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
         throw new ResourceDoesNotSupportOperationException();
     }
 
+    @PropertyGetter("rate")
+    public Float getRate(Insurance insurance) {
+        InsuranceRate currentRate = insurance.getCurrentRate();
+        return (currentRate != null) ? currentRate.getRate() : null;
+    }
+
+    @PropertyGetter("flatFee")
+    public String getFlatFee(Insurance insurance) {
+        InsuranceRate currentRate = insurance.getCurrentRate();
+        return (currentRate != null && currentRate.getFlatFee() != null) ?
+                currentRate.getFlatFee().toString() : null;
+    }
+
+
+    @PropertyGetter("voided")
+    public Boolean getVoided(Insurance insurance) {
+        return insurance.isVoided();
+    }
+
     @Override
     public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
         DelegatingResourceDescription description = null;
@@ -73,18 +94,35 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
             description.addProperty("address");
             description.addProperty("phone");
             description.addProperty("category");
+            description.addProperty("rate");
+            description.addProperty("flatFee");
             description.addSelfLink();
-        } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
+        } else if (representation instanceof DefaultRepresentation) {
             description = new DelegatingResourceDescription();
             description.addProperty("insuranceId");
             description.addProperty("name");
             description.addProperty("address");
             description.addProperty("phone");
             description.addProperty("category");
+            description.addProperty("rate");
+            description.addProperty("flatFee");
             description.addSelfLink();
-            if (representation instanceof DefaultRepresentation) {
-                description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
-            }
+            description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
+        } else if (representation instanceof FullRepresentation) {
+            description = new DelegatingResourceDescription();
+            description.addProperty("insuranceId");
+            description.addProperty("name");
+            description.addProperty("address");
+            description.addProperty("phone");
+            description.addProperty("category");
+            description.addProperty("rate");
+            description.addProperty("flatFee");
+
+            description.addProperty("concept", Representation.REF);
+            description.addProperty("creator", Representation.REF);
+            description.addProperty("createdDate");
+            description.addProperty("voided");
+            description.addSelfLink();
         }
 
         return description;
