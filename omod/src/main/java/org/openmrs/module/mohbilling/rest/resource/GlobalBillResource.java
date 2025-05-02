@@ -25,6 +25,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
+import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
@@ -64,7 +65,8 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
     @Override
     public GlobalBill save(GlobalBill globalBill) {
         BillingService billingService = Context.getService(BillingService.class);
-        InsurancePolicy ip = billingService.getInsurancePolicyByCardNo(globalBill.getAdmission().getInsurancePolicy().getInsuranceCardNo());
+        Integer insurancePolicyId = globalBill.getAdmission().getInsurancePolicy().getInsurancePolicyId();
+        InsurancePolicy ip = billingService.getInsurancePolicy(insurancePolicyId);
         GlobalBill openGlobalBill = billingService.getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
 
         if (openGlobalBill != null) {
@@ -74,10 +76,20 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
         if (globalBill.getCreator() == null) {
             globalBill.setCreator(Context.getAuthenticatedUser());
         }
+
         if (globalBill.getCreatedDate() == null) {
             globalBill.setCreatedDate(new Date());
         }
 
+        if (globalBill.getAdmission().getCreatedDate() == null) {
+            globalBill.getAdmission().setCreatedDate(new Date());
+        }
+
+        if (globalBill.getAdmission().getCreator() == null) {
+            globalBill.getAdmission().setCreator(Context.getAuthenticatedUser());
+        }
+
+        globalBill.setInsurance(ip.getInsurance());
         globalBill.setBillIdentifier(ip.getInsuranceCardNo() + globalBill.getAdmission().getAdmissionId());
 
         return billingService.saveGlobalBill(globalBill);
@@ -113,7 +125,7 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
             description.addSelfLink();
             description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
             return description;
-        } else if (representation instanceof FullRepresentation || representation instanceof RefRepresentation) {
+        } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
             DelegatingResourceDescription description = new DelegatingResourceDescription();
             description.addProperty("globalBillId");
             description.addProperty("admission", Representation.REF);
