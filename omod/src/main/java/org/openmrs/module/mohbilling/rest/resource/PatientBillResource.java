@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingProcessingService;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -149,7 +150,35 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
         } catch (Exception e) {
             log.error("Error getting departmentName", e);
         }
-        return "Medical Services";
+        return "--";
+    }
+
+    /**
+     * Property getter for serviceName - returns the name of the first service in the bill
+     */
+    @PropertyGetter("serviceName")
+    public String getServiceName(PatientBill bill) {
+        try {
+            Consommation cons = Context.getService(BillingService.class).getConsommationByPatientBill(bill);
+            if (cons != null && cons.getBillItems() != null && !cons.getBillItems().isEmpty()) {
+                PatientServiceBill item = cons.getBillItems().iterator().next(); // Get first item
+
+                if (item.getService() != null &&
+                        item.getService().getFacilityServicePrice() != null) {
+                    return item.getService().getFacilityServicePrice().getName();
+                } else if (item.getServiceOtherDescription() != null) {
+                    return item.getServiceOtherDescription();
+                } else if (item.getServiceOther() != null) {
+                    return item.getServiceOther();
+                }
+            }
+
+            // Fall back to department name if no items
+            return getDepartmentName(bill);
+        } catch (Exception e) {
+            log.error("Error getting service name", e);
+            return getDepartmentName(bill);
+        }
     }
 
     @Override
@@ -171,6 +200,8 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
             description.addProperty("policyIdNumber");
             description.addProperty("beneficiaryName");
             description.addProperty("insuranceName");
+
+            description.addProperty("serviceName");
 
             description.addSelfLink();
             description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
@@ -197,6 +228,8 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
             description.addProperty("beneficiaryName");
             description.addProperty("insuranceName");
 
+            description.addProperty("serviceName");
+
             description.addSelfLink();
             return description;
         } else if (rep instanceof RefRepresentation) {
@@ -211,6 +244,8 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
             description.addProperty("policyIdNumber");
             description.addProperty("beneficiaryName");
             description.addProperty("insuranceName");
+
+            description.addProperty("serviceName");
 
             description.addSelfLink();
             return description;
