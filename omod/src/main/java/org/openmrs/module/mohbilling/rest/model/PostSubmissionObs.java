@@ -8,6 +8,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PostSubmissionObs {
     private List<ObsIdentifier> obs = new ArrayList<>();
+    private String insurancePolicyNumber;
 
     public static class ObsIdentifier {
         private String uuid;
@@ -27,5 +28,13 @@ public class PostSubmissionObs {
 
     public void setObs(List<ObsIdentifier> obs) {
         this.obs = obs;
+    }
+
+    public String getInsurancePolicyNumber() {
+        return insurancePolicyNumber;
+    }
+
+    public void setInsurancePolicyNumber(String insurancePolicyNumber) {
+        this.insurancePolicyNumber = insurancePolicyNumber;
     }
 }
