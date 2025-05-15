@@ -68,14 +68,25 @@ public class AfterPostSubmissionController extends BaseRestController {
                 currentPhoneNumber = currentPhoneNumbers.get(0).getValueText();
             }
 
-            Integer insuranceNumberConceptID = Integer.parseInt(Context.getAdministrationService()
-                    .getGlobalProperty("registration.insuranceNumberConcept"));
             String insuranceCardNumber = null;
-            List<Obs> currentInsuranceId = Utils.getLastNObservations(1, patient,
-                    Context.getConceptService().getConcept(insuranceNumberConceptID), false);
+            if (postSubmissionObs.getInsurancePolicyNumber() != null && !postSubmissionObs.getInsurancePolicyNumber().trim().isEmpty()) {
+                insuranceCardNumber = postSubmissionObs.getInsurancePolicyNumber();
+                log.info("Using insurance policy number from payload: " + insuranceCardNumber);
+            } else {
+                Integer insuranceNumberConceptID = Integer.parseInt(Context.getAdministrationService()
+                        .getGlobalProperty("registration.insuranceNumberConcept"));
+                List<Obs> currentInsuranceId = Utils.getLastNObservations(1, patient,
+                        Context.getConceptService().getConcept(insuranceNumberConceptID), false);
 
-            if (currentInsuranceId.size() >= 1) {
-                insuranceCardNumber = currentInsuranceId.get(0).getValueText();
+                if (currentInsuranceId.size() >= 1) {
+                    insuranceCardNumber = currentInsuranceId.get(0).getValueText();
+                    log.info("Using insurance policy number from observations: " + insuranceCardNumber);
+                }
+            }
+
+            if (insuranceCardNumber == null || insuranceCardNumber.trim().isEmpty()) {
+                return new ResponseEntity<>("Insurance card number not found. Please provide 'insurancePolicyNumber' in the request payload.",
+                        HttpStatus.BAD_REQUEST);
             }
 
             InsurancePolicy ip = Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
