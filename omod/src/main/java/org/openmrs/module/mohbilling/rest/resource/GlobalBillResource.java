@@ -18,6 +18,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
+import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -89,8 +90,17 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
             globalBill.getAdmission().setCreator(Context.getAuthenticatedUser());
         }
 
+        Integer admissionId;
+        if (globalBill.getAdmission() == null || globalBill.getAdmission().getAdmissionId() == null) {
+            Admission admission = billingService.saveAdmission(globalBill.getAdmission());
+            admissionId = admission.getAdmissionId();
+            globalBill.setAdmission(admission);
+        } else {
+            admissionId = globalBill.getAdmission().getAdmissionId();
+        }
+
         globalBill.setInsurance(ip.getInsurance());
-        globalBill.setBillIdentifier(ip.getInsuranceCardNo() + globalBill.getAdmission().getAdmissionId());
+        globalBill.setBillIdentifier(ip.getInsuranceCardNo() + admissionId);
 
         return billingService.saveGlobalBill(globalBill);
     }

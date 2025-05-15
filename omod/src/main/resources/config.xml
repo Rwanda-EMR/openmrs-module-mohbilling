@@ -64,6 +64,11 @@
         <class>@MODULE_PACKAGE@.advice.OrderServiceAdvice</class>
     </advice>
 
+    <advice>
+        <point>org.openmrs.module.mohbilling.service.BillingService</point>
+        <class>@MODULE_PACKAGE@.advice.BillingServiceAdvice</class>
+    </advice>
+
     <!-- /AOP -->
 
 

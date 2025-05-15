@@ -329,6 +329,7 @@ public class InsurancePolicy {
 		return "\n - Insurance Policy Id : " + this.insurancePolicyId
 				+ "\n - Insurance Name : " + this.insurance.getName()
 				+ "\n - Card No : " + this.insuranceCardNo
+				+ "\n - Owner : " + this.owner
 				+ "\n - Coverage Start Date : "
 				+ this.coverageStartDate.toString() + "\n - Creator : "
 				+ this.creator.getUsername();
