@@ -9,6 +9,8 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import java.util.Date;
+
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
@@ -55,6 +57,14 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
 
     @Override
     public Insurance save(Insurance insurance) {
+        if (insurance.getCreator() == null) {
+            insurance.setCreator(Context.getAuthenticatedUser());
+        }
+
+        if (insurance.getCreatedDate() == null) {
+            insurance.setCreatedDate(new Date());
+        }
+
         Context.getService(BillingService.class).saveInsurance(insurance);
         return insurance;
     }
@@ -81,6 +91,18 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
     @PropertyGetter("voided")
     public Boolean getVoided(Insurance insurance) {
         return insurance.isVoided();
+    }
+
+    @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addProperty("name");
+        description.addProperty("address");
+        description.addProperty("phone");
+        description.addProperty("concept");
+        description.addProperty("rates");
+        description.addProperty("categories");
+        return description;
     }
 
     @Override
