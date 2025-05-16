@@ -141,12 +141,20 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
 
     @Override
     protected PageableResult doGetAll(RequestContext context) throws ResponseException {
-        List<InsurancePolicy> activePolicies = Context.getService(BillingService.class)
+        List<InsurancePolicy> allPolicies = Context.getService(BillingService.class)
                 .getAllInsurancePolicies()
                 .stream()
                 .filter(policy -> !policy.isRetired())
+                .sorted((p1, p2) -> {
+                    Date d1 = p1.getCreatedDate();
+                    Date d2 = p2.getCreatedDate();
+                    if (d1 == null && d2 == null) return 0;
+                    if (d1 == null) return 1;
+                    if (d2 == null) return -1;
+                    return d2.compareTo(d1);
+                })
                 .collect(Collectors.toList());
 
-        return new NeedsPaging<>(activePolicies, context);
+        return new NeedsPaging<>(allPolicies, context);
     }
 }
