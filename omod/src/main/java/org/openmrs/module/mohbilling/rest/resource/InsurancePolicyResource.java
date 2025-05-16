@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -72,7 +73,12 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
 
     @Override
     public void purge(InsurancePolicy insurancePolicy, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        insurancePolicy.setRetired(true);
+        insurancePolicy.setRetiredBy(Context.getAuthenticatedUser());
+        insurancePolicy.setRetiredDate(new Date());
+        insurancePolicy.setRetireReason("Deleted via REST");
+
+        Context.getService(BillingService.class).saveInsurancePolicy(insurancePolicy);
     }
 
     @Override
@@ -135,6 +141,12 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
 
     @Override
     protected PageableResult doGetAll(RequestContext context) throws ResponseException {
-        return new NeedsPaging<>(Context.getService(BillingService.class).getAllInsurancePolicies(), context);
+        List<InsurancePolicy> activePolicies = Context.getService(BillingService.class)
+                .getAllInsurancePolicies()
+                .stream()
+                .filter(policy -> !policy.isRetired())
+                .collect(Collectors.toList());
+
+        return new NeedsPaging<>(activePolicies, context);
     }
 }
