@@ -1952,4 +1952,16 @@ public class HibernateBillingDAO implements BillingDAO {
                 .createCriteria(BillPayment.class)
                 .add(Restrictions.eq("patientBill", patientBill)).list();
     }
+
+    @Override
+    public List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(InsurancePolicy.class)
+                .add(Restrictions.eq("retired", false))
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .addOrder(Order.desc("createdDate"));
+
+        return criteria.list();
+    }
 }
