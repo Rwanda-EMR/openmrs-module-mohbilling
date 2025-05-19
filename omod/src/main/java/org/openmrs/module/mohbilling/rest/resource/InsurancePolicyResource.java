@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -25,6 +26,7 @@ import org.openmrs.module.webservices.rest.web.representation.FullRepresentation
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
+import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
@@ -72,7 +74,12 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
 
     @Override
     public void purge(InsurancePolicy insurancePolicy, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        insurancePolicy.setRetired(true);
+        insurancePolicy.setRetiredBy(Context.getAuthenticatedUser());
+        insurancePolicy.setRetiredDate(new Date());
+        insurancePolicy.setRetireReason("Deleted via REST");
+
+        Context.getService(BillingService.class).saveInsurancePolicy(insurancePolicy);
     }
 
     @Override
@@ -133,8 +140,18 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
         return new NeedsPaging<>(insurancePolicies, context);
     }
 
+
     @Override
-    protected PageableResult doGetAll(RequestContext context) throws ResponseException {
-        return new NeedsPaging<>(Context.getService(BillingService.class).getAllInsurancePolicies(), context);
+    public PageableResult doGetAll(RequestContext context) throws ResponseException {
+        int startIndex = context.getStartIndex();
+        int limit = context.getLimit();
+
+        List<InsurancePolicy> policies = Context.getService(BillingService.class)
+                .getInsurancePoliciesByPagination(startIndex, limit);
+
+        int totalCount = Context.getService(BillingService.class).getInsurancePolicyCount();
+        boolean hasMore = (startIndex + limit) < totalCount;
+
+        return new AlreadyPaged<InsurancePolicy>(context, policies, hasMore, (long) totalCount);
     }
 }
