@@ -704,5 +704,5 @@ public interface BillingService {
 
 	List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit);
 
-	int getInsurancePolicyCount();
+	long getInsurancePolicyCount();
 }

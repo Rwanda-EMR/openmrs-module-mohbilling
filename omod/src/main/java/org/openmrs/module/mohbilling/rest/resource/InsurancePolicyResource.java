@@ -158,9 +158,9 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
         List<InsurancePolicy> policies = Context.getService(BillingService.class)
                 .getInsurancePoliciesByPagination(startIndex, limit);
 
-        int totalCount = Context.getService(BillingService.class).getInsurancePolicyCount();
+        long totalCount = Context.getService(BillingService.class).getInsurancePolicyCount();
         boolean hasMore = (startIndex + limit) < totalCount;
 
-        return new AlreadyPaged<InsurancePolicy>(context, policies, hasMore, (long) totalCount);
+        return new AlreadyPaged<InsurancePolicy>(context, policies, hasMore, totalCount);
     }
 }

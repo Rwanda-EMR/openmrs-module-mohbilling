@@ -1062,7 +1062,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
-    public int getInsurancePolicyCount() {
+    public long getInsurancePolicyCount() {
         return billingDAO.getInsurancePolicyCount();
     }
 }

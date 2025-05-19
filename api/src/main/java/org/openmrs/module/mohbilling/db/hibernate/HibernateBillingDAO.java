@@ -1966,11 +1966,11 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
-    public int getInsurancePolicyCount() {
+    public long getInsurancePolicyCount() {
         Criteria criteria = sessionFactory.getCurrentSession()
                 .createCriteria(InsurancePolicy.class)
                 .add(Restrictions.eq("retired", false))
                 .setProjection(Projections.rowCount());
-        return (int) criteria.uniqueResult();
+        return (long) criteria.uniqueResult();
     }
 }

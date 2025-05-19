@@ -742,5 +742,5 @@ public interface BillingDAO {
 
 	List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit);
 
-	int getInsurancePolicyCount();
+	long getInsurancePolicyCount();
 }
