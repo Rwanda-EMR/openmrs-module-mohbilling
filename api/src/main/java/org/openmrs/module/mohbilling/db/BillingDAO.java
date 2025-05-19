@@ -741,4 +741,6 @@ public interface BillingDAO {
 	Beneficiary getBeneficiary(Integer beneficiaryId);
 
 	List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit);
+
+	int getInsurancePolicyCount();
 }

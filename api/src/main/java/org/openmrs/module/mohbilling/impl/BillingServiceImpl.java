@@ -1060,4 +1060,9 @@ public class BillingServiceImpl implements BillingService {
     public List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit) {
         return billingDAO.getInsurancePoliciesByPagination(offset, limit);
     }
+
+    @Override
+    public int getInsurancePolicyCount() {
+        return billingDAO.getInsurancePolicyCount();
+    }
 }

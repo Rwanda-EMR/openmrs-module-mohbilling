@@ -26,6 +26,7 @@ import org.openmrs.module.webservices.rest.web.representation.FullRepresentation
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
+import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
@@ -139,14 +140,18 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
         return new NeedsPaging<>(insurancePolicies, context);
     }
 
+
     @Override
-    public NeedsPaging<InsurancePolicy> doGetAll(RequestContext context) throws ResponseException {
+    public PageableResult doGetAll(RequestContext context) throws ResponseException {
         int startIndex = context.getStartIndex();
         int limit = context.getLimit();
 
         List<InsurancePolicy> policies = Context.getService(BillingService.class)
                 .getInsurancePoliciesByPagination(startIndex, limit);
 
-        return new NeedsPaging<>(policies, context);
+        int totalCount = Context.getService(BillingService.class).getInsurancePolicyCount();
+        boolean hasMore = (startIndex + limit) < totalCount;
+
+        return new AlreadyPaged<InsurancePolicy>(context, policies, hasMore, (long) totalCount);
     }
 }

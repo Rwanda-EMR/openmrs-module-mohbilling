@@ -1964,4 +1964,13 @@ public class HibernateBillingDAO implements BillingDAO {
 
         return criteria.list();
     }
+
+    @Override
+    public int getInsurancePolicyCount() {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(InsurancePolicy.class)
+                .add(Restrictions.eq("retired", false))
+                .setProjection(Projections.rowCount());
+        return (int) criteria.uniqueResult();
+    }
 }
