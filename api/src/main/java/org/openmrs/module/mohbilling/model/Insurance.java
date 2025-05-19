@@ -213,8 +213,7 @@ public class Insurance implements Comparable<Insurance> {
 	 * @return insuranceRate when it matches the date
 	 */
 	public InsuranceRate getRateOnDate(Date date) {
-
-		for (InsuranceRate insuranceRate : this.getRates()) {
+		for (InsuranceRate insuranceRate : getRates()) {
 			if (insuranceRate.getRetiredDate() != null) {
 				if (insuranceRate.getRetiredDate().compareTo(date) > 0) {
 

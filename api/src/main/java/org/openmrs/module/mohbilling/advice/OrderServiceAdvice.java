@@ -82,6 +82,15 @@ public class OrderServiceAdvice implements AfterReturningAdvice {
             InsurancePolicy ip = Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
             log.info("ip: ----------- : " + ip);
 
+            if (ip == null) {
+                ip = Context.getService(BillingService.class).getAllInsurancePoliciesByPatient(patient).stream()
+                        .filter(insurancePolicy -> insurancePolicy.getExpirationDate().after(new Date()))
+                        .findFirst().orElse(null);
+                if (insuranceCardNumber == null) {
+                    insuranceCardNumber = ip.getInsuranceCardNo();
+                }
+            }
+
             List<PatientServiceBill> psbList = new ArrayList<>();
             Department department = null;
             BigDecimal totalMaximaTopay = new BigDecimal(0);
