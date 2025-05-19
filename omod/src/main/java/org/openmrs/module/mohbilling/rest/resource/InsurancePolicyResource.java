@@ -103,6 +103,7 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
             description.addProperty("insuranceCardNo");
             description.addProperty("coverageStartDate");
             description.addProperty("expirationDate");
+            description.addProperty("insurance", Representation.REF);
             description.addProperty("owner", Representation.REF);
             description.addSelfLink();
         } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
@@ -110,6 +111,7 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
             description.addProperty("insuranceCardNo");
             description.addProperty("coverageStartDate");
             description.addProperty("expirationDate");
+            description.addProperty("insurance");
             description.addProperty("owner");
             description.addSelfLink();
             if (representation instanceof DefaultRepresentation) {
@@ -124,7 +126,14 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
     protected PageableResult doSearch(RequestContext context) {
         String patientId = context.getRequest().getParameter("patientId");
         String insuranceCardNo = context.getRequest().getParameter("insuranceCardNo");
+        String patientUuid = context.getRequest().getParameter("patient");
         List<InsurancePolicy> insurancePolicies = Collections.emptyList();
+
+        if (patientUuid != null) {
+            insurancePolicies = Context.getService(BillingService.class)
+                    .getAllInsurancePoliciesByPatient(Context.getPatientService().getPatientByUuid(patientUuid));
+        }
+
         if (patientId != null) {
             insurancePolicies = Context.getService(BillingService.class)
                     .getAllInsurancePoliciesByPatient(Context.getPatientService().getPatient(Integer.valueOf(patientId)));
