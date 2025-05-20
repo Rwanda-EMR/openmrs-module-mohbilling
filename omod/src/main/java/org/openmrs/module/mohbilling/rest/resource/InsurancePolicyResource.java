@@ -13,13 +13,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -30,6 +33,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
+import org.openmrs.module.webservices.rest.web.response.ConversionException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
@@ -91,6 +95,7 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
         description.addProperty("coverageStartDate");
         description.addProperty("expirationDate");
         description.addProperty("thirdParty");
+        description.addProperty("beneficiaries");
         return description;
     }
 
@@ -161,6 +166,28 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
         long totalCount = Context.getService(BillingService.class).getInsurancePolicyCount();
         boolean hasMore = (startIndex + limit) < totalCount;
 
-        return new AlreadyPaged<InsurancePolicy>(context, policies, hasMore, totalCount);
+        return new AlreadyPaged<>(context, policies, hasMore, totalCount);
+    }
+
+    @PropertySetter("beneficiaries")
+    public void setBeneficiaries(InsurancePolicy insurancePolicy, Set<Beneficiary> beneficiaries) {
+        beneficiaries.stream().forEach(beneficiary -> {
+            if (beneficiary.getCreator() == null) {
+                beneficiary.setCreator(Context.getAuthenticatedUser());
+            }
+
+            if (beneficiary.getCreatedDate() == null) {
+                beneficiary.setCreatedDate(new Date());
+            }
+            insurancePolicy.addBeneficiary(beneficiary);
+        });
+    }
+
+    @PropertyGetter("beneficiaries")
+    public static Object getBeneficiaries(InsurancePolicy insurancePolicy) throws ConversionException {
+        if (insurancePolicy.getBeneficiaries() != null && !insurancePolicy.getBeneficiaries().isEmpty()) {
+            return insurancePolicy.getBeneficiaries();
+        }
+        return null;
     }
 }
