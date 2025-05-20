@@ -8,6 +8,7 @@ import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingProcessingService;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
@@ -22,6 +23,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
+import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 import java.math.BigDecimal;
@@ -43,6 +45,18 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
     @Override
     public PatientBill newDelegate() {
         return new PatientBill();
+    }
+
+    @Override
+    public Object create(SimpleObject propertiesToCreate, RequestContext context) throws ResponseException {
+        if (propertiesToCreate.get("amount") == null) {
+            propertiesToCreate.add("amount", new BigDecimal(0));
+        }
+
+        if (propertiesToCreate.get("isPaid") == null) {
+            propertiesToCreate.add("isPaid", false);
+        }
+        return super.create(propertiesToCreate, context);
     }
 
     @Override
@@ -179,6 +193,14 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
             log.error("Error getting service name", e);
             return getDepartmentName(bill);
         }
+    }
+
+    @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addProperty("amount");
+        description.addProperty("isPaid");
+        return description;
     }
 
     @Override
