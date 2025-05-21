@@ -1973,4 +1973,14 @@ public class HibernateBillingDAO implements BillingDAO {
                 .setProjection(Projections.rowCount());
         return (long) criteria.uniqueResult();
     }
+
+    @Override
+    public List<BillableService> getBillableServicesByCategoryAndFacilityServicePrice(Integer serviceCategoryId,
+                                                                                      Integer facilityServicePriceId) {
+        return sessionFactory.getCurrentSession()
+                .createCriteria(BillableService.class)
+                .add(Restrictions.eq("serviceCategory.serviceCategoryId", serviceCategoryId))
+                .add(Restrictions.eq("facilityServicePrice.facilityServicePriceId", facilityServicePriceId))
+                .list();
+    }
 }

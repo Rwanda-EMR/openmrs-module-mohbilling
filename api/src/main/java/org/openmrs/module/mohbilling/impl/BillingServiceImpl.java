@@ -7,6 +7,7 @@ import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.APIException;
+import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.*;
@@ -1065,4 +1066,12 @@ public class BillingServiceImpl implements BillingService {
     public long getInsurancePolicyCount() {
         return billingDAO.getInsurancePolicyCount();
     }
+
+    @Override
+    public List<BillableService> getBillableServicesByCategoryAndFacilityServicePrice(Integer serviceCategoryId,
+                                                                                      Integer facilityServicePriceId) {
+        return billingDAO.getBillableServicesByCategoryAndFacilityServicePrice(serviceCategoryId, facilityServicePriceId);
+    }
+
+
 }

@@ -705,4 +705,7 @@ public interface BillingService {
 	List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit);
 
 	long getInsurancePolicyCount();
+
+	List<BillableService> getBillableServicesByCategoryAndFacilityServicePrice(Integer serviceCategoryId,
+																			   Integer facilityServicePriceId);
 }

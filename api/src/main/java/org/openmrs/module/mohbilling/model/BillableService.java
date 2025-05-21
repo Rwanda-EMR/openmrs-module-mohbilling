@@ -287,15 +287,15 @@ public class BillableService implements Comparable<BillableService> {
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getEndDate(),
 					other.getEndDate());
 		if (ret == 0)
-			OpenmrsUtil.compareWithNullAsGreatest(this.getMaximaToPay(), other
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getMaximaToPay(), other
 					.getMaximaToPay());
 		if (ret == 0 && this.getCreatedDate() != null)
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getCreatedDate(),
 					other.getCreatedDate());
 		if (ret == 0)
-			OpenmrsUtil.compareWithNullAsGreatest(this.getServiceId(), other
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getServiceId(), other
 					.getServiceId());
-		if (ret == 0 && this.getCreatedDate() != null)
+		if (ret == 0)
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other
 					.hashCode());
 		return ret;

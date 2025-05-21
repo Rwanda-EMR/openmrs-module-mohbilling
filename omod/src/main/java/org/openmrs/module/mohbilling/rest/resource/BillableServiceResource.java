@@ -68,6 +68,7 @@ public class BillableServiceResource extends DelegatingCrudResource<BillableServ
         DelegatingResourceDescription description = null;
         if (representation instanceof RefRepresentation) {
             description = new DelegatingResourceDescription();
+            description.addProperty("serviceId");
             description.addProperty("insurance", Representation.REF);
             description.addProperty("maximaToPay");
             description.addProperty("facilityServicePrice", Representation.REF);
@@ -75,6 +76,7 @@ public class BillableServiceResource extends DelegatingCrudResource<BillableServ
             description.addProperty("endDate");
         } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
             description = new DelegatingResourceDescription();
+            description.addProperty("serviceId");
             description.addProperty("insurance");
             description.addProperty("maximaToPay");
             description.addProperty("facilityServicePrice");
@@ -91,10 +93,22 @@ public class BillableServiceResource extends DelegatingCrudResource<BillableServ
     @Override
     protected PageableResult doSearch(RequestContext context) {
         String serviceCategoryId = context.getRequest().getParameter("serviceCategoryId");
+        String facilityServicePriceId = context.getRequest().getParameter("facilityServicePriceId");
         List<BillableService> billableServices = new ArrayList<>();
-        if (serviceCategoryId != null) {
-            billableServices = Context.getService(BillingService.class).getBillableServiceByCategory(
-                    Context.getService(BillingService.class).getServiceCategory(Integer.parseInt(serviceCategoryId)));
+
+        if (serviceCategoryId != null && facilityServicePriceId != null) {
+            billableServices = Context.getService(BillingService.class).getBillableServicesByCategoryAndFacilityServicePrice(
+                    Integer.parseInt(serviceCategoryId), Integer.parseInt(facilityServicePriceId));
+        } else {
+            if (serviceCategoryId != null) {
+                billableServices = Context.getService(BillingService.class).getBillableServiceByCategory(
+                        Context.getService(BillingService.class).getServiceCategory(Integer.parseInt(serviceCategoryId)));
+            }
+
+            if (facilityServicePriceId != null) {
+                billableServices = Context.getService(BillingService.class).getBillableServicesByFacilityService(
+                        Context.getService(BillingService.class).getFacilityServicePrice(Integer.parseInt(facilityServicePriceId)));
+            }
         }
         return new NeedsPaging<>(billableServices, context);
     }
