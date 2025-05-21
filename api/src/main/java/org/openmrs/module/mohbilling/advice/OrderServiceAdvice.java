@@ -86,7 +86,7 @@ public class OrderServiceAdvice implements AfterReturningAdvice {
                 ip = Context.getService(BillingService.class).getAllInsurancePoliciesByPatient(patient).stream()
                         .filter(insurancePolicy -> insurancePolicy.getExpirationDate().after(new Date()))
                         .findFirst().orElse(null);
-                if (insuranceCardNumber == null) {
+                if (insuranceCardNumber == null && ip != null) {
                     insuranceCardNumber = ip.getInsuranceCardNo();
                 }
             }

@@ -105,6 +105,7 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
 
         if (representation instanceof RefRepresentation) {
             description = new DelegatingResourceDescription();
+            description.addProperty("insurancePolicyId");
             description.addProperty("insuranceCardNo");
             description.addProperty("coverageStartDate");
             description.addProperty("expirationDate");
@@ -113,6 +114,7 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
             description.addSelfLink();
         } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
             description = new DelegatingResourceDescription();
+            description.addProperty("insurancePolicyId");
             description.addProperty("insuranceCardNo");
             description.addProperty("coverageStartDate");
             description.addProperty("expirationDate");
