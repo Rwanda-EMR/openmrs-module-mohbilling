@@ -500,19 +500,24 @@ public class InsuranceUtil {
 				}
 				if (service.getInsurance().getCategory()
 						.equalsIgnoreCase(InsuranceCategory.RSSB.toString())) {
-					service.setMaximaToPay(amount.multiply(new BigDecimal(1.25)));
+					service.setMaximaToPay(amount.multiply(new BigDecimal(1)));
 				}
 				if (service.getInsurance().getCategory()
-						.equalsIgnoreCase(InsuranceCategory.MMI_UR.toString())) {
-					service.setMaximaToPay(amount.multiply(new BigDecimal(1.15)));
+						.equalsIgnoreCase(InsuranceCategory.EAST_AFRICA.toString())) {
+					service.setMaximaToPay(amount.multiply(new BigDecimal(1)));
 				}
 				if (service.getInsurance().getCategory()
 						.equalsIgnoreCase(InsuranceCategory.PRIVATE.toString())) {
-					service.setMaximaToPay(amount.multiply(new BigDecimal(1.4375)));
+					service.setMaximaToPay(amount.multiply(new BigDecimal(1)));
 				}
 				if (service.getInsurance().getCategory()
-						.equalsIgnoreCase(InsuranceCategory.NONE.toString())) {
-					BigDecimal initial = amount.multiply(new BigDecimal(1.725));
+						.equalsIgnoreCase(InsuranceCategory.INTERNATIONAL.toString())) {
+					BigDecimal initial = amount.multiply(new BigDecimal(1));
+					service.setMaximaToPay(initial);
+				}
+				if (service.getInsurance().getCategory()
+						.equalsIgnoreCase(InsuranceCategory.AFRICA.toString())) {
+					BigDecimal initial = amount.multiply(new BigDecimal(1));
 					service.setMaximaToPay(initial);
 				}
 			} else
@@ -658,35 +663,48 @@ public class InsuranceUtil {
 
 		List<String> categories = new ArrayList<String>();
 
-		categories.add(Category.CHIRURGIE.getDescription());
-		categories.add(Category.CONSOMMABLES.getDescription());
-		categories.add(Category.CONSULTATION.getDescription());
-		categories.add(Category.DERMATOLOGIE.getDescription());
-		categories.add(Category.ECHOGRAPHIE.getDescription());
 		categories.add(Category.FORMALITES_ADMINISTRATIVES.getDescription());
-		categories.add(Category.HOSPITALISATION.getDescription());
-		categories.add(Category.KINESITHERAPIE.getDescription());
 		categories.add(Category.LABORATOIRE.getDescription());
-		categories.add(Category.MATERNITE.getDescription());
-		categories.add(Category.MEDECINE_INTERNE.getDescription());
-		categories.add(Category.MEDICAMENTS.getDescription());
-		categories.add(Category.OPHTALMOLOGIE.getDescription());
-		categories.add(Category.ORL.getDescription());
-		categories.add(Category.OXYGENOTHERAPIE.getDescription());
-		categories.add(Category.PEDIATRIE.getDescription());
-		categories.add(Category.RADIOLOGIE.getDescription());
-		categories.add(Category.SOINS_INFIRMIERS.getDescription());
-		categories.add(Category.SOINS_INTENSIFS.getDescription());
-		categories.add(Category.STOMATOLOGIE.getDescription());
-		categories.add(Category.NEUROLOGIE.getDescription());
 		categories.add(Category.AUTRES.getDescription());
-		categories.add(Category.AMBULANCE.getDescription());
-		categories.add(Category.GYNECO_OBSTETRIQUE.getDescription());
-		categories.add(Category.POLYCLINIQUE.getDescription());
-		categories.add(Category.APPAREILLAGE_ORTHOPEDIQUE.getDescription());
-		categories.add(Category.RADIOGRAPHIE.getDescription());
-		categories.add(Category.MORGUE.getDescription());
-		categories.add(Category.MAGNETIC_RESONANCE_IMAGING.getDescription());
+		categories.add(Category.ANAESTHESIA.getDescription());
+		categories.add(Category.CARDIOLOGY.getDescription());
+		categories.add(Category.CT_SURGERY.getDescription());
+		categories.add(Category.DENTISTRY.getDescription());
+		categories.add(Category.DERMATOLOGY.getDescription());
+		categories.add(Category.ENT.getDescription());
+		categories.add(Category.EMERGENCY_CRITICAL_CARE.getDescription());
+		categories.add(Category.GASTROENTEROLOGY.getDescription());
+		categories.add(Category.CONSULTATION.getDescription());
+		categories.add(Category.GENERAL_SURGERY.getDescription());
+		categories.add(Category.HOSPITALIZATION.getDescription());
+		categories.add(Category.IMAGING_MRI.getDescription());
+		categories.add(Category.IMAGING_X_RAY.getDescription());
+		categories.add(Category.IMAGING_CT_SCAN.getDescription());
+		categories.add(Category.IMAGING_INTERVENTIONAL.getDescription());
+		categories.add(Category.IMAGING_ULTRASOUND.getDescription());
+		categories.add(Category.OB_GYN.getDescription());
+		categories.add(Category.MAXILLOFACIAL_SURGERY.getDescription());
+		categories.add(Category.MEDICAL_PROCEDURES.getDescription());
+		categories.add(Category.MENTAL_HEALTH.getDescription());
+		categories.add(Category.MINOR_SURGERY.getDescription());
+		categories.add(Category.NEPHROLOGY.getDescription());
+		categories.add(Category.NEUROSURGERY.getDescription());
+		categories.add(Category.NEUROLOGY.getDescription());
+		categories.add(Category.NURSING.getDescription());
+		categories.add(Category.OCCUPATIONAL_THERAPY.getDescription());
+		categories.add(Category.ONCOLOGY.getDescription());
+		categories.add(Category.OPHTHALMOLOGY.getDescription());
+		categories.add(Category.ORTHOPEDICS.getDescription());
+		categories.add(Category.PEDIATRIC_SURGERY.getDescription());
+		categories.add(Category.PHYSIOTHERAPY.getDescription());
+		categories.add(Category.PLASTIC_SURGERY.getDescription());
+		categories.add(Category.PULMONOLOGY.getDescription());
+		categories.add(Category.UROLOGY.getDescription());
+		categories.add(Category.VASCULAR_SURGERY.getDescription());
+		categories.add(Category.LABORATORY.getDescription());
+		categories.add(Category.ADMINISTRATION.getDescription());
+		categories.add(Category.CONSOMMABLES.getDescription());
+		categories.add(Category.MEDICAMENTS.getDescription());
 		categories.add(Category.DCP_CONSULTATION.getDescription());
 		categories.add(Category.DCP_SURGERY.getDescription());
 		categories.add(Category.DCP_INTERNAL_MEDECINE.getDescription());
@@ -697,7 +715,7 @@ public class InsuranceUtil {
 		categories.add(Category.DCP_STOMATOLOGY.getDescription());
 		categories.add(Category.DCP_OTORHINOLARYNGOLOGIE.getDescription());
 		categories.add(Category.DCP_ANESTHESIE.getDescription());
-		categories.add(Category.OCCUPATIONALTHERAPY.getDescription());
+
 
 
 

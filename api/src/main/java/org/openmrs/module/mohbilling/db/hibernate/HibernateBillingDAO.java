@@ -976,11 +976,12 @@ public class HibernateBillingDAO implements BillingDAO {
 		/*bui.append(" WHEN i.category = 'MUTUELLE' THEN (full_price/2)");
 		bui.append(" WHEN i.category = 'PRIVATE' THEN (full_price*1.25)");
 		bui.append(" WHEN i.category = 'NONE' THEN (full_price*1.5)");*/
-        bui.append(" WHEN i.category = 'MUTUELLE' THEN (CEIL(full_price/2))");
-        bui.append(" WHEN i.category = 'RSSB' THEN (CEIL(full_price*1.25))");
-        bui.append(" WHEN i.category = 'MMI_UR' THEN (CEIL(full_price*1.15))");
-        bui.append(" WHEN i.category = 'PRIVATE' THEN (CEIL(full_price*1.4375))");
-        bui.append(" WHEN i.category = 'NONE' THEN (CEIL(full_price*1.725))");
+        bui.append(" WHEN i.category = 'MUTUELLE' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'RSSB' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'PRIVATE' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'EAST_AFRICA' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'AFRICA' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'INTERNATIONAL' THEN (CEIL(full_price*1))");
         bui.append(" ELSE full_price END as maxima_to_pay,");
         bui.append(" fsp.start_date, fsp.facility_service_price_id, sc.service_category_id, fsp.created_date, fsp.retired, fsp.creator ");
         bui.append(" FROM moh_bill_facility_service_price fsp ");

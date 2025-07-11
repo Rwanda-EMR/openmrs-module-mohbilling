@@ -528,24 +528,25 @@ public class FacilityServicePriceUtil {
 							/*if(insurance.getCategory().toLowerCase().equals("base")) {
 								bs.setMaximaToPay(fsp.getFullPrice());
 							}*/
-							if(insurance.getCategory().toLowerCase().equals("mmi_ur")) {
-								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.15))).setScale(0, RoundingMode.CEILING));
+							if(insurance.getCategory().toLowerCase().equals("east_africa")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
 							}
 							else if(insurance.getCategory().toLowerCase().equals("rssb")) {
-								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.25))).setScale(0, RoundingMode.CEILING));
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
 							}
 							else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
-								bs.setMaximaToPay((fsp.getFullPrice().divide(new BigDecimal(2))).setScale(0, RoundingMode.CEILING));
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
 							} /*else if(insurance.getCategory().toLowerCase().equals("private")) {
 								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
 							}*/
 							else if(insurance.getCategory().toLowerCase().equals("private")) {
-								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.4375))).setScale(0, RoundingMode.CEILING));
-							}else if(insurance.getCategory().toLowerCase().equals("none")) {
-								BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+							}else if(insurance.getCategory().toLowerCase().equals("international")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+							}else if(insurance.getCategory().toLowerCase().equals("africa")) {
+								BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1));
 								bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
 							}
-
 						} else {
 							bs = new BillableService();
 							bs.setStartDate(startDate);
@@ -558,18 +559,23 @@ public class FacilityServicePriceUtil {
 							/*if(insurance.getCategory().toLowerCase().equals("base")) {
 								bs.setMaximaToPay(fsp.getFullPrice());
 							}*/
-							if(insurance.getCategory().toLowerCase().equals("mmi_ur")) {
-								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.15))).setScale(0, RoundingMode.CEILING));
+							if(insurance.getCategory().toLowerCase().equals("east_africa")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
 							}
 							else if(insurance.getCategory().toLowerCase().equals("rssb")) {
-								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.25))).setScale(0, RoundingMode.CEILING));
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
 							}
 							else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
-								bs.setMaximaToPay((fsp.getFullPrice().divide(new BigDecimal(2))).setScale(0, RoundingMode.CEILING));
-							} else if(insurance.getCategory().toLowerCase().equals("private")) {
-								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.4375))).setScale(0, RoundingMode.CEILING));
-							} else if(insurance.getCategory().toLowerCase().equals("none")) {
-								BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+							} /*else if(insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+							}*/
+							else if(insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+							}else if(insurance.getCategory().toLowerCase().equals("international")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+							}else if(insurance.getCategory().toLowerCase().equals("africa")) {
+								BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1));
 								bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
 							}
 						}
@@ -662,18 +668,23 @@ public class FacilityServicePriceUtil {
 							/*if(insurance.getCategory().toLowerCase().equals("base")) {
 								bs.setMaximaToPay(fsp.getFullPrice());
 							}*/
-								if (insurance.getCategory().toLowerCase().equals("mmi_ur")) {
-									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.15))).setScale(0, RoundingMode.CEILING));
-								} else if (insurance.getCategory().toLowerCase().equals("rssb")) {
-									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.25))).setScale(0, RoundingMode.CEILING));
-								} else if (insurance.getCategory().toLowerCase().equals("mutuelle")) {
-									bs.setMaximaToPay((fsp.getFullPrice().divide(new BigDecimal(2))).setScale(0, RoundingMode.CEILING));
+								if(insurance.getCategory().toLowerCase().equals("east_africa")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+								}
+								else if(insurance.getCategory().toLowerCase().equals("rssb")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+								}
+								else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
 								} /*else if(insurance.getCategory().toLowerCase().equals("private")) {
 								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
-							}*/ else if (insurance.getCategory().toLowerCase().equals("private")) {
-									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.4375))).setScale(0, RoundingMode.CEILING));
-								} else if (insurance.getCategory().toLowerCase().equals("none")) {
-									BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+							}*/
+								else if(insurance.getCategory().toLowerCase().equals("private")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+								}else if(insurance.getCategory().toLowerCase().equals("international")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+								}else if(insurance.getCategory().toLowerCase().equals("africa")) {
+									BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1));
 									bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
 								}
 
@@ -689,16 +700,23 @@ public class FacilityServicePriceUtil {
 							/*if(insurance.getCategory().toLowerCase().equals("base")) {
 								bs.setMaximaToPay(fsp.getFullPrice());
 							}*/
-								if (insurance.getCategory().toLowerCase().equals("mmi_ur")) {
-									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.15))).setScale(0, RoundingMode.CEILING));
-								} else if (insurance.getCategory().toLowerCase().equals("rssb")) {
-									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.25))).setScale(0, RoundingMode.CEILING));
-								} else if (insurance.getCategory().toLowerCase().equals("mutuelle")) {
-									bs.setMaximaToPay((fsp.getFullPrice().divide(new BigDecimal(2))).setScale(0, RoundingMode.CEILING));
-								} else if (insurance.getCategory().toLowerCase().equals("private")) {
-									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1.4375))).setScale(0, RoundingMode.CEILING));
-								} else if (insurance.getCategory().toLowerCase().equals("none")) {
-									BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
+								if(insurance.getCategory().toLowerCase().equals("east_africa")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+								}
+								else if(insurance.getCategory().toLowerCase().equals("rssb")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+								}
+								else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+								} /*else if(insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+							}*/
+								else if(insurance.getCategory().toLowerCase().equals("private")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+								}else if(insurance.getCategory().toLowerCase().equals("international")) {
+									bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+								}else if(insurance.getCategory().toLowerCase().equals("africa")) {
+									BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1));
 									bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
 								}
 							}
@@ -763,19 +781,24 @@ public class FacilityServicePriceUtil {
 						bs.setFacilityServicePrice(fsp);
 
 						if(!fsp.getCategory().toLowerCase().equals("medicaments") && !fsp.getCategory().toLowerCase().equals("consommables")) {
-							if(insurance.getCategory().toLowerCase().equals("mmi_ur")) {
-								bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.15)));
+							if(insurance.getCategory().toLowerCase().equals("east_africa")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
 							}
 							else if(insurance.getCategory().toLowerCase().equals("rssb")) {
-								bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.25)));
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
 							}
 							else if(insurance.getCategory().toLowerCase().equals("mutuelle")) {
-								bs.setMaximaToPay(fsp.getFullPrice().divide(new BigDecimal(2)));
-							} else if (insurance.getCategory().toLowerCase().equals("private")) {
-								bs.setMaximaToPay(fsp.getFullPrice().multiply(new BigDecimal(1.4375)));
-							} else if(insurance.getCategory().toLowerCase().equals("none")) {
-								BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1.725));
-								bs.setMaximaToPay(initial);
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+							} /*else if(insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay(fsp.getFullPrice().add(fsp.getFullPrice().multiply(quarter)));
+							}*/
+							else if(insurance.getCategory().toLowerCase().equals("private")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+							}else if(insurance.getCategory().toLowerCase().equals("international")) {
+								bs.setMaximaToPay((fsp.getFullPrice().multiply(new BigDecimal(1))).setScale(0, RoundingMode.CEILING));
+							}else if(insurance.getCategory().toLowerCase().equals("africa")) {
+								BigDecimal initial = fsp.getFullPrice().multiply(new BigDecimal(1));
+								bs.setMaximaToPay(initial.setScale(0, RoundingMode.CEILING));
 							}
 							fsp.addBillableService(bs);
 						}
