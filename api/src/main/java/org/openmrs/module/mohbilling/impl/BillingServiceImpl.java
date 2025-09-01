@@ -1073,5 +1073,8 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getBillableServicesByCategoryAndFacilityServicePrice(serviceCategoryId, facilityServicePriceId);
     }
 
-
+    @Override
+    public List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient) {
+        return billingDAO.getOpenGlobalBillsForPatient(patient);
+    }
 }

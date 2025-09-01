@@ -80,16 +80,25 @@ public class OrderServiceAdvice implements AfterReturningAdvice {
             }
 
             InsurancePolicy ip = Context.getService(BillingService.class).getInsurancePolicyByCardNo(insuranceCardNumber);
+            ip = ip != null && !ip.isExpired() ? ip : null;
             log.info("ip: ----------- : " + ip);
 
             if (ip == null) {
-                ip = Context.getService(BillingService.class).getAllInsurancePoliciesByPatient(patient).stream()
-                        .filter(insurancePolicy -> insurancePolicy.getExpirationDate().after(new Date()))
+                GlobalBill openGlobalBillForPatient = Context.getService(BillingService.class).getOpenGlobalBillsForPatient(patient).stream()
+                        .filter(globalBill -> globalBill.getAdmission() != null
+                                && globalBill.getAdmission().getInsurancePolicy() != null
+                                && !globalBill.getAdmission().getInsurancePolicy().isExpired())
                         .findFirst().orElse(null);
-                if (insuranceCardNumber == null && ip != null) {
-                    insuranceCardNumber = ip.getInsuranceCardNo();
-                }
+                log.info("openGlobalBillForPatient: " + openGlobalBillForPatient);
+
+                ip = openGlobalBillForPatient != null ? openGlobalBillForPatient.getAdmission().getInsurancePolicy()
+                        : Context.getService(BillingService.class).getAllInsurancePoliciesByPatient(patient).stream()
+                        .filter(insurancePolicy -> !insurancePolicy.isExpired())
+                        .findFirst().orElse(null);
+                log.info("ip: " + ip);
             }
+
+            insuranceCardNumber = ip != null ? ip.getInsuranceCardNo() : null;
 
             List<PatientServiceBill> psbList = new ArrayList<>();
             Department department = null;
@@ -125,6 +134,12 @@ public class OrderServiceAdvice implements AfterReturningAdvice {
             if (psbList.size() > 0) {
                 log.info("psbList.size(): " + psbList.size());
                 GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
+
+                if (gb == null) {
+                    //TODO: Business rule needs to be implemented here regarding the global bill
+                    return;
+                }
+
                 BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
                 gb.setGlobalAmount(globalAmount);
                 gb = GlobalBillUtil.saveGlobalBill(gb);

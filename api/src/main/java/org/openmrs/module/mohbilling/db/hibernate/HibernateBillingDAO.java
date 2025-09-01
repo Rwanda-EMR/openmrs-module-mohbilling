@@ -1983,4 +1983,17 @@ public class HibernateBillingDAO implements BillingDAO {
                 .add(Restrictions.eq("facilityServicePrice.facilityServicePriceId", facilityServicePriceId))
                 .list();
     }
+    /* (non-Javadoc)
+     * @see org.openmrs.module.mohbilling.db.BillingDAO#getOpenGlobalBillsForPatient(org.openmrs.Patient)
+     */
+    @Override
+    public List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient) {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class, "globalBill")
+                .createAlias("admission", "admission")
+                .createAlias("admission.insurancePolicy", "insurancePolicy")
+                .add(Restrictions.eq("insurancePolicy.owner", patient))
+                .add(Restrictions.eq("globalBill.closed", false));
+        return criteria.list();
+    }
+
 }

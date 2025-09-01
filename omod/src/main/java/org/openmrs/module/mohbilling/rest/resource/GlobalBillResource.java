@@ -23,6 +23,7 @@ import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
@@ -44,13 +45,13 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
 
     @Override
     protected String getUniqueId(GlobalBill delegate) {
-        return String.valueOf(delegate.getBillIdentifier());
+        return String.valueOf(delegate.getGlobalBillId());
     }
 
     @Override
     public GlobalBill getByUniqueId(String uniqueId) {
         BillingService billingService = Context.getService(BillingService.class);
-        return billingService.getGlobalBillByBillIdentifier(uniqueId);
+        return billingService.GetGlobalBill(Integer.valueOf(uniqueId));
     }
 
     @Override
@@ -61,6 +62,14 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
     @Override
     public GlobalBill newDelegate() {
         return new GlobalBill();
+    }
+
+    @Override
+    public Object update(String uuid, SimpleObject propertiesToUpdate, RequestContext context) throws ResponseException {
+        if (!propertiesToUpdate.containsKey("closedBy")) {
+            propertiesToUpdate.put("closedBy", Context.getAuthenticatedUser());
+        }
+        return super.update(uuid, propertiesToUpdate, context);
     }
 
     @Override
@@ -113,6 +122,16 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
     public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
         DelegatingResourceDescription description = new DelegatingResourceDescription();
         description.addRequiredProperty("admission");
+        return description;
+    }
+
+    @Override
+    public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addProperty("closed");
+        description.addProperty("closedBy");
+        description.addProperty("closingReason");
+        description.addProperty("closingDate");
         return description;
     }
 

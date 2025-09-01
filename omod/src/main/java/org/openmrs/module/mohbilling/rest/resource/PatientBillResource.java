@@ -61,13 +61,7 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
 
     @Override
     public PatientBill save(PatientBill patientBill) {
-        if (patientBill.getCreator() == null) {
-            patientBill.setCreator(Context.getAuthenticatedUser());
-        }
-        if (patientBill.getCreatedDate() == null) {
-            patientBill.setCreatedDate(new Date());
-        }
-        return Context.getService(BillingProcessingService.class).savePatientBill(patientBill);
+        throw new ResourceDoesNotSupportOperationException();
     }
 
     @Override

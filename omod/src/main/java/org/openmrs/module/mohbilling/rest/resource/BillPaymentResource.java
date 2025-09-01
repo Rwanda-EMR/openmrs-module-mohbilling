@@ -14,8 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -71,6 +74,11 @@ public class BillPaymentResource extends DelegatingCrudResource<BillPayment> {
             patientBill.setIsPaid(true);
             Context.getService(BillingService.class).savePatientBill(patientBill);
         }
+
+        billPayment.getPaidItems().stream().forEach(paidServiceBill -> {
+            paidServiceBill.getBillItem().setPaidQuantity(paidServiceBill.getPaidQty());
+            ConsommationUtil.saveBilledItem(paidServiceBill.getBillItem());
+        });
 
         return billPayment;
     }

@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -17,12 +18,19 @@ import java.util.Set;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.ThirdPartyBillUtil;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.InsuranceBill;
+import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
@@ -70,6 +78,22 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
             consommation.setCreatedDate(new Date());
         }
 
+        GlobalBill globalBill = GlobalBillUtil.getGlobalBill(consommation.getGlobalBill().getGlobalBillId());
+
+        BigDecimal totalAmount = consommation.getBillItems().stream()
+                .map(billItem -> billItem.getUnitPrice().multiply(billItem.getQuantity()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        InsuranceBill insuranceBill = InsuranceBillUtil.createInsuranceBill(globalBill.getAdmission().getInsurancePolicy().getInsurance(),
+                totalAmount);
+        consommation.setInsuranceBill(insuranceBill);
+
+        ThirdPartyBill thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(globalBill.getAdmission().getInsurancePolicy(), totalAmount);
+        consommation.setThirdPartyBill(thirdPartyBill);
+
+        PatientBill patientBill = PatientBillUtil.createPatientBill(totalAmount, globalBill.getAdmission().getInsurancePolicy());
+        consommation.setPatientBill(patientBill);
+
         Context.getService(BillingService.class).saveConsommation(consommation);
         return consommation;
     }
@@ -85,7 +109,6 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
         description.addRequiredProperty("department");
         description.addRequiredProperty("beneficiary");
         description.addRequiredProperty("globalBill");
-        description.addRequiredProperty("patientBill");
         description.addProperty("billItems");
         return description;
     }
@@ -97,6 +120,9 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
         if (representation instanceof RefRepresentation) {
             description = new DelegatingResourceDescription();
             description.addProperty("consommationId");
+            description.addProperty("paid");
+            description.addProperty("partiallyPaid");
+            description.addProperty("paymentStatus");
             description.addProperty("department", Representation.REF);
             description.addProperty("billItems", Representation.REF);
             description.addProperty("patientBill", Representation.REF);
@@ -106,6 +132,9 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
         } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
             description = new DelegatingResourceDescription();
             description.addProperty("consommationId");
+            description.addProperty("paid");
+            description.addProperty("partiallyPaid");
+            description.addProperty("paymentStatus");
             description.addProperty("department", Representation.REF);
             description.addProperty("billItems");
             description.addProperty("patientBill", Representation.REF);
@@ -134,5 +163,20 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
     @PropertySetter("billItems")
     public void setBillItems(Consommation consommation, Set<PatientServiceBill> billItems) {
         billItems.stream().forEach(billItem -> consommation.addBillItem(billItem));
+    }
+
+    @PropertyGetter("paid")
+    public boolean isPaid(Consommation consommation) {
+        return ConsommationUtil.areAllItemsPaid(consommation);
+    }
+
+    @PropertyGetter("partiallyPaid")
+    public boolean isPartiallyPaid(Consommation consommation) {
+        return ConsommationUtil.isConsommationPartiallyPaid(consommation);
+    }
+
+    @PropertyGetter("paymentStatus")
+    public String getStatus(Consommation consommation) {
+        return ConsommationUtil.getConsommationStatus(consommation.getConsommationId());
     }
 }

@@ -336,4 +336,13 @@ public class InsurancePolicy {
 
 	}
 
+    /**
+     * Checks if the current date is after the expirationDate
+     *
+     * @return true if the policy has expired.
+     */
+    public boolean isExpired() {
+        return expirationDate != null && new Date().after(expirationDate);
+    }
+
 }

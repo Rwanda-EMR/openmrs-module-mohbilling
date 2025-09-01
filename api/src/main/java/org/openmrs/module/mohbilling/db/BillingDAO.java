@@ -746,4 +746,6 @@ public interface BillingDAO {
 
 	List<BillableService> getBillableServicesByCategoryAndFacilityServicePrice(Integer serviceCategoryId,
 																			   Integer facilityServicePriceId);
+
+    List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient);
 }
