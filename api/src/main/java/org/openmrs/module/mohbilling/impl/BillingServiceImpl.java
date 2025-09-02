@@ -1077,4 +1077,39 @@ public class BillingServiceImpl implements BillingService {
     public List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient) {
         return billingDAO.getOpenGlobalBillsForPatient(patient);
     }
+
+    @Override
+    public List<GlobalBill> getAllGlobalBillsSorted(String orderBy, String orderDirection,
+                                                    String fallbackOrderBy, String fallbackDirection) {
+        return billingDAO.getAllGlobalBillsSorted(orderBy, orderDirection, fallbackOrderBy, fallbackDirection);
+    }
+
+    @Override
+    public List<GlobalBill> getGlobalBillsByPagination(Integer startIndex, Integer pageSize,
+                                                       String orderBy, String orderDirection,
+                                                       String fallbackOrderBy, String fallbackDirection) {
+        return billingDAO.getGlobalBillsByPagination(startIndex, pageSize, orderBy, orderDirection, fallbackOrderBy, fallbackDirection);
+    }
+
+    @Override
+    public long getGlobalBillCount() {
+        return billingDAO.getGlobalBillCount();
+    }
+
+    @Override
+    public List<Consommation> findConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber,
+                                                                 Integer startIndex, Integer pageSize,
+                                                                 String orderBy, String orderDirection) {
+        return billingDAO.findConsommationsByPatientOrPolicy(patientNameLike, policyIdNumber, startIndex, pageSize, orderBy, orderDirection);
+    }
+
+    @Override
+    public int countConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber) {
+        return billingDAO.countConsommationsByPatientOrPolicy(patientNameLike, policyIdNumber);
+    }
+
+    @Override
+    public List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize, String orderBy, String orderDirection) {
+        return billingDAO.getNewestConsommations(startIndex, pageSize, orderBy, orderDirection);
+    }
 }

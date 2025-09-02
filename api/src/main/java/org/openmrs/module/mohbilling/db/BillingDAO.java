@@ -748,4 +748,34 @@ public interface BillingDAO {
 																			   Integer facilityServicePriceId);
 
     List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient);
+
+	/**
+	 * Returns all GlobalBills sorted by the given property name, with an optional secondary fallback.
+	 * Typical usage: orderBy = "admission.createdDate", fallbackOrderBy = "createdDate".
+	 */
+	List<GlobalBill> getAllGlobalBillsSorted(String orderBy, String orderDirection,
+											 String fallbackOrderBy, String fallbackDirection);
+
+	/**
+	 * (Optional) Paged variant if you ever want DAO-level paging.
+	 * Not required by NeedsPaging, but useful for exports or custom endpoints.
+	 */
+	List<GlobalBill> getGlobalBillsByPagination(Integer startIndex, Integer pageSize,
+												String orderBy, String orderDirection,
+												String fallbackOrderBy, String fallbackDirection);
+
+	long getGlobalBillCount();
+
+
+	List<Consommation> findConsommationsByPatientOrPolicy(String patientNameLike,
+														  String policyIdNumber,
+														  Integer startIndex,
+														  Integer pageSize,
+														  String orderBy,
+														  String orderDirection);
+
+	int countConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber);
+
+	List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize,
+											  String orderBy, String orderDirection);
 }
