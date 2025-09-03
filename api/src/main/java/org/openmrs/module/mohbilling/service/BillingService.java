@@ -679,7 +679,7 @@ public interface BillingService {
 
 	public List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator);
 	public void updateOtherInsurances(ServiceCategory sc);
-	
+
 
 	/**
 	 * gets transactions by type,in a period and by cashier
@@ -711,4 +711,42 @@ public interface BillingService {
 																			   Integer facilityServicePriceId);
 
     List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient);
+
+	List<GlobalBill> getAllGlobalBillsSorted(String orderBy, String orderDirection,
+											 String fallbackOrderBy, String fallbackDirection);
+
+	List<GlobalBill> getGlobalBillsByPagination(Integer startIndex, Integer pageSize,
+												String orderBy, String orderDirection,
+												String fallbackOrderBy, String fallbackDirection);
+
+	long getGlobalBillCount();
+
+	/**
+	 * Server-side search for consommations by optional patient name and/or policy (insurance card) number.
+	 * Results are ordered and paginated at the DB layer.
+	 *
+	 * @param patientNameLike optional case-insensitive substring of patient/beneficiary name
+	 * @param policyIdNumber optional exact (or prefix) match of policy/card number
+	 * @param startIndex page offset (0-based)
+	 * @param pageSize number of records
+	 * @param orderBy entity field to order by (default: "createdDate")
+	 * @param orderDirection "asc" or "desc" (default: "desc")
+	 */
+	List<Consommation> findConsommationsByPatientOrPolicy(String patientNameLike,
+														  String policyIdNumber,
+														  Integer startIndex,
+														  Integer pageSize,
+														  String orderBy,
+														  String orderDirection);
+
+	/**
+	 * Returns total match count for the above search (for pagination UIs).
+	 */
+	int countConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber);
+
+	/**
+	 * Returns newest consommations (no filters), paginated and ordered at DB layer.
+	 */
+	List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize,
+											  String orderBy, String orderDirection);
 }

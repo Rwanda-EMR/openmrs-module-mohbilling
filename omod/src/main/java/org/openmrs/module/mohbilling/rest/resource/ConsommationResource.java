@@ -152,11 +152,40 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
     @Override
     protected PageableResult doSearch(RequestContext context) {
         String globalBillId = context.getRequest().getParameter("globalBillId");
+        String patientName = context.getRequest().getParameter("patientName");
+        String policyIdNumber = context.getRequest().getParameter("policyIdNumber"); // aka insurance card no
+        String orderBy = context.getRequest().getParameter("orderBy"); // default: createdDate
+        String orderDirection = context.getRequest().getParameter("orderDirection"); // default: desc
+
+        Integer startIndex = context.getStartIndex();
+        Integer pageSize = context.getLimit() != null ? context.getLimit() : 10;
+
         List<Consommation> consommations = new ArrayList<>();
+
         if (globalBillId != null) {
             GlobalBill globalBill = GlobalBillUtil.getGlobalBill(Integer.valueOf(globalBillId));
             consommations = ConsommationUtil.getConsommationsByGlobalBill(globalBill);
+            return new NeedsPaging<>(consommations, context);
         }
+
+        if ((patientName != null && !patientName.trim().isEmpty()) || (policyIdNumber != null && !policyIdNumber.trim().isEmpty())) {
+            consommations = Context.getService(BillingService.class)
+                    .findConsommationsByPatientOrPolicy(
+                            patientName,
+                            policyIdNumber,
+                            startIndex,
+                            pageSize,
+                            (orderBy != null && !orderBy.trim().isEmpty()) ? orderBy : "createdDate",
+                            (orderDirection != null && !orderDirection.trim().isEmpty()) ? orderDirection : "desc");
+            return new NeedsPaging<>(consommations, context);
+        }
+
+        consommations = Context.getService(BillingService.class)
+                .getNewestConsommations(
+                        startIndex,
+                        pageSize,
+                        (orderBy != null && !orderBy.trim().isEmpty()) ? orderBy : "createdDate",
+                        (orderDirection != null && !orderDirection.trim().isEmpty()) ? orderDirection : "desc");
         return new NeedsPaging<>(consommations, context);
     }
 

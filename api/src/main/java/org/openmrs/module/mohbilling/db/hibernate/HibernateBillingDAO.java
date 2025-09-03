@@ -16,10 +16,15 @@ package org.openmrs.module.mohbilling.db.hibernate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.*;
+import org.hibernate.SQLQuery;
+import java.util.HashMap;
+import java.util.Map;
 import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
+
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
@@ -1993,6 +1998,168 @@ public class HibernateBillingDAO implements BillingDAO {
                 .createAlias("admission.insurancePolicy", "insurancePolicy")
                 .add(Restrictions.eq("insurancePolicy.owner", patient))
                 .add(Restrictions.eq("globalBill.closed", false));
+        return criteria.list();
+    }
+
+    @Override
+    public List<GlobalBill> getAllGlobalBillsSorted(String orderBy, String orderDirection,
+                                                    String fallbackOrderBy, String fallbackDirection) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(GlobalBill.class, "globalBill")
+                .createAlias("admission", "admission", JoinType.LEFT_OUTER_JOIN);
+
+        if (orderBy != null) {
+            if ("desc".equalsIgnoreCase(orderDirection)) {
+                criteria.addOrder(Order.desc(orderBy));
+            } else {
+                criteria.addOrder(Order.asc(orderBy));
+            }
+        }
+
+        if (fallbackOrderBy != null) {
+            if ("desc".equalsIgnoreCase(fallbackDirection)) {
+                criteria.addOrder(Order.desc(fallbackOrderBy));
+            } else {
+                criteria.addOrder(Order.asc(fallbackOrderBy));
+            }
+        }
+
+        return criteria.list();
+    }
+
+    @Override
+    public List<GlobalBill> getGlobalBillsByPagination(Integer startIndex, Integer pageSize,
+                                                       String orderBy, String orderDirection,
+                                                       String fallbackOrderBy, String fallbackDirection) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(GlobalBill.class, "globalBill")
+                .createAlias("admission", "admission", JoinType.LEFT_OUTER_JOIN)
+                .setFirstResult(startIndex == null ? 0 : startIndex)
+                .setMaxResults(pageSize == null ? 10 : pageSize);
+
+        if (orderBy != null) {
+            if ("desc".equalsIgnoreCase(orderDirection)) {
+                criteria.addOrder(Order.desc(orderBy));
+            } else {
+                criteria.addOrder(Order.asc(orderBy));
+            }
+        }
+
+        if (fallbackOrderBy != null) {
+            if ("desc".equalsIgnoreCase(fallbackDirection)) {
+                criteria.addOrder(Order.desc(fallbackOrderBy));
+            } else {
+                criteria.addOrder(Order.asc(fallbackOrderBy));
+            }
+        }
+
+        return criteria.list();
+    }
+
+    @Override
+    public long getGlobalBillCount() {
+        Number n = (Number) sessionFactory.getCurrentSession()
+                .createCriteria(GlobalBill.class)
+                .setProjection(Projections.rowCount())
+                .uniqueResult();
+        return n == null ? 0L : n.longValue();
+    }
+
+
+    @Override
+    public List<Consommation> findConsommationsByPatientOrPolicy(String patientNameLike,
+                                                                 String policyIdNumber,
+                                                                 Integer startIndex,
+                                                                 Integer pageSize,
+                                                                 String orderBy,
+                                                                 String orderDirection) {
+        Session session = sessionFactory.getCurrentSession();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT c.* FROM moh_bill_consommation c ")
+                .append(" INNER JOIN moh_bill_beneficiary b ON c.beneficiary_id = b.beneficiary_id ")
+                .append(" INNER JOIN patient p ON b.patient_id = p.patient_id ")
+                .append(" INNER JOIN person_name pn ON pn.person_id = p.patient_id AND pn.voided = 0 AND pn.preferred = 1 ")
+                .append(" WHERE 1=1 ");
+
+        Map<String, Object> params = new HashMap<String, Object>();
+
+        if (patientNameLike != null && patientNameLike.trim().length() > 0) {
+            sql.append(" AND (LOWER(pn.given_name) LIKE :pname OR LOWER(pn.family_name) LIKE :pname) ");
+            params.put("pname", "%" + patientNameLike.trim().toLowerCase() + "%");
+        }
+        if (policyIdNumber != null && policyIdNumber.trim().length() > 0) {
+            sql.append(" AND LOWER(b.policy_id_number) LIKE :ppolicy ");
+            params.put("ppolicy", "%" + policyIdNumber.trim().toLowerCase() + "%");
+        }
+
+        String orderCol = "c.created_date"; // default
+        if (orderBy != null) {
+            String ob = orderBy.trim().toLowerCase();
+            if ("createddate".equals(ob) || "created_date".equals(ob)) {
+                orderCol = "c.created_date";
+            } else if ("consommationid".equals(ob) || "consommation_id".equals(ob)) {
+                orderCol = "c.consommation_id";
+            }
+        }
+        String orderDir = (orderDirection != null && orderDirection.equalsIgnoreCase("asc")) ? "ASC" : "DESC";
+        sql.append(" ORDER BY ").append(orderCol).append(" ").append(orderDir);
+
+        SQLQuery q = session.createSQLQuery(sql.toString()).addEntity("c", Consommation.class);
+        for (Map.Entry<String, Object> e : params.entrySet()) {
+            q.setParameter(e.getKey(), e.getValue());
+        }
+        if (startIndex != null && startIndex >= 0) {
+            q.setFirstResult(startIndex);
+        }
+        if (pageSize != null && pageSize > 0) {
+            q.setMaxResults(pageSize);
+        }
+        return q.list();
+    }
+
+    @Override
+    public int countConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber) {
+        Session session = sessionFactory.getCurrentSession();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(*) FROM moh_bill_consommation c ")
+                .append(" INNER JOIN moh_bill_beneficiary b ON c.beneficiary_id = b.beneficiary_id ")
+                .append(" INNER JOIN patient p ON b.patient_id = p.patient_id ")
+                .append(" INNER JOIN person_name pn ON pn.person_id = p.patient_id AND pn.voided = 0 AND pn.preferred = 1 ")
+                .append(" WHERE 1=1 ");
+
+        Map<String, Object> params = new HashMap<String, Object>();
+
+        if (patientNameLike != null && patientNameLike.trim().length() > 0) {
+            sql.append(" AND (LOWER(pn.given_name) LIKE :pname OR LOWER(pn.family_name) LIKE :pname) ");
+            params.put("pname", "%" + patientNameLike.trim().toLowerCase() + "%");
+        }
+        if (policyIdNumber != null && policyIdNumber.trim().length() > 0) {
+            sql.append(" AND LOWER(b.policy_id_number) LIKE :ppolicy ");
+            params.put("ppolicy", "%" + policyIdNumber.trim().toLowerCase() + "%");
+        }
+
+        SQLQuery q = session.createSQLQuery(sql.toString());
+        for (Map.Entry<String, Object> e : params.entrySet()) {
+            q.setParameter(e.getKey(), e.getValue());
+        }
+        Number n = (Number) q.uniqueResult();
+        return n == null ? 0 : n.intValue();
+    }
+
+    @Override
+    public List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize,
+                                                     String orderBy, String orderDirection) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(Consommation.class, "c");
+
+        String ob = (orderBy == null || orderBy.trim().isEmpty()) ? "createdDate" : orderBy;
+        boolean desc = !("asc".equalsIgnoreCase(orderDirection));
+        if (desc) criteria.addOrder(Order.desc("c." + ob)); else criteria.addOrder(Order.asc("c." + ob));
+
+        if (startIndex != null) criteria.setFirstResult(startIndex);
+        if (pageSize != null && pageSize > 0) criteria.setMaxResults(pageSize);
         return criteria.list();
     }
 

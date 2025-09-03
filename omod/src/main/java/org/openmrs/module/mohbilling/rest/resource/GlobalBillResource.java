@@ -1,18 +1,10 @@
-/**
- * This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can
- * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
- * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
- * <p>
- * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
- * graphic logo is a trademark of OpenMRS Inc.
- */
 package org.openmrs.module.mohbilling.rest.resource;
-
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
@@ -32,6 +24,7 @@ import org.openmrs.module.webservices.rest.web.representation.FullRepresentation
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
+import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
@@ -42,6 +35,44 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
         supportedClass = GlobalBill.class,
         supportedOpenmrsVersions = {"2.0 - 2.*"})
 public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
+
+    private static final Map<String, String> SORT_KEYS;
+    static {
+        SORT_KEYS = new LinkedHashMap<>();
+
+        SORT_KEYS.put("admissionDate", "admission.createdDate");
+        SORT_KEYS.put("createdDate", "createdDate");
+        SORT_KEYS.put("closingDate", "closingDate");
+        SORT_KEYS.put("globalBillId", "globalBillId");
+    }
+
+    private String normalizeOrderBy(String raw) {
+        if (raw == null || raw.trim().isEmpty()) return "admission.createdDate";
+        String key = raw.trim();
+        String mapped = SORT_KEYS.get(key);
+        if (mapped != null) return mapped;
+
+        for (String allowed : SORT_KEYS.values()) {
+            if (allowed.equals(key)) return key;
+        }
+        return "admission.createdDate";
+    }
+
+    private String normalizeDirection(String raw) {
+        if (raw == null) return "desc";
+        String v = raw.trim().toLowerCase();
+        return ("asc".equals(v) ? "asc" : "desc");
+    }
+
+    private int normalizeStart(RequestContext ctx) {
+        Integer s = ctx.getStartIndex();
+        return s == null || s < 0 ? 0 : s;
+    }
+
+    private int normalizeLimit(RequestContext ctx) {
+        Integer l = ctx.getLimit();
+        return l == null || l <= 0 ? 10 : l;
+    }
 
     @Override
     protected String getUniqueId(GlobalBill delegate) {
@@ -56,7 +87,7 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
 
     @Override
     protected void delete(GlobalBill globalBill, String s, RequestContext requestContext) throws ResponseException {
-
+        // not supported
     }
 
     @Override
@@ -116,6 +147,7 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
 
     @Override
     public void purge(GlobalBill globalBill, RequestContext requestContext) throws ResponseException {
+        // not supported
     }
 
     @Override
@@ -174,12 +206,12 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
         return null;
     }
 
-
     @Override
     protected PageableResult doSearch(RequestContext context) {
         String ipCardNumber = context.getRequest().getParameter("ipCardNumber");
         String billIdentifier = context.getRequest().getParameter("billIdentifier");
         String patientUuid = context.getRequest().getParameter("patient");
+
         List<GlobalBill> globalBills = new ArrayList<>();
 
         if (patientUuid != null) {
@@ -188,24 +220,47 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
             for (InsurancePolicy insurancePolicy : insurancePolicies) {
                 globalBills.addAll(GlobalBillUtil.getGlobalBillsByInsurancePolicy(insurancePolicy));
             }
-            return new NeedsPaging<>(globalBills, context);
-        }
-
-        if (ipCardNumber != null) {
+        } else if (ipCardNumber != null) {
             Beneficiary ben = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(ipCardNumber);
             InsurancePolicy ip = InsurancePolicyUtil.getInsurancePolicyByBeneficiary(ben);
             globalBills = GlobalBillUtil.getGlobalBillsByInsurancePolicy(ip);
+        } else if (billIdentifier != null) {
+            GlobalBill globalBill = GlobalBillUtil.getGlobalBillByBillIdentifier(billIdentifier);
+            if (globalBill != null) globalBills.add(globalBill);
         }
 
-        if (billIdentifier != null) {
-            GlobalBill globalBill = GlobalBillUtil.getGlobalBillByBillIdentifier(billIdentifier);
-            globalBills.add(globalBill);
-        }
         return new NeedsPaging<>(globalBills, context);
     }
 
     @Override
     protected PageableResult doGetAll(RequestContext context) throws ResponseException {
-        return new NeedsPaging<>(Context.getService(BillingService.class).getGlobalBills(), context);
+        BillingService svc = Context.getService(BillingService.class);
+
+        int start = context.getStartIndex() == null ? 0 : Math.max(0, context.getStartIndex());
+        int limit = context.getLimit() == null || context.getLimit() <= 0 ? 10 : context.getLimit();
+
+        String orderByRaw     = context.getRequest().getParameter("orderBy");
+        String orderDirRaw    = context.getRequest().getParameter("orderDirection");
+        String fallbackByRaw  = context.getRequest().getParameter("fallbackOrderBy");
+        String fallbackDirRaw = context.getRequest().getParameter("fallbackDirection");
+
+        String orderBy     = normalizeOrderBy(orderByRaw);
+        String orderDir    = normalizeDirection(orderDirRaw);
+        String fallbackBy  = normalizeOrderBy(fallbackByRaw == null ? "createdDate" : fallbackByRaw);
+        String fallbackDir = normalizeDirection(fallbackDirRaw == null ? "desc" : fallbackDirRaw);
+
+        List<GlobalBill> page =
+                svc.getGlobalBillsByPagination(start, limit, orderBy, orderDir, fallbackBy, fallbackDir);
+
+        boolean hasMore;
+        try {
+            long total = svc.getGlobalBillCount();
+            hasMore = (start + page.size()) < total;
+        } catch (Throwable ignore) {
+            hasMore = page.size() >= limit;
+        }
+
+        return new org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged<GlobalBill>(context, page, hasMore);
     }
+
 }
