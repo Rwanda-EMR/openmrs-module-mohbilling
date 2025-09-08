@@ -260,7 +260,7 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
             hasMore = page.size() >= limit;
         }
 
-        return new org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged<GlobalBill>(context, page, hasMore);
+        return new AlreadyPaged<GlobalBill>(context, page, hasMore);
     }
 
 }
