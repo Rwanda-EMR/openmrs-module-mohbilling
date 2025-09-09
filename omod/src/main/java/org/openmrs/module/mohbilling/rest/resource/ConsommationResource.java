@@ -201,7 +201,19 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
 
     @PropertyGetter("partiallyPaid")
     public boolean isPartiallyPaid(Consommation consommation) {
-        return ConsommationUtil.isConsommationPartiallyPaid(consommation);
+        BigDecimal totalAmount = consommation.getBillItems().stream()
+                .map(billItem -> billItem.getUnitPrice().multiply(billItem.getQuantity()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal paidAmount = consommation.getPatientBill().getAmountPaid();
+
+        if (paidAmount.compareTo(BigDecimal.ZERO) == 0 || paidAmount.compareTo(totalAmount) >= 0) {
+            return false;
+        } else {
+            return true;
+        }
+
+        //return ConsommationUtil.isConsommationPartiallyPaid(consommation);
     }
 
     @PropertyGetter("paymentStatus")
