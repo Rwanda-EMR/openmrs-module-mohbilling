@@ -10,7 +10,6 @@ import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -749,4 +748,14 @@ public interface BillingService {
 	 */
 	List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize,
 											  String orderBy, String orderDirection);
+
+	/**
+	 * Reverts a closed bill back to unpaid status
+	 * @param globalBillId the ID of the bill to revert
+	 * @param reason the reason for reverting the bill
+	 * @param revertedBy the user performing the revert
+	 * @return the reverted GlobalBill
+	 * @throws DAOException if the operation fails
+	 */
+	public GlobalBill revertClosedBill(Integer globalBillId, String reason, User revertedBy) throws DAOException;
 }

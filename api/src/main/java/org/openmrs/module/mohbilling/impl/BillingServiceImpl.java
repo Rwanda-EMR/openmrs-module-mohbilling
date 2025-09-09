@@ -7,7 +7,6 @@ import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.APIException;
-import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.*;
@@ -15,7 +14,6 @@ import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -1111,5 +1109,52 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize, String orderBy, String orderDirection) {
         return billingDAO.getNewestConsommations(startIndex, pageSize, orderBy, orderDirection);
+    }
+
+    @Override
+    public GlobalBill revertClosedBill(Integer globalBillId, String reason, User revertedBy) throws DAOException {
+        if (globalBillId == null) {
+            throw new APIException("Global Bill ID cannot be null");
+        }
+        
+        if (revertedBy == null) {
+            throw new APIException("User performing revert cannot be null");
+        }
+        
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new APIException("Reason for reverting bill cannot be null or empty");
+        }
+
+        GlobalBill globalBill = GetGlobalBill(globalBillId);
+        if (globalBill == null) {
+            throw new APIException("Global Bill with ID " + globalBillId + " not found");
+        }
+
+        if (!globalBill.isClosed()) {
+            throw new APIException("Cannot revert bill that is not closed. Bill ID: " + globalBillId);
+        }
+
+        if (globalBill.getVoided()) {
+            throw new APIException("Cannot revert a voided bill. Bill ID: " + globalBillId);
+        }
+
+        globalBill.setClosed(false);
+        globalBill.setClosingDate(null);
+        globalBill.setClosedBy(null);
+        globalBill.setEditingReason(reason);
+        globalBill.setEditedBy(revertedBy);
+
+        if (globalBill.getConsommations() != null) {
+            for (Consommation consommation : globalBill.getConsommations()) {
+                if (consommation.getPatientBill() != null) {
+                    PatientBill patientBill = consommation.getPatientBill();
+                    patientBill.setIsPaid(false);
+                    patientBill.setStatus("UNPAID");
+                    savePatientBill(patientBill);
+                }
+            }
+        }
+
+        return saveGlobalBill(globalBill);
     }
 }
