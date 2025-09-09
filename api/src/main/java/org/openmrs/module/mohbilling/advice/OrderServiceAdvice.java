@@ -56,7 +56,8 @@ public class OrderServiceAdvice implements AfterReturningAdvice {
 
     @Override
     public void afterReturning(Object o, Method method, Object[] objects, Object o1) throws Throwable {
-        if (method.getName().equals("saveOrder") && objects.length > 0 && objects[0] instanceof Order) {
+        if ((method.getName().equals("saveOrder") || method.getName().equals("saveOrUpdate"))
+                && objects.length > 0 && objects[0] instanceof Order) {
             Order order = (Order) objects[0];
             Patient patient = order.getPatient();
             String referenceId = (UUID.randomUUID()).toString();

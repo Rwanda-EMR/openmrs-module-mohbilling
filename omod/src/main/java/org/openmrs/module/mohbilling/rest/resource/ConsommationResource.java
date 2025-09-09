@@ -120,8 +120,6 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
         if (representation instanceof RefRepresentation) {
             description = new DelegatingResourceDescription();
             description.addProperty("consommationId");
-            description.addProperty("paid");
-            description.addProperty("partiallyPaid");
             description.addProperty("paymentStatus");
             description.addProperty("department", Representation.REF);
             description.addProperty("billItems", Representation.REF);
@@ -132,8 +130,6 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
         } else if (representation instanceof DefaultRepresentation || representation instanceof FullRepresentation) {
             description = new DelegatingResourceDescription();
             description.addProperty("consommationId");
-            description.addProperty("paid");
-            description.addProperty("partiallyPaid");
             description.addProperty("paymentStatus");
             description.addProperty("department", Representation.REF);
             description.addProperty("billItems");
@@ -194,30 +190,40 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
         billItems.stream().forEach(billItem -> consommation.addBillItem(billItem));
     }
 
-    @PropertyGetter("paid")
-    public boolean isPaid(Consommation consommation) {
-        return ConsommationUtil.areAllItemsPaid(consommation);
-    }
-
-    @PropertyGetter("partiallyPaid")
-    public boolean isPartiallyPaid(Consommation consommation) {
+    @PropertyGetter("paymentStatus")
+    public String getStatus(Consommation consommation) {
         BigDecimal totalAmount = consommation.getBillItems().stream()
                 .map(billItem -> billItem.getUnitPrice().multiply(billItem.getQuantity()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal paidAmount = consommation.getPatientBill().getAmountPaid();
 
-        if (paidAmount.compareTo(BigDecimal.ZERO) == 0 || paidAmount.compareTo(totalAmount) >= 0) {
-            return false;
-        } else {
-            return true;
-        }
+        BigDecimal insuranceAndThirdPartyAmount = getInsuranceAndThirdPartyAmount(consommation);
 
-        //return ConsommationUtil.isConsommationPartiallyPaid(consommation);
+        if (paidAmount.compareTo(BigDecimal.ZERO) == 0) {
+            return "Unpaid";
+        } else {
+            if (paidAmount.add(insuranceAndThirdPartyAmount).compareTo(totalAmount) >= 0) {
+                return "Fully Paid";
+            } else {
+                return "Partially Paid";
+            }
+        }
+        //return ConsommationUtil.getConsommationStatus(consommation.getConsommationId());
     }
 
-    @PropertyGetter("paymentStatus")
-    public String getStatus(Consommation consommation) {
-        return ConsommationUtil.getConsommationStatus(consommation.getConsommationId());
+    public BigDecimal getInsuranceAndThirdPartyAmount(Consommation consommation) {
+        BigDecimal insuranceAndThirdPartyAmount = BigDecimal.ZERO;
+
+        if (consommation.getInsuranceBill() != null) {
+            // Insurance will pay part of the bill
+            insuranceAndThirdPartyAmount = insuranceAndThirdPartyAmount.add(consommation.getInsuranceBill().getAmount());
+        }
+
+        if (consommation.getThirdPartyBill() != null) {
+            insuranceAndThirdPartyAmount = insuranceAndThirdPartyAmount.add(consommation.getThirdPartyBill().getAmount());
+        }
+
+        return insuranceAndThirdPartyAmount;
     }
 }

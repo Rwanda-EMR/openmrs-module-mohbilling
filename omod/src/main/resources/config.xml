@@ -69,6 +69,12 @@
         <class>@MODULE_PACKAGE@.advice.BillingServiceAdvice</class>
     </advice>
 
+
+	<advice>
+		<point>org.openmrs.module.orderexpansion.api.ProcedureService</point>
+		<class>@MODULE_PACKAGE@.advice.OrderServiceAdvice</class>
+	</advice>
+
     <!-- /AOP -->
 
 
