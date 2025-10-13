@@ -758,4 +758,15 @@ public interface BillingService {
 	 * @throws DAOException if the operation fails
 	 */
 	public GlobalBill revertClosedBill(Integer globalBillId, String reason, User revertedBy) throws DAOException;
+
+    /**
+     * Gets all existing Insurances
+     *
+     * @param includeAll — Whether to get all including voided
+     *
+     * @return <code>List<Insurance></code> a list of Insurance
+     *
+     * @throws DAOException
+     */
+    List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException;
 }

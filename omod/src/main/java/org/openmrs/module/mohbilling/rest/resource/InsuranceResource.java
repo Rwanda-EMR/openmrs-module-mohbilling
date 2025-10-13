@@ -152,6 +152,6 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
 
     @Override
     protected PageableResult doGetAll(RequestContext context) throws ResponseException {
-        return new NeedsPaging<>(Context.getService(BillingService.class).getAllInsurances(), context);
+        return new NeedsPaging<>(Context.getService(BillingService.class).getAllInsurances(context.getIncludeAll()), context);
     }
 }

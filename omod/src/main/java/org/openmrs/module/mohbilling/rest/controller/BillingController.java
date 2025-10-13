@@ -1,6 +1,9 @@
 package org.openmrs.module.mohbilling.rest.controller;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.util.Map;
 
 import org.openmrs.api.context.Context;
@@ -9,6 +12,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,6 +76,28 @@ public class BillingController extends MainResourceController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Error reverting bill: " + e.getMessage());
+        }
+    }
+
+    @RequestMapping(value = "/healthFacilityLogo", method = RequestMethod.GET, produces = "image/png")
+    public ResponseEntity<byte[]> getHealthFacilityLogo() {
+        try {
+            String logoPath = Context.getAdministrationService().getGlobalProperty("billing.healthFacilityLogo");
+            if (logoPath == null || logoPath.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            File logoFile = new File(logoPath);
+            if (!logoFile.exists() || !logoFile.isFile()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            byte[] logoBytes = Files.readAllBytes(logoFile.toPath());
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(logoBytes);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
     }
 }

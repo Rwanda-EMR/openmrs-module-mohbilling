@@ -200,7 +200,7 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
 
         BigDecimal insuranceAndThirdPartyAmount = getInsuranceAndThirdPartyAmount(consommation);
 
-        if (paidAmount.compareTo(BigDecimal.ZERO) == 0) {
+        if (paidAmount.compareTo(BigDecimal.ZERO) == 0 && totalAmount.compareTo(BigDecimal.ZERO) > 0) {
             return "Unpaid";
         } else {
             if (paidAmount.add(insuranceAndThirdPartyAmount).compareTo(totalAmount) >= 0) {

@@ -174,7 +174,7 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public List<Insurance> getAllInsurances() throws DAOException {
 
-        return billingDAO.getAllInsurances();
+        return billingDAO.getAllInsurances(true);
     }
 
     /**
@@ -1156,5 +1156,10 @@ public class BillingServiceImpl implements BillingService {
         }
 
         return saveGlobalBill(globalBill);
+    }
+
+    @Override
+    public List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException {
+        return billingDAO.getAllInsurances(includeAll);
     }
 }

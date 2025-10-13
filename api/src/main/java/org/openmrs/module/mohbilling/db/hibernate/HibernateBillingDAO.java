@@ -269,11 +269,13 @@ public class HibernateBillingDAO implements BillingDAO {
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllInsurances()
      */
     @Override
-    public List<Insurance> getAllInsurances() throws DAOException {
-
-        return sessionFactory.getCurrentSession()
-                .createCriteria(Insurance.class)
-                .addOrder(Order.asc("category")).list();
+    public List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Insurance.class);
+        if (!includeAll) {
+            criteria.add(Restrictions.eq("voided", false));
+        }
+        criteria.addOrder(Order.asc("category"));
+        return criteria.list();
     }
 
     /**

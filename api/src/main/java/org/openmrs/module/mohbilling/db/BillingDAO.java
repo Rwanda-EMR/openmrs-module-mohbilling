@@ -89,7 +89,7 @@ public interface BillingDAO {
 	 * 
 	 * @throws DAOException
 	 */
-	public List<Insurance> getAllInsurances() throws DAOException;
+	public List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException;
 
 	/**
 	 * Gets Insurance Policy from the DB by specifying the Object/ID
