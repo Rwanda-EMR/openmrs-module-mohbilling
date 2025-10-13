@@ -36,7 +36,7 @@
 	</distributionManagement>
 
 	<properties>
-		<openMRSVersion>2.3.3</openMRSVersion>
+		<openMRSVersion>2.5.4</openMRSVersion>
 		<htmlformentryVersion>4.4.0</htmlformentryVersion>
 		<apachePoiVersion>5.3.0</apachePoiVersion>
 		<commonsIoVersion>2.15.0</commonsIoVersion>
