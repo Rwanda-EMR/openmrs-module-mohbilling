@@ -26,6 +26,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.Date;
+
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/thirdParty",
         supportedClass = ThirdParty.class,
         supportedOpenmrsVersions = {"2.0 - 2.*"})
@@ -51,7 +53,21 @@ public class ThirdPartyResource extends DelegatingCrudResource<ThirdParty> {
     }
 
     @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("name");
+        description.addRequiredProperty("rate");
+        return description;
+    }
+
+    @Override
     public ThirdParty save(ThirdParty thirdParty) {
+        if (thirdParty.getCreator() == null) {
+            thirdParty.setCreator(Context.getAuthenticatedUser());
+        }
+        if (thirdParty.getCreatedDate() == null) {
+            thirdParty.setCreatedDate(new Date());
+        }
         Context.getService(BillingService.class).saveThirdParty(thirdParty);
         return thirdParty;
     }

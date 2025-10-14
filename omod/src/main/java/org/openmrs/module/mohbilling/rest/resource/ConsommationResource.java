@@ -78,21 +78,7 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
             consommation.setCreatedDate(new Date());
         }
 
-        GlobalBill globalBill = GlobalBillUtil.getGlobalBill(consommation.getGlobalBill().getGlobalBillId());
-
-        BigDecimal totalAmount = consommation.getBillItems().stream()
-                .map(billItem -> billItem.getUnitPrice().multiply(billItem.getQuantity()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        InsuranceBill insuranceBill = InsuranceBillUtil.createInsuranceBill(globalBill.getAdmission().getInsurancePolicy().getInsurance(),
-                totalAmount);
-        consommation.setInsuranceBill(insuranceBill);
-
-        ThirdPartyBill thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(globalBill.getAdmission().getInsurancePolicy(), totalAmount);
-        consommation.setThirdPartyBill(thirdPartyBill);
-
-        PatientBill patientBill = PatientBillUtil.createPatientBill(totalAmount, globalBill.getAdmission().getInsurancePolicy());
-        consommation.setPatientBill(patientBill);
+        consommation = createBillsForConsommation(consommation);
 
         Context.getService(BillingService.class).saveConsommation(consommation);
         return consommation;
@@ -225,5 +211,25 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
         }
 
         return insuranceAndThirdPartyAmount;
+    }
+
+    private Consommation createBillsForConsommation(Consommation consommation) {
+        GlobalBill globalBill = GlobalBillUtil.getGlobalBill(consommation.getGlobalBill().getGlobalBillId());
+
+        BigDecimal totalAmount = consommation.getBillItems().stream()
+                .map(billItem -> billItem.getUnitPrice().multiply(billItem.getQuantity()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        InsuranceBill insuranceBill = InsuranceBillUtil.createInsuranceBill(globalBill.getAdmission().getInsurancePolicy().getInsurance(),
+                totalAmount);
+        consommation.setInsuranceBill(insuranceBill);
+
+        ThirdPartyBill thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(globalBill.getAdmission().getInsurancePolicy(), totalAmount);
+        consommation.setThirdPartyBill(thirdPartyBill);
+
+        PatientBill patientBill = PatientBillUtil.createPatientBill(totalAmount, globalBill.getAdmission().getInsurancePolicy());
+        consommation.setPatientBill(patientBill);
+
+        return consommation;
     }
 }

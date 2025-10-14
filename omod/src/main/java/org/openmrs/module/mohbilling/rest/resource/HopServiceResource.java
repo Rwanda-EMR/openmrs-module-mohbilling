@@ -10,6 +10,7 @@
 package org.openmrs.module.mohbilling.rest.resource;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,7 +57,21 @@ public class HopServiceResource extends DelegatingCrudResource<HopService> {
     }
 
     @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("name");
+        description.addRequiredProperty("description");
+        return description;
+    }
+
+    @Override
     public HopService save(HopService hopService) {
+        if (hopService.getCreator() == null) {
+            hopService.setCreator(Context.getAuthenticatedUser());
+        }
+        if (hopService.getCreatedDate() == null) {
+            hopService.setCreatedDate(new Date());
+        }
         return Context.getService(BillingService.class).saveHopService(hopService);
     }
 

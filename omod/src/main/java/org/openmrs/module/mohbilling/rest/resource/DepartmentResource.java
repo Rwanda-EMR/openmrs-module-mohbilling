@@ -26,6 +26,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.Date;
+
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/department",
         supportedClass = Department.class,
         supportedOpenmrsVersions = {"2.0 - 2.*"})
@@ -52,7 +54,21 @@ public class DepartmentResource extends DelegatingCrudResource<Department> {
     }
 
     @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("name");
+        description.addRequiredProperty("description");
+        return description;
+    }
+
+    @Override
     public Department save(Department department) {
+        if (department.getCreator() == null) {
+            department.setCreator(Context.getAuthenticatedUser());
+        }
+        if (department.getCreatedDate() == null) {
+            department.setCreatedDate(new Date());
+        }
         return Context.getService(BillingService.class).saveDepartement(department);
     }
 

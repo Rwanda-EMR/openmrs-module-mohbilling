@@ -26,6 +26,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.Date;
+
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/facilityServicePrice",
         supportedClass = FacilityServicePrice.class,
         supportedOpenmrsVersions = {"2.0 - 2.*"})
@@ -51,7 +53,29 @@ public class FacilityServicePriceResource extends DelegatingCrudResource<Facilit
     }
 
     @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("name");
+        description.addRequiredProperty("fullPrice");
+        description.addRequiredProperty("startDate");
+        description.addRequiredProperty("location");
+        description.addProperty("shortName");
+        description.addProperty("description");
+        description.addProperty("category");
+        description.addProperty("endDate");
+        description.addProperty("concept");
+        return description;
+    }
+
+    @Override
     public FacilityServicePrice save(FacilityServicePrice facilityServicePrice) {
+        if (facilityServicePrice.getCreator() == null) {
+            facilityServicePrice.setCreator(Context.getAuthenticatedUser());
+        }
+        if (facilityServicePrice.getCreatedDate() == null) {
+            facilityServicePrice.setCreatedDate(new Date());
+        }
+
         Context.getService(BillingService.class).saveFacilityServicePrice(facilityServicePrice);
         return facilityServicePrice;
     }
