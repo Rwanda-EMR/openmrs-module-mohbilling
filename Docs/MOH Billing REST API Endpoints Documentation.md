@@ -17,7 +17,7 @@ All endpoints are prefixed with: `/ws/rest/v1/mohbilling/`
 ```json
 {
   "insurancePolicy": {
-    "uuid": "insurancePolicyId"
+    "insurancePolicyId": "insurancePolicyId"
   },
   "admissionDate": "2025-10-15T10:30:00.000+0000",
   "admissionType": "INPATIENT"
@@ -77,7 +77,7 @@ All endpoints are prefixed with: `/ws/rest/v1/mohbilling/`
   "address": "123 Main St",
   "phone": "+250123456789",
   "concept": {
-    "uuid": "conceptId"
+    "uuid": "conceptUuid"
   },
   "rates": [
     {
@@ -151,7 +151,7 @@ POST /insurancePolicy
 ```json
 {
   "insurance": {
-    "uuid": "insuranceId"
+    "insuranceId": "insuranceId"
   },
   "owner": {
     "uuid": "patientUuid"
@@ -160,7 +160,7 @@ POST /insurancePolicy
   "coverageStartDate": "2024-01-01T00:00:00.000+0000",
   "expirationDate": "2024-12-31T23:59:59.000+0000",
   "thirdParty": {
-    "uuid": "thirdPartyId"
+    "thirdPartyId": "thirdPartyId"
   },
   "beneficiaries": [
     {
@@ -216,7 +216,7 @@ DELETE /insurancePolicy/{id}
 ```json
 {
   "insurance": {
-    "uuid": "insuranceId"
+    "insuranceId": "insuranceId"
   },
   "rate": 0.85,
   "flatFee": "1000.00",
@@ -250,12 +250,12 @@ DELETE /insurancePolicy/{id}
   "fullPrice": "5000.00",
   "startDate": "2025-01-01T00:00:00.000+0000",
   "location": {
-    "uuid": "locationId"
+    "uuid": "locationUuid"
   },
   "category": "RADIOLOGY",
   "endDate": null,
   "concept": {
-    "uuid": "conceptId"
+    "uuid": "conceptUuid"
   }
 }
 ```
@@ -396,21 +396,25 @@ DELETE /insurancePolicy/{id}
 ```json
 {
   "department": {
-    "uuid": "departmentId"
+    "departmentId": "departmentId"
   },
   "beneficiary": {
-    "uuid": "beneficiaryId"
+    "beneficiaryId": "beneficiaryId"
   },
   "globalBill": {
-    "uuid": "globalBillId"
+    "globalBillId": "globalBillId"
   },
   "billItems": [
     {
-      "facilityServicePrice": {
-        "uuid": "servicePriceId"
+      "service": {
+        "serviceId": 1
       },
-      "unitPrice": "5000.00",
-      "quantity": "2"
+      "hopService": {
+        "serviceId": 1
+      },
+      "unitPrice": 500.000001,
+      "quantity": 1,
+      "drugFrequency": ""
     }
   ]
 }
@@ -478,11 +482,11 @@ DELETE /insurancePolicy/{id}
 {
   "amountPaid": 5000.00,
   "patientBill": {
-    "uuid": "patientBillId"
+    "patientBillId": "patientBillId"
   },
   "dateReceived": "2025-10-15T10:30:00.000+0000",
   "collector": {
-    "uuid": "userId"
+    "uuid": "userUuid"
   },
   "paidItems": []
 }
@@ -539,7 +543,7 @@ The following resources also exist in the module:
 ### Object References
 When a property is an object (not a primitive), pass it as:
 ```json
-{"uuid": "entityId"}
+{"entityId": "entityId"}
 ```
 
 
