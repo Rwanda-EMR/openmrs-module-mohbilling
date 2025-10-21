@@ -173,7 +173,18 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
 
     @PropertySetter("billItems")
     public void setBillItems(Consommation consommation, Set<PatientServiceBill> billItems) {
-        billItems.stream().forEach(billItem -> consommation.addBillItem(billItem));
+        billItems.stream().forEach(patientServiceBill -> {
+            if (patientServiceBill.getCreator() == null) {
+                patientServiceBill.setCreator(Context.getAuthenticatedUser());
+            }
+            if (patientServiceBill.getCreatedDate() == null) {
+                patientServiceBill.setCreatedDate(new Date());
+            }
+            if (patientServiceBill.getServiceDate() == null) {
+                patientServiceBill.setServiceDate(new Date());
+            }
+            consommation.addBillItem(patientServiceBill);
+        });
     }
 
     @PropertyGetter("paymentStatus")

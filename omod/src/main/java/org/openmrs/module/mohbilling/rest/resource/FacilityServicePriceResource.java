@@ -9,11 +9,14 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import org.openmrs.Concept;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -26,6 +29,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Date;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/facilityServicePrice",
@@ -130,7 +135,24 @@ public class FacilityServicePriceResource extends DelegatingCrudResource<Facilit
     }
 
     @Override
+    protected PageableResult doSearch(RequestContext context) {
+        String conceptUuid = context.getRequest().getParameter("concept");
+        if (conceptUuid != null) {
+            Concept concept = Context.getConceptService().getConceptByUuid(conceptUuid);
+            FacilityServicePrice facilityServicePrice = Context.getService(BillingService.class).getFacilityServiceByConcept(concept);
+            return new NeedsPaging<>(Collections.singletonList(facilityServicePrice), context);
+        } else {
+            return super.doSearch(context);
+        }
+    }
+
+    @Override
     protected PageableResult doGetAll(RequestContext context) throws ResponseException {
         return new NeedsPaging<>(Context.getService(BillingService.class).getAllFacilityServicePrices(), context);
+    }
+
+    @PropertySetter("fullPrice")
+    public static void setFullPrice(FacilityServicePrice facilityServicePrice, Object value) {
+        facilityServicePrice.setFullPrice(BigDecimal.valueOf((Double) value));
     }
 }
