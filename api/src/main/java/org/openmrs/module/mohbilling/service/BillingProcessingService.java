@@ -3,12 +3,13 @@ package org.openmrs.module.mohbilling.service;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.User;
+import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.mohbilling.model.PatientBill;
 
 import java.util.Date;
 import java.util.List;
 
-public interface BillingProcessingService {
+public interface BillingProcessingService extends OpenmrsService {
     PatientBill createBill(Patient patient, List<Obs> observations, String insuranceCardNumber);
     PatientBill getPatientBillById(int id);
     void voidPatientBill(PatientBill patientBill, User voidedBy, Date voidedDate, String voidReason);

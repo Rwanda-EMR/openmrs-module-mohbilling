@@ -6,6 +6,7 @@ package org.openmrs.module.mohbilling.service;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
+import org.openmrs.api.OpenmrsService;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
 
@@ -19,7 +20,7 @@ import java.util.Set;
  * @author EMR@RBC
  * 
  */
-public interface BillingService {
+public interface BillingService extends OpenmrsService {
 
 	/**
 	 * Gets the Patient Bill from the DB by specifying the Object/ID
