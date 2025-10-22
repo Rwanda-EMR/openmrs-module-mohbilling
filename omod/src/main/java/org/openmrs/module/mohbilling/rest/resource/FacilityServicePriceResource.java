@@ -12,7 +12,6 @@ package org.openmrs.module.mohbilling.rest.resource;
 import org.openmrs.Concept;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -26,10 +25,12 @@ import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
+import org.openmrs.module.webservices.rest.web.response.ConversionException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.Date;
 
@@ -69,6 +70,9 @@ public class FacilityServicePriceResource extends DelegatingCrudResource<Facilit
         description.addProperty("category");
         description.addProperty("endDate");
         description.addProperty("concept");
+        description.addProperty("itemType");
+        description.addProperty("hideItem");
+        description.addProperty("hidden");
         return description;
     }
 
@@ -153,6 +157,47 @@ public class FacilityServicePriceResource extends DelegatingCrudResource<Facilit
 
     @PropertySetter("fullPrice")
     public static void setFullPrice(FacilityServicePrice facilityServicePrice, Object value) {
-        facilityServicePrice.setFullPrice(BigDecimal.valueOf((Double) value));
+        if (value instanceof String) {
+            facilityServicePrice.setFullPrice(new BigDecimal((String) value));
+        } else if (value instanceof Long) {
+            facilityServicePrice.setFullPrice(BigDecimal.valueOf((Long) value));
+        } else if (value instanceof Integer) {
+            facilityServicePrice.setFullPrice(BigDecimal.valueOf((Integer) value));
+        } else if (value instanceof BigInteger) {
+            facilityServicePrice.setFullPrice(new BigDecimal((BigInteger) value));
+        } else if (value instanceof Double) {
+            facilityServicePrice.setFullPrice(new BigDecimal(String.valueOf((Double) value)));
+        } else if (value instanceof Number) {
+            facilityServicePrice.setFullPrice(new BigDecimal(String.valueOf(((Number) value).doubleValue())));
+        } else {
+            throw new IllegalArgumentException("Cannot convert object of type " + value.getClass().getName() + " to BigDecimal.");
+        }
+    }
+
+    @PropertySetter("itemType")
+    public static void setItemType(FacilityServicePrice facilityServicePrice, Object value) {
+        if (value instanceof String) {
+            facilityServicePrice.setItemType(Integer.parseInt((String) value));
+        } else if (value instanceof Integer) {
+            facilityServicePrice.setItemType((Integer) value);
+        } else {
+            throw new ConversionException("Unable to convert " + value.getClass() + " to Integer");
+        }
+    }
+
+    @PropertySetter("hideItem")
+    public static void setHideItem(FacilityServicePrice facilityServicePrice, Object value) {
+        if (value instanceof String) {
+            facilityServicePrice.setHideItem(Integer.parseInt((String) value));
+        } else if (value instanceof Integer) {
+            facilityServicePrice.setHideItem((Integer) value);
+        } else {
+            throw new ConversionException("Unable to convert " + value.getClass() + " to Integer");
+        }
+    }
+
+    @PropertySetter("hidden")
+    public static void setHidden(FacilityServicePrice facilityServicePrice, Object value) {
+        facilityServicePrice.setHidden(Boolean.valueOf(String.valueOf(value)));
     }
 }
