@@ -1,5 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -141,4 +141,4 @@
 	</c:if>
 </div>
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>

@@ -185,6 +185,14 @@
         </description>
     </globalProperty>
 
+    <globalProperty>
+        <property>billing.hideLegacyUiHeaderAndFooter</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            If this is set to true, jsp pages will hide the legacyui header and footer
+        </description>
+    </globalProperty>
+
     <!-- /Required Global Properties -->
 
     <dwr>

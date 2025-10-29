@@ -1,5 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <openmrs:require privilege="Manage Third Party" otherwise="/login.htm" redirect="/module/@MODULE_ID@/thirdParty.form" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
@@ -102,4 +102,4 @@
 
 </c:if>
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>

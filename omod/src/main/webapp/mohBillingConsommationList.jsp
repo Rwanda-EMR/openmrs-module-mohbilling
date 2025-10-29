@@ -1,5 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
 	<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/consommation.list" />
@@ -89,5 +89,5 @@
 </table>
 </div>
 <%@ include file="templates/dischargePatient.jsp"%>
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>
 

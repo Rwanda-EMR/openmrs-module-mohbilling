@@ -81,7 +81,7 @@ function  cancelClosingGlobalBill(){
 </c:if>
 
 <c:if test="${discharge==null }">
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <%@ taglib prefix="mohbilling_tag" 	tagdir="/WEB-INF/tags/module/mohbilling"%>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
@@ -220,7 +220,7 @@ function  cancelClosingGlobalBill(){
 	</table>
 </div>
 </c:if>
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>
 </c:if>
 
 
