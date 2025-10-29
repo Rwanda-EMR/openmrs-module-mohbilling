@@ -155,9 +155,8 @@ public class FileExporter {
         String[] headers = {
                 "#", "Admission Date", "Closing Date", "BENEFICIARY'S NAMES",
                 "HEAD HOUSEHOLD'S NAMES", "FAMILY'S CODE", "LEVEL", "Card NUMBER",
-                "COMPANY", "AGE", "BIRTH DATE", "GENDER", "DOCTOR", "MEDICAMENTS",
-                "CONSULTATION", "HOSPITALISATION", "LABORATOIRE", "FORMALITES ADMINISTRATIVES",
-                "AMBULANCE", "CONSOMMABLES", "OXYGENOTHERAPIE", "IMAGING", "PROCED.",
+                "COMPANY", "AGE", "BIRTH DATE", "GENDER", "DOCTOR", "CONSULTATION", "LABORATOIRE", "HOSPITALISATION", "FORMALITES ADMINISTRATIVES",
+                "AMBULANCE", "CONSOMMABLES", "MEDICAMENTS","IMAGING", "PROCED.",
                 "Total (100%)", "Insurance Rate (" + insuranceRate + "%)", "Patient share (" + patientRate + "%)"
         };
 
@@ -184,14 +183,13 @@ public class FileExporter {
                     formatter.format(reportItem.getBirthDate()),
                     quoteValue(reportItem.getGender()),
                     quoteValue(reportItem.getDoctorName()),
-                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getMedicament())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getConsultation())),
-                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getHospitalisation())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getLaboratoire())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getHospitalisation())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getFormaliteAdministratives())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getAmbulance())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getConsommables())),
-                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getOxygenotherapie())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getMedicament())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getImaging())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getProced())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getTotal100())),

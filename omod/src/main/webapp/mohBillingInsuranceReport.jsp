@@ -80,7 +80,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 
 		<c:forEach items="${columns }" var="categ">
 			 <c:if test="${categ eq 'FORMALITES ADMINISTRATIVES' }">
-				<th class="columnHeader">OTHERCONSUM. </th>
+				<th class="columnHeader">FORMALITES ADMINISTRATIVES </th>
 			 </c:if>
 			 <c:if test="${categ != 'FORMALITES ADMINISTRATIVES' }">
 				 <th class="columnHeader">${categ } </th>
@@ -115,14 +115,13 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.gender}</td>
             <td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.doctorName}</td>
 
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.medicament}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.consultation}" type="number" pattern="#.##"/></td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.hospitalisation}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.laboratoire}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.hospitalisation}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.formaliteAdministratives}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.ambulance}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.consommables}" type="number" pattern="#.##"/></td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.oxygenotherapie}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.medicament}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.imaging}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.proced}" type="number" pattern="#.##"/></td>
 

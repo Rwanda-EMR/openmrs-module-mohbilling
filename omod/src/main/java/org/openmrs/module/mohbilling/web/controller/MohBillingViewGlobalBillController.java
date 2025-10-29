@@ -97,27 +97,24 @@ public class MohBillingViewGlobalBillController extends
 
 			exp.printGlobalBill(request, response, gb,differentialDiagnosis+"",finalDiagnosis+"",sr, gb.getBillIdentifier()+".pdf");
 		}
-		if(request.getParameter("revert_global_bill")!=null && Context.isAuthenticated()){
+		if (request.getParameter("revert_global_bill") != null && Context.isAuthenticated()) {
 			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.parseInt(request.getParameter("globalBillId")));
-			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-			String closingDate = df.format(gb.getClosingDate());
-			String currDate = df.format(new Date());
-			if(closingDate.equals(currDate)==true) {
-				gb.setClosed(false);
-				gb.setClosedBy(null);
-				gb.setClosingDate(null);
-				gb.setClosingReason(null);
-				gb.setEditedBy(Context.getAuthenticatedUser());
-				gb.setEditingReason(request.getParameter("editGBill"));
-				GlobalBillUtil.saveGlobalBill(gb);
-				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,"Global Bill Reverted, You are allowed to change it");
-				return new ModelAndView(new RedirectView("globalBill.list?insurancePolicyId=" + gb.getAdmission().getInsurancePolicy() +
-						"&ipCardNumber=" + gb.getAdmission().getInsurancePolicy().getInsuranceCardNo()));
-			}
-			else {
-				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,"Only Globall Bill closed TODAY can be reverted ");
-			}
+
+			gb.setClosed(false);
+			gb.setClosedBy(null);
+			gb.setClosingDate(null);
+			gb.setClosingReason(null);
+			gb.setEditedBy(Context.getAuthenticatedUser());
+			gb.setEditingReason(request.getParameter("editGBill"));
+			GlobalBillUtil.saveGlobalBill(gb);
+
+			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR, "Global Bill Reverted, You are allowed to change it");
+
+			return new ModelAndView(new RedirectView("globalBill.list?insurancePolicyId=" +
+					gb.getAdmission().getInsurancePolicy() +
+					"&ipCardNumber=" + gb.getAdmission().getInsurancePolicy().getInsuranceCardNo()));
 		}
+
 		return mav;
 	}
 }

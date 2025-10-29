@@ -1473,9 +1473,9 @@ public class HibernateBillingDAO implements BillingDAO {
             reportItem.setConsultation(getDouble(resultSet, 17));
             reportItem.setLaboratoire(getDouble(resultSet, 18));
             reportItem.setHospitalisation(getDouble(resultSet, 19));
-            reportItem.setConsommables(getDouble(resultSet, 20));
-            reportItem.setFormaliteAdministratives(getDouble(resultSet, 21));
-            reportItem.setAmbulance(getDouble(resultSet, 22));
+            reportItem.setFormaliteAdministratives(getDouble(resultSet, 20));
+            reportItem.setAmbulance(getDouble(resultSet, 21));
+            reportItem.setConsommables(getDouble(resultSet, 22));
             reportItem.setMedicament(getDouble(resultSet, 23));
             reportItem.setImaging(getDouble(resultSet, 24));
             reportItem.setProced(getDouble(resultSet, 25));
@@ -1503,9 +1503,9 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     private void calculateAndSetTotals(InsuranceReportItem reportItem, Integer insuranceIdentifier) {
-        double total = reportItem.getMedicament() + reportItem.getConsultation() + reportItem.getHospitalisation() +
-                reportItem.getLaboratoire() + reportItem.getFormaliteAdministratives() +
-                reportItem.getAmbulance() + reportItem.getConsommables() +
+        double total =  reportItem.getConsultation() +
+                reportItem.getLaboratoire() + reportItem.getHospitalisation() + reportItem.getFormaliteAdministratives() +
+                reportItem.getAmbulance() + reportItem.getConsommables() + reportItem.getMedicament() +
                 reportItem.getImaging() + reportItem.getProced();
 
         double insuranceFirmRate = getInsuranceFirmRate(insuranceIdentifier);
@@ -1518,13 +1518,13 @@ public class HibernateBillingDAO implements BillingDAO {
 
     private void addItemToReport(InsuranceReportItem reportItem, InsuranceReport report, Integer insuranceIdentifier) {
         report.addReportItem(reportItem);
-        report.addServiceRevenue("MEDICAMENTS", BigDecimal.valueOf(reportItem.getMedicament()));
         report.addServiceRevenue("CONSULTATION", BigDecimal.valueOf(reportItem.getConsultation()));
-        report.addServiceRevenue("HOSPITALISATION", BigDecimal.valueOf(reportItem.getHospitalisation()));
         report.addServiceRevenue("LABORATOIRE", BigDecimal.valueOf(reportItem.getLaboratoire()));
+        report.addServiceRevenue("HOSPITALISATION", BigDecimal.valueOf(reportItem.getHospitalisation()));
         report.addServiceRevenue("FORMALITES ADMINISTRATIVES", BigDecimal.valueOf(reportItem.getFormaliteAdministratives()));
         report.addServiceRevenue("AMBULANCE", BigDecimal.valueOf(reportItem.getAmbulance()));
         report.addServiceRevenue("CONSOMMABLES", BigDecimal.valueOf(reportItem.getConsommables()));
+        report.addServiceRevenue("MEDICAMENTS", BigDecimal.valueOf(reportItem.getMedicament()));
         report.addServiceRevenue("IMAGING", BigDecimal.valueOf(reportItem.getImaging()));
         report.addServiceRevenue("PROCED.", BigDecimal.valueOf(reportItem.getProced()));
         report.addServiceRevenue("100%", BigDecimal.valueOf(reportItem.getTotal100()));

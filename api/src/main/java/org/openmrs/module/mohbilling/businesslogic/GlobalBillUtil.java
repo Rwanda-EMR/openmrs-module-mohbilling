@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.openmrs.module.mohbilling.businesslogic;
 
 import org.apache.commons.logging.Log;
@@ -12,74 +9,91 @@ import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-/**
- * @author emr
- *
- */
-public class GlobalBillUtil {	
-	
-	@SuppressWarnings("unused")
-	private Log log = LogFactory.getLog(this.getClass());
-	
-	/**
-	 * Offers the BillingService to be use to talk to the DB
-	 * 
-	 * @return the BillingService
-	 */
-	private static BillingService getService() {
+public class GlobalBillUtil {
 
+	private static Log log = LogFactory.getLog(GlobalBillUtil.class);
+
+	private static BillingService getService() {
 		return Context.getService(BillingService.class);
 	}
-	
-	/**
-	 * Save global to DB
-	 * @param globalBill
-	 * @return 
-	 */
+
 	public static GlobalBill saveGlobalBill(GlobalBill globalBill){
-		return getService().saveGlobalBill(globalBill);	
-		
+		return getService().saveGlobalBill(globalBill);
 	}
+
 	public static GlobalBill getGlobalBillByAdmission(Admission admission){
-		
 		return getService().getGlobalBillByAdmission(admission);
-		
 	}
+
 	public static List<GlobalBill> getGlobalBillsByInsurancePolicy(InsurancePolicy ip){
-	
 		List<GlobalBill> globalBills = new ArrayList<GlobalBill>();
-	    List<Admission> admissions = AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
-	    System.out.println("Admissions size"+admissions.size());
-	   for (Admission admission : admissions) {
-		   GlobalBill globalBill = GlobalBillUtil.getGlobalBillByAdmission(admission);
-		   if(globalBill !=null){
-			   globalBills.add(globalBill);
-		   }
-		  
-	}
-	return globalBills;
-		
+		List<Admission> admissions = AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
+		for (Admission admission : admissions) {
+			GlobalBill globalBill = GlobalBillUtil.getGlobalBillByAdmission(admission);
+			if(globalBill != null){
+				globalBills.add(globalBill);
+			}
+		}
+		return globalBills;
 	}
 
 	public static GlobalBill getGlobalBill(Integer globalBillId) {
-		
-	return 	getService().GetGlobalBill(globalBillId);
-		
+		return getService().GetGlobalBill(globalBillId);
 	}
 
-	/**
-	 * Get GlobalBill by bill identifier
-	 * @param billIdentifier matching with globalBill
-	 * @return GlobalBill
-	 */
 	public static GlobalBill getGlobalBillByBillIdentifier(String billIdentifier) {
-		
 		return getService().getGlobalBillByBillIdentifier(billIdentifier);
 	}
 
 	public static String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid) {
-return getService().getDiagnosisFromAdmissionToDischarge(primaryAndSecondaryDiagnosis, startDate, endDate, patientid);
+		return getService().getDiagnosisFromAdmissionToDischarge(primaryAndSecondaryDiagnosis, startDate, endDate, patientid);
+	}
+
+	// 🔹 NEW: Paginated fetch
+	public static List<GlobalBill> getGlobalBillsByInsurancePolicy(InsurancePolicy ip, int page, int size) {
+		if (ip == null || page < 1 || size < 1) {
+			return Collections.emptyList();
+		}
+
+		// Fetch all admissions for the insurance policy
+		List<Admission> admissions = AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
+
+		// Pagination math
+		int fromIndex = (page - 1) * size;
+		if (fromIndex >= admissions.size()) {
+			return Collections.emptyList(); // no more results
+		}
+		int toIndex = Math.min(fromIndex + size, admissions.size());
+
+		List<Admission> subList = admissions.subList(fromIndex, toIndex);
+
+		// Collect GlobalBills for only this slice
+		List<GlobalBill> globalBills = new ArrayList<GlobalBill>();
+		for (Admission admission : subList) {
+			GlobalBill globalBill = GlobalBillUtil.getGlobalBillByAdmission(admission);
+			if (globalBill != null) {
+				globalBills.add(globalBill);
+			}
+		}
+		return globalBills;
+	}
+
+	// 🔹 NEW: Count total number of global bills for pagination
+	public static int countGlobalBillsByInsurancePolicy(InsurancePolicy ip) {
+		if (ip == null) {
+			return 0;
+		}
+		List<Admission> admissions = AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
+		int count = 0;
+		for (Admission admission : admissions) {
+			GlobalBill gb = GlobalBillUtil.getGlobalBillByAdmission(admission);
+			if (gb != null) {
+				count++;
+			}
+		}
+		return count;
 	}
 }
