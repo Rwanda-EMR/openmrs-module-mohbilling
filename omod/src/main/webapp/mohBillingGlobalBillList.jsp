@@ -115,5 +115,30 @@
 	</c:forEach>
 </table>
 </div>
+<div class="pagination">
+  <!-- First & Previous -->
+  <c:if test="${currentPage > 1}">
+    <a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=1&size=${pageSize}">First</a>
+    <a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=${currentPage-1}&size=${pageSize}">Previous</a>
+  </c:if>
+
+  <!-- Numeric page links -->
+  <c:forEach var="i" begin="1" end="${totalPages}">
+    <c:choose>
+      <c:when test="${i == currentPage}">
+        <span class="current">${i}</span>
+      </c:when>
+      <c:otherwise>
+        <a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=${i}&size=${pageSize}">${i}</a>
+      </c:otherwise>
+    </c:choose>
+  </c:forEach>
+
+	<!-- Next & Last -->
+	<c:if test="${currentPage < totalPages}">
+		<a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=${currentPage+1}&size=${pageSize}">Next</a>
+		<a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=${totalPages}&size=${pageSize}">Last</a>
+	</c:if>
+</div>
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
