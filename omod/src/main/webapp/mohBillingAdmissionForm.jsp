@@ -204,7 +204,10 @@ function  cancelClosingGlobalBill(){
 			<c:if test="${gb.closingDate==null }">
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">
 			<openmrs:hasPrivilege privilege="ADD CONS.">
+			<openmrs:globalProperty var="disableManualAddBillForNonePrivateInsurance" key="billing.disableManualAddBillForNonePrivateInsurance"  />
+			<c:if test="${(disableManualAddBillForNonePrivateInsurance == true && gb.insurance.category =='NONE') || disableManualAddBillForNonePrivateInsurance == false}">
 			<a href="billing.form?insurancePolicyId=${gb.admission.insurancePolicy.insurancePolicyId }&ipCardNumber=${gb.admission.insurancePolicy.insuranceCardNo}&globalBillId=${gb.globalBillId}">Add Bill</a>
+			</c:if>
 			</openmrs:hasPrivilege>
 			</td>
 			</c:if>

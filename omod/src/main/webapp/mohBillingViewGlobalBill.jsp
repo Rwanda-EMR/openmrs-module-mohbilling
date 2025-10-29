@@ -113,7 +113,10 @@
 <c:if test="${!globalBill.closed}">
 	<div style="float: left;">
 		<openmrs:hasPrivilege privilege="Add Consommation">
+	<openmrs:globalProperty var="disableManualAddBillForNonePrivateInsurance" key="billing.disableManualAddBillForNonePrivateInsurance"  />
+      <c:if test="${(disableManualAddBillForNonePrivateInsurance == true && globalBill.insurance.category =='NONE') || disableManualAddBillForNonePrivateInsurance == false}">
 			<a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">Add Consommation |</a>
+      </c:if>
 		</openmrs:hasPrivilege>
 		<openmrs:hasPrivilege privilege="Discharge Patient">
 			<button id="btn">Discharge Patient</button>

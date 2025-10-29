@@ -160,6 +160,31 @@
         </description>
     </globalProperty>
 
+    <globalProperty>
+        <property>billing.disableManualAddBillForNonePrivateInsurance</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            This will disable the option of adding bill to admission by using manual process on none private insurances
+        </description>
+    </globalProperty>
+
+
+    <globalProperty>
+        <property>billing.differentialDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill</property>
+        <defaultValue>97667</defaultValue>
+        <description>
+            This will help the differential diagnosis Concept answers To be Displayed On GlobalBill. The concept question will be mentioned by coma(,) separator.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>billing.finalDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill</property>
+        <defaultValue>97686,97666</defaultValue>
+        <description>
+            This will help the final diagnosis Concept answers To be Displayed On GlobalBill. The concept question will be mentioned by coma(,) separator.
+        </description>
+    </globalProperty>
+
     <!-- /Required Global Properties -->
 
     <dwr>

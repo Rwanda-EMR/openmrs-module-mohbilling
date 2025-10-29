@@ -29,7 +29,10 @@
 		<button id="btn">Discharge Patient</button>
 	</openmrs:hasPrivilege>
 	<openmrs:hasPrivilege privilege="Add Consommation">
+	<openmrs:globalProperty var="disableManualAddBillForNonePrivateInsurance" key="billing.disableManualAddBillForNonePrivateInsurance"  />
+      <c:if test="${(disableManualAddBillForNonePrivateInsurance == true && globalBill.insurance.category =='NONE') || disableManualAddBillForNonePrivateInsurance == false}">
 		<a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">|Add Consommation</a></div>
+      </c:if>
 	</openmrs:hasPrivilege>
 </c:if>
 <b class="boxHeader">Consommations List for Global Bill id # ${globalBill.billIdentifier}</b>
