@@ -6,9 +6,11 @@ package org.openmrs.module.mohbilling.service;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
+import org.openmrs.api.OpenmrsService;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +20,7 @@ import java.util.Set;
  * @author EMR@RBC
  * 
  */
-public interface BillingService {
+public interface BillingService extends OpenmrsService {
 
 	/**
 	 * Gets the Patient Bill from the DB by specifying the Object/ID
@@ -677,7 +679,7 @@ public interface BillingService {
 
 	public List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator);
 	public void updateOtherInsurances(ServiceCategory sc);
-	
+
 
 	/**
 	 * gets transactions by type,in a period and by cashier
@@ -695,4 +697,99 @@ public interface BillingService {
 
 	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
+	Map<String, BigDecimal> getGlobalBillsSummary();
+
+	List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill);
+
+	Beneficiary getBeneficiary(Integer beneficiaryId);
+
+	List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit);
+
+	long getInsurancePolicyCount();
+
+	List<BillableService> getBillableServicesByCategoryAndFacilityServicePrice(Integer serviceCategoryId,
+																			   Integer facilityServicePriceId);
+
+    List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient);
+
+	List<GlobalBill> getAllGlobalBillsSorted(String orderBy, String orderDirection,
+											 String fallbackOrderBy, String fallbackDirection);
+
+	List<GlobalBill> getGlobalBillsByPagination(Integer startIndex, Integer pageSize,
+												String orderBy, String orderDirection,
+												String fallbackOrderBy, String fallbackDirection);
+
+	long getGlobalBillCount();
+
+	/**
+	 * Server-side search for consommations by optional patient name and/or policy (insurance card) number.
+	 * Results are ordered and paginated at the DB layer.
+	 *
+	 * @param patientNameLike optional case-insensitive substring of patient/beneficiary name
+	 * @param policyIdNumber optional exact (or prefix) match of policy/card number
+	 * @param startIndex page offset (0-based)
+	 * @param pageSize number of records
+	 * @param orderBy entity field to order by (default: "createdDate")
+	 * @param orderDirection "asc" or "desc" (default: "desc")
+	 */
+	List<Consommation> findConsommationsByPatientOrPolicy(String patientNameLike,
+														  String policyIdNumber,
+														  Integer startIndex,
+														  Integer pageSize,
+														  String orderBy,
+														  String orderDirection);
+
+	/**
+	 * Returns total match count for the above search (for pagination UIs).
+	 */
+	int countConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber);
+
+	/**
+	 * Returns newest consommations (no filters), paginated and ordered at DB layer.
+	 */
+	List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize,
+											  String orderBy, String orderDirection);
+
+	/**
+	 * Reverts a closed bill back to unpaid status
+	 * @param globalBillId the ID of the bill to revert
+	 * @param reason the reason for reverting the bill
+	 * @param revertedBy the user performing the revert
+	 * @return the reverted GlobalBill
+	 * @throws DAOException if the operation fails
+	 */
+	public GlobalBill revertClosedBill(Integer globalBillId, String reason, User revertedBy) throws DAOException;
+
+    /**
+     * Gets all existing Insurances
+     *
+     * @param includeAll — Whether to get all including voided
+     *
+     * @return <code>List<Insurance></code> a list of Insurance
+     *
+     * @throws DAOException
+     */
+    List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException;
+
+    /**
+     * Gets a paginated list of Facility Service Prices from the DB
+     *
+     * @return list of Facility Service Prices
+     * @throws DAOException
+     */
+    List<FacilityServicePrice> getAllFacilityServicePrices(int startIndex, int limit)
+            throws DAOException;
+
+    long getFacilityServicePricesCount();
+
+    /**
+     * Search facility service prices by category, hidden status, or free text
+     */
+    public List<FacilityServicePrice> searchFacilityServicePrices(String category, Boolean hidden,
+                                                                  String searchText, int startIndex, int limit);
+
+    /**
+     * Count facility service prices matching search criteria
+     */
+    public long countFacilityServicePrices(String category, Boolean hidden, String searchText);
 }

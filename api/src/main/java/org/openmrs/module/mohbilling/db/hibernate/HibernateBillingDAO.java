@@ -16,10 +16,13 @@ package org.openmrs.module.mohbilling.db.hibernate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.*;
-import org.hibernate.criterion.Expression;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.SQLQuery;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.hibernate.criterion.*;
+import org.hibernate.sql.JoinType;
+
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
@@ -79,7 +82,8 @@ public class HibernateBillingDAO implements BillingDAO {
                 Insurance.class, insuranceId);
     }
 
-    private Beneficiary getBeneficiary(Integer beneficiaryId) {
+    @Override
+    public Beneficiary getBeneficiary(Integer beneficiaryId) {
         return (Beneficiary) sessionFactory.getCurrentSession().get(
                 Beneficiary.class, beneficiaryId);
     }
@@ -263,11 +267,13 @@ public class HibernateBillingDAO implements BillingDAO {
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getAllInsurances()
      */
     @Override
-    public List<Insurance> getAllInsurances() throws DAOException {
-
-        return sessionFactory.getCurrentSession()
-                .createCriteria(Insurance.class)
-                .addOrder(Order.asc("category")).list();
+    public List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Insurance.class);
+        if (!includeAll) {
+            criteria.add(Restrictions.eq("voided", false));
+        }
+        criteria.addOrder(Order.asc("category"));
+        return criteria.list();
     }
 
     /**
@@ -1924,4 +1930,332 @@ public class HibernateBillingDAO implements BillingDAO {
                 .add(Restrictions.eq("name", name)).add(Restrictions.eq("retired", false)).uniqueResult();
     }
 
+    @Override
+    public Map<String, BigDecimal> getGlobalBillsSummary() {
+        Session session = sessionFactory.getCurrentSession();
+        String query = "SELECT SUM(global_amount) FROM moh_bill_global_bill";
+
+        Map<String, BigDecimal> summary = new HashMap<>();
+        BigDecimal amount = (BigDecimal) session.createSQLQuery(query).uniqueResult();
+        summary.put("total", amount);
+
+        String q = query.concat(" WHERE closed = TRUE");
+        amount = (BigDecimal) session.createSQLQuery(q).uniqueResult();
+        summary.put("closed", amount);
+
+        q = query.concat(" WHERE closed = FALSE");
+        amount = (BigDecimal) session.createSQLQuery(q).uniqueResult();
+        summary.put("open", amount);
+
+        return summary;
+    }
+
+    @Override
+    public List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill) {
+        return sessionFactory
+                .getCurrentSession()
+                .createCriteria(BillPayment.class)
+                .add(Restrictions.eq("patientBill", patientBill)).list();
+    }
+
+    @Override
+    public List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(InsurancePolicy.class)
+                .add(Restrictions.eq("retired", false))
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .addOrder(Order.desc("createdDate"));
+
+        return criteria.list();
+    }
+
+    @Override
+    public long getInsurancePolicyCount() {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(InsurancePolicy.class)
+                .add(Restrictions.eq("retired", false))
+                .setProjection(Projections.rowCount());
+        return (long) criteria.uniqueResult();
+    }
+
+    @Override
+    public List<BillableService> getBillableServicesByCategoryAndFacilityServicePrice(Integer serviceCategoryId,
+                                                                                      Integer facilityServicePriceId) {
+        return sessionFactory.getCurrentSession()
+                .createCriteria(BillableService.class)
+                .add(Restrictions.eq("serviceCategory.serviceCategoryId", serviceCategoryId))
+                .add(Restrictions.eq("facilityServicePrice.facilityServicePriceId", facilityServicePriceId))
+                .list();
+    }
+    /* (non-Javadoc)
+     * @see org.openmrs.module.mohbilling.db.BillingDAO#getOpenGlobalBillsForPatient(org.openmrs.Patient)
+     */
+    @Override
+    public List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient) {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class, "globalBill")
+                .createAlias("admission", "admission")
+                .createAlias("admission.insurancePolicy", "insurancePolicy")
+                .add(Restrictions.eq("insurancePolicy.owner", patient))
+                .add(Restrictions.eq("globalBill.closed", false));
+        return criteria.list();
+    }
+
+    @Override
+    public List<GlobalBill> getAllGlobalBillsSorted(String orderBy, String orderDirection,
+                                                    String fallbackOrderBy, String fallbackDirection) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(GlobalBill.class, "globalBill")
+                .createAlias("admission", "admission", JoinType.LEFT_OUTER_JOIN);
+
+        if (orderBy != null) {
+            if ("desc".equalsIgnoreCase(orderDirection)) {
+                criteria.addOrder(Order.desc(orderBy));
+            } else {
+                criteria.addOrder(Order.asc(orderBy));
+            }
+        }
+
+        if (fallbackOrderBy != null) {
+            if ("desc".equalsIgnoreCase(fallbackDirection)) {
+                criteria.addOrder(Order.desc(fallbackOrderBy));
+            } else {
+                criteria.addOrder(Order.asc(fallbackOrderBy));
+            }
+        }
+
+        return criteria.list();
+    }
+
+    @Override
+    public List<GlobalBill> getGlobalBillsByPagination(Integer startIndex, Integer pageSize,
+                                                       String orderBy, String orderDirection,
+                                                       String fallbackOrderBy, String fallbackDirection) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(GlobalBill.class, "globalBill")
+                .createAlias("admission", "admission", JoinType.LEFT_OUTER_JOIN)
+                .setFirstResult(startIndex == null ? 0 : startIndex)
+                .setMaxResults(pageSize == null ? 10 : pageSize);
+
+        if (orderBy != null) {
+            if ("desc".equalsIgnoreCase(orderDirection)) {
+                criteria.addOrder(Order.desc(orderBy));
+            } else {
+                criteria.addOrder(Order.asc(orderBy));
+            }
+        }
+
+        if (fallbackOrderBy != null) {
+            if ("desc".equalsIgnoreCase(fallbackDirection)) {
+                criteria.addOrder(Order.desc(fallbackOrderBy));
+            } else {
+                criteria.addOrder(Order.asc(fallbackOrderBy));
+            }
+        }
+
+        return criteria.list();
+    }
+
+    @Override
+    public long getGlobalBillCount() {
+        Number n = (Number) sessionFactory.getCurrentSession()
+                .createCriteria(GlobalBill.class)
+                .setProjection(Projections.rowCount())
+                .uniqueResult();
+        return n == null ? 0L : n.longValue();
+    }
+
+
+    @Override
+    public List<Consommation> findConsommationsByPatientOrPolicy(String patientNameLike,
+                                                                 String policyIdNumber,
+                                                                 Integer startIndex,
+                                                                 Integer pageSize,
+                                                                 String orderBy,
+                                                                 String orderDirection) {
+        Session session = sessionFactory.getCurrentSession();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT c.* FROM moh_bill_consommation c ")
+                .append(" INNER JOIN moh_bill_beneficiary b ON c.beneficiary_id = b.beneficiary_id ")
+                .append(" INNER JOIN patient p ON b.patient_id = p.patient_id ")
+                .append(" INNER JOIN person_name pn ON pn.person_id = p.patient_id AND pn.voided = 0 AND pn.preferred = 1 ")
+                .append(" WHERE 1=1 ");
+
+        Map<String, Object> params = new HashMap<String, Object>();
+
+        if (patientNameLike != null && patientNameLike.trim().length() > 0) {
+            sql.append(" AND (LOWER(pn.given_name) LIKE :pname OR LOWER(pn.family_name) LIKE :pname) ");
+            params.put("pname", "%" + patientNameLike.trim().toLowerCase() + "%");
+        }
+        if (policyIdNumber != null && policyIdNumber.trim().length() > 0) {
+            sql.append(" AND LOWER(b.policy_id_number) LIKE :ppolicy ");
+            params.put("ppolicy", "%" + policyIdNumber.trim().toLowerCase() + "%");
+        }
+
+        String orderCol = "c.created_date"; // default
+        if (orderBy != null) {
+            String ob = orderBy.trim().toLowerCase();
+            if ("createddate".equals(ob) || "created_date".equals(ob)) {
+                orderCol = "c.created_date";
+            } else if ("consommationid".equals(ob) || "consommation_id".equals(ob)) {
+                orderCol = "c.consommation_id";
+            }
+        }
+        String orderDir = (orderDirection != null && orderDirection.equalsIgnoreCase("asc")) ? "ASC" : "DESC";
+        sql.append(" ORDER BY ").append(orderCol).append(" ").append(orderDir);
+
+        SQLQuery q = session.createSQLQuery(sql.toString()).addEntity("c", Consommation.class);
+        for (Map.Entry<String, Object> e : params.entrySet()) {
+            q.setParameter(e.getKey(), e.getValue());
+        }
+        if (startIndex != null && startIndex >= 0) {
+            q.setFirstResult(startIndex);
+        }
+        if (pageSize != null && pageSize > 0) {
+            q.setMaxResults(pageSize);
+        }
+        return q.list();
+    }
+
+    @Override
+    public int countConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber) {
+        Session session = sessionFactory.getCurrentSession();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(*) FROM moh_bill_consommation c ")
+                .append(" INNER JOIN moh_bill_beneficiary b ON c.beneficiary_id = b.beneficiary_id ")
+                .append(" INNER JOIN patient p ON b.patient_id = p.patient_id ")
+                .append(" INNER JOIN person_name pn ON pn.person_id = p.patient_id AND pn.voided = 0 AND pn.preferred = 1 ")
+                .append(" WHERE 1=1 ");
+
+        Map<String, Object> params = new HashMap<String, Object>();
+
+        if (patientNameLike != null && patientNameLike.trim().length() > 0) {
+            sql.append(" AND (LOWER(pn.given_name) LIKE :pname OR LOWER(pn.family_name) LIKE :pname) ");
+            params.put("pname", "%" + patientNameLike.trim().toLowerCase() + "%");
+        }
+        if (policyIdNumber != null && policyIdNumber.trim().length() > 0) {
+            sql.append(" AND LOWER(b.policy_id_number) LIKE :ppolicy ");
+            params.put("ppolicy", "%" + policyIdNumber.trim().toLowerCase() + "%");
+        }
+
+        SQLQuery q = session.createSQLQuery(sql.toString());
+        for (Map.Entry<String, Object> e : params.entrySet()) {
+            q.setParameter(e.getKey(), e.getValue());
+        }
+        Number n = (Number) q.uniqueResult();
+        return n == null ? 0 : n.intValue();
+    }
+
+    @Override
+    public List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize,
+                                                     String orderBy, String orderDirection) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(Consommation.class, "c");
+
+        String ob = (orderBy == null || orderBy.trim().isEmpty()) ? "createdDate" : orderBy;
+        boolean desc = !("asc".equalsIgnoreCase(orderDirection));
+        if (desc) criteria.addOrder(Order.desc("c." + ob)); else criteria.addOrder(Order.asc("c." + ob));
+
+        if (startIndex != null) criteria.setFirstResult(startIndex);
+        if (pageSize != null && pageSize > 0) criteria.setMaxResults(pageSize);
+        return criteria.list();
+    }
+
+    @Override
+    public List<FacilityServicePrice> getAllFacilityServicePrices(int startIndex, int limit) {
+        return sessionFactory.getCurrentSession()
+                .createCriteria(FacilityServicePrice.class)
+                .add(Restrictions.eq("retired", false))
+                .setFirstResult(startIndex)
+                .setMaxResults(limit)
+                .list();
+    }
+
+    @Override
+    public long getFacilityServicePricesCount() {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(FacilityServicePrice.class)
+                .add(Restrictions.eq("retired", false))
+                .setProjection(Projections.rowCount());
+        return (long) criteria.uniqueResult();
+    }
+
+    @Override
+    public List<FacilityServicePrice> searchFacilityServicePrices(String category, Boolean hidden,
+                                                                  String searchText, int startIndex, int limit) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(FacilityServicePrice.class)
+                .add(Restrictions.eq("retired", false));
+
+        // Filter by category
+        if (category != null && !category.trim().isEmpty()) {
+            criteria.add(Restrictions.eq("category", category.trim()));
+        }
+
+        // Filter by hidden status
+        if (hidden != null) {
+            criteria.add(Restrictions.eq("hidden", hidden));
+        }
+
+        // Free text search on name or concept
+        if (searchText != null && !searchText.trim().isEmpty()) {
+            String pattern = "%" + searchText.trim().toLowerCase() + "%";
+
+            // Create alias for concept to enable searching
+            criteria.createAlias("concept", "c", JoinType.LEFT_OUTER_JOIN);
+
+            Disjunction nameOrConceptSearch = Restrictions.disjunction();
+            nameOrConceptSearch.add(Restrictions.ilike("name", pattern));
+
+            // Search in concept names
+            criteria.createAlias("c.names", "cn", JoinType.LEFT_OUTER_JOIN);
+            nameOrConceptSearch.add(Restrictions.ilike("cn.name", pattern));
+
+            criteria.add(nameOrConceptSearch);
+        }
+
+        criteria.setFirstResult(startIndex);
+        criteria.setMaxResults(limit);
+
+        return criteria.list();
+    }
+
+    @Override
+    public long countFacilityServicePrices(String category, Boolean hidden, String searchText) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(FacilityServicePrice.class)
+                .add(Restrictions.eq("retired", false));
+
+        // Filter by category
+        if (category != null && !category.trim().isEmpty()) {
+            criteria.add(Restrictions.eq("category", category.trim()));
+        }
+
+        // Filter by hidden status
+        if (hidden != null) {
+            criteria.add(Restrictions.eq("hidden", hidden));
+        }
+
+        // Free text search on name or concept
+        if (searchText != null && !searchText.trim().isEmpty()) {
+            String pattern = "%" + searchText.trim().toLowerCase() + "%";
+
+            // Create alias for concept to enable searching
+            criteria.createAlias("concept", "c", JoinType.LEFT_OUTER_JOIN);
+
+            Disjunction nameOrConceptSearch = Restrictions.disjunction();
+            nameOrConceptSearch.add(Restrictions.ilike("name", pattern));
+
+            // Search in concept names
+            criteria.createAlias("c.names", "cn", JoinType.LEFT_OUTER_JOIN);
+            nameOrConceptSearch.add(Restrictions.ilike("cn.name", pattern));
+
+            criteria.add(nameOrConceptSearch);
+        }
+
+        criteria.setProjection(Projections.countDistinct("facilityServicePriceId"));
+        return ((Number) criteria.uniqueResult()).longValue();
+    }
 }

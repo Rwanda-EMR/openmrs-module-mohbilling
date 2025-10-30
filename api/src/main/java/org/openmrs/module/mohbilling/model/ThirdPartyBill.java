@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.openmrs.module.mohbilling.model;
 
@@ -13,24 +13,23 @@ import java.util.Date;
  *
  */
 public class ThirdPartyBill {
-	
-private Integer thirdPartyBillId;
-	
-	private BigDecimal amount = new BigDecimal(0);
-	
-	private User creator;
-	
-	private Date createdDate;
-	
-	private boolean voided = false;
-	
-	private User voidedBy;
-	
-	private Date voidedDate;
-	
-	private String voidReason;
 
-	/**
+private Integer thirdPartyBillId;
+
+	private BigDecimal amount = new BigDecimal(0);
+
+	private User creator;
+
+	private Date createdDate;
+
+	private boolean voided = false;
+
+	private User voidedBy;
+
+	private Date voidedDate;
+
+	private String voidReason;
+    /**
 	 * @return the thirdPartyBillId
 	 */
 	public Integer getThirdPartyBillId() {

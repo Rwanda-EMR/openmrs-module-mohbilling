@@ -3,6 +3,7 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.automation.MTNMomoApiIntegrationRequestToPay;
@@ -308,7 +309,7 @@ public class ConsommationUtil {
 		if (diff.floatValue() > 0 && diff!=c.getPatientBill().getAmount())
 			status="PARTIALLY PAID";
 		//if(c.getPatientBill().getAmountPaid().compareTo(BigDecimal.ZERO)==0)
-		if(c.getPatientBill().getPayments().size()==0)
+		if (CollectionUtils.isEmpty(c.getPatientBill().getPayments()))
 			status="UNPAID";
 		return status;
 

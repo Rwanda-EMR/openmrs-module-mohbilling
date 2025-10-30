@@ -64,6 +64,17 @@
         <class>@MODULE_PACKAGE@.advice.OrderServiceAdvice</class>
     </advice>
 
+    <advice>
+        <point>org.openmrs.module.mohbilling.service.BillingService</point>
+        <class>@MODULE_PACKAGE@.advice.BillingServiceAdvice</class>
+    </advice>
+
+
+	<advice>
+		<point>org.openmrs.module.orderexpansion.api.ProcedureService</point>
+		<class>@MODULE_PACKAGE@.advice.OrderServiceAdvice</class>
+	</advice>
+
     <!-- /AOP -->
 
 
@@ -120,7 +131,7 @@
 
     <globalProperty>
         <property>billing.healthFacilityShortCode</property>
-        <defaultValue></defaultValue>
+        <defaultValue>MAS</defaultValue>
         <description>
             This should be the Short Code of The Health Facility that will be displayed to Printed Out docs
         </description>
@@ -159,6 +170,49 @@
             This should be the categories in which tariff are provided at the high level (acts and pharmacy)
         </description>
     </globalProperty>
+	
+	<globalProperty>
+		<property>billing.iremboPay.baseUrl</property>
+		<defaultValue>https://api.sandbox.irembopay.com/payments</defaultValue>
+		<description>
+			This is the Base URL for IremboPay integration.
+			Most of the functionality regarding invoices and/or payments branch off from /payments
+			Example: createInvoice —> /payments/invoices, initiate MoMo push payment —> /payments/transactions/initiate
+		</description>
+	</globalProperty>
+
+	<globalProperty>
+		<property>billing.iremboPay.secretKey</property>
+		<defaultValue>irembopay-secretKey</defaultValue>
+		<description>
+			The merchant API secret key in the header of the request with the key `irembopay-secretkey`
+		</description>
+	</globalProperty>
+
+	<globalProperty>
+		<property>billing.iremboPay.apiVersion</property>
+		<defaultValue>2</defaultValue>
+		<description>
+			The API version in the header of the request with the key: `X-API-Version` and the value: `2`
+		</description>
+	</globalProperty>
+
+	<globalProperty>
+		<property>billing.iremboPay.productCode</property>
+		<defaultValue>PC-16a4b8a06c</defaultValue>
+		<description>
+			Identifier of the product. Must be configured in IremboPay dashboard —> Products Management —> Products
+		</description>
+	</globalProperty>
+
+	<globalProperty>
+		<property>billing.iremboPay.paymentAccountIdentifier</property>
+		<defaultValue>OpenMRS-001</defaultValue>
+		<description>
+			Identifier of the Payment Account where the money will be deposited. It also determines the currency of the invoice.
+		</description>
+	</globalProperty>
+
 
     <!-- /Required Global Properties -->
 

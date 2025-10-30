@@ -8,11 +8,13 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +26,7 @@ import java.util.Set;
  */
 
 @Transactional
-public class BillingServiceImpl implements BillingService {
+public class BillingServiceImpl extends BaseOpenmrsService implements BillingService {
 
     private BillingDAO billingDAO;
 
@@ -173,7 +175,7 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public List<Insurance> getAllInsurances() throws DAOException {
 
-        return billingDAO.getAllInsurances();
+        return billingDAO.getAllInsurances(true);
     }
 
     /**
@@ -1037,5 +1039,149 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate) {
         return billingDAO.getBillItemsByCategoryFromMamba(insuranceId, startDate, endDate);
+    }
+
+    @Override
+    public Map<String, BigDecimal> getGlobalBillsSummary() {
+        return billingDAO.getGlobalBillsSummary();
+    }
+
+    @Override
+    public List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill) {
+        return billingDAO.getBillPaymentsByPatientBill(patientBill);
+    }
+
+    @Override
+    public Beneficiary getBeneficiary(Integer beneficiaryId) {
+        return billingDAO.getBeneficiary(beneficiaryId);
+    }
+
+    @Override
+    public List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit) {
+        return billingDAO.getInsurancePoliciesByPagination(offset, limit);
+    }
+
+    @Override
+    public long getInsurancePolicyCount() {
+        return billingDAO.getInsurancePolicyCount();
+    }
+
+    @Override
+    public List<BillableService> getBillableServicesByCategoryAndFacilityServicePrice(Integer serviceCategoryId,
+                                                                                      Integer facilityServicePriceId) {
+        return billingDAO.getBillableServicesByCategoryAndFacilityServicePrice(serviceCategoryId, facilityServicePriceId);
+    }
+
+    @Override
+    public List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient) {
+        return billingDAO.getOpenGlobalBillsForPatient(patient);
+    }
+
+    @Override
+    public List<GlobalBill> getAllGlobalBillsSorted(String orderBy, String orderDirection,
+                                                    String fallbackOrderBy, String fallbackDirection) {
+        return billingDAO.getAllGlobalBillsSorted(orderBy, orderDirection, fallbackOrderBy, fallbackDirection);
+    }
+
+    @Override
+    public List<GlobalBill> getGlobalBillsByPagination(Integer startIndex, Integer pageSize,
+                                                       String orderBy, String orderDirection,
+                                                       String fallbackOrderBy, String fallbackDirection) {
+        return billingDAO.getGlobalBillsByPagination(startIndex, pageSize, orderBy, orderDirection, fallbackOrderBy, fallbackDirection);
+    }
+
+    @Override
+    public long getGlobalBillCount() {
+        return billingDAO.getGlobalBillCount();
+    }
+
+    @Override
+    public List<Consommation> findConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber,
+                                                                 Integer startIndex, Integer pageSize,
+                                                                 String orderBy, String orderDirection) {
+        return billingDAO.findConsommationsByPatientOrPolicy(patientNameLike, policyIdNumber, startIndex, pageSize, orderBy, orderDirection);
+    }
+
+    @Override
+    public int countConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber) {
+        return billingDAO.countConsommationsByPatientOrPolicy(patientNameLike, policyIdNumber);
+    }
+
+    @Override
+    public List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize, String orderBy, String orderDirection) {
+        return billingDAO.getNewestConsommations(startIndex, pageSize, orderBy, orderDirection);
+    }
+
+    @Override
+    public GlobalBill revertClosedBill(Integer globalBillId, String reason, User revertedBy) throws DAOException {
+        if (globalBillId == null) {
+            throw new APIException("Global Bill ID cannot be null");
+        }
+        
+        if (revertedBy == null) {
+            throw new APIException("User performing revert cannot be null");
+        }
+        
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new APIException("Reason for reverting bill cannot be null or empty");
+        }
+
+        GlobalBill globalBill = GetGlobalBill(globalBillId);
+        if (globalBill == null) {
+            throw new APIException("Global Bill with ID " + globalBillId + " not found");
+        }
+
+        if (!globalBill.isClosed()) {
+            throw new APIException("Cannot revert bill that is not closed. Bill ID: " + globalBillId);
+        }
+
+        if (globalBill.getVoided()) {
+            throw new APIException("Cannot revert a voided bill. Bill ID: " + globalBillId);
+        }
+
+        globalBill.setClosed(false);
+        globalBill.setClosingDate(null);
+        globalBill.setClosedBy(null);
+        globalBill.setEditingReason(reason);
+        globalBill.setEditedBy(revertedBy);
+
+        if (globalBill.getConsommations() != null) {
+            for (Consommation consommation : globalBill.getConsommations()) {
+                if (consommation.getPatientBill() != null) {
+                    PatientBill patientBill = consommation.getPatientBill();
+                    patientBill.setIsPaid(false);
+                    patientBill.setStatus("UNPAID");
+                    savePatientBill(patientBill);
+                }
+            }
+        }
+
+        return saveGlobalBill(globalBill);
+    }
+
+    @Override
+    public List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException {
+        return billingDAO.getAllInsurances(includeAll);
+    }
+
+    @Override
+    public List<FacilityServicePrice> getAllFacilityServicePrices(int startIndex, int limit) throws DAOException {
+        return billingDAO.getAllFacilityServicePrices(startIndex, limit);
+    }
+
+    @Override
+    public long getFacilityServicePricesCount() {
+        return billingDAO.getFacilityServicePricesCount();
+    }
+
+    @Override
+    public List<FacilityServicePrice> searchFacilityServicePrices(String category, Boolean hidden,
+                                                                  String searchText, int startIndex, int limit) {
+        return billingDAO.searchFacilityServicePrices(category, hidden, searchText, startIndex, limit);
+    }
+
+    @Override
+    public long countFacilityServicePrices(String category, Boolean hidden, String searchText) {
+        return billingDAO.countFacilityServicePrices(category, hidden, searchText);
     }
 }

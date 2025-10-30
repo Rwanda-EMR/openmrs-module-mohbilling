@@ -34,7 +34,6 @@ public class PatientBill {
 	private boolean paymentConfirmed;
 	private User paymentConfirmedBy;
 	private Date paymentConfirmedDate;
-
 	/**
 	 * @return the patientBillId
 	 */

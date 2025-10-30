@@ -394,10 +394,16 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 		if (obj instanceof PatientServiceBill == false)
 			return false;
 		PatientServiceBill psb = (PatientServiceBill) obj;
-		if (psb.getPatientServiceBillId() != null
-				&& psb.getPatientServiceBillId().equals(
-				this.patientServiceBillId)) {
-			return true;
+
+		if (psb.getPatientServiceBillId() != null) {
+			if (psb.getPatientServiceBillId().equals(
+					this.patientServiceBillId)) {
+				return true;
+			}
+		} else {
+			if (psb.getService() != null && this.getService() != null) {
+				return psb.getService().equals(this.getService());
+			}
 		}
 
 		return false;
@@ -410,9 +416,15 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	 */
 	@Override
 	public int hashCode() {
-		if (this.getPatientServiceBillId() == null)
-			return super.hashCode();
-		return this.getPatientServiceBillId().hashCode();
+		if (this.getPatientServiceBillId() != null) {
+			return this.getPatientServiceBillId().hashCode();
+		} else {
+			if (this.getService() != null && this.getService().getServiceId() != null) {
+				return this.getService().getServiceId().hashCode();
+			} else {
+				return super.hashCode();
+			}
+		}
 	}
 
 
@@ -444,7 +456,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getServiceDate(), other.getServiceDate());
 		if (ret == 0 && this.getCreatedDate() != null)
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getCreatedDate(), other.getCreatedDate());
-		if (ret == 0 && this.getCreatedDate() != null)
+		if (ret == 0)
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other.hashCode());
 		return ret;
 	}

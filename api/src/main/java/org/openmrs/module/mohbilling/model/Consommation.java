@@ -267,12 +267,10 @@ Consommation {
 		// TODO Auto-generated method stub
 
 		if (billItems == null)
-			billItems = new TreeSet<PatientServiceBill>();
+			billItems = new TreeSet<>();
 		if (psb != null) {
 			psb.setConsommation(this);
 			billItems.add(psb);
 		}
-
 	}
-
 }

@@ -19,6 +19,7 @@ import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +89,7 @@ public interface BillingDAO {
 	 * 
 	 * @throws DAOException
 	 */
-	public List<Insurance> getAllInsurances() throws DAOException;
+	public List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException;
 
 	/**
 	 * Gets Insurance Policy from the DB by specifying the Object/ID
@@ -733,4 +734,73 @@ public interface BillingDAO {
 
 	public FacilityServicePrice getFacilityServiceByName(String name);
 
+	Map<String, BigDecimal> getGlobalBillsSummary();
+
+	List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill);
+
+	Beneficiary getBeneficiary(Integer beneficiaryId);
+
+	List<InsurancePolicy> getInsurancePoliciesByPagination(int offset, int limit);
+
+	long getInsurancePolicyCount();
+
+	List<BillableService> getBillableServicesByCategoryAndFacilityServicePrice(Integer serviceCategoryId,
+																			   Integer facilityServicePriceId);
+
+    List<GlobalBill> getOpenGlobalBillsForPatient(Patient patient);
+
+	/**
+	 * Returns all GlobalBills sorted by the given property name, with an optional secondary fallback.
+	 * Typical usage: orderBy = "admission.createdDate", fallbackOrderBy = "createdDate".
+	 */
+	List<GlobalBill> getAllGlobalBillsSorted(String orderBy, String orderDirection,
+											 String fallbackOrderBy, String fallbackDirection);
+
+	/**
+	 * (Optional) Paged variant if you ever want DAO-level paging.
+	 * Not required by NeedsPaging, but useful for exports or custom endpoints.
+	 */
+	List<GlobalBill> getGlobalBillsByPagination(Integer startIndex, Integer pageSize,
+												String orderBy, String orderDirection,
+												String fallbackOrderBy, String fallbackDirection);
+
+	long getGlobalBillCount();
+
+
+	List<Consommation> findConsommationsByPatientOrPolicy(String patientNameLike,
+														  String policyIdNumber,
+														  Integer startIndex,
+														  Integer pageSize,
+														  String orderBy,
+														  String orderDirection);
+
+	int countConsommationsByPatientOrPolicy(String patientNameLike, String policyIdNumber);
+
+	List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize,
+											  String orderBy, String orderDirection);
+
+    List<FacilityServicePrice> getAllFacilityServicePrices(int startIndex, int limit);
+
+    long getFacilityServicePricesCount();
+
+    /**
+     * Search facility service prices by category, hidden status, or free text
+     * @param category filter by category (optional)
+     * @param hidden filter by hidden status (optional)
+     * @param searchText free text search on name or concept (optional)
+     * @param startIndex starting index for pagination
+     * @param limit number of records per page
+     * @return List of matching FacilityServicePrice
+     */
+    List<FacilityServicePrice> searchFacilityServicePrices(String category, Boolean hidden,
+                                                           String searchText, int startIndex, int limit);
+
+    /**
+     * Count facility service prices matching search criteria
+     * @param category filter by category (optional)
+     * @param hidden filter by hidden status (optional)
+     * @param searchText free text search on name or concept (optional)
+     * @return count of matching records
+     */
+    long countFacilityServicePrices(String category, Boolean hidden, String searchText);
 }
