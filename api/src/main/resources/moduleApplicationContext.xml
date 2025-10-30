@@ -78,7 +78,4 @@
 			</list>
 		</property>
 	</bean>
-
-	<!-- Component scanning -->
-	<context:component-scan base-package="org.openmrs.module.mohbilling" />
 </beans>
