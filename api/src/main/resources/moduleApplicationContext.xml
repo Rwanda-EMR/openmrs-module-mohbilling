@@ -32,7 +32,7 @@
 		<property name="moduleService">
 			<list>
 				<value>org.openmrs.module.mohbilling.service.BillingService</value>
-				<ref bean="mohbillingService"/>
+				<ref bean="mohBillingService"/>
 			</list>
 		</property>
 	</bean>
