@@ -228,7 +228,20 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         // Create a billable service entry for the given orderable and add to the appropriate bills
         BillableService billableService = billingService.getBillableServiceByConcept(facilityServicePrice, insurancePolicy.getInsurance());
         HopService hopService = billingService.getHopService(facilityServicePrice.getCategory());
-        BigDecimal billableServiceAmount = billableService.getMaximaToPay();
+        BigDecimal unitPrice = billableService.getMaximaToPay();
+        log.debug("unitPrice: {}", unitPrice);
+        BigDecimal quantity = new BigDecimal(1);
+        if (order instanceof DrugOrder) {
+            DrugOrder drugOrder = (DrugOrder) order;
+            if (drugOrder.getQuantity() != null) {
+                quantity = BigDecimal.valueOf(drugOrder.getQuantity());
+            }
+            else {
+                log.warn("drugOrder without quantity, defaulting to 1");
+            }
+        }
+        log.debug("quantity: {}", quantity);
+        BigDecimal billableServiceAmount = unitPrice.multiply(quantity);
 
         // Update the patient's global bill
         BigDecimal originalGlobalBillAmount = globalBill.getGlobalAmount();
@@ -278,8 +291,8 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         PatientServiceBill patientServiceBill = new PatientServiceBill();
         patientServiceBill.setService(billableService);
         patientServiceBill.setServiceDate(now);
-        patientServiceBill.setUnitPrice(billableServiceAmount);
-        patientServiceBill.setQuantity(new BigDecimal(1));
+        patientServiceBill.setUnitPrice(unitPrice);
+        patientServiceBill.setQuantity(quantity);
         patientServiceBill.setHopService(hopService);
         patientServiceBill.setCreator(currentUser);
         patientServiceBill.setCreatedDate(now);
