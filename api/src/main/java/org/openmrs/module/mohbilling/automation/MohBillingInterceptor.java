@@ -6,7 +6,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.mohbilling.advice;
+package org.openmrs.module.mohbilling.automation;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.hibernate.EmptyInterceptor;

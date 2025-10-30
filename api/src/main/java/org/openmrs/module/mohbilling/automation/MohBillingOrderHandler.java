@@ -11,7 +11,7 @@
  * <p>
  * Copyright (C) OpenMRS, LLC.  All Rights Reserved.
  */
-package org.openmrs.module.mohbilling.advice;
+package org.openmrs.module.mohbilling.automation;
 
 import org.apache.commons.lang.StringUtils;
 import org.openmrs.Concept;
@@ -24,7 +24,6 @@ import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.automation.MTNMomoApiIntegrationRequestToPay;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
@@ -47,6 +46,7 @@ import org.openmrs.util.ConfigUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -67,6 +67,7 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
     ConceptService conceptService;
 
     @Autowired
+    @Qualifier("mohBillingService")
     BillingService billingService;
 
     private final ThreadLocal<Map<Integer, Consommation>> consommationsByDepartmentId = new ThreadLocal<>();
