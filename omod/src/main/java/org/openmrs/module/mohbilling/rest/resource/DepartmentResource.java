@@ -9,6 +9,12 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.DateTimeProperty;
+import io.swagger.models.properties.IntegerProperty;
+import io.swagger.models.properties.RefProperty;
+import io.swagger.models.properties.StringProperty;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -59,6 +65,40 @@ public class DepartmentResource extends DelegatingCrudResource<Department> {
         description.addRequiredProperty("name");
         description.addRequiredProperty("description");
         return description;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("departmentId", new IntegerProperty())
+                    .property("name", new StringProperty())
+                    .property("description", new StringProperty());
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("name", new StringProperty())
+                .property("description", new StringProperty());
+
+        model.required("name")
+                .required("description");
+
+        return model;
+    }
+
+    @Override
+    public Model getUPDATEModel(Representation rep) {
+        return getCREATEModel(rep);
     }
 
     @Override

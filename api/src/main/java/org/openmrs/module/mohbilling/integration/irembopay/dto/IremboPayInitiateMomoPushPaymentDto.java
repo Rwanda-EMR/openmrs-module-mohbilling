@@ -9,6 +9,9 @@
  */
 package org.openmrs.module.mohbilling.integration.irembopay.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class IremboPayInitiateMomoPushPaymentDto {
     /**
      * Identifier of the user account to be charged. Phone numbers should be valid Rwanda phone numbers in the format 07********

@@ -9,15 +9,18 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.util.Date;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.module.mohbilling.utils.BillingUtils;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -29,6 +32,9 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.util.Date;
+import java.util.Set;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/insurance",
         supportedClass = Insurance.class,
@@ -63,6 +69,11 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
 
         if (insurance.getCreatedDate() == null) {
             insurance.setCreatedDate(new Date());
+        }
+
+        if (insurance.isVoided() && insurance.getVoidedBy() == null) {
+            insurance.setVoidedBy(Context.getAuthenticatedUser());
+            insurance.setVoidedDate(new Date());
         }
 
         Context.getService(BillingService.class).saveInsurance(insurance);
@@ -102,6 +113,92 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
         description.addProperty("concept");
         description.addProperty("rates");
         description.addProperty("categories");
+        return description;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("insuranceId", new IntegerProperty())
+                    .property("name", new StringProperty())
+                    .property("address", new StringProperty())
+                    .property("phone", new StringProperty())
+                    .property("category", new StringProperty())
+                    .property("rate", new FloatProperty()
+                            .description("Current insurance coverage rate"))
+                    .property("flatFee", new DecimalProperty()
+                            .description("Current flat fee amount"));
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("concept", new RefProperty("#/definitions/ConceptGet"))
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty())
+                    .property("voided", new BooleanProperty())
+                    .property("voidedBy", new RefProperty("#/definitions/UserGet"))
+                    .property("voidedDate", new DateTimeProperty())
+                    .property("voidReason", new StringProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("name", new StringProperty())
+                .property("address", new StringProperty())
+                .property("phone", new StringProperty())
+                .property("concept", new ObjectProperty()
+                        .property("uuid", new StringProperty()
+                                .description("UUID of the concept"))
+                        .description("Concept reference object"))
+                .property("rates", new ArrayProperty(
+                        new ObjectProperty()
+                                .property("rate", new FloatProperty())
+                                .property("flatFee", new DecimalProperty())
+                                .property("startDate", new DateTimeProperty())))
+                .property("categories", new ArrayProperty(new StringProperty()));
+
+        model.required("name");
+
+        return model;
+    }
+
+    @Override
+    public Model getUPDATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("name", new StringProperty())
+                .property("address", new StringProperty())
+                .property("phone", new StringProperty())
+                .property("concept", new ObjectProperty()
+                        .property("uuid", new StringProperty()
+                                .description("UUID of the concept"))
+                        .description("Concept reference object"))
+                .property("rates", new ArrayProperty(
+                        new ObjectProperty()
+                                .property("rate", new FloatProperty())
+                                .property("flatFee", new DecimalProperty())
+                                .property("startDate", new DateTimeProperty())))
+                .property("categories", new ArrayProperty(new StringProperty()))
+                .property("voided", new BooleanProperty())
+                .property("voidReason", new StringProperty());
+
+        return model;
+    }
+
+    @Override
+    public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addProperty("name");
+        description.addProperty("address");
+        description.addProperty("phone");
+        description.addProperty("concept");
+        description.addProperty("rates");
+        description.addProperty("categories");
+        description.addProperty("voided");
+        description.addProperty("voidReason");
         return description;
     }
 
@@ -153,5 +250,24 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
     @Override
     protected PageableResult doGetAll(RequestContext context) throws ResponseException {
         return new NeedsPaging<>(Context.getService(BillingService.class).getAllInsurances(context.getIncludeAll()), context);
+    }
+
+    @PropertySetter("voided")
+    public static void setVoided(Insurance insurance, Object value) {
+        insurance.setVoided(Boolean.valueOf(String.valueOf(value)));
+    }
+
+    @PropertySetter("rates")
+    public static void setRates(Insurance insurance, Set<InsuranceRate> rates) {
+        rates.stream().forEach(rate -> {
+            if (rate.getCreator() == null) {
+                rate.setCreator(Context.getAuthenticatedUser());
+            }
+            if (rate.getCreatedDate() == null) {
+                rate.setCreatedDate(new Date());
+            }
+            rate.setFlatFee(BillingUtils.convertRawValueToBigDecimal(rate.getFlatFee()));
+            insurance.addInsuranceRate(rate);
+        });
     }
 }

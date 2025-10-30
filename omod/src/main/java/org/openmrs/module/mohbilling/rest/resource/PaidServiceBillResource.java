@@ -9,8 +9,9 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.math.BigDecimal;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -26,6 +27,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResou
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.math.BigDecimal;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/paidServiceBill",
         supportedClass = PaidServiceBill.class,
@@ -58,6 +61,45 @@ public class PaidServiceBillResource extends DelegatingCrudResource<PaidServiceB
         }
         Context.getService(BillingService.class).savePaidServiceBill(paidServiceBill);
         return paidServiceBill;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("paidServiceBillId", new IntegerProperty())
+                    .property("patientServiceBill", new RefProperty("#/definitions/MohbillingPatientServiceBillGet"))
+                    .property("insuranceBill", new RefProperty("#/definitions/MohbillingInsuranceBillGet"))
+                    .property("amountPaid", new DecimalProperty());
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("patientServiceBill", new ObjectProperty()
+                        .property("patientServiceBillId", new IntegerProperty()
+                                .description("ID of the patient service bill"))
+                        .description("Patient service bill reference object"))
+                .property("insuranceBill", new ObjectProperty()
+                        .property("insuranceBillId", new IntegerProperty()
+                                .description("ID of the insurance bill"))
+                        .description("Insurance bill reference object"))
+                .property("amountPaid", new DecimalProperty()
+                        .example("1000.00"));
+
+        model.required("patientServiceBill")
+                .required("insuranceBill")
+                .required("amountPaid");
+
+        return model;
     }
 
     @Override

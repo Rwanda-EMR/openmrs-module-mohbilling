@@ -9,12 +9,10 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.model.BillableService;
-import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -29,6 +27,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResou
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.math.BigDecimal;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/patientServiceBill",
         supportedClass = PatientServiceBill.class,
@@ -74,6 +74,55 @@ public class PatientServiceBillResource extends DelegatingCrudResource<PatientSe
         description.addProperty("quantity");
         description.addProperty("paidQuantity");
         return description;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("patientServiceBillId", new IntegerProperty())
+                    .property("service", new RefProperty("#/definitions/MohbillingBillableServiceGet"))
+                    .property("serviceDate", new DateTimeProperty())
+                    .property("unitPrice", new DecimalProperty())
+                    .property("quantity", new DecimalProperty())
+                    .property("consommation", new RefProperty("#/definitions/MohbillingConsommationGet"))
+                    .property("serviceOther", new StringProperty())
+                    .property("serviceOtherDescription", new StringProperty())
+                    .property("itemType", new IntegerProperty());
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("service", new ObjectProperty()
+                        .property("serviceId", new IntegerProperty()
+                                .description("ID of the service"))
+                        .description("Service reference object"))
+                .property("serviceDate", new DateTimeProperty())
+                .property("unitPrice", new DecimalProperty()
+                        .example("1000.00"))
+                .property("quantity", new DecimalProperty())
+                .property("consommation", new ObjectProperty()
+                        .property("consommationId", new IntegerProperty()
+                                .description("ID of the consommation"))
+                        .description("Consommation reference object"))
+                .property("serviceOther", new StringProperty())
+                .property("serviceOtherDescription", new StringProperty())
+                .property("itemType", new IntegerProperty());
+
+        model.required("serviceDate")
+                .required("unitPrice")
+                .required("consommation");
+
+        return model;
     }
 
     @Override

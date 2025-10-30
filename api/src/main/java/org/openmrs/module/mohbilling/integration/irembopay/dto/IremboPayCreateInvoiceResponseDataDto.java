@@ -9,8 +9,11 @@
  */
 package org.openmrs.module.mohbilling.integration.irembopay.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class IremboPayCreateInvoiceResponseDataDto {
     /**
      * Amount of the invoice. Calculation method : Sum of (Product unit amount x quantity)

@@ -770,4 +770,26 @@ public interface BillingService extends OpenmrsService {
      * @throws DAOException
      */
     List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException;
+
+    /**
+     * Gets a paginated list of Facility Service Prices from the DB
+     *
+     * @return list of Facility Service Prices
+     * @throws DAOException
+     */
+    List<FacilityServicePrice> getAllFacilityServicePrices(int startIndex, int limit)
+            throws DAOException;
+
+    long getFacilityServicePricesCount();
+
+    /**
+     * Search facility service prices by category, hidden status, or free text
+     */
+    public List<FacilityServicePrice> searchFacilityServicePrices(String category, Boolean hidden,
+                                                                  String searchText, int startIndex, int limit);
+
+    /**
+     * Count facility service prices matching search criteria
+     */
+    public long countFacilityServicePrices(String category, Boolean hidden, String searchText);
 }

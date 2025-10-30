@@ -1163,4 +1163,25 @@ public class BillingServiceImpl extends BaseOpenmrsService implements BillingSer
     public List<Insurance> getAllInsurances(Boolean includeAll) throws DAOException {
         return billingDAO.getAllInsurances(includeAll);
     }
+
+    @Override
+    public List<FacilityServicePrice> getAllFacilityServicePrices(int startIndex, int limit) throws DAOException {
+        return billingDAO.getAllFacilityServicePrices(startIndex, limit);
+    }
+
+    @Override
+    public long getFacilityServicePricesCount() {
+        return billingDAO.getFacilityServicePricesCount();
+    }
+
+    @Override
+    public List<FacilityServicePrice> searchFacilityServicePrices(String category, Boolean hidden,
+                                                                  String searchText, int startIndex, int limit) {
+        return billingDAO.searchFacilityServicePrices(category, hidden, searchText, startIndex, limit);
+    }
+
+    @Override
+    public long countFacilityServicePrices(String category, Boolean hidden, String searchText) {
+        return billingDAO.countFacilityServicePrices(category, hidden, searchText);
+    }
 }

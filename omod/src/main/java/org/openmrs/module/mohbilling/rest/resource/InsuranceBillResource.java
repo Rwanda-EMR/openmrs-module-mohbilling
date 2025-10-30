@@ -9,6 +9,9 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -52,6 +55,47 @@ public class InsuranceBillResource extends DelegatingCrudResource<InsuranceBill>
     public InsuranceBill save(InsuranceBill insuranceBill) {
         Context.getService(BillingService.class).saveInsuranceBill(insuranceBill);
         return insuranceBill;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("insuranceBillId", new IntegerProperty())
+                    .property("insurance", new RefProperty("#/definitions/MohbillingInsuranceGet"))
+                    .property("billIdentifier", new StringProperty())
+                    .property("amount", new DecimalProperty())
+                    .property("dueAmount", new DecimalProperty())
+                    .property("paidAmount", new DecimalProperty())
+                    .property("billingMonth", new DateProperty())
+                    .property("status", new StringProperty());
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("globalBills", new ArrayProperty(new RefProperty("#/definitions/MohbillingGlobalBillGet")))
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("insurance", new ObjectProperty()
+                        .property("insuranceId", new IntegerProperty()
+                                .description("insuranceId of the insurance"))
+                        .description("Insurance reference object"))
+                .property("billIdentifier", new StringProperty())
+                .property("amount", new DecimalProperty())
+                .property("billingMonth", new DateProperty());
+
+        model.required("insurance")
+                .required("amount")
+                .required("billingMonth");
+
+        return model;
     }
 
     @Override

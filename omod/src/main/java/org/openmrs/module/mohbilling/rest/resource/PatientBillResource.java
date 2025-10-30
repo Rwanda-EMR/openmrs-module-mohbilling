@@ -1,5 +1,8 @@
 package org.openmrs.module.mohbilling.rest.resource;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
@@ -27,7 +30,6 @@ import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOp
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/patientBill",
@@ -195,6 +197,49 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
         description.addProperty("amount");
         description.addProperty("isPaid");
         return description;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("patientBillId", new IntegerProperty())
+                    .property("amount", new DecimalProperty())
+                    .property("createdDate", new DateTimeProperty())
+                    .property("status", new StringProperty())
+                    .property("voided", new BooleanProperty())
+                    .property("payments", new ArrayProperty(new RefProperty("#/definitions/MohbillingBillPaymentGet")))
+                    .property("phoneNumber", new StringProperty())
+                    .property("transactionStatus", new StringProperty())
+                    .property("paymentConfirmedDate", new DateTimeProperty())
+                    .property("creator", new StringProperty()
+                            .description("Full name of the creator"))
+                    .property("departmentName", new StringProperty())
+                    .property("policyIdNumber", new StringProperty())
+                    .property("beneficiaryName", new StringProperty())
+                    .property("insuranceName", new StringProperty())
+                    .property("serviceName", new StringProperty());
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("voidedBy", new RefProperty("#/definitions/UserGet"))
+                    .property("voidedDate", new DateTimeProperty())
+                    .property("voidReason", new StringProperty())
+                    .property("paymentConfirmedBy", new RefProperty("#/definitions/UserGet"));
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("amount", new DecimalProperty()
+                        .example("1000.00"))
+                .property("isPaid", new BooleanProperty()
+                        ._default("false"));
+
+        return model;
     }
 
     @Override

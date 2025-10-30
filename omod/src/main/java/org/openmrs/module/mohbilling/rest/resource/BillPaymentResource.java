@@ -9,16 +9,13 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
-import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -34,6 +31,10 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/billPayment",
         supportedClass = BillPayment.class,
@@ -81,6 +82,48 @@ public class BillPaymentResource extends DelegatingCrudResource<BillPayment> {
         });
 
         return billPayment;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("billPaymentId", new IntegerProperty())
+                    .property("amountPaid", new DecimalProperty())
+                    .property("patientBill", new RefProperty("#/definitions/MohbillingPatientBillGet"))
+                    .property("collector", new RefProperty("#/definitions/UserGet"))
+                    .property("collectedDate", new DateTimeProperty());
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("amountPaid", new DecimalProperty()
+                        .example("500.00"))
+                .property("patientBill", new ObjectProperty()
+                        .property("patientBillId", new IntegerProperty()
+                                .description("patientBillId of the patient bill"))
+                        .description("Patient bill reference object"))
+                .property("collector", new ObjectProperty()
+                        .property("uuid", new StringProperty()
+                                .description("UUID of the collector user"))
+                        .description("Collector user reference object"))
+                .property("collectedDate", new DateTimeProperty());
+
+        model.required("amountPaid")
+                .required("patientBill")
+                .required("collector")
+                .required("collectedDate");
+
+        return model;
     }
 
     @Override

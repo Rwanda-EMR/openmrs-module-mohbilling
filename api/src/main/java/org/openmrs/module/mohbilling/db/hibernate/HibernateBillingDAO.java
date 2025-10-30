@@ -19,10 +19,8 @@ import org.hibernate.*;
 import org.hibernate.SQLQuery;
 import java.util.HashMap;
 import java.util.Map;
-import org.hibernate.criterion.Expression;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+
+import org.hibernate.criterion.*;
 import org.hibernate.sql.JoinType;
 
 import org.openmrs.Concept;
@@ -2165,4 +2163,99 @@ public class HibernateBillingDAO implements BillingDAO {
         return criteria.list();
     }
 
+    @Override
+    public List<FacilityServicePrice> getAllFacilityServicePrices(int startIndex, int limit) {
+        return sessionFactory.getCurrentSession()
+                .createCriteria(FacilityServicePrice.class)
+                .add(Restrictions.eq("retired", false))
+                .setFirstResult(startIndex)
+                .setMaxResults(limit)
+                .list();
+    }
+
+    @Override
+    public long getFacilityServicePricesCount() {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(FacilityServicePrice.class)
+                .add(Restrictions.eq("retired", false))
+                .setProjection(Projections.rowCount());
+        return (long) criteria.uniqueResult();
+    }
+
+    @Override
+    public List<FacilityServicePrice> searchFacilityServicePrices(String category, Boolean hidden,
+                                                                  String searchText, int startIndex, int limit) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(FacilityServicePrice.class)
+                .add(Restrictions.eq("retired", false));
+
+        // Filter by category
+        if (category != null && !category.trim().isEmpty()) {
+            criteria.add(Restrictions.eq("category", category.trim()));
+        }
+
+        // Filter by hidden status
+        if (hidden != null) {
+            criteria.add(Restrictions.eq("hidden", hidden));
+        }
+
+        // Free text search on name or concept
+        if (searchText != null && !searchText.trim().isEmpty()) {
+            String pattern = "%" + searchText.trim().toLowerCase() + "%";
+
+            // Create alias for concept to enable searching
+            criteria.createAlias("concept", "c", JoinType.LEFT_OUTER_JOIN);
+
+            Disjunction nameOrConceptSearch = Restrictions.disjunction();
+            nameOrConceptSearch.add(Restrictions.ilike("name", pattern));
+
+            // Search in concept names
+            criteria.createAlias("c.names", "cn", JoinType.LEFT_OUTER_JOIN);
+            nameOrConceptSearch.add(Restrictions.ilike("cn.name", pattern));
+
+            criteria.add(nameOrConceptSearch);
+        }
+
+        criteria.setFirstResult(startIndex);
+        criteria.setMaxResults(limit);
+
+        return criteria.list();
+    }
+
+    @Override
+    public long countFacilityServicePrices(String category, Boolean hidden, String searchText) {
+        Criteria criteria = sessionFactory.getCurrentSession()
+                .createCriteria(FacilityServicePrice.class)
+                .add(Restrictions.eq("retired", false));
+
+        // Filter by category
+        if (category != null && !category.trim().isEmpty()) {
+            criteria.add(Restrictions.eq("category", category.trim()));
+        }
+
+        // Filter by hidden status
+        if (hidden != null) {
+            criteria.add(Restrictions.eq("hidden", hidden));
+        }
+
+        // Free text search on name or concept
+        if (searchText != null && !searchText.trim().isEmpty()) {
+            String pattern = "%" + searchText.trim().toLowerCase() + "%";
+
+            // Create alias for concept to enable searching
+            criteria.createAlias("concept", "c", JoinType.LEFT_OUTER_JOIN);
+
+            Disjunction nameOrConceptSearch = Restrictions.disjunction();
+            nameOrConceptSearch.add(Restrictions.ilike("name", pattern));
+
+            // Search in concept names
+            criteria.createAlias("c.names", "cn", JoinType.LEFT_OUTER_JOIN);
+            nameOrConceptSearch.add(Restrictions.ilike("cn.name", pattern));
+
+            criteria.add(nameOrConceptSearch);
+        }
+
+        criteria.setProjection(Projections.countDistinct("facilityServicePriceId"));
+        return ((Number) criteria.uniqueResult()).longValue();
+    }
 }

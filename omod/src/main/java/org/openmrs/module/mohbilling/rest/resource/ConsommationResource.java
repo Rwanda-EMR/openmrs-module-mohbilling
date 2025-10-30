@@ -9,24 +9,12 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
-import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
-import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
-import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
-import org.openmrs.module.mohbilling.businesslogic.ThirdPartyBillUtil;
-import org.openmrs.module.mohbilling.model.Consommation;
-import org.openmrs.module.mohbilling.model.GlobalBill;
-import org.openmrs.module.mohbilling.model.InsuranceBill;
-import org.openmrs.module.mohbilling.model.PatientBill;
-import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.model.ThirdPartyBill;
+import org.openmrs.module.mohbilling.businesslogic.*;
+import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -43,6 +31,12 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/consommation",
         supportedClass = Consommation.class,
@@ -82,6 +76,56 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
 
         Context.getService(BillingService.class).saveConsommation(consommation);
         return consommation;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("consommationId", new IntegerProperty())
+                    .property("beneficiary", new RefProperty("#/definitions/MohbillingBeneficiaryGet"))
+                    .property("description", new StringProperty())
+                    .property("consommationDate", new DateTimeProperty())
+                    .property("department", new RefProperty("#/definitions/MohbillingDepartmentGet"))
+                    .property("billItems", new ArrayProperty(new RefProperty("#/definitions/MohbillingPatientServiceBillGet")))
+                    .property("patientBill", new RefProperty("#/definitions/MohbillingPatientBillGet"))
+                    .property("insuranceBill", new RefProperty("#/definitions/MohbillingInsuranceBillGet"))
+                    .property("thirdPartyBill", new RefProperty("#/definitions/MohbillingThirdPartyBillGet"));
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("beneficiary", new ObjectProperty()
+                        .property("beneficiaryId", new IntegerProperty()
+                                .description("beneficiaryId of the beneficiary"))
+                        .description("Beneficiary reference object"))
+                .property("description", new StringProperty())
+                .property("consommationDate", new DateTimeProperty())
+                .property("department", new ObjectProperty()
+                        .property("departmentId", new IntegerProperty()
+                                .description("departmentId of the department"))
+                        .description("Department reference object"))
+                .property("billItems", new ArrayProperty(new ObjectProperty()
+                        .property("service", new ObjectProperty()
+                                .property("serviceId", new IntegerProperty()
+                                        .description("serviceId of the service")))
+                        .property("quantity", new IntegerProperty())
+                        .property("unitPrice", new DecimalProperty())));
+
+        model.required("beneficiary")
+                .required("consommationDate")
+                .required("department");
+
+        return model;
     }
 
     @Override

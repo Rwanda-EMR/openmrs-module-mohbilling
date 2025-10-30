@@ -9,6 +9,9 @@
  */
 package org.openmrs.module.mohbilling.integration.irembopay.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class IremboPayInvoicePaymentResponseDto {
     private boolean success;
     private IremboPayInvoicePaymentDataDto data;

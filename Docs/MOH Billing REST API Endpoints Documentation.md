@@ -240,7 +240,14 @@ DELETE /insurancePolicy/{id}
 - **GET** `/{id}` - Get facility service price by ID
 - **POST** `/` - Create new facility service price
 - **GET** `/` - List all facility service prices
+- **GET** `?concept=concept_uuid` - Filter by concept UUID — *does not support `startIndex` and `limit` pagination parameters*
+- **GET** `?category=MEDICAMENTS` - Filter by service category (e.g., MEDICAMENTS, CONSULTATION, LABORATOIRE)
+- **GET** `?hidden=boolean` - Filter by visibility status (true/false)
+- **GET** `?q=free_text` - Free text search on facility service price name or concept (case-insensitive)
+- **GET** `?q=free_text&category=MEDICAMENTS&hidden=true` - Search by free text, category, and visibility status
 
+*Note: Search by `category`, `q` and `hidden` supports pagination with `startIndex` and `limit` parameters.*
+ 
 ### Create/Update Payload
 ```json
 {

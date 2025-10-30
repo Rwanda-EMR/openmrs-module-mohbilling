@@ -9,12 +9,9 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -36,6 +33,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.util.*;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/insurancePolicy",
         supportedClass = InsurancePolicy.class,
@@ -97,6 +96,79 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
         description.addProperty("thirdParty");
         description.addProperty("beneficiaries");
         return description;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("insurancePolicyId", new IntegerProperty())
+                    .property("insuranceCardNo", new StringProperty())
+                    .property("coverageStartDate", new DateTimeProperty())
+                    .property("expirationDate", new DateTimeProperty())
+                    .property("insurance", new RefProperty("#/definitions/MohbillingInsuranceGet"))
+                    .property("owner", new RefProperty("#/definitions/PatientGet"))
+                    .property("thirdParty", new RefProperty("#/definitions/MohbillingThirdPartyGet"))
+                    .property("beneficiaries", new ArrayProperty(new RefProperty("#/definitions/MohbillingBeneficiaryGet")));
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty())
+                    .property("retired", new BooleanProperty())
+                    .property("retiredBy", new RefProperty("#/definitions/UserGet"))
+                    .property("retiredDate", new DateTimeProperty())
+                    .property("retireReason", new StringProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("insurance", new ObjectProperty()
+                        .property("insuranceId", new IntegerProperty()
+                                .description("ID of the insurance"))
+                        .description("Insurance reference object"))
+                .property("owner", new ObjectProperty()
+                        .property("uuid", new StringProperty()
+                                .description("UUID of the patient owner"))
+                        .description("Patient owner reference object"))
+                .property("insuranceCardNo", new StringProperty())
+                .property("coverageStartDate", new DateTimeProperty())
+                .property("expirationDate", new DateTimeProperty())
+                .property("thirdParty", new ObjectProperty()
+                        .property("thirdPartyId", new IntegerProperty()
+                                .description("ID of the third party"))
+                        .description("Third party reference object"))
+                .property("beneficiaries", new ArrayProperty(new ObjectProperty()));
+
+        model.required("insurance")
+                .required("owner")
+                .required("insuranceCardNo")
+                .required("coverageStartDate");
+
+        return model;
+    }
+
+    @Override
+    public Model getUPDATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("insurance", new ObjectProperty()
+                        .property("insuranceId", new StringProperty()
+                                .description("ID of the insurance"))
+                        .description("Insurance reference object"))
+                .property("insuranceCardNo", new StringProperty())
+                .property("coverageStartDate", new DateTimeProperty())
+                .property("expirationDate", new DateTimeProperty())
+                .property("thirdParty", new ObjectProperty()
+                        .property("thirdPartyId", new StringProperty()
+                                .description("ID of the third party"))
+                        .description("Third party reference object"))
+                .property("beneficiaries", new ArrayProperty(new ObjectProperty()));
+
+        return model;
     }
 
     @Override

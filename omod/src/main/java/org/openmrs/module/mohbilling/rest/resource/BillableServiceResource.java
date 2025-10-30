@@ -9,9 +9,12 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.DateTimeProperty;
+import io.swagger.models.properties.DecimalProperty;
+import io.swagger.models.properties.IntegerProperty;
+import io.swagger.models.properties.RefProperty;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -28,6 +31,9 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/billableService",
         supportedClass = BillableService.class,
@@ -56,6 +62,27 @@ public class BillableServiceResource extends DelegatingCrudResource<BillableServ
     @Override
     public BillableService save(BillableService billableService) {
         throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("serviceId", new IntegerProperty())
+                    .property("insurance", new RefProperty("#/definitions/MohbillingInsuranceGet"))
+                    .property("maximaToPay", new DecimalProperty()
+                            .description("Maximum amount insurance will pay"))
+                    .property("facilityServicePrice", new RefProperty("#/definitions/MohbillingFacilityServicePriceGet"))
+                    .property("startDate", new DateTimeProperty())
+                    .property("endDate", new DateTimeProperty());
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
     }
 
     @Override

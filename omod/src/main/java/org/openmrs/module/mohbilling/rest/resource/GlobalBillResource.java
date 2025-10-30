@@ -1,11 +1,8 @@
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
@@ -31,12 +28,15 @@ import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.*;
+
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/globalBill",
         supportedClass = GlobalBill.class,
         supportedOpenmrsVersions = {"2.0 - 2.*"})
 public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
 
     private static final Map<String, String> SORT_KEYS;
+
     static {
         SORT_KEYS = new LinkedHashMap<>();
 
@@ -168,6 +168,44 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
     }
 
     @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("globalBillId", new IntegerProperty())
+                    .property("billIdentifier", new StringProperty())
+                    .property("globalAmount", new DecimalProperty())
+                    .property("admission", new RefProperty("#/definitions/MohbillingAdmissionGet"))
+                    .property("closingDate", new DateTimeProperty())
+                    .property("dueAmount", new DecimalProperty())
+                    .property("status", new StringProperty());
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("billItems", new ArrayProperty(new RefProperty("#/definitions/MohbillingPatientServiceBillGet")))
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty())
+                    .property("closedBy", new RefProperty("#/definitions/UserGet"));
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("admission", new ObjectProperty()
+                        .property("admissionId", new IntegerProperty()
+                                .description("admissionId of the admission"))
+                        .description("Admission reference object"))
+                .property("billIdentifier", new StringProperty())
+                .property("globalAmount", new DecimalProperty());
+
+        model.required("admission");
+
+        return model;
+    }
+
+    @Override
     public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
         if (representation instanceof RefRepresentation) {
             DelegatingResourceDescription description = new DelegatingResourceDescription();
@@ -239,14 +277,14 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
         int start = context.getStartIndex() == null ? 0 : Math.max(0, context.getStartIndex());
         int limit = context.getLimit() == null || context.getLimit() <= 0 ? 10 : context.getLimit();
 
-        String orderByRaw     = context.getRequest().getParameter("orderBy");
-        String orderDirRaw    = context.getRequest().getParameter("orderDirection");
-        String fallbackByRaw  = context.getRequest().getParameter("fallbackOrderBy");
+        String orderByRaw = context.getRequest().getParameter("orderBy");
+        String orderDirRaw = context.getRequest().getParameter("orderDirection");
+        String fallbackByRaw = context.getRequest().getParameter("fallbackOrderBy");
         String fallbackDirRaw = context.getRequest().getParameter("fallbackDirection");
 
-        String orderBy     = normalizeOrderBy(orderByRaw);
-        String orderDir    = normalizeDirection(orderDirRaw);
-        String fallbackBy  = normalizeOrderBy(fallbackByRaw == null ? "createdDate" : fallbackByRaw);
+        String orderBy = normalizeOrderBy(orderByRaw);
+        String orderDir = normalizeDirection(orderDirRaw);
+        String fallbackBy = normalizeOrderBy(fallbackByRaw == null ? "createdDate" : fallbackByRaw);
         String fallbackDir = normalizeDirection(fallbackDirRaw == null ? "desc" : fallbackDirRaw);
 
         List<GlobalBill> page =

@@ -9,6 +9,9 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -59,6 +62,44 @@ public class ThirdPartyResource extends DelegatingCrudResource<ThirdParty> {
         description.addRequiredProperty("rate");
         return description;
     }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("thirdPartyId", new IntegerProperty())
+                    .property("name", new StringProperty())
+                    .property("rate", new FloatProperty()
+                            .description("Payment rate as decimal (e.g., 0.15 for 15%)"));
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("name", new StringProperty())
+                .property("rate", new FloatProperty()
+                        .example(0.15f)
+                        .description("Payment rate as decimal (e.g., 0.15 for 15%)"));
+
+        model.required("name")
+                .required("rate");
+
+        return model;
+    }
+
+    @Override
+    public Model getUPDATEModel(Representation rep) {
+        return getCREATEModel(rep);
+    }
+
 
     @Override
     public ThirdParty save(ThirdParty thirdParty) {

@@ -9,8 +9,12 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.util.Collections;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.DateTimeProperty;
+import io.swagger.models.properties.IntegerProperty;
+import io.swagger.models.properties.RefProperty;
+import io.swagger.models.properties.StringProperty;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -27,6 +31,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.util.Collections;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/beneficiary",
         supportedClass = Beneficiary.class,
@@ -55,6 +61,25 @@ public class BeneficiaryResource extends DelegatingCrudResource<Beneficiary> {
     @Override
     public Beneficiary save(Beneficiary beneficiary) {
         throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("beneficiaryId", new IntegerProperty())
+                    .property("insurancePolicy", new RefProperty("#/definitions/MohbillingInsurancePolicyGet"))
+                    .property("policyIdNumber", new StringProperty())
+                    .property("ownerName", new StringProperty())
+                    .property("patient", new RefProperty("#/definitions/PatientGet"));
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
     }
 
     @Override

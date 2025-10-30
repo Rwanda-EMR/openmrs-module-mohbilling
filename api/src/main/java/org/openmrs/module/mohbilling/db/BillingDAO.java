@@ -778,4 +778,29 @@ public interface BillingDAO {
 
 	List<Consommation> getNewestConsommations(Integer startIndex, Integer pageSize,
 											  String orderBy, String orderDirection);
+
+    List<FacilityServicePrice> getAllFacilityServicePrices(int startIndex, int limit);
+
+    long getFacilityServicePricesCount();
+
+    /**
+     * Search facility service prices by category, hidden status, or free text
+     * @param category filter by category (optional)
+     * @param hidden filter by hidden status (optional)
+     * @param searchText free text search on name or concept (optional)
+     * @param startIndex starting index for pagination
+     * @param limit number of records per page
+     * @return List of matching FacilityServicePrice
+     */
+    List<FacilityServicePrice> searchFacilityServicePrices(String category, Boolean hidden,
+                                                           String searchText, int startIndex, int limit);
+
+    /**
+     * Count facility service prices matching search criteria
+     * @param category filter by category (optional)
+     * @param hidden filter by hidden status (optional)
+     * @param searchText free text search on name or concept (optional)
+     * @return count of matching records
+     */
+    long countFacilityServicePrices(String category, Boolean hidden, String searchText);
 }

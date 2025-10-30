@@ -9,9 +9,9 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.DepartementUtil;
 import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
@@ -33,6 +33,9 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/serviceCategory",
         supportedClass = ServiceCategory.class,
@@ -61,6 +64,45 @@ public class ServiceCategoryResource extends DelegatingCrudResource<ServiceCateg
     @Override
     public ServiceCategory save(ServiceCategory serviceCategory) {
         throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("serviceCategoryId", new IntegerProperty())
+                    .property("name", new StringProperty())
+                    .property("description", new StringProperty())
+                    .property("insurance", new RefProperty("#/definitions/MohbillingInsuranceGet"));
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("name", new StringProperty())
+                .property("description", new StringProperty())
+                .property("insurance", new ObjectProperty()
+                        .property("insuranceId", new IntegerProperty()
+                                .description("ID of the insurance"))
+                        .description("Insurance reference object"));
+
+        model.required("name")
+                .required("insurance");
+
+        return model;
+    }
+
+    @Override
+    public Model getUPDATEModel(Representation rep) {
+        return getCREATEModel(rep);
     }
 
     @Override

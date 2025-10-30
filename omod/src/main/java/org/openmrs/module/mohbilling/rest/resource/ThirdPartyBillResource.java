@@ -9,6 +9,9 @@
  */
 package org.openmrs.module.mohbilling.rest.resource;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -57,6 +60,47 @@ public class ThirdPartyBillResource extends DelegatingCrudResource<ThirdPartyBil
     @Override
     public void purge(ThirdPartyBill thirdPartyBill, RequestContext requestContext) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl model = (ModelImpl) super.getGETModel(rep);
+        if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
+            model
+                    .property("thirdPartyBillId", new IntegerProperty())
+                    .property("thirdParty", new RefProperty("#/definitions/MohbillingThirdPartyGet"))
+                    .property("insuranceBill", new RefProperty("#/definitions/MohbillingInsuranceBillGet"))
+                    .property("amount", new DecimalProperty())
+                    .property("dueAmount", new DecimalProperty())
+                    .property("paidAmount", new DecimalProperty());
+        }
+        if (rep instanceof FullRepresentation) {
+            model
+                    .property("creator", new RefProperty("#/definitions/UserGet"))
+                    .property("createdDate", new DateTimeProperty());
+        }
+        return model;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("thirdParty", new ObjectProperty()
+                        .property("thirdPartyId", new IntegerProperty()
+                                .description("ID of the third party"))
+                        .description("Third party reference object"))
+                .property("insuranceBill", new ObjectProperty()
+                        .property("insuranceBillId", new IntegerProperty()
+                                .description("ID of the insurance bill"))
+                        .description("Insurance bill reference object"))
+                .property("amount", new DecimalProperty()
+                        .example("2000.00"));
+
+        model.required("thirdParty")
+                .required("insuranceBill")
+                .required("amount");
+
+        return model;
     }
 
     @Override
