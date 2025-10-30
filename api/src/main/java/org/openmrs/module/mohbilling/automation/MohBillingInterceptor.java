@@ -38,7 +38,7 @@ public class MohBillingInterceptor extends EmptyInterceptor {
 	public void afterTransactionBegin(Transaction tx) {
 		log.trace("afterTransactionBegin");
 		for (MohBillingHandler<?> handler : Context.getRegisteredComponents(MohBillingHandler.class)) {
-			log.debug("afterTransactionBegin on {}", handler);
+			log.trace("afterTransactionBegin on {}", handler);
 			handler.afterTransactionBegin();
 		}
 	}
@@ -47,7 +47,7 @@ public class MohBillingInterceptor extends EmptyInterceptor {
 	public void afterTransactionCompletion(Transaction tx) {
 		log.trace("afterTransactionCompletion");
 		for (MohBillingHandler<?> handler : Context.getRegisteredComponents(MohBillingHandler.class)) {
-			log.debug("afterTransactionCompletion on {}", handler);
+			log.trace("afterTransactionCompletion on {}", handler);
 			handler.afterTransactionCompletion();
 		}
 	}

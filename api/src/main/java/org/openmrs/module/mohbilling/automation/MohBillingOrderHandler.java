@@ -83,8 +83,8 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
     @Override
     public void afterTransactionCompletion() {
         try {
-            log.debug("Sending MTN Requests to pay...");
             for (Consommation consommation : consommationsByDepartmentId.get().values()) {
+                log.trace("afterTransactionCompletion: consommation: {}", consommation);
                 try {
                     PatientBill patientBill = consommation.getPatientBill();
                     log.debug("Patient Bill: {}", patientBill);
