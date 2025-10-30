@@ -49,11 +49,6 @@
     <!-- AOP -->
 
     <advice>
-        <point>org.openmrs.api.PatientService</point>
-        <class>@MODULE_PACKAGE@.advice.PatientServiceAdvice</class>
-    </advice>
-
-    <advice>
         <point>org.openmrs.api.EncounterService</point>
         <class>@MODULE_PACKAGE@.advice.EncounterServiceAdvice</class>
     </advice>
