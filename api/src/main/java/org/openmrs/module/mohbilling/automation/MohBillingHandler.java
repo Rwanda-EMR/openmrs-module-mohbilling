@@ -19,25 +19,36 @@ public interface MohBillingHandler<T extends OpenmrsObject> {
 	/**
 	 * Called after the start of a transaction.  Useful if the handler needs to aggregate operations within a tx
 	 */
-	void afterTransactionBegin();
+	default void afterTransactionBegin() {
+	}
+
+	/**
+	 * Called before the completion of a transaction.  Useful if the handler needs to aggregate operations within a tx
+	 */
+	default void beforeTransactionCompletion() {
+	}
 
 	/**
 	 * Called after the completion of a transaction.  Useful if the handler needs to aggregate operations within a tx
 	 */
-	void afterTransactionCompletion();
+	default void afterTransactionCompletion() {
+	}
 
 	/**
 	 * Called when a new entity is created or an existing entity is unvoided
 	 */
-	void handleCreatedEntity(T entity);
+	default void handleCreatedEntity(T entity) {
+	}
 
 	/**
 	 * Called when a new non-voided entity is updated
 	 */
-	void handleUpdatedEntity(T entity);
+	default void handleUpdatedEntity(T entity) {
+	}
 
 	/**
 	 * Called when an existing entity is either deleted or voided
 	 */
-	void handleDeletedEntity(T entity);
+	default void handleDeletedEntity(T entity) {
+	}
 }

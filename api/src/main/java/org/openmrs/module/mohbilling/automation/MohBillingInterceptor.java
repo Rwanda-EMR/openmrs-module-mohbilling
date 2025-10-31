@@ -10,7 +10,10 @@ package org.openmrs.module.mohbilling.automation;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.hibernate.EmptyInterceptor;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
+import org.hibernate.event.spi.EventSource;
 import org.hibernate.type.Type;
 import org.openmrs.OpenmrsObject;
 import org.openmrs.Voidable;
@@ -18,9 +21,13 @@ import org.openmrs.api.context.Context;
 import org.openmrs.util.HandlerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * The goal of this interceptor is to add or modify a patient's billable items as billable data is saved
@@ -30,24 +37,49 @@ import java.io.Serializable;
  * better determine if existing billable items should be edited or removed, and to guard against duplicate bills.
  */
 @Component
-public class MohBillingInterceptor extends EmptyInterceptor {
+public class MohBillingInterceptor extends EmptyInterceptor implements ApplicationContextAware {
 
 	private static final Logger log = LoggerFactory.getLogger(MohBillingInterceptor.class);
+	private ApplicationContext context;
+
+	@Override
+	public void setApplicationContext(ApplicationContext context) throws BeansException {
+		this.context = context;
+	}
 
 	@Override
 	public void afterTransactionBegin(Transaction tx) {
 		log.trace("afterTransactionBegin");
 		for (MohBillingHandler<?> handler : Context.getRegisteredComponents(MohBillingHandler.class)) {
-			log.trace("afterTransactionBegin on {}", handler);
+			log.trace("afterTransactionBegin on {}", handler.getClass().getSimpleName());
 			handler.afterTransactionBegin();
 		}
+	}
+
+	/**
+	 * Registers a {@link BeforeTransactionCompletionProcess} if none has been registered for the current transaction.
+	 * We only want one process per transaction to execute, but since this is registered during the
+	 * pre-flush, and multiple flushes can occur within a transaction, we need to ensure that this has not already been
+	 * registered before we register it again.  We do this by tracking this on the ThreadLocal by transaction.
+	 */
+	@Override
+	public void preFlush(Iterator entities) {
+		SessionFactory sessionFactory = (SessionFactory) context.getBean("sessionFactory");
+		EventSource eventSource = (EventSource) sessionFactory.getCurrentSession();
+		eventSource.getActionQueue().registerProcess(sessionImpl -> {
+			log.trace("beforeTransactionCompletionProcess");
+			for (MohBillingHandler<?> handler : Context.getRegisteredComponents(MohBillingHandler.class)) {
+				log.trace("Executing {}.beforeTransactionCompletion", handler.getClass().getSimpleName());
+				handler.beforeTransactionCompletion();
+			}
+        });
 	}
 
 	@Override
 	public void afterTransactionCompletion(Transaction tx) {
 		log.trace("afterTransactionCompletion");
 		for (MohBillingHandler<?> handler : Context.getRegisteredComponents(MohBillingHandler.class)) {
-			log.trace("afterTransactionCompletion on {}", handler);
+			log.trace("Executing {}.afterTransactionCompletion", handler.getClass().getSimpleName());
 			handler.afterTransactionCompletion();
 		}
 	}
