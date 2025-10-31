@@ -853,7 +853,7 @@ public class FileExporter {
 		document.add(table1);
 	}
 
-	public void printGlobalBill(HttpServletRequest request,	HttpServletResponse response, GlobalBill gb,List<ServiceRevenue> sr,String filename) throws Exception{
+    public void printGlobalBill(HttpServletRequest request, HttpServletResponse response, GlobalBill gb,String differentialDiagnosis,String finalDiagnosis, List<ServiceRevenue> sr, String filename) throws Exception {
 		response.setContentType("application/pdf");
 		response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\""); // file name
 		Document document = new Document();
@@ -864,7 +864,7 @@ public class FileExporter {
 			fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
 			openFile(request, response, document);
 			displayHeader(document, fontselector);
-			displayServiceRevenues(document, gb,sr, fontselector);
+            displayServiceRevenues(document, gb,differentialDiagnosis,finalDiagnosis, sr, fontselector);
 			document.add(new Paragraph("\n"));
 			// displayFooter(document,gb.getAdmission().getInsurancePolicy().getOwner(), fontselector);
 			User generatedBy = Context.getAuthenticatedUser();
@@ -877,7 +877,8 @@ public class FileExporter {
 			e.printStackTrace();
 		}
 	}
-	public void displayServiceRevenues(Document document,GlobalBill gb,List<ServiceRevenue> sr,FontSelector fontSelector) throws DocumentException {
+
+    public void displayServiceRevenues(Document document, GlobalBill gb,String differentialDiagnosis,String finalDiagnosis, List<ServiceRevenue> sr, FontSelector fontSelector) throws DocumentException {
 		float[] colsWidt = {5f,20f,55f,25f,15f,25f,25f,25f,25f};
 		PdfPTable table = new PdfPTable(colsWidt);
 		table.setWidthPercentage(100f);
@@ -1016,8 +1017,21 @@ public class FileExporter {
 		head3.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head3);
 
+        head3 = new PdfPCell(fontSelector.process("DIFFERENTIAL DIAGNOSIS: " +differentialDiagnosis ));
+        head3.setBorder(Rectangle.NO_BORDER);
+        heading2Tab.addCell(head3);
 
+        head3 = new PdfPCell(fontSelector.process(""  ));
+        head3.setBorder(Rectangle.NO_BORDER);
+        heading2Tab.addCell(head3);
 
+        head3 = new PdfPCell(fontSelector.process("FINAL DIAGNOSIS: " +finalDiagnosis ));
+        head3.setBorder(Rectangle.NO_BORDER);
+        heading2Tab.addCell(head3);
+
+        head3 = new PdfPCell(fontSelector.process(""  ));
+        head3.setBorder(Rectangle.NO_BORDER);
+        heading2Tab.addCell(head3);
 
 		document.add(heading2Tab);
 		//end header

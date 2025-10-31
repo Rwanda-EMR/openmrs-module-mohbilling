@@ -1,5 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <%@ taglib prefix="billingtag"
 		   uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
@@ -113,7 +113,10 @@
 <c:if test="${!globalBill.closed}">
 	<div style="float: left;">
 		<openmrs:hasPrivilege privilege="Add Consommation">
+	<openmrs:globalProperty var="disableManualAddBillForNonePrivateInsurance" key="billing.disableManualAddBillForNonePrivateInsurance"  />
+      <c:if test="${(disableManualAddBillForNonePrivateInsurance == true && globalBill.insurance.category =='NONE') || disableManualAddBillForNonePrivateInsurance == false}">
 			<a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">Add Consommation |</a>
+      </c:if>
 		</openmrs:hasPrivilege>
 		<openmrs:hasPrivilege privilege="Discharge Patient">
 			<button id="btn">Discharge Patient</button>
@@ -275,5 +278,5 @@
 	</table>
 </div>
 <%@ include file="templates/dischargePatient.jsp"%>
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>
 

@@ -1,5 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <h2><spring:message code="@MODULE_ID@.billable.service.by.insurance" /></h2>
 <a href="billableService.form?insuranceId=${insurance.insuranceId}"><spring:message code="@MODULE_ID@.billable.service.add" /></a>
@@ -55,4 +55,4 @@
 	</table>
 </div>
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>

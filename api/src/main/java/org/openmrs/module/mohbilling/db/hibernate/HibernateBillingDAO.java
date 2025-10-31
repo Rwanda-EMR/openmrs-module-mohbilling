@@ -1016,11 +1016,12 @@ public class HibernateBillingDAO implements BillingDAO {
 		/*bui.append(" WHEN i.category = 'MUTUELLE' THEN (full_price/2)");
 		bui.append(" WHEN i.category = 'PRIVATE' THEN (full_price*1.25)");
 		bui.append(" WHEN i.category = 'NONE' THEN (full_price*1.5)");*/
-        bui.append(" WHEN i.category = 'MUTUELLE' THEN (CEIL(full_price/2))");
-        bui.append(" WHEN i.category = 'RSSB' THEN (CEIL(full_price*1.25))");
-        bui.append(" WHEN i.category = 'MMI_UR' THEN (CEIL(full_price*1.15))");
-        bui.append(" WHEN i.category = 'PRIVATE' THEN (CEIL(full_price*1.4375))");
-        bui.append(" WHEN i.category = 'NONE' THEN (CEIL(full_price*1.725))");
+        bui.append(" WHEN i.category = 'MUTUELLE' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'RSSB' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'PRIVATE' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'EAST_AFRICA' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'AFRICA' THEN (CEIL(full_price*1))");
+        bui.append(" WHEN i.category = 'INTERNATIONAL' THEN (CEIL(full_price*1))");
         bui.append(" ELSE full_price END as maxima_to_pay,");
         bui.append(" fsp.start_date, fsp.facility_service_price_id, sc.service_category_id, fsp.created_date, fsp" +
                 ".retired, fsp.creator ");
@@ -1896,7 +1897,7 @@ public class HibernateBillingDAO implements BillingDAO {
                     .add(Restrictions.like("billIdentifier", insuranceCardNo + "%")).add(Restrictions.eq("closed",
                             false));
 
-            System.out.println("Find GBBBBBBBBBBBBBBBBBBBBBBBBBB: " + crit.list().size());
+            System.out.println("Patient has number of GB(s) with idintifier starting with "+insuranceCardNo+": " + crit.list().size());
 
             GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
 
@@ -1924,4 +1925,16 @@ public class HibernateBillingDAO implements BillingDAO {
                 .add(Restrictions.eq("name", name)).add(Restrictions.eq("retired", false)).uniqueResult();
     }
 
+    @Override
+    public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid) {
+        StringBuilder queryString = new StringBuilder("");
+        queryString.append("select group_concat((select name from concept_name where concept_id=value_coded limit 1)) as Diagnosis from obs where concept_id in ("+primaryAndSecondaryDiagnosis+") and obs_datetime>= '"+startDate+"' and obs_datetime<= '"+endDate+"' and person_id="+patientid+" and voided=0 group by person_id");
+        Query query = sessionFactory.getCurrentSession().createSQLQuery(queryString.toString());
+        List<String> Diagnosis = query.list();
+        if(Diagnosis.size()==0){
+            return "";
+        }else {
+            return Diagnosis.get(0);
+        }
+    }
 }
