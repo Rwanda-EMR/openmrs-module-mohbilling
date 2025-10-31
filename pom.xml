@@ -43,6 +43,7 @@
 		<apache.commons.dbcp>2.11.0</apache.commons.dbcp>
 		<easyexcel.version>4.0.2</easyexcel.version>
 		<webservicesRestVersion>2.32.0</webservicesRestVersion>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencyManagement>
