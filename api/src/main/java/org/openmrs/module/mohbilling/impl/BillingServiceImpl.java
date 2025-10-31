@@ -119,7 +119,7 @@ public class BillingServiceImpl implements BillingService {
 
     /**
      * (non-Javadoc)
-     * 
+     *
      * @return
      *
      * @see org.openmrs.module.mohbilling.service.BillingService#savePatientBill(org.openmrs.module.mohbilling.model.PatientBill)
@@ -855,7 +855,7 @@ public class BillingServiceImpl implements BillingService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openmrs.module.mohbilling.service.BillingService#getServiceByName(java.
      * lang.String)
@@ -887,7 +887,7 @@ public class BillingServiceImpl implements BillingService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openmrs.module.mohbilling.service.BillingService#getGlobalBills(java.util
      * .Date, java.util.Date)
@@ -923,7 +923,7 @@ public class BillingServiceImpl implements BillingService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openmrs.module.mohbilling.service.BillingService#
      * getAllSubmittedPaymentRefunds()
      */
@@ -950,7 +950,7 @@ public class BillingServiceImpl implements BillingService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.openmrs.module.mohbilling.service.BillingService#
      * getRefundsBetweenDatesAndByCollector(java.util.Date,
      * java.util.Date, org.openmrs.User)
@@ -969,7 +969,7 @@ public class BillingServiceImpl implements BillingService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openmrs.module.mohbilling.service.BillingService#getConsommations(java.
      * util.Date, java.util.Date, org
@@ -1007,7 +1007,7 @@ public class BillingServiceImpl implements BillingService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.openmrs.module.mohbilling.service.BillingService#getTransactions(java.
      * util.Date, java.util.Date, org
@@ -1038,4 +1038,9 @@ public class BillingServiceImpl implements BillingService {
     public InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate) {
         return billingDAO.getBillItemsByCategoryFromMamba(insuranceId, startDate, endDate);
     }
+
+	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid){
+		return billingDAO.getDiagnosisFromAdmissionToDischarge(primaryAndSecondaryDiagnosis,startDate,endDate,patientid);
+	};
+
 }

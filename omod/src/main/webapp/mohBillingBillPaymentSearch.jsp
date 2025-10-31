@@ -1,6 +1,6 @@
 
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
 <openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/searchBillPayment.form" />
@@ -120,4 +120,4 @@
  <c:if test="${editPayStr!=null }">
  <c:import url="mohBillingEditPayment.jsp" />
  </c:if>
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>

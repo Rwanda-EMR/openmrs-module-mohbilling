@@ -375,4 +375,4 @@ $j(document).ready(function(){
 	}
 </script>
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>

@@ -732,5 +732,6 @@ public interface BillingDAO {
 	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException;
 
 	public FacilityServicePrice getFacilityServiceByName(String name);
+	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
 
 }

@@ -12,6 +12,7 @@ import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,5 +80,53 @@ public class GlobalBillUtil {
 		return getService().getGlobalBillByBillIdentifier(billIdentifier);
 	}
 
+	public static String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid) {
+		return getService().getDiagnosisFromAdmissionToDischarge(primaryAndSecondaryDiagnosis, startDate, endDate, patientid);
+	}
 
+
+	// 🔹 NEW: Paginated fetch
+	public static List<GlobalBill> getGlobalBillsByInsurancePolicy(InsurancePolicy ip, int page, int size) {
+		if (ip == null || page < 1 || size < 1) {
+			return Collections.emptyList();
+		}
+
+		// Fetch all admissions for the insurance policy
+		List<Admission> admissions = AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
+
+		// Pagination math
+		int fromIndex = (page - 1) * size;
+		if (fromIndex >= admissions.size()) {
+			return Collections.emptyList(); // no more results
+		}
+		int toIndex = Math.min(fromIndex + size, admissions.size());
+
+		List<Admission> subList = admissions.subList(fromIndex, toIndex);
+
+		// Collect GlobalBills for only this slice
+		List<GlobalBill> globalBills = new ArrayList<GlobalBill>();
+		for (Admission admission : subList) {
+			GlobalBill globalBill = GlobalBillUtil.getGlobalBillByAdmission(admission);
+			if (globalBill != null) {
+				globalBills.add(globalBill);
+			}
+		}
+		return globalBills;
+	}
+
+	// 🔹 NEW: Count total number of global bills for pagination
+	public static int countGlobalBillsByInsurancePolicy(InsurancePolicy ip) {
+		if (ip == null) {
+			return 0;
+		}
+		List<Admission> admissions = AdmissionUtil.getPatientAdmissionsByInsurancePolicy(ip);
+		int count = 0;
+		for (Admission admission : admissions) {
+			GlobalBill gb = GlobalBillUtil.getGlobalBillByAdmission(admission);
+			if (gb != null) {
+				count++;
+			}
+		}
+		return count;
+	}
 }
