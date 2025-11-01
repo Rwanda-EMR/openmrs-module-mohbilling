@@ -57,6 +57,7 @@ public class BillingServiceImpl implements BillingService {
      *      .lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public Insurance getInsurance(Integer insuranceId) throws DAOException {
 
         return billingDAO.getInsurance(insuranceId);
@@ -69,6 +70,7 @@ public class BillingServiceImpl implements BillingService {
      *      (java.lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public InsurancePolicy getInsurancePolicy(Integer insurancePolicyId)
             throws DAOException {
 
@@ -82,6 +84,7 @@ public class BillingServiceImpl implements BillingService {
      *      .lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public PatientBill getPatientBill(Integer billId) throws DAOException {
 
         return billingDAO.getPatientBill(billId);
@@ -137,6 +140,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getFacilityServicePrice(Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public FacilityServicePrice getFacilityServicePrice(Integer id) {
         return billingDAO.getFacilityServicePrice(id);
     }
@@ -160,6 +164,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getAllInsurancePolicies()
      */
     @Override
+    @Transactional(readOnly = true)
     public List<InsurancePolicy> getAllInsurancePolicies() {
 
         return billingDAO.getAllInsurancePolicies();
@@ -171,6 +176,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getAllInsurances()
      */
     @Override
+    @Transactional(readOnly = true)
     public List<Insurance> getAllInsurances() throws DAOException {
 
         return billingDAO.getAllInsurances();
@@ -182,6 +188,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getAllPatientBills()
      */
     @Override
+    @Transactional(readOnly = true)
     public List<PatientBill> getAllPatientBills() throws DAOException {
 
         return billingDAO.getAllPatientBills();
@@ -193,6 +200,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getAllFacilityServicePrices()
      */
     @Override
+    @Transactional(readOnly = true)
     public List<FacilityServicePrice> getAllFacilityServicePrices()
             throws DAOException {
 
@@ -200,12 +208,14 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ServiceCategory> getAllServiceCategories() throws DAOException {
 
         return billingDAO.getAllServiceCategories();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BillableService> getAllBillableServices() {
         return billingDAO.getAllBillableServices();
     }
@@ -220,11 +230,13 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getInsurancePolicyByCardNo(String)
      */
     @Override
+    @Transactional(readOnly = true)
     public InsurancePolicy getInsurancePolicyByCardNo(String insuranceCardNo) {
         return billingDAO.getInsurancePolicyByCardNo(insuranceCardNo);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PatientBill> billCohortBuilder(Insurance insurance,
             Date startDate, Date endDate, Integer patientId,
             String serviceName, String billStatus, String billCollector) {
@@ -233,6 +245,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BillableService getBillableServiceByConcept(
             FacilityServicePrice price, Insurance insurance) {
         return billingDAO.getBillableServiceByConcept(price, insurance);
@@ -242,6 +255,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getThirdParty(Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public ThirdParty getThirdParty(Integer thirdPartyId) throws DAOException {
 
         return billingDAO.getThirdParty(thirdPartyId);
@@ -251,6 +265,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getAllThirdParties()
      */
     @Override
+    @Transactional(readOnly = true)
     public List<ThirdParty> getAllThirdParties() {
 
         return billingDAO.getAllThirdParties();
@@ -269,6 +284,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getBeneficiaryByPolicyNumber(String)
      */
     @Override
+    @Transactional(readOnly = true)
     public Beneficiary getBeneficiaryByPolicyNumber(String policyIdNumber)
             throws DAOException {
 
@@ -279,6 +295,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getInsurancePolicyByBeneficiary(org.openmrs.module.mohbilling.model.Beneficiary)
      */
     @Override
+    @Transactional(readOnly = true)
     public InsurancePolicy getInsurancePolicyByBeneficiary(
             Beneficiary beneficiary) {
 
@@ -289,6 +306,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getValidBillableService(Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public BillableService getBillableService(Integer id) {
 
         return billingDAO.getBillableService(id);
@@ -298,6 +316,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getServiceCategory(Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public ServiceCategory getServiceCategory(Integer id) {
 
         return billingDAO.getServiceCategory(id);
@@ -307,6 +326,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getBillableServiceByCategory(org.openmrs.module.mohbilling.model.ServiceCategory)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<BillableService> getBillableServiceByCategory(ServiceCategory sc) {
 
         return billingDAO.getBillableServiceByCategory(sc);
@@ -316,6 +336,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getFacilityServiceByConcept(Concept)
      */
     @Override
+    @Transactional(readOnly = true)
     public FacilityServicePrice getFacilityServiceByConcept(Concept concept) {
 
         return billingDAO.getFacilityServiceByConcept(concept);
@@ -325,6 +346,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getBillableServicesByFacilityService(org.openmrs.module.mohbilling.model.FacilityServicePrice)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<BillableService> getBillableServicesByFacilityService(
             FacilityServicePrice fsp) {
 
@@ -335,6 +357,7 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getBillableServicesByInsurance(org.openmrs.module.mohbilling.model.Insurance)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<BillableService> getBillableServicesByInsurance(
             Insurance insurance) {
 
@@ -345,17 +368,20 @@ public class BillingServiceImpl implements BillingService {
      * @see org.openmrs.module.mohbilling.service.BillingService#getPolicyIdByPatient(Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<String[]> getPolicyIdByPatient(Integer patientId) {
 
         return billingDAO.getPolicyIdByPatient(patientId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BillPayment> getAllBillPayments() {
         return billingDAO.getAllBillPayments();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BillPayment> getBillPaymentsByDateAndCollector(
             Date createdDate, Date endDate, User collector) {
 
@@ -364,6 +390,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BillPayment> paymentsCohortBuilder(Insurance insurance,
             Date startDate, Date endDate, Integer patientId,
             String serviceName, String billStatus, String billCollector) {
@@ -372,22 +399,26 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ServiceCategory getServiceCategoryByName(String name,
             Insurance insurance) {
         return billingDAO.getServiceCategoryByName(name, insurance);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Date> getRevenueDatesBetweenDates(Date startDate, Date endDate) {
         return billingDAO.getRevenueDatesBetweenDates(startDate, endDate);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Object[] getBills(Date startDate, Date endDate, User collector) {
         return billingDAO.getBills(startDate, endDate, collector);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<String, Double> getRevenueByService(Date receivedDate,
             String[] serviceCategory, String collector, Insurance insurance) {
         return billingDAO.getRevenueByService(receivedDate, serviceCategory,
@@ -395,6 +426,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
             User collector) {
         // TODO Auto-generated method stub
@@ -402,23 +434,27 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PatientBill getBills(Patient patient, Date startDate, Date endDate) {
         return billingDAO.getBills(patient, startDate, endDate);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public InsuranceRate getInsuranceRateByInsurance(Insurance insurance) {
         // TODO Auto-generated method stub
         return billingDAO.getInsuranceRateByInsurance(insurance);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Beneficiary> getBeneficiaryByCardNumber(String cardNo) {
         // TODO Auto-generated method stub
         return billingDAO.getBeneficiaryByCardNumber(cardNo);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InsurancePolicy> getInsurancePoliciesBetweenTwodates(
             Date startDate, Date endDate) {
         // TODO Auto-generated method stub
@@ -427,6 +463,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PatientBill> getBillsByBeneficiary(Beneficiary beneficiary,
             Date startDate, Date endDate) {
         // TODO Auto-generated method stub
@@ -440,11 +477,13 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Object[]> getBaseBillableServices(Insurance i) {
         return billingDAO.getBaseBillableServices(i);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Object[]> getPharmacyBaseBillableServices(Insurance i) {
         return billingDAO.getPharmacyBaseBillableServices(i);
     }
@@ -454,6 +493,7 @@ public class BillingServiceImpl implements BillingService {
      *      Date, User)
      */
     @Override
+    @Transactional(readOnly = true)
     public Set<PatientBill> getRefundedBills(Date startDate, Date endDate,
             User collector) {
         // TODO Auto-generated method stub
@@ -482,6 +522,7 @@ public class BillingServiceImpl implements BillingService {
      * .lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public Department getDepartement(Integer departementId) {
         // TODO Auto-generated method stub
         return billingDAO.getDepartement(departementId);
@@ -494,6 +535,7 @@ public class BillingServiceImpl implements BillingService {
      * org.openmrs.module.mohbilling.service.BillingService#getAllDepartements()
      */
     @Override
+    @Transactional(readOnly = true)
     public List<Department> getAllDepartements() {
         // TODO Auto-generated method stub
         return billingDAO.getAllDepartements();
@@ -520,17 +562,20 @@ public class BillingServiceImpl implements BillingService {
      * (org.openmrs.module.mohbilling.model.Department)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<HopService> getAllHopService() {
         return billingDAO.getAllHopService();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public HopService getHopService(Integer serviceId) {
         // TODO Auto-generated method stub
         return billingDAO.getHopService(serviceId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public HopService getHopService(String name) {
         // TODO Auto-generated method stub
         return billingDAO.getHopService(name);
@@ -558,6 +603,7 @@ public class BillingServiceImpl implements BillingService {
      * (java.lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public Admission getPatientAdmission(Integer admissionid) {
         // TODO Auto-generated method stub
         return billingDAO.getPatientAdmission(admissionid);
@@ -584,6 +630,7 @@ public class BillingServiceImpl implements BillingService {
      * .lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public GlobalBill GetGlobalBill(Integer globalBillId) {
 
         return billingDAO.GetGlobalBill(globalBillId);
@@ -597,6 +644,7 @@ public class BillingServiceImpl implements BillingService {
      * (org.openmrs.module.mohbilling.model.Admission)
      */
     @Override
+    @Transactional(readOnly = true)
     public GlobalBill getGlobalBillByAdmission(Admission admission) {
 
         return billingDAO.getGlobalBillByAdmission(admission);
@@ -610,6 +658,7 @@ public class BillingServiceImpl implements BillingService {
      * (org.openmrs.module.mohbilling.model.InsurancePolicy)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip) {
 
         return billingDAO.getAdmissionsListByInsurancePolicy(ip);
@@ -661,6 +710,7 @@ public class BillingServiceImpl implements BillingService {
      * java.lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public Consommation getConsommation(Integer consommationId) {
         return billingDAO.getConsommation(consommationId);
     }
@@ -678,6 +728,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PatientServiceBill getPatientServiceBill(Integer patientServiceBillId) {
         // TODO Auto-generated method stub
         return billingDAO.getPatientServiceBill(patientServiceBillId);
@@ -701,6 +752,7 @@ public class BillingServiceImpl implements BillingService {
      * getAllConsommationByGlobalBill(java.lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<Consommation> getAllConsommationByGlobalBill(
             GlobalBill globalBill) {
         return billingDAO.getAllConsommationByGlobalBill(globalBill);
@@ -713,6 +765,7 @@ public class BillingServiceImpl implements BillingService {
      * getGlobalBillByBillIdentifier(java.lang.String)
      */
     @Override
+    @Transactional(readOnly = true)
     public GlobalBill getGlobalBillByBillIdentifier(String billIdentifier) {
 
         return billingDAO.getGlobalBillByBillIdentifier(billIdentifier);
@@ -726,6 +779,7 @@ public class BillingServiceImpl implements BillingService {
      * (org.openmrs.module.mohbilling.model.Beneficiary)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<Consommation> getConsommationsByBeneficiary(
             Beneficiary beneficiary) {
         // TODO Auto-generated method stub
@@ -752,11 +806,13 @@ public class BillingServiceImpl implements BillingService {
      * (java.lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public PatientAccount getPatientAccount(Integer accountId) {
         return billingDAO.getPatientAccount(accountId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PatientAccount getPatientAccount(Patient patient) {
         return billingDAO.getPatientAccount(patient);
     }
@@ -769,6 +825,7 @@ public class BillingServiceImpl implements BillingService {
      * .lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public BillPayment getBillPayment(Integer paymentId) {
 
         return billingDAO.getBillPayment(paymentId);
@@ -782,6 +839,7 @@ public class BillingServiceImpl implements BillingService {
      * org.openmrs.module.mohbilling.model.BillPayment)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<PaidServiceBill> getPaidServices(BillPayment payment) {
 
         return billingDAO.getPaidServices(payment);
@@ -795,6 +853,7 @@ public class BillingServiceImpl implements BillingService {
      * (org.openmrs.module.mohbilling.model.PatientBill)
      */
     @Override
+    @Transactional(readOnly = true)
     public Consommation getConsommationByPatientBill(PatientBill patientBill) {
 
         return billingDAO.getConsommationByPatientBill(patientBill);
@@ -821,10 +880,13 @@ public class BillingServiceImpl implements BillingService {
      * (java.lang.Integer)
      */
     @Override
+    @Transactional(readOnly = true)
     public PaidServiceBill getPaidServiceBill(Integer paidSviceBillid) {
         return billingDAO.getPaidServiceBill(paidSviceBillid);
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public Set<Transaction> getTransactions(PatientAccount acc,
             Date startDate, Date endDate, String reason) {
         return billingDAO.getTransactions(acc, startDate, endDate, reason);
@@ -843,12 +905,14 @@ public class BillingServiceImpl implements BillingService {
      * (org.openmrs.module.mohbilling.model.Department)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<HopService> getHospitalServicesByDepartment(
             Department department) {
         return billingDAO.getHospitalServicesByDepartment(department);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Transaction getTransactionById(Integer id) {
         return billingDAO.getTransactionById(id);
     }
@@ -861,12 +925,14 @@ public class BillingServiceImpl implements BillingService {
      * lang.String)
      */
     @Override
+    @Transactional(readOnly = true)
     public HopService getServiceByName(String name) {
 
         return billingDAO.getServiceByName(name);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PaidServiceBill> getPaidItemsByBillPayments(
             List<BillPayment> payments) {
         // TODO Auto-generated method stub
@@ -874,12 +940,14 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PatientServiceBill> getBillItemsByCategory(
             Consommation consommation, HopService service) {
         return billingDAO.getBillItemsByCategory(consommation, service);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PatientServiceBill> getBillItemsByGroupedCategories(
             Consommation consommation, List<HopService> services) {
         return billingDAO.getBillItemsByGroupedCategories(consommation, services);
@@ -893,29 +961,34 @@ public class BillingServiceImpl implements BillingService {
      * .Date, java.util.Date)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<GlobalBill> getGlobalBills(Date date1, Date date2) {
         // TODO Auto-generated method stub
         return billingDAO.getGlobalBills(date1, date2);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GlobalBill> getGlobalBills() {
         // TODO Auto-generated method stub
         return billingDAO.getGlobalBills();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GlobalBill> getGlobalBills(Date date1, Date date2, Insurance insurance) {
         // TODO Auto-generated method stub
         return billingDAO.getGlobalBills(date1, date2, insurance);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GlobalBill> getGlobalBillsWithNullInsurance() {
         return billingDAO.getGlobalBillsWithNullInsurance();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Consommation> getConsommationByGlobalBills(
             List<GlobalBill> globalBills) {
         return billingDAO.getConsommationByGlobalBills(globalBills);
@@ -928,22 +1001,26 @@ public class BillingServiceImpl implements BillingService {
      * getAllSubmittedPaymentRefunds()
      */
     @Override
+    @Transactional(readOnly = true)
     public List<PaymentRefund> getAllSubmittedPaymentRefunds() {
         return billingDAO.getAllSubmittedPaymentRefunds();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PaymentRefund getRefundById(Integer id) {
         return billingDAO.getRefundById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PaidServiceBillRefund getPaidServiceBillRefund(
             Integer paidSviceBillRefundid) {
         return billingDAO.getPaidServiceBillRefund(paidSviceBillRefundid);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PaymentRefund> getRefundsByBillPayment(BillPayment payment) {
         return billingDAO.getRefundsByBillPayment(payment);
     }
@@ -956,12 +1033,14 @@ public class BillingServiceImpl implements BillingService {
      * java.util.Date, org.openmrs.User)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<PaymentRefund> getRefundsBetweenDatesAndByCollector(
             Date startDate, Date endDate, User collector) {
         return billingDAO.getRefundsBetweenDatesAndByCollector(startDate, endDate, collector);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public InsurancePolicy getInsurancePolicyByThirdParty(ThirdParty t) {
         System.out.print(" am getting in getinsurancepolicybythird party in billingserviceImplement " + t);
         return billingDAO.getInsurancePolicyByThirdParty(t);
@@ -977,6 +1056,7 @@ public class BillingServiceImpl implements BillingService {
      * org.openmrs.module.mohbilling.model.ThirdParty, org.openmrs.User)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<Consommation> getConsommations(Date startDate, Date endDate,
             Insurance insurance, ThirdParty tp, User billCreator,
             Department department, int limit, int offSet) {
@@ -984,17 +1064,20 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp,
             User billCreator, Department department) {
         return billingDAO.getTotalConsommations(startDate, endDate, insurance, tp, billCreator, department);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate, Date endDate) {
         return billingDAO.getConsommationsWithPatientNotConfirmed(startDate, endDate);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Consommation> getDCPConsommations(Date startDate, Date endDate, User billCreator) {
         return billingDAO.getDCPConsommations(startDate, endDate, billCreator);
     }
@@ -1014,27 +1097,32 @@ public class BillingServiceImpl implements BillingService {
      * .openmrs.User, java.lang.String)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<Transaction> getTransactions(Date startDate, Date endDate,
             User collector, String type) {
         return billingDAO.getTransactions(startDate, endDate, collector, type);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo) {
         return billingDAO.getOpenGlobalBillByInsuranceCardNo(insuranceCardNo);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException {
         return billingDAO.getAllInsurancePoliciesByPatient(patient);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FacilityServicePrice getFacilityServiceByName(String name) {
         return billingDAO.getFacilityServiceByName(name);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate) {
         return billingDAO.getBillItemsByCategoryFromMamba(insuranceId, startDate, endDate);
     }
