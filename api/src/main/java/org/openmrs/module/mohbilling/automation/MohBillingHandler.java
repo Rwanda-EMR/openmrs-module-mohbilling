@@ -9,6 +9,8 @@
 package org.openmrs.module.mohbilling.automation;
 
 import org.openmrs.OpenmrsObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The goal of this interface is to allow registering components that can respond to create/delete/change events
@@ -16,39 +18,47 @@ import org.openmrs.OpenmrsObject;
  */
 public interface MohBillingHandler<T extends OpenmrsObject> {
 
+	Logger log = LoggerFactory.getLogger(MohBillingHandler.class);
+
 	/**
 	 * Called after the start of a transaction.  Useful if the handler needs to aggregate operations within a tx
 	 */
 	default void afterTransactionBegin() {
+		log.trace("afterTransactionBegin");
 	}
 
 	/**
 	 * Called before the completion of a transaction.  Useful if the handler needs to aggregate operations within a tx
 	 */
 	default void beforeTransactionCompletion() {
+		log.trace("beforeTransactionCompletion");
 	}
 
 	/**
 	 * Called after the completion of a transaction.  Useful if the handler needs to aggregate operations within a tx
 	 */
-	default void afterTransactionCompletion() {
+	default void afterTransactionCompletion(int status) {
+		log.trace("afterTransactionCompletion({})", status);
 	}
 
 	/**
 	 * Called when a new entity is created or an existing entity is unvoided
 	 */
 	default void handleCreatedEntity(T entity) {
+		log.trace("handleCreatedEntity({})", entity);
 	}
 
 	/**
 	 * Called when a new non-voided entity is updated
 	 */
 	default void handleUpdatedEntity(T entity) {
+		log.trace("handleUpdatedEntity({})", entity);
 	}
 
 	/**
 	 * Called when an existing entity is either deleted or voided
 	 */
 	default void handleDeletedEntity(T entity) {
+		log.trace("handleDeletedEntity({})", entity);
 	}
 }

@@ -49,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Status;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
@@ -66,15 +67,23 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
 
     private static final Logger log = LoggerFactory.getLogger(MohBillingOrderHandler.class);
 
-    @Autowired
     ConceptService conceptService;
 
-    @Autowired
-    @Qualifier("mohBillingService")
     BillingService billingService;
+
+    @Autowired
+    public MohBillingOrderHandler(ConceptService conceptService, @Qualifier("mohBillingService") BillingService billingService) {
+        this.conceptService = conceptService;
+        this.billingService = billingService;
+    }
 
     private final ThreadLocal<DataHolder> threadLocalData = new ThreadLocal<>();
 
+    /**
+     * We set up a ThreadLocal here to collect all Orders that are saved during the course of a transaction,
+     * including any nested transactions, which always happen when saving orders due to the new transaction that
+     * is created when generating an order number.
+     */
     @Override
     public void afterTransactionBegin() {
         if (threadLocalData.get() == null) {
@@ -84,13 +93,34 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         log.trace("afterTransactionBegin: data = {}", threadLocalData.get());
     }
 
+    /**
+     * Whenever a new order is saved, add it to the list of orders on the thread that need to be processed
+     * Do not add Discontinue orders.  No billing data is currently updated in response to a discontinue order.
+     */
     @Override
     public void handleCreatedEntity(Order order) {
         DataHolder data = threadLocalData.get();
-        data.addNewOrder(order);
-        log.debug("Order {} added to data {}", order, data);
+        // Do not bill discontinued orders
+        if (order.getAction() == Order.Action.DISCONTINUE) {
+            log.debug("Order {} is a discontinue order.  Not adding to data", order);
+        }
+        else {
+            data.addNewOrder(order);
+            log.debug("Order {} added to data {}", order, data);
+        }
     }
 
+    /**
+     * Before the transaction completes, we check to see if we are in a nested transaction or at the root transaction
+     * If we are at the root transaction, and it is about to complete, then we know at this point we have all orders
+     * that have been saved within the transaction.  This is the point where we want to create billable items.
+     * As exceptions will cause the entire transaction to fail, and commits will be part of the same transaction.
+     * We do all orders together here, rather than as they are saved, so that we can group them by department
+     * as well as ensure that any duplicate checking that is needed can be performed.
+     * We group the orders based on department, so that all billable items for the same department will be included
+     * on the same bill, rather than have one bill per order.  This allows all lab orders to be billed together,
+     * all pharmacy orders to be billed together, etc.
+     */
     @Override
     public void beforeTransactionCompletion() {
         DataHolder data = threadLocalData.get();
@@ -114,14 +144,6 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             Order order = i.next();
             i.remove();
 
-            // Do not bill discontinued orders
-            if (order.getAction() == Order.Action.DISCONTINUE) {
-                log.debug("Order represents a discontinue order.  Discontinue orders are not billed.  Returning.");
-                continue;
-            }
-
-            // TODO: Handle case where an existing order is discontinued or expired.  Should this be removed from the bill?
-
             log.debug("Handling a new order: {}", order);
             Patient patient = order.getPatient();
             Concept orderable = order.getConcept();
@@ -138,15 +160,16 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             User currentUser = Context.getAuthenticatedUser();
             Date now = new Date();
 
-            // Get the facility service price associated with this particular order.  If none is found, or it is hidden, return
+            // Get the facility service price associated with this particular order.
             FacilityServicePrice facilityServicePrice = billingService.getFacilityServiceByConcept(orderable);
             if (facilityServicePrice == null) {
-                log.debug("No facility service found. Returning.");
-                return;
+                log.debug("No facility service price for {}, not billing order {}", orderable, order);
+                continue;
             }
             log.debug("Facility service price {}", facilityServicePrice);
             if (facilityServicePrice.isHidden()) {
-                log.debug("The facility service price is hidden. Returning.");
+                log.debug("Hidden facility service price for {}, not billing order {}", orderable, order);
+                continue;
             }
 
             // Get the patient's insurance.  If none is found, return
@@ -303,41 +326,53 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
 
     }
 
+    /**
+     * After the transaction completes successfully, we send out any text messages and other external integrations.
+     * We perform this here as this is the point where we know that the data has been successfully committed to the
+     * database, based on the status variable that is passed in.
+     * This prevents sending messages about bills that failed to save, and this also allows sending one message
+     * for each individual bill, rather than one message per orderable.
+     */
     @Override
-    public void afterTransactionCompletion() {
+    public void afterTransactionCompletion(int status) {
         DataHolder data = threadLocalData.get();
         data.endTransaction();
-        log.trace("afterTransactionCompletion: data = {}", data);
-        // After all transaction data has been processed, send request to pay
+        log.trace("afterTransactionCompletion: status = {}; data = {}", status, data);
+        // After all transaction data has been processed, send request to pay, if transaction successfully committed
         if (data.getNumberOfStartedTransactions() == 0) {
             try {
-                for (Integer departmentId : data.getConsommationsByDepartmentId().keySet()) {
-                    Consommation consommation = data.getConsommationsByDepartmentId().get(departmentId);
-                    if (consommation != null) {
-                        log.trace("afterTransactionCompletion: consommation: {}", consommation);
-                        try {
-                            PatientBill patientBill = consommation.getPatientBill();
-                            log.debug("Patient Bill: {}", patientBill);
-                            String phoneNumber = patientBill.getPhoneNumber();
-                            if (StringUtils.isNotBlank(phoneNumber)) {
-                                String referenceId = patientBill.getReferenceId();
-                                BigDecimal amountToPay = patientBill.getAmount().setScale(0, RoundingMode.UP);
-                                if (amountToPay.compareTo(BigDecimal.ZERO) > 0) {
-                                    log.info("Sending MTN Request to pay {} to {}, referenceId {}", amountToPay, phoneNumber, referenceId);
-                                    MTNMomoApiIntegrationRequestToPay momo = new MTNMomoApiIntegrationRequestToPay();
-                                    momo.requesttopay(referenceId, amountToPay.toString(), phoneNumber);
-                                    patientBill.setTransactionStatus(momo.getransactionStatus(referenceId));
-                                    PatientBillUtil.savePatientBill(patientBill);
+                if (status == Status.STATUS_COMMITTED) {
+                    for (Integer departmentId : data.getConsommationsByDepartmentId().keySet()) {
+                        Consommation consommation = data.getConsommationsByDepartmentId().get(departmentId);
+                        if (consommation != null) {
+                            log.trace("afterTransactionCompletion: consommation: {}", consommation);
+                            try {
+                                PatientBill patientBill = consommation.getPatientBill();
+                                log.debug("Patient Bill: {}", patientBill);
+                                String phoneNumber = patientBill.getPhoneNumber();
+                                if (StringUtils.isNotBlank(phoneNumber)) {
+                                    String referenceId = patientBill.getReferenceId();
+                                    BigDecimal amountToPay = patientBill.getAmount().setScale(0, RoundingMode.UP);
+                                    if (amountToPay.compareTo(BigDecimal.ZERO) > 0) {
+                                        log.info("Sending MTN Request to pay {} to {}, referenceId {}", amountToPay, phoneNumber, referenceId);
+                                        MTNMomoApiIntegrationRequestToPay momo = new MTNMomoApiIntegrationRequestToPay();
+                                        momo.requesttopay(referenceId, amountToPay.toString(), phoneNumber);
+                                        patientBill.setTransactionStatus(momo.getransactionStatus(referenceId));
+                                        PatientBillUtil.savePatientBill(patientBill);
+                                    } else {
+                                        log.debug("Amount to pay is not > 0, not sending");
+                                    }
                                 } else {
-                                    log.debug("Amount to pay is not > 0, not sending");
+                                    log.debug("Patient phone number is null, not sending");
                                 }
-                            } else {
-                                log.debug("Patient phone number is null, not sending");
+                            } catch (Exception e) {
+                                log.error("Unable to send MTN Request to pay or updating patient bill", e);
                             }
-                        } catch (Exception e) {
-                            log.error("Unable to send MTN Request to pay or updating patient bill", e);
                         }
                     }
+                }
+                else {
+                    log.trace("afterTransactionCompletion: tx was not committed.");
                 }
             } finally {
                 log.trace("Finally block afterTransactionCompletion: data = {}", data);
@@ -347,14 +382,24 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         }
     }
 
+    /**
+     * At this point, no changes to billing are done if orders are updated.
+     * Generally, orders are immutable, though they can be discontinued, expired, or be marked with a fulfiller status
+     * that indicates they will not be performed.  If we need to handle that and update billable items in repsonse,
+     * then this would be the place to do it.
+     */
     @Override
     public void handleUpdatedEntity(Order order) {
-        log.debug("order updated.  no changes required for billing");
+        log.trace("handleUpdatedEntity is not configured to modify billing: order = {}", order);
     }
 
+    /**
+     * At this point, no changes to billing are done if orders are deleted (either purged or voided)
+     * If we need to handle updates to billables due to deleted orders, this would be the place to do it.
+     */
     @Override
     public void handleDeletedEntity(Order order) {
-        // TODO: Handle case where an order is deleted/voided
+        log.trace("handleDeletedEntity is not configured to modify billing: order = {}", order);
     }
 
     /**
@@ -370,6 +415,9 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         return concept;
     }
 
+    /**
+     * @return the InsurancePolicy for a given patient
+     */
     InsurancePolicy getInsurancePolicyForPatient(Patient patient) {
         String insuranceNumberConceptRef = ConfigUtil.getGlobalProperty("registration.insuranceNumberConcept");
         Concept insuranceNumberConcept = getConcept(insuranceNumberConceptRef);
@@ -380,6 +428,9 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         return billingService.getInsurancePolicyByCardNo(insuranceCardNumber);
     }
 
+    /**
+     * @return the phone number for a given patient
+     */
     String getPhoneNumberForPatient(Patient patient) {
         String epaymentPhoneNumberConceptRef = ConfigUtil.getGlobalProperty("registration.ePaymentPhoneNumberConcept");
         if (StringUtils.isBlank(epaymentPhoneNumberConceptRef)) {
@@ -399,7 +450,6 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
     }
 
     /**
-     * @param order the order to determine the department
      * @return the Department applicable for the given order
      */
     Department getDepartmentForOrder(Order order) {
