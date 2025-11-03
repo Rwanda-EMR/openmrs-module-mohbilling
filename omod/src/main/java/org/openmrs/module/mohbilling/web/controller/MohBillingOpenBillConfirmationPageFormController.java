@@ -63,7 +63,7 @@ public class MohBillingOpenBillConfirmationPageFormController extends
 */
 
 			// parameters
-			Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, null, null, null);
+			Object[] params = ReportsUtil.getReportParameters(startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, null, null, null);
 
 			Date startDate = (Date) params[0];
 			Date endDate = (Date) params[1];

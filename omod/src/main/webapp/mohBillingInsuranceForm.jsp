@@ -6,7 +6,7 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingAdminHeader.jsp"%>
 
-<h2><spring:message code="@MODULE_ID@.insurance.${(param.identifierId ne null)?'edit':'new'}" /></h2>
+<h2><spring:message code="mohbilling.insurance.${(param.identifierId ne null)?'edit':'new'}" /></h2>
 <openmrs:hasPrivilege privilege="View Current Insurances">
 <a href="insurance.list">View Current Insurances</a> </openmrs:hasPrivilege>
 <br/><br/>

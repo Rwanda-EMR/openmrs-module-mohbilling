@@ -1,6 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
-<openmrs:require privilege="Manage Third Party" otherwise="/login.htm" redirect="/module/@MODULE_ID@/thirdParty.form" />
+<openmrs:require privilege="Manage Third Party" otherwise="/login.htm" redirect="/module/mohbilling/thirdParty.form" />
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingAdminHeader.jsp"%>
@@ -13,7 +13,7 @@
 			var serv = "#deleteCtrl_"+servId
 			var hrefValue = "thirdParty.form?deleteThirdParty=true&deleteThirdPartyId=" + servId;
 			
-			if(confirm("<spring:message code='@MODULE_ID@.general.delete.confirm'/>"))
+			if(confirm("<spring:message code='mohbilling.general.delete.confirm'/>"))
 				$bill(serv).attr("href", hrefValue);
 		}
 
@@ -22,7 +22,7 @@
 		});
 </script>
 
-<h2><spring:message code="@MODULE_ID@.billing.thirdParty"/></h2>
+<h2><spring:message code="mohbilling.billing.thirdParty"/></h2>
 
 <ul id="menu">
 
@@ -37,7 +37,7 @@
 
 <br/><br/>
 
-<b class="boxHeader"><spring:message code="@MODULE_ID@.billing.thirdParty.create"/></b>
+<b class="boxHeader"><spring:message code="mohbilling.billing.thirdParty.create"/></b>
 		
 <div class="box">
 	<div>
@@ -46,8 +46,8 @@
 				<input type="hidden" name="thirdPartyId" value="${thirdPartyId}"/>
 				<table>
 					<tr>
-						<td class="columnHeader"><spring:message code="@MODULE_ID@.billing.thirdParty.name"/></td>
-						<td class="columnHeader"><spring:message code="@MODULE_ID@.billing.thirdParty.rate"/></td>
+						<td class="columnHeader"><spring:message code="mohbilling.billing.thirdParty.name"/></td>
+						<td class="columnHeader"><spring:message code="mohbilling.billing.thirdParty.rate"/></td>
 						<td class="columnHeader"></td>
 					</tr>
 					<tr>
@@ -62,7 +62,7 @@
 </div>
 
 <br/>
-<b class="boxHeader"><spring:message code="@MODULE_ID@.billing.thirdParty.list"/></b>
+<b class="boxHeader"><spring:message code="mohbilling.billing.thirdParty.list"/></b>
 		
 <!-- If no Third Parties don't display anything! -->
 <c:if test="${!empty thirdParties}">
@@ -71,10 +71,10 @@
 		<table width="99%">
 			<tr>
 				<th class="columnHeader">#</th>
-				<th class="columnHeader"><spring:message code="@MODULE_ID@.billing.thirdParty.name"/></th>
-				<th class="columnHeader"><spring:message code="@MODULE_ID@.billing.thirdParty.rate"/></th>
-				<th class="columnHeader"><spring:message code="@MODULE_ID@.billing.thirdParty.creator"/></th>
-				<th class="columnHeader"><spring:message code="@MODULE_ID@.billing.thirdParty.createdDate"/></th>
+				<th class="columnHeader"><spring:message code="mohbilling.billing.thirdParty.name"/></th>
+				<th class="columnHeader"><spring:message code="mohbilling.billing.thirdParty.rate"/></th>
+				<th class="columnHeader"><spring:message code="mohbilling.billing.thirdParty.creator"/></th>
+				<th class="columnHeader"><spring:message code="mohbilling.billing.thirdParty.createdDate"/></th>
 				<th class="columnHeader"></th>
 			</tr>
 			
@@ -90,9 +90,9 @@
 					
 					<td class="rowValue ${status.count%2!=0?'even':''}">
 						<a href="thirdParty.form?editThirdParty=true&editThirdPartyId=${thirdParty.thirdPartyId}">
-							<spring:message code='@MODULE_ID@.general.edit'/>
+							<spring:message code='mohbilling.general.edit'/>
 						</a> | <a id="deleteCtrl_${thirdParty.thirdPartyId}" onclick="submitData(${thirdParty.thirdPartyId});" href="#">
-							<spring:message code='@MODULE_ID@.general.delete'/>
+							<spring:message code='mohbilling.general.delete'/>
 						</a>
 					</td>
 				</tr>

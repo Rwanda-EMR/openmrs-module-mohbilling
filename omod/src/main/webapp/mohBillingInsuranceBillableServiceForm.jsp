@@ -4,12 +4,12 @@
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
-<h2><spring:message code="@MODULE_ID@.billable.service.new" /></h2>
+<h2><spring:message code="mohbilling.billable.service.new" /></h2>
 
-<a href="insurance.list"><spring:message code="@MODULE_ID@.insurance.current" /></a> &nbsp;&nbsp;<a href="billableService.list?insuranceId=${insurance.insuranceId}">${insurance.name} <spring:message code="@MODULE_ID@.insurance.service.category" /></a>
+<a href="insurance.list"><spring:message code="mohbilling.insurance.current" /></a> &nbsp;&nbsp;<a href="billableService.list?insuranceId=${insurance.insuranceId}">${insurance.name} <spring:message code="mohbilling.insurance.service.category" /></a>
 <br/><br/>
 
-<b class="boxHeader"><spring:message code="@MODULE_ID@.insurance.company.title" /></b>
+<b class="boxHeader"><spring:message code="mohbilling.insurance.company.title" /></b>
 <div class="box">
 	<table width="100%">
 		<tr>
@@ -28,7 +28,7 @@
 </div>
 <br/>
 
-<b class="boxHeader"><spring:message code="@MODULE_ID@.billable.service" /></b>
+<b class="boxHeader"><spring:message code="mohbilling.billable.service" /></b>
 <div class="box">
 	<form action="billableService.form?save=true" method="post">
 		<table>			

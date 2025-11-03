@@ -84,7 +84,7 @@ public class MohBillingCashierReportController extends
 			if(request.getParameter("thirdPartyId")!=null && !request.getParameter("thirdPartyId").equals(""))
 			 thirdPartyStr = request.getParameter("thirdPartyId");
 			
-			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinuteStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
+			 Object[] params = ReportsUtil.getReportParameters(startDateStr, startHourStr, startMinuteStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
 
 			// Date startDate = (Date) params[0];
 			// Date endDate = (Date) params[1];

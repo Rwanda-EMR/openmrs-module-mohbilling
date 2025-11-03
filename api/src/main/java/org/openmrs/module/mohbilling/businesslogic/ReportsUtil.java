@@ -3,8 +3,12 @@
  */
 package org.openmrs.module.mohbilling.businesslogic;
 
-import com.itextpdf.text.*;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
 import com.itextpdf.text.Font.FontFamily;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -14,15 +18,36 @@ import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.ParametersConversion;
-import org.openmrs.module.mohbilling.model.*;
+import org.openmrs.module.mohbilling.model.AllServicesRevenue;
+import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.Department;
+import org.openmrs.module.mohbilling.model.DepartmentRevenues;
+import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.HopService;
+import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.InsuranceReport;
+import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
+import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.PaymentRevenue;
+import org.openmrs.module.mohbilling.model.ServiceRevenue;
+import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author EMR-RBC
@@ -230,15 +255,6 @@ public class ReportsUtil {
 	static public double roundTwoDecimals(double d) {
 		DecimalFormat twoDForm = new DecimalFormat("#.##");
 		return Double.valueOf(twoDForm.format(d));
-	}
-	
-
-	
-	static public void printPatientBillToPDF(HttpServletRequest request,
-			HttpServletResponse response, List<PatientBill> reportedPatientBills)
-			throws Exception {
-	
-
 	}
 
 	static class HeaderFooter extends PdfPageEventHelper {
@@ -580,7 +596,7 @@ public class ReportsUtil {
 	 * @param thirdPartyStr
 	 * @return array of all given parameters
 	 */
-	public static Object[] getReportParameters(HttpServletRequest request,String startDateStr,String startHrStr,String startMinStr,
+	public static Object[] getReportParameters(String startDateStr,String startHrStr,String startMinStr,
 			String endDateStr,String endHrStr,String endMinStr,String collectorStr,String insuranceStr,String thirdPartyStr){
 		Date startDate = null;
 		Date endDate = null;

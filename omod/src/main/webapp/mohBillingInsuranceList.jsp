@@ -4,9 +4,9 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingAdminHeader.jsp"%>
 
-<openmrs:require privilege="View Current Insurances" otherwise="/login.htm" redirect="/module/@MODULE_ID@/insurance.list" />
+<openmrs:require privilege="View Current Insurances" otherwise="/login.htm" redirect="/module/mohbilling/insurance.list" />
 
-<h2><spring:message code="@MODULE_ID@.insurance.manage" /></h2>
+<h2><spring:message code="mohbilling.insurance.manage" /></h2>
 
 <ul id="menu">
 
@@ -21,7 +21,7 @@
 
 <br/><br/>
 
-<b class="boxHeader"><spring:message code="@MODULE_ID@.insurance.current" /></b>
+<b class="boxHeader"><spring:message code="mohbilling.insurance.current" /></b>
 <div class="box">
 	<table width="99%">
 		<tr>

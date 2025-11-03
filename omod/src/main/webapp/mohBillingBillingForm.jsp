@@ -1,7 +1,7 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/template/headerFull.jsp"%>
 <openmrs:require privilege="Manage Patient Bill Calculations" otherwise="/login.htm" redirect="/module/mohbilling/patientBillPayment.form" />
-<openmrs:require privilege="Create Bill Manually" otherwise="/login.htm" redirect="/module/@MODULE_ID@/admission.form" />
+<openmrs:require privilege="Create Bill Manually" otherwise="/login.htm" redirect="/module/mohbilling/admission.form" />
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
@@ -229,7 +229,7 @@ $j(document).ready(function(){
 </style>
 
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
-<h2><spring:message code="@MODULE_ID@.billing.calculation"/></h2>
+<h2><spring:message code="mohbilling.billing.calculation"/></h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
 

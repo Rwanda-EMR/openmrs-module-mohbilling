@@ -3,7 +3,7 @@
 <openmrs:require privilege="Manage Billing Reports"
 	otherwise="/login.htm" redirect="/mohbilling/cohort.orm" />
 <openmrs:htmlInclude
-	file="/moduleResources/@MODULE_ID@/scripts/jquery.PrintArea.js" />
+	file="/moduleResources/mohbilling/scripts/jquery.PrintArea.js" />
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
@@ -26,37 +26,37 @@
 </script>
 
 <h2>
-	<spring:message code="@MODULE_ID@.billing.report" />
+	<spring:message code="mohbilling.billing.report" />
 </h2>
 
 <ul id="menu">
         <openmrs:hasPrivilege privilege="Billing Reports - View Find Bills">
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
-			<a href="cohort.form"><spring:message code="@MODULE_ID@.billing.cohort"/></a>
+			<a href="cohort.form"><spring:message code="mohbilling.billing.cohort"/></a>
 		</li>
 		</openmrs:hasPrivilege>
 		
 		<openmrs:hasPrivilege privilege="Billing Reports - View Payments">
 	    <li>
-			<a href="received.form"><spring:message code="@MODULE_ID@.billing.received"/></a>
+			<a href="received.form"><spring:message code="mohbilling.billing.received"/></a>
 		</li>
 		</openmrs:hasPrivilege>
 		
 		 <openmrs:hasPrivilege privilege="Billing Reports - View Revenue">
 		 <li class="<c:if test='<%= request.getRequestURI().contains("Revenue")%>'>active</c:if>">
-			<a href="recettes.form"><spring:message code="@MODULE_ID@.billing.revenue"/></a>
+			<a href="recettes.form"><spring:message code="mohbilling.billing.revenue"/></a>
 		</li>
 		</openmrs:hasPrivilege>
 		
 		 <openmrs:hasPrivilege privilege="Billing Reports - View Invoice">
 		<li>
-			<a href="invoice.form"><spring:message code="@MODULE_ID@.billing.invoice"/></a>
+			<a href="invoice.form"><spring:message code="mohbilling.billing.invoice"/></a>
 		</li>
 		</openmrs:hasPrivilege>
 		
 		 <openmrs:hasPrivilege privilege="Billing Reports - View Releve">
 		<li>
-			<a href="facture.form"><spring:message code="@MODULE_ID@.billing.facture"/></a>
+			<a href="facture.form"><spring:message code="mohbilling.billing.facture"/></a>
 		</li>
 		</openmrs:hasPrivilege>
 		

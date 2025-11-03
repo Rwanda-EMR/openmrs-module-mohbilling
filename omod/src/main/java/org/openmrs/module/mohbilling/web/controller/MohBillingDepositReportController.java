@@ -77,7 +77,7 @@ public class MohBillingDepositReportController extends
 			if(request.getParameter("thirdPartyId")!=null && !request.getParameter("thirdPartyId").equals(""))
 				thirdPartyStr = request.getParameter("thirdPartyId");
 
-			Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinuteStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
+			Object[] params = ReportsUtil.getReportParameters(startDateStr, startHourStr, startMinuteStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
 
 
 			User collector =  (User) params[2];

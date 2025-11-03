@@ -15,12 +15,12 @@
 		});
 	});
 </script>
-<openmrs:require privilege="Add Facility service" otherwise="/login.htm" redirect="/module/@MODULE_ID@/facilityService.form" />
+<openmrs:require privilege="Add Facility service" otherwise="/login.htm" redirect="/module/mohbilling/facilityService.form" />
 
 
 <h2 class="boxHeader">New Facility Service</h2>
 
-<a href="facilityService.list"><spring:message code="@MODULE_ID@.facility.service.current" /></a>
+<a href="facilityService.list"><spring:message code="mohbilling.facility.service.current" /></a>
 <br/><br/>
 <c:set var="tItem" value="${facilityService.itemType}"/>
 <div class="box">

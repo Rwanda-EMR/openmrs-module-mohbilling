@@ -2,7 +2,7 @@
 <%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
-	<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/consommation.list" />
+	<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/mohbilling/consommation.list" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 <openmrs:htmlInclude file="/moduleResources/mohbilling/scripts/jquery-3.5.1.js" />

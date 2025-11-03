@@ -3,12 +3,12 @@
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
-<h2><spring:message code="@MODULE_ID@.insurance.service.category.manage" /></h2>
+<h2><spring:message code="mohbilling.insurance.service.category.manage" /></h2>
 
-<a href="insuranceServiceCategory.list?insuranceId=${insurance.insuranceId}"><b>${insurance.name}</b> : <spring:message code="@MODULE_ID@.insurance.service.category.current" /></a>
+<a href="insuranceServiceCategory.list?insuranceId=${insurance.insuranceId}"><b>${insurance.name}</b> : <spring:message code="mohbilling.insurance.service.category.current" /></a>
 <br/><br/>
 
-<b class="boxHeader"><spring:message code="@MODULE_ID@.insurance.company.title" /></b>
+<b class="boxHeader"><spring:message code="mohbilling.insurance.company.title" /></b>
 <div class="box">
 	<table width="100%">
 		<tr>
@@ -27,7 +27,7 @@
 </div>
 <br/>
 
-<b class="boxHeader"><spring:message code="@MODULE_ID@.insurance.service.category.new" /></b>
+<b class="boxHeader"><spring:message code="mohbilling.insurance.service.category.new" /></b>
 <div class="box">
 	<form action="insuranceServiceCategory.form?insuranceId=${insurance.insuranceId}&save=true" method="post">
 		<table>

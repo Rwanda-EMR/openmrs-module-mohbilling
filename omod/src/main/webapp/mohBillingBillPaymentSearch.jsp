@@ -3,7 +3,7 @@
 <%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ taglib prefix="billingtag" uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld" %>
-<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/searchBillPayment.form" />
+<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/mohbilling/searchBillPayment.form" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 

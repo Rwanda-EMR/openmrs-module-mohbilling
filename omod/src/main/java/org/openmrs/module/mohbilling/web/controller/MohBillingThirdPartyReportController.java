@@ -51,7 +51,7 @@ public class MohBillingThirdPartyReportController extends
 			System.out.print("ffffffffffffffffffffffffffffffffffi endDatetestr"+endDateStr+" and end hourstr equals "+endHourStr+" and end end minutes equals "+endMinuteStr);
 			
 			 // parameters
-			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
+			 Object[] params = ReportsUtil.getReportParameters(startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
 			
 			 Date startDate = (Date) params[0];
 			 Date endDate = (Date) params[1];
