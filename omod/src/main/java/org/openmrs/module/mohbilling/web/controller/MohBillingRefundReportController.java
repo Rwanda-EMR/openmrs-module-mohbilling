@@ -42,7 +42,7 @@ public class MohBillingRefundReportController extends ParameterizableViewControl
 			String thirdPartyStr = null;
 
 			  // marameters
-			 Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
+			 Object[] params = ReportsUtil.getReportParameters(startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
 			
 			 Date startDate = (Date) params[0];
 			 Date endDate = (Date) params[1];

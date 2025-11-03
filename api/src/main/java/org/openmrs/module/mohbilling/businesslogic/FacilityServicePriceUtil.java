@@ -11,12 +11,14 @@ import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -147,7 +149,6 @@ public class FacilityServicePriceUtil {
 	 *
 	 * @param insurance
 	 * @param date
-	 * @param facilityServicePrice
 	 * @return
 	 */
 	public static List<BillableService> getBillableServicesByInsurance(
@@ -222,8 +223,6 @@ public class FacilityServicePriceUtil {
 	 *            the date we retire the service
 	 * @param retireReason
 	 *            the reason for retirement
-	 * @param facilityServicePrice
-	 *            the facility service to be updated
 	 */
 	// @param facilityServicePrice
 	//  the facility service to be updated
@@ -475,38 +474,11 @@ public class FacilityServicePriceUtil {
 		return false;
 	}
 
-	public static String saveBillableServiceByInsurance(HttpServletRequest request) {
+	public static String saveBillableServiceByInsurance(Date startDate, FacilityServicePrice fsp) {
 		List<Insurance> insurances = getService().getAllInsurances();
 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-		FacilityServicePrice fsp = null;
-		BillableService bs = new BillableService();
-
-		BillableService bscopy = new BillableService();
-
-		String startDateStr = null, msg = null;
-		Date startDate = null;
-
-		if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")
-				&& request.getParameter("facilityServiceId") != null && !request.getParameter("facilityServiceId").equals("")) {
-			System.out.println("Facility Service Id: " + request.getParameter("facilityServiceId"));
-
-			startDateStr = request.getParameter("startDate");
-
-			try {
-				startDate = sdf.parse(startDateStr.split("/")[2] + "-" + startDateStr.split("/")[1] + "-" + startDateStr.split("/")[0]);
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-
-			fsp = getService().getFacilityServicePrice(Integer.valueOf(request.getParameter("facilityServiceId")));
-		}
-
-		BigDecimal quarter = new BigDecimal(25).divide(new BigDecimal(100));
-		BigDecimal fifth = new BigDecimal(20).divide(new BigDecimal(100));
-
-
+		String msg = "";
+		BillableService bs;
 
 		for(Insurance insurance : insurances) {
 			if(!insurance.isVoided())
@@ -618,34 +590,12 @@ public class FacilityServicePriceUtil {
 		return msg;
 	}
 
-	public static String saveAllBillableServicesByInsurance(HttpServletRequest request) {
+	public static String saveAllBillableServicesByInsurance(Date startDate) {
 		List<Insurance> insurances = getService().getAllInsurances();
 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
+		String msg = "";
 		List<FacilityServicePrice> fsps = Context.getService(BillingService.class).getAllFacilityServicePrices();
-		BillableService bs = new BillableService();
-
-		BillableService bscopy = new BillableService();
-
-		String startDateStr = null, msg = null;
-		Date startDate = null;
-
-		if(request.getParameter("startDate") != null && !request.getParameter("startDate").equals("")) {
-
-			startDateStr = request.getParameter("startDate");
-
-			try {
-				startDate = sdf.parse(startDateStr.split("/")[2] + "-" + startDateStr.split("/")[1] + "-" + startDateStr.split("/")[0]);
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-
-			//fsp = getService().getFacilityServicePrice(Integer.valueOf(request.getParameter("facilityServiceId")));
-		}
-
-		BigDecimal quarter = new BigDecimal(25).divide(new BigDecimal(100));
-		BigDecimal fifth = new BigDecimal(20).divide(new BigDecimal(100));
+		BillableService bs;
 
 		for (FacilityServicePrice fsp:fsps) {
 			for (Insurance insurance : insurances) {
