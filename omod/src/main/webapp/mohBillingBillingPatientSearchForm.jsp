@@ -3,7 +3,7 @@
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ taglib prefix="mohbilling_tag" tagdir="/WEB-INF/tags/module/mohbilling" %>
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
-<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/checkPatientBillPayment.form" />
+<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/mohbilling/checkPatientBillPayment.form" />
 
 <%@ include file="templates/mohBillingBillHeader.jsp"%>
 <script type="text/javascript">
@@ -33,7 +33,7 @@
     </script>
 
 
-<h2><spring:message code="@MODULE_ID@.billing" /></h2>
+<h2><spring:message code="mohbilling.billing" /></h2>
 
 
 <b class="boxHeader">Open Bill Confirmation page</b>

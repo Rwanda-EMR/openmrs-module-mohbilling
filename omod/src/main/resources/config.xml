@@ -7,16 +7,16 @@
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
     <version>2.2.0-SNAPSHOT</version>
-    <package>org.openmrs.module.@MODULE_ID@</package>
+    <package>org.openmrs.module.mohbilling</package>
     <author>MoH Rwanda</author>
     <description>
         MoH-Billing Module. Useful for managing Rwanda Hospitals/HCs Billing system.
     </description>
 
-    <activator>@MODULE_PACKAGE@.MohBillingActivator</activator>
+    <activator>org.openmrs.module.mohbilling.MohBillingActivator</activator>
 
     <!--
-        <updateURL>https://dev.openmrs.org/modules/download/@MODULE_ID@/update.rdf</updateURL>
+        <updateURL>https://dev.openmrs.org/modules/download/mohbilling/update.rdf</updateURL>
     -->
     <!-- /Base Module Properties -->
 
@@ -34,23 +34,23 @@
     <!-- Extensions -->
     <extension>
         <point>org.openmrs.tracmodule.list</point>
-        <class>@MODULE_PACKAGE@.extension.html.AdminList</class>
+        <class>org.openmrs.module.mohbilling.extension.html.AdminList</class>
     </extension>
     <extension>
         <point>org.openmrs.patientDashboardTab</point>
-        <class>@MODULE_PACKAGE@.extension.html.BillingDashboardTab</class>
+        <class>org.openmrs.module.mohbilling.extension.html.BillingDashboardTab</class>
     </extension>
 
     <extension>
         <point>org.openmrs.gutter.tools</point>
-        <class>@MODULE_PACKAGE@.extension.html.BillingGutterLink</class>
+        <class>org.openmrs.module.mohbilling.extension.html.BillingGutterLink</class>
     </extension>
 
     <!-- AOP -->
 
     <advice>
         <point>org.openmrs.api.EncounterService</point>
-        <class>@MODULE_PACKAGE@.advice.EncounterServiceAdvice</class>
+        <class>org.openmrs.module.mohbilling.advice.EncounterServiceAdvice</class>
     </advice>
 
     <!-- /AOP -->
@@ -199,7 +199,7 @@
         Accessed through the url
         /pageContext()/moduleServlet/<moduleId>/<servlet-name> <servlet>
         <servlet-name>formDownload</servlet-name>
-        <servlet-class>@MODULE_PACKAGE@.web.FormDownloadServlet</servlet-class>
+        <servlet-class>org.openmrs.module.mohbilling.web.FormDownloadServlet</servlet-class>
         </servlet>
     -->
     <!-- /Servlets -->
@@ -437,7 +437,7 @@
 
 
     <!-- Internationalization -->
-    <!-- All message codes should start with @MODULE_ID@.* -->
+    <!-- All message codes should start with mohbilling.* -->
     <messages>
         <lang>en</lang>
         <file>messages.properties</file>

@@ -1,7 +1,7 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
-<openmrs:require privilege="Billing Report - View Cashier Report" otherwise="/login.htm" redirect="/module/@MODULE_ID@/cashierReport.form" />
+<openmrs:require privilege="Billing Report - View Cashier Report" otherwise="/login.htm" redirect="/module/mohbilling/cashierReport.form" />
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingReportHeader.jsp"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>

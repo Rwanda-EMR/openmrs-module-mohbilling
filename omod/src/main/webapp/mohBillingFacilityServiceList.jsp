@@ -4,16 +4,16 @@
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 <%@ include file="templates/mohBillingAdminHeader.jsp"%>
 
-<openmrs:require privilege="View Facility service" otherwise="/login.htm" redirect="/module/@MODULE_ID@/facilityService.list" />
+<openmrs:require privilege="View Facility service" otherwise="/login.htm" redirect="/module/mohbilling/facilityService.list" />
 
-<h2><spring:message code="@MODULE_ID@.facility.service.manage" /></h2>
+<h2><spring:message code="mohbilling.facility.service.manage" /></h2>
 <openmrs:hasPrivilege privilege="Add Facility service">
-<a href="facilityService.form"><spring:message code="@MODULE_ID@.facility.service.add" /></a>
+<a href="facilityService.form"><spring:message code="mohbilling.facility.service.add" /></a>
 </openmrs:hasPrivilege>
 
 <br/><br/>
 
-<b class="boxHeader"><spring:message code="@MODULE_ID@.facility.service.current" /></b>
+<b class="boxHeader"><spring:message code="mohbilling.facility.service.current" /></b>
 <div class="box">
 	<table width="99%">
 		<tr>

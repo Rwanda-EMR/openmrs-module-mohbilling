@@ -1,6 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 <%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
-<openmrs:require privilege="Manage Refund Bill" otherwise="/login.htm" redirect="/module/@MODULE_ID@/refundBill.form" />
+<openmrs:require privilege="Manage Refund Bill" otherwise="/login.htm" redirect="/module/mohbilling/refundBill.form" />
 
 <script type="text/javascript">
 
@@ -100,7 +100,7 @@
 
 <%@ include file="templates/mohBillingLocalHeader.jsp"%>
 
-<h2><spring:message code="@MODULE_ID@.billing.refund"/></h2>
+<h2><spring:message code="mohbilling.billing.refund"/></h2>
 
 <%@ include file="templates/mohBillingInsurancePolicySummaryForm.jsp"%>
 
