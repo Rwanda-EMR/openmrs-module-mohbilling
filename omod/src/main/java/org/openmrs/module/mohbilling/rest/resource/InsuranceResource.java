@@ -15,6 +15,7 @@ import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
+import org.openmrs.module.mohbilling.model.ServiceCategory;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.utils.BillingUtils;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -111,6 +112,7 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
         description.addProperty("address");
         description.addProperty("phone");
         description.addProperty("concept");
+        description.addProperty("category");
         description.addProperty("rates");
         description.addProperty("categories");
         return description;
@@ -268,6 +270,19 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
             }
             rate.setFlatFee(BillingUtils.convertRawValueToBigDecimal(rate.getFlatFee()));
             insurance.addInsuranceRate(rate);
+        });
+    }
+
+    @PropertySetter("categories")
+    public static void setCategories(Insurance insurance, Set<ServiceCategory> categories) {
+        categories.stream().forEach(category -> {
+            if (category.getCreator() == null) {
+                category.setCreator(Context.getAuthenticatedUser());
+            }
+            if (category.getCreatedDate() == null) {
+                category.setCreatedDate(new Date());
+            }
+            insurance.addServiceCategory(category);
         });
     }
 }
