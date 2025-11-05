@@ -16,6 +16,8 @@ import io.swagger.models.properties.IntegerProperty;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
+import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -33,9 +35,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/hopService",
@@ -149,13 +149,20 @@ public class HopServiceResource extends DelegatingCrudResource<HopService> {
     @Override
     protected PageableResult doSearch(RequestContext context) {
         String department = context.getRequest().getParameter("department");
-        List<HopService> hopServices = new ArrayList<>();
+        Set<HopService> hopServices = new HashSet<>();
         if (department != null) {
             Department d = Context.getService(BillingService.class).getDepartement(Integer.parseInt(department));
             hopServices = Context.getService(BillingService.class).getAllHopService().stream().filter(hopService ->
-                    hopService.getDepartment() != null && hopService.getDepartment().equals(d)).collect(Collectors.toList());
+                    hopService.getDepartment() != null && hopService.getDepartment().equals(d)).collect(Collectors.toSet());
+            if (GlobalPropertyConfig.getListOfHopServicesByDepartment1(d) != null) {
+                hopServices.addAll(
+                        Arrays.stream(GlobalPropertyConfig.getListOfHopServicesByDepartment1(d).split(","))
+                                .map(s -> HopServiceUtil.getHopServiceById(Integer.valueOf(s)))
+                                .collect(Collectors.toList())
+                );
+            }
         }
-        return new NeedsPaging<>(hopServices, context);
+        return new NeedsPaging<>(new ArrayList<>(hopServices), context);
     }
 
     @Override
