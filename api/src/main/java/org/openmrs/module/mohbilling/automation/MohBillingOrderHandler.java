@@ -161,9 +161,23 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             Date now = new Date();
 
             // Get the facility service price associated with this particular order.
-            FacilityServicePrice facilityServicePrice = billingService.getFacilityServiceByConcept(orderable);
+            FacilityServicePrice facilityServicePrice = null;
+            if (order instanceof DrugOrder) {
+                DrugOrder drugOrder = (DrugOrder) order;
+                if (drugOrder.getDrug() != null) {
+                    log.debug("Getting facility service price for drug by name {}", drugOrder.getDrug().getName());
+                    facilityServicePrice = billingService.getFacilityServiceByName(drugOrder.getDrug().getName());
+                }
+                else {
+                    log.debug("No drug configured on drug order");
+                }
+            }
             if (facilityServicePrice == null) {
-                log.debug("No facility service price for {}, not billing order {}", orderable, order);
+                log.debug("Getting facility service price by orderable concept {}", orderable);
+                facilityServicePrice = billingService.getFacilityServiceByConcept(orderable);
+            }
+            if (facilityServicePrice == null) {
+                log.debug("No facility service price found, not billing order {}", order);
                 continue;
             }
             log.debug("Facility service price {}", facilityServicePrice);
