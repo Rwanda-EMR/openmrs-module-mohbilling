@@ -24,8 +24,9 @@ import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.ThirdPartyBillUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Consommation;
@@ -35,10 +36,8 @@ import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.HopService;
 import org.openmrs.module.mohbilling.model.InsuranceBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
-import org.openmrs.module.mohbilling.model.InsuranceRate;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
-import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.ThirdPartyBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.utils.Utils;
@@ -52,10 +51,10 @@ import org.springframework.stereotype.Component;
 import javax.transaction.Status;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -135,17 +134,52 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             throw new RuntimeException("No existing transactions detected within beforeTransactionCompletion");
         }
 
+        // If we are here, then there is only one started transaction remaining, and we have orders to process
+
+        // Retrieve the patient and validate that all orders are for the same patient
+        Patient patient = null;
+        for (Order order : data.getNewOrders()) {
+            if (patient == null) {
+                patient = order.getPatient();
+            }
+            else {
+                if (!patient.equals(order.getPatient())) {
+                    throw new RuntimeException("Multiple orders are being saved for different patients in the same tx");
+                }
+            }
+        }
+
+        // Get the patient's insurance.  If none is found, throw an Exception
+        InsurancePolicy insurancePolicy = getInsurancePolicyForPatient(patient);
+        if (insurancePolicy == null) {
+            throw new RuntimeException("No insurance policy found for patient: " + patient);
+        }
+        log.debug("insurancePolicy: {}", insurancePolicy);
+
+        Beneficiary beneficiary = billingService.getBeneficiaryByPolicyNumber(insurancePolicy.getInsuranceCardNo());
+        log.debug("policy beneficiary: {}", beneficiary);
+
+        // Get patient's phone number
+        String patientPhoneNumber = getPhoneNumberForPatient(patient);
+        log.debug("patientPhoneNumber: {}", patientPhoneNumber);
+
+        // Get the patient's global bill, if none found, throw an Exception
+        GlobalBill globalBill = billingService.getOpenGlobalBillByInsuranceCardNo(insurancePolicy.getInsuranceCardNo());
+        if (globalBill == null) {
+            throw new RuntimeException("No global bill found for patient: " + patient);
+        }
+        log.debug("Starting global bill amount: {}", globalBill.getGlobalAmount());
+
+        User currentUser = Context.getAuthenticatedUser();
+        Date now = new Date();
+
         Set<Concept> billedConceptSets = new HashSet<>();
         Map<Concept, Concept> conceptsToBillAtSetLevel = getConceptsToBillAtSetLevel();
 
-        // If we are here, then there is only one started transaction remaining, and we have orders to process
-        // Iterate over each order and remove it from the set as we go so that it is only ever attempted to process once
-        for (Iterator<Order> i = data.getNewOrders().iterator(); i.hasNext();) {
-            Order order = i.next();
-            i.remove();
+        // Iterate over each order and create PatientServiceBill for each as appropriate, grouped by department
+        Map<Department, List<PatientServiceBill>> patientServiceBillsByDepartment = new HashMap<>();
+        for (Order order : data.getNewOrders()) {
 
-            log.debug("Handling a new order: {}", order);
-            Patient patient = order.getPatient();
             Concept orderable = order.getConcept();
 
             // Support laboratorymanagement behavior where some tests are billed at the set level
@@ -156,9 +190,6 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
                 }
                 billedConceptSets.add(orderable);
             }
-
-            User currentUser = Context.getAuthenticatedUser();
-            Date now = new Date();
 
             // Get the facility service price associated with this particular order.
             FacilityServicePrice facilityServicePrice = null;
@@ -186,82 +217,6 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
                 continue;
             }
 
-            // Get the patient's insurance.  If none is found, return
-            InsurancePolicy insurancePolicy = getInsurancePolicyForPatient(patient);
-            if (insurancePolicy == null) {
-                throw new RuntimeException("No insurance policy found for patient: " + patient);
-            }
-            log.debug("insurancePolicy: {}", insurancePolicy);
-            Beneficiary beneficiary = billingService.getBeneficiaryByPolicyNumber(insurancePolicy.getInsuranceCardNo());
-            log.debug("policy beneficiary: {}", beneficiary);
-            InsuranceRate insuranceRate = insurancePolicy.getInsurance().getRateOnDate(now);
-            log.debug("current rate: {}", insuranceRate);
-            ThirdParty thirdParty = insurancePolicy.getThirdParty();
-            log.debug("third party: {}", thirdParty);
-            boolean isFlatFee = insuranceRate.getFlatFee() != null && insuranceRate.getFlatFee().compareTo(BigDecimal.ZERO) > 0;
-            log.debug("isFlatFee: {}", isFlatFee);
-
-            // Get patient's phone number
-            String patientPhoneNumber = getPhoneNumberForPatient(patient);
-            log.debug("patientPhoneNumber: {}", patientPhoneNumber);
-
-            // Get the department for the billable service
-            Department department = getDepartmentForOrder(order);
-            if (department == null) {
-                throw new RuntimeException("Unable to determine the department for order to bill");
-            }
-            log.debug("Department: {}", department.getName());
-
-            // Get the patient's global bill
-            GlobalBill globalBill = billingService.getOpenGlobalBillByInsuranceCardNo(insurancePolicy.getInsuranceCardNo());
-
-            // Get existing consummation for the given department or create a new one
-            Consommation consommation = data.getConsommation(department);
-            if (consommation == null) {
-                consommation = new Consommation();
-                consommation.setDepartment(department);
-                consommation.setBeneficiary(beneficiary);
-                consommation.setGlobalBill(globalBill);
-                {
-                    PatientBill patientBill = new PatientBill();
-                    patientBill.setCreatedDate(now);
-                    patientBill.setCreator(currentUser);
-                    patientBill.setVoided(false);
-                    patientBill.setAmount(BigDecimal.ZERO);
-                    patientBill.setPhoneNumber(patientPhoneNumber);
-                    patientBill.setReferenceId(UUID.randomUUID().toString());
-                    billingService.savePatientBill(patientBill);
-                    consommation.setPatientBill(patientBill);
-                }
-                if (thirdParty != null) {
-                    ThirdPartyBill thirdPartyBill = new ThirdPartyBill();
-                    thirdPartyBill.setCreatedDate(now);
-                    thirdPartyBill.setCreator(currentUser);
-                    thirdPartyBill.setVoided(false);
-                    thirdPartyBill.setAmount(BigDecimal.ZERO);
-                    billingService.saveThirdPartyBill(thirdPartyBill);
-                    consommation.setThirdPartyBill(thirdPartyBill);
-                }
-                {
-                    InsuranceBill insuranceBill = new InsuranceBill();
-                    insuranceBill.setCreatedDate(now);
-                    insuranceBill.setCreator(currentUser);
-                    insuranceBill.setVoided(false);
-                    insuranceBill.setAmount(BigDecimal.ZERO);
-                    billingService.saveInsuranceBill(insuranceBill);
-                    consommation.setInsuranceBill(insuranceBill);
-                }
-                consommation.setCreatedDate(now);
-                consommation.setCreator(currentUser);
-                ConsommationUtil.saveConsommation(consommation);
-                log.debug("Consommation created: {}", consommation);
-                data.addConsommation(department, consommation);
-            }
-            else {
-                log.debug("Found existing consommation for department {}: {}", department.getDepartmentId(), consommation);
-            }
-
-            // Create a billable service entry for the given orderable and add to the appropriate bills
             BillableService billableService = billingService.getBillableServiceByConcept(facilityServicePrice, insurancePolicy.getInsurance());
             HopService hopService = billingService.getHopService(facilityServicePrice.getCategory());
             BigDecimal unitPrice = billableService.getMaximaToPay();
@@ -277,52 +232,13 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
                 }
             }
             log.debug("quantity: {}", quantity);
-            BigDecimal billableServiceAmount = unitPrice.multiply(quantity);
 
-            // Update the patient's global bill
-            BigDecimal originalGlobalBillAmount = globalBill.getGlobalAmount();
-            BigDecimal newGlobalBillAmount = originalGlobalBillAmount.add(billableServiceAmount);
-            globalBill.setGlobalAmount(newGlobalBillAmount);
-            globalBill = billingService.saveGlobalBill(globalBill);
-            log.debug("Updated GlobalBill {}: original amount: {}, new amount: {}", globalBill, originalGlobalBillAmount, newGlobalBillAmount);
-
-            // Update the patient's bill
-            BigDecimal patientBillAmount = BigDecimal.ZERO;
-            if (!isFlatFee) {
-                float rateToPay = 100 - insuranceRate.getRate() - (thirdParty == null ? 0 : thirdParty.getRate());
-                patientBillAmount = billableServiceAmount.multiply(BigDecimal.valueOf(rateToPay/100));
+            // Get the department for the billable service
+            Department department = getDepartmentForOrder(order);
+            if (department == null) {
+                throw new RuntimeException("Unable to determine the department for order to bill");
             }
-            PatientBill patientBill = consommation.getPatientBill();
-            BigDecimal currentPatientBillAmount = patientBill.getAmount();
-            BigDecimal newPatientBillAmount = currentPatientBillAmount.add(patientBillAmount);
-            patientBill.setAmount(newPatientBillAmount);
-            patientBill = billingService.savePatientBill(patientBill);
-            log.debug("Updated PatientBill: {}, new amount: {}, total amount: {}", patientBill, patientBillAmount, newPatientBillAmount);
-
-            // Update the third party bill
-            if (thirdParty != null && consommation.getThirdPartyBill() != null) {
-                BigDecimal thirdPartyAmount = billableServiceAmount.multiply(BigDecimal.valueOf((thirdParty.getRate())/100));
-                ThirdPartyBill thirdPartyBill = consommation.getThirdPartyBill();
-                BigDecimal currentThirdPartyBillAmount = thirdPartyBill.getAmount();
-                BigDecimal newThirdPartyAmount = currentThirdPartyBillAmount.add(thirdPartyAmount);
-                thirdPartyBill.setAmount(newThirdPartyAmount);
-                billingService.saveThirdPartyBill(thirdPartyBill);
-                log.debug("Updated ThirdPartyBill: {}, new amount: {}, total amount: {}", thirdPartyBill, currentThirdPartyBillAmount, newThirdPartyAmount);
-            }
-
-            // Update the insurance bill
-            BigDecimal insuranceAmount = billableServiceAmount.multiply(BigDecimal.valueOf((insuranceRate.getRate())/100));
-            InsuranceBill insuranceBill = consommation.getInsuranceBill();
-            BigDecimal currentInsuranceAmount = insuranceBill.getAmount();
-            BigDecimal newInsuranceAmount = currentInsuranceAmount.add(insuranceAmount);
-            insuranceBill.setAmount(newInsuranceAmount);
-            billingService.saveInsuranceBill(insuranceBill);
-            log.debug("Updated InsuranceBill: {}, new amount {}, total amount: {}", insuranceBill, insuranceAmount, newInsuranceAmount);
-
-            // Ensure consommation is saved
-            ConsommationUtil.saveConsommation(consommation);
-
-            // Save the specific service bill with the consummation
+            log.debug("Department: {}", department.getName());
 
             PatientServiceBill patientServiceBill = new PatientServiceBill();
             patientServiceBill.setService(billableService);
@@ -333,11 +249,55 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             patientServiceBill.setCreator(currentUser);
             patientServiceBill.setCreatedDate(now);
             patientServiceBill.setItemType(1);
-            patientServiceBill.setConsommation(consommation);
-            ConsommationUtil.createPatientServiceBill(patientServiceBill);
-            log.info("Saved patientServiceBill: {}", patientServiceBill);
+            patientServiceBillsByDepartment.computeIfAbsent(department, k -> new ArrayList<>()).add(patientServiceBill);
         }
 
+        // For each department, create appropriate bills
+        BigDecimal globalBillAmount = globalBill.getGlobalAmount();
+        for (Department department : patientServiceBillsByDepartment.keySet()) {
+            BigDecimal amountForDepartment = BigDecimal.ZERO;
+            List<PatientServiceBill> patientServiceBills = patientServiceBillsByDepartment.get(department);
+            log.debug("Processing {} patientServiceBills for department {}", patientServiceBills.size(), department);
+            for (PatientServiceBill patientServiceBill : patientServiceBills) {
+                BigDecimal billAmount = patientServiceBill.getQuantity().multiply(patientServiceBill.getUnitPrice());
+                globalBillAmount = globalBillAmount.add(billAmount);
+                amountForDepartment = amountForDepartment.add(billAmount);
+            }
+            PatientBill patientBill;
+            if (StringUtils.isNotBlank(patientPhoneNumber)) {
+                patientBill = PatientBillUtil.createPatientBillWithMoMoRequestToPay(amountForDepartment, insurancePolicy, patientPhoneNumber, UUID.randomUUID().toString());
+            }
+            else {
+                patientBill = PatientBillUtil.createPatientBill(amountForDepartment, insurancePolicy);
+            }
+            log.debug("patientBill: {}", patientBill);
+            data.addPatientBillId(patientBill.getPatientBillId());
+            ThirdPartyBill thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(insurancePolicy, amountForDepartment);
+            log.info("thirdPartyBill: {}", thirdPartyBill);
+            InsuranceBill insuranceBill = InsuranceBillUtil.createInsuranceBill(insurancePolicy.getInsurance(), amountForDepartment);
+            log.info("insuranceBill: {}", insuranceBill);
+
+            Consommation consommation = new Consommation();
+            consommation.setDepartment(department);
+            consommation.setBeneficiary(beneficiary);
+            consommation.setGlobalBill(globalBill);
+            consommation.setCreatedDate(now);
+            consommation.setCreator(currentUser);
+            consommation.setPatientBill(patientBill);
+            consommation.setThirdPartyBill(thirdPartyBill);
+            consommation.setInsuranceBill(insuranceBill);
+            for (PatientServiceBill patientServiceBill : patientServiceBills) {
+                patientServiceBill.setConsommation(consommation);
+                consommation.addBillItem(patientServiceBill);
+            }
+            billingService.saveConsommation(consommation);
+            log.debug("consommation: {}", consommation);
+        }
+
+        // Update global bill amount
+        globalBill.setGlobalAmount(globalBillAmount);
+        billingService.saveGlobalBill(globalBill);
+        log.debug("Ending global bill amount: {}", globalBill.getGlobalAmount());
     }
 
     /**
@@ -356,17 +316,15 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         if (data.getNumberOfStartedTransactions() == 0) {
             try {
                 if (status == Status.STATUS_COMMITTED) {
-                    for (Integer departmentId : data.getConsommationsByDepartmentId().keySet()) {
-                        Consommation consommation = data.getConsommationsByDepartmentId().get(departmentId);
-                        if (consommation != null) {
-                            log.trace("afterTransactionCompletion: consommation: {}", consommation);
+                    for (Integer patientBillId : data.getPatientBillsCreated()) {
+                        PatientBill patientBill = billingService.getPatientBill(patientBillId);
+                        if (patientBill != null) {
                             try {
-                                PatientBill patientBill = consommation.getPatientBill();
-                                log.debug("Patient Bill: {}", patientBill);
+                                BigDecimal amountToPay = patientBill.getAmount().setScale(0, RoundingMode.UP);
                                 String phoneNumber = patientBill.getPhoneNumber();
-                                if (StringUtils.isNotBlank(phoneNumber)) {
-                                    String referenceId = patientBill.getReferenceId();
-                                    BigDecimal amountToPay = patientBill.getAmount().setScale(0, RoundingMode.UP);
+                                String referenceId = patientBill.getReferenceId();
+                                log.debug("patientBillId: {}, referenceId: {}, phoneNumber: {}, amountToPay: {}", patientBillId, referenceId, phoneNumber, amountToPay);
+                                if (StringUtils.isNotBlank(phoneNumber) && StringUtils.isNotBlank(referenceId)) {
                                     if (amountToPay.compareTo(BigDecimal.ZERO) > 0) {
                                         log.info("Sending MTN Request to pay {} to {}, referenceId {}", amountToPay, phoneNumber, referenceId);
                                         MTNMomoApiIntegrationRequestToPay momo = new MTNMomoApiIntegrationRequestToPay();
@@ -382,6 +340,9 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
                             } catch (Exception e) {
                                 log.error("Unable to send MTN Request to pay or updating patient bill", e);
                             }
+                        }
+                        else {
+                            log.warn("afterTransactionCompletion: patientBill not found: {}", patientBillId);
                         }
                     }
                 }
@@ -540,14 +501,14 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
 
         private int numberOfStartedTransactions = 0;
         private final Set<Order> newOrders = new HashSet<>();
-        private final Map<Integer, Consommation> consommationsByDepartmentId = new HashMap<>();
+        private final Set<Integer> patientBillsCreated = new HashSet<>();
 
         public DataHolder() {}
 
         public String toString() {
             return "transactions: " + numberOfStartedTransactions +
                     "; newOrders: " + newOrders.size() +
-                    "; consommations: " + consommationsByDepartmentId.size();
+                    "; patientBillsCreated: " + patientBillsCreated.size();
         }
 
         public void startTransaction() {
@@ -570,16 +531,12 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             return newOrders;
         }
 
-        public void addConsommation(Department department, Consommation consommation) {
-            consommationsByDepartmentId.put(department.getDepartmentId(), consommation);
+        public void addPatientBillId(Integer patientBillId) {
+            patientBillsCreated.add(patientBillId);
         }
 
-        public Consommation getConsommation(Department department) {
-            return consommationsByDepartmentId.get(department.getDepartmentId());
-        }
-
-        public Map<Integer, Consommation> getConsommationsByDepartmentId() {
-            return consommationsByDepartmentId;
+        public Set<Integer> getPatientBillsCreated() {
+            return patientBillsCreated;
         }
     }
 }
