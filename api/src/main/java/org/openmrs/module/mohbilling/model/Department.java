@@ -6,6 +6,7 @@ package org.openmrs.module.mohbilling.model;
 import org.openmrs.User;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author emr
@@ -156,6 +157,17 @@ public class Department {
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
 	}
-	
-	
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || getClass() != o.getClass()) return false;
+		if (o == this) return true;
+		Department that = (Department) o;
+		return (departmentId != null && departmentId.equals(that.departmentId));
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(departmentId);
+	}
 }

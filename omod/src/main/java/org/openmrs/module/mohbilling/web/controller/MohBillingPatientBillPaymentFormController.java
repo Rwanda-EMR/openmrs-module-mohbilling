@@ -4,8 +4,27 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.mohbilling.businesslogic.*;
-import org.openmrs.module.mohbilling.model.*;
+import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.CashPayment;
+import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.DepositPayment;
+import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.InsuranceBill;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
+import org.openmrs.module.mohbilling.model.PaidServiceBill;
+import org.openmrs.module.mohbilling.model.PatientAccount;
+import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.ThirdParty;
+import org.openmrs.module.mohbilling.model.Transaction;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +37,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -79,10 +102,9 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			// check the validity of the insurancePolicy for today
 			Date today = new Date();
-			mav.addObject(
-					"valid",
-					((ip.getCoverageStartDate().getTime() <= today.getTime()) && (today
-							.getTime() <= ip.getExpirationDate().getTime())));
+			boolean startValid = ip.getCoverageStartDate().getTime() <= today.getTime();
+			boolean expireValid = ip.getExpirationDate() == null || ip.getExpirationDate().getTime() <= today.getTime();
+			mav.addObject("valid", startValid && expireValid);
 			mav.addObject("todayDate", today);
 			mav.addObject("authUser", Context.getAuthenticatedUser());
 			mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(consommation.getBeneficiary().getPatient()));

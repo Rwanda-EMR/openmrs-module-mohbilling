@@ -11,38 +11,46 @@
            http://www.springframework.org/schema/util
            http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
+	<bean id="mohBillingService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager" ref="transactionManager"/>
+		<property name="target">
+			<bean class="org.openmrs.module.mohbilling.impl.BillingServiceImpl">
+				<property name="billingDAO">
+					<bean class="org.openmrs.module.mohbilling.db.hibernate.HibernateBillingDAO">
+						<property name="sessionFactory" ref="sessionFactory"/>
+					</bean>
+				</property>
+			</bean>
+		</property>
+		<property name="preInterceptors" ref="serviceInterceptors"/>
+		<property name="transactionAttributeSource">
+			<bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
+		</property>
+	</bean>
+
 	<bean parent="serviceContext">
 		<property name="moduleService">
 			<list>
 				<value>org.openmrs.module.mohbilling.service.BillingService</value>
-				<bean
-					class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
-					<property name="transactionManager">
-						<ref bean="transactionManager" />
-					</property>
-					<property name="target">
-						<bean class="org.openmrs.module.mohbilling.impl.BillingServiceImpl">
-							<property name="billingDAO">
-								<bean
-									class="org.openmrs.module.mohbilling.db.hibernate.HibernateBillingDAO">
-									<property name="sessionFactory">
-										<ref bean="sessionFactory" />
-									</property>
-								</bean>
-							</property>
-						</bean>
-					</property>
-					<property name="preInterceptors">
-						<list>
-							<ref bean="authorizationInterceptor" />
-						</list>
-					</property>
-					<property name="transactionAttributeSource">
-						<bean
-							class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
-					</property>
-				</bean>
+				<ref bean="mohBillingService"/>
 			</list>
+		</property>
+	</bean>
+
+	<bean id="mohBillingProcessingService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager" ref="transactionManager"/>
+		<property name="target">
+			<bean class="org.openmrs.module.mohbilling.impl.BillingProcessingServiceImpl">
+				<property name="billingDAO">
+					<bean class="org.openmrs.module.mohbilling.db.hibernate.HibernateBillingDAO">
+						<property name="sessionFactory" ref="sessionFactory"/>
+					</bean>
+				</property>
+			</bean>
+		</property>
+		<property name="preInterceptors" ref="serviceInterceptors"/>
+		<property name="transactionAttributeSource">
+			<bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
 		</property>
 	</bean>
 
@@ -51,34 +59,8 @@
 		<property name="moduleService">
 			<list>
 				<value>org.openmrs.module.mohbilling.service.BillingProcessingService</value>
-				<bean class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
-					<property name="transactionManager">
-						<ref bean="transactionManager" />
-					</property>
-					<property name="target">
-						<bean class="org.openmrs.module.mohbilling.impl.BillingProcessingServiceImpl">
-							<property name="billingDAO">
-								<bean class="org.openmrs.module.mohbilling.db.hibernate.HibernateBillingDAO">
-									<property name="sessionFactory">
-										<ref bean="sessionFactory" />
-									</property>
-								</bean>
-							</property>
-						</bean>
-					</property>
-					<property name="preInterceptors">
-						<list>
-							<ref bean="authorizationInterceptor" />
-						</list>
-					</property>
-					<property name="transactionAttributeSource">
-						<bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
-					</property>
-				</bean>
+				<ref bean="mohBillingProcessingService"/>
 			</list>
 		</property>
 	</bean>
-
-	<!-- Component scanning -->
-	<context:component-scan base-package="org.openmrs.module.mohbilling" />
 </beans>
