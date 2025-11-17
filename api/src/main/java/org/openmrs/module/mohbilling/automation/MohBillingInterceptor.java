@@ -87,7 +87,7 @@ public class MohBillingInterceptor extends EmptyInterceptor {
 			for (int i=0; i<propertyNames.length; i++) {
 				String propertyName = propertyNames[i];
 				if (propertyName.equals("voided")) {
-					wasVoided = BooleanUtils.isTrue((Boolean) previousState[i]);
+					wasVoided = previousState != null && BooleanUtils.isTrue((Boolean) previousState[i]);
 					isVoided = BooleanUtils.isTrue((Boolean) currentState[i]);
 				}
 			}
