@@ -1893,19 +1893,22 @@ public class HibernateBillingDAO implements BillingDAO {
     @Override
     public GlobalBill getOpenGlobalBillByInsuranceCardNo(String insuranceCardNo) {
         try {
-            Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class)
-                    .add(Restrictions.like("billIdentifier", insuranceCardNo + "%")).add(Restrictions.eq("closed",
-                            false));
-
-            System.out.println("Patient has number of GB(s) with idintifier starting with "+insuranceCardNo+": " + crit.list().size());
-
-            GlobalBill globalBill = (GlobalBill) crit.uniqueResult();
-
-
-            return globalBill;
+            Criteria crit = sessionFactory.getCurrentSession().createCriteria(GlobalBill.class, "globalBill");
+            crit.add(Restrictions.eq("closed", false));
+            crit.createAlias("globalBill.admission", "admission");
+            crit.createAlias("admission.insurancePolicy", "insurancePolicy");
+            crit.add(Restrictions.eq("insurancePolicy.insuranceCardNo", insuranceCardNo));
+            List<GlobalBill> bills = crit.list();
+            if (bills.size() == 1) {
+                return bills.get(0);
+            }
+            if (bills.size() > 1) {
+                log.warn("Found " + bills.size() + " GB(s) with insuranceCardNo " + insuranceCardNo + ", returning null");
+            }
         } catch (Exception e) {
-            return null;
+            log.error("Error getting open global bill", e);
         }
+        return null;
     }
 
     @Override
