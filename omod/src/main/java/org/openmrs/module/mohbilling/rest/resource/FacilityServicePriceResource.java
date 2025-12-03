@@ -40,7 +40,7 @@ import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/facilityServicePrice",
         supportedClass = FacilityServicePrice.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class FacilityServicePriceResource extends DelegatingCrudResource<FacilityServicePrice> {
     @Override
     protected String getUniqueId(FacilityServicePrice delegate) {
@@ -54,7 +54,11 @@ public class FacilityServicePriceResource extends DelegatingCrudResource<Facilit
 
     @Override
     protected void delete(FacilityServicePrice facilityServicePrice, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        facilityServicePrice.setRetired(true);
+        facilityServicePrice.setRetiredBy(Context.getAuthenticatedUser());
+        facilityServicePrice.setRetiredDate(new Date());
+        facilityServicePrice.setRetireReason(s);
+        Context.getService(BillingService.class).saveFacilityServicePrice(facilityServicePrice);
     }
 
     @Override
@@ -158,7 +162,7 @@ public class FacilityServicePriceResource extends DelegatingCrudResource<Facilit
 
     @Override
     public void purge(FacilityServicePrice facilityServicePrice, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(facilityServicePrice);
     }
 
     @Override

@@ -39,7 +39,7 @@ import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/serviceCategory",
         supportedClass = ServiceCategory.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class ServiceCategoryResource extends DelegatingCrudResource<ServiceCategory> {
     @Override
     protected String getUniqueId(ServiceCategory delegate) {
@@ -107,7 +107,7 @@ public class ServiceCategoryResource extends DelegatingCrudResource<ServiceCateg
 
     @Override
     public void purge(ServiceCategory serviceCategory, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(serviceCategory);
     }
 
     @Override

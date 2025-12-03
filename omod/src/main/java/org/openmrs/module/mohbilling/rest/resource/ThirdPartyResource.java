@@ -33,7 +33,7 @@ import java.util.Date;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/thirdParty",
         supportedClass = ThirdParty.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class ThirdPartyResource extends DelegatingCrudResource<ThirdParty> {
     @Override
     protected String getUniqueId(ThirdParty delegate) {
@@ -47,7 +47,11 @@ public class ThirdPartyResource extends DelegatingCrudResource<ThirdParty> {
 
     @Override
     protected void delete(ThirdParty thirdParty, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        thirdParty.setVoided(true);
+        thirdParty.setVoidedBy(Context.getAuthenticatedUser());
+        thirdParty.setVoidedDate(new Date());
+        thirdParty.setVoidReason(s);
+        Context.getService(BillingService.class).saveThirdParty(thirdParty);
     }
 
     @Override
@@ -115,7 +119,7 @@ public class ThirdPartyResource extends DelegatingCrudResource<ThirdParty> {
 
     @Override
     public void purge(ThirdParty thirdParty, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(thirdParty);
     }
 
     @Override

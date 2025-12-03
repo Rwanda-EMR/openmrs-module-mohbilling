@@ -734,7 +734,7 @@ public interface BillingDAO {
 
 	public FacilityServicePrice getFacilityServiceByName(String name);
 
-	Map<String, BigDecimal> getGlobalBillsSummary();
+	Map<String, BigDecimal> getGlobalBillsSummary(User creator, Date date);
 
 	List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill);
 
@@ -803,4 +803,13 @@ public interface BillingDAO {
      * @return count of matching records
      */
     long countFacilityServicePrices(String category, Boolean hidden, String searchText);
+
+    /**
+     * Saves the BillableService to the DB
+     * @param billableService  the BillableService to be saved
+     * @return BillableService
+     */
+    BillableService saveBillableService(BillableService billableService);
+
+    <T> void purge(T entity);
 }

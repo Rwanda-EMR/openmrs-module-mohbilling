@@ -32,7 +32,7 @@ import java.math.BigDecimal;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/patientServiceBill",
         supportedClass = PatientServiceBill.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class PatientServiceBillResource extends DelegatingCrudResource<PatientServiceBill> {
     @Override
     protected String getUniqueId(PatientServiceBill delegate) {
@@ -61,7 +61,7 @@ public class PatientServiceBillResource extends DelegatingCrudResource<PatientSe
 
     @Override
     public void purge(PatientServiceBill patientServiceBill, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(patientServiceBill);
     }
 
     @Override

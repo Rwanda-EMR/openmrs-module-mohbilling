@@ -34,7 +34,7 @@ import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/patientBill",
         supportedClass = PatientBill.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
 
     private static final Log log = LogFactory.getLog(PatientBillResource.class);
@@ -73,8 +73,7 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
 
     @Override
     public void purge(PatientBill delegate, RequestContext context) throws ResponseException {
-        // Implementation not required unless we'd need to permanently delete bills
-        // BA guidance
+        Context.getService(BillingService.class).purge(delegate);
     }
 
     @Override

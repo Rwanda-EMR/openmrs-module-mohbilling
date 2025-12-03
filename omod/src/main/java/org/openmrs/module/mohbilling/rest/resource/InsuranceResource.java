@@ -39,7 +39,7 @@ import java.util.Set;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/insurance",
         supportedClass = Insurance.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class InsuranceResource extends DelegatingCrudResource<Insurance> {
 
     @Override
@@ -54,7 +54,11 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
 
     @Override
     protected void delete(Insurance insurance, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        insurance.setVoided(true);
+        insurance.setVoidedBy(Context.getAuthenticatedUser());
+        insurance.setVoidedDate(new Date());
+        insurance.setVoidReason(s);
+        Context.getService(BillingService.class).saveInsurance(insurance);
     }
 
     @Override
@@ -83,7 +87,7 @@ public class InsuranceResource extends DelegatingCrudResource<Insurance> {
 
     @Override
     public void purge(Insurance insurance, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(insurance);
     }
 
     @PropertyGetter("rate")

@@ -27,9 +27,11 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.Date;
+
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/thirdPartyBill",
         supportedClass = ThirdPartyBill.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class ThirdPartyBillResource extends DelegatingCrudResource<ThirdPartyBill> {
     @Override
     protected String getUniqueId(ThirdPartyBill delegate) {
@@ -43,7 +45,11 @@ public class ThirdPartyBillResource extends DelegatingCrudResource<ThirdPartyBil
 
     @Override
     protected void delete(ThirdPartyBill thirdPartyBill, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        thirdPartyBill.setVoided(true);
+        thirdPartyBill.setVoidedBy(Context.getAuthenticatedUser());
+        thirdPartyBill.setVoidedDate(new Date());
+        thirdPartyBill.setVoidReason(s);
+        Context.getService(BillingService.class).saveThirdPartyBill(thirdPartyBill);
     }
 
     @Override
@@ -59,7 +65,7 @@ public class ThirdPartyBillResource extends DelegatingCrudResource<ThirdPartyBil
 
     @Override
     public void purge(ThirdPartyBill thirdPartyBill, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(thirdPartyBill);
     }
 
     @Override

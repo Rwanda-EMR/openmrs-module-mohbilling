@@ -36,7 +36,7 @@ import java.util.Collections;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/beneficiary",
         supportedClass = Beneficiary.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class BeneficiaryResource extends DelegatingCrudResource<Beneficiary> {
     @Override
     protected String getUniqueId(Beneficiary delegate) {
@@ -84,7 +84,7 @@ public class BeneficiaryResource extends DelegatingCrudResource<Beneficiary> {
 
     @Override
     public void purge(Beneficiary beneficiary, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(beneficiary);
     }
 
     @Override

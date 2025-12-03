@@ -1042,8 +1042,8 @@ public class BillingServiceImpl extends BaseOpenmrsService implements BillingSer
     }
 
     @Override
-    public Map<String, BigDecimal> getGlobalBillsSummary() {
-        return billingDAO.getGlobalBillsSummary();
+    public Map<String, BigDecimal> getGlobalBillsSummary(User creator, Date date) {
+        return billingDAO.getGlobalBillsSummary(creator, date);
     }
 
     @Override
@@ -1183,5 +1183,15 @@ public class BillingServiceImpl extends BaseOpenmrsService implements BillingSer
     @Override
     public long countFacilityServicePrices(String category, Boolean hidden, String searchText) {
         return billingDAO.countFacilityServicePrices(category, hidden, searchText);
+    }
+
+    @Override
+    public BillableService saveBillableService(BillableService billableService) {
+        return billingDAO.saveBillableService(billableService);
+    }
+
+    @Override
+    public <T> void purge(T entity) {
+        billingDAO.purge(entity);
     }
 }

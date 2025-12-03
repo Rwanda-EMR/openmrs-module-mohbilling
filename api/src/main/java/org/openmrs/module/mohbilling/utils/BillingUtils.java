@@ -48,22 +48,26 @@ public class BillingUtils {
     }
 
     public static BigDecimal convertRawValueToBigDecimal(Object value) {
-        if (value instanceof BigDecimal) {
-            return (BigDecimal) value;
-        } else if (value instanceof String) {
-            return new BigDecimal((String) value);
-        } else if (value instanceof Long) {
-            return BigDecimal.valueOf((Long) value);
-        } else if (value instanceof Integer) {
-            return BigDecimal.valueOf((Integer) value);
-        } else if (value instanceof BigInteger) {
-            return new BigDecimal((BigInteger) value);
-        } else if (value instanceof Double) {
-            return new BigDecimal(String.valueOf(value));
-        } else if (value instanceof Number) {
-            return new BigDecimal(String.valueOf(((Number) value).doubleValue()));
+        if (value == null) {
+            return null;
         } else {
-            throw new IllegalArgumentException("Cannot convert object of type " + value.getClass().getName() + " to BigDecimal.");
+            if (value instanceof BigDecimal) {
+                return (BigDecimal) value;
+            } else if (value instanceof String) {
+                return new BigDecimal((String) value);
+            } else if (value instanceof Long) {
+                return BigDecimal.valueOf((Long) value);
+            } else if (value instanceof Integer) {
+                return BigDecimal.valueOf((Integer) value);
+            } else if (value instanceof BigInteger) {
+                return new BigDecimal((BigInteger) value);
+            } else if (value instanceof Double) {
+                return new BigDecimal(String.valueOf(value));
+            } else if (value instanceof Number) {
+                return new BigDecimal(String.valueOf(((Number) value).doubleValue()));
+            } else {
+                throw new IllegalArgumentException("Cannot convert object of type " + value.getClass().getName() + " to BigDecimal.");
+            }
         }
     }
 }

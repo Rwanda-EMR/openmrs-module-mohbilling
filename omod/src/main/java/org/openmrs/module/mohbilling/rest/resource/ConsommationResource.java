@@ -40,7 +40,7 @@ import java.util.Set;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/consommation",
         supportedClass = Consommation.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class ConsommationResource extends DelegatingCrudResource<Consommation> {
 
     @Override
@@ -55,7 +55,11 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
 
     @Override
     protected void delete(Consommation consommation, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        consommation.setVoided(true);
+        consommation.setVoidedBy(Context.getAuthenticatedUser());
+        consommation.setVoidedDate(new Date());
+        consommation.setVoidReason(s);
+        Context.getService(BillingService.class).saveConsommation(consommation);
     }
 
     @Override
@@ -130,7 +134,7 @@ public class ConsommationResource extends DelegatingCrudResource<Consommation> {
 
     @Override
     public void purge(Consommation consommation, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(consommation);
     }
 
     @Override

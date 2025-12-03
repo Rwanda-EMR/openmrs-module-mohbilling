@@ -31,7 +31,7 @@ import java.util.Date;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/admission",
         supportedClass = Admission.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class AdmissionResource extends DelegatingCrudResource<Admission> {
 
     @Override
@@ -46,7 +46,11 @@ public class AdmissionResource extends DelegatingCrudResource<Admission> {
 
     @Override
     protected void delete(Admission admission, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        admission.setVoided(true);
+        admission.setVoidedBy(Context.getAuthenticatedUser());
+        admission.setVoidedDate(new Date());
+        admission.setVoidReason(s);
+        Context.getService(BillingService.class).saveAdmission(admission);
     }
 
     @Override
@@ -68,7 +72,7 @@ public class AdmissionResource extends DelegatingCrudResource<Admission> {
 
     @Override
     public void purge(Admission admission, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(admission);
     }
 
     @Override

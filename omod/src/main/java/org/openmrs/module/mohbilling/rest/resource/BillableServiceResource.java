@@ -11,15 +11,14 @@ package org.openmrs.module.mohbilling.rest.resource;
 
 import io.swagger.models.Model;
 import io.swagger.models.ModelImpl;
-import io.swagger.models.properties.DateTimeProperty;
-import io.swagger.models.properties.DecimalProperty;
-import io.swagger.models.properties.IntegerProperty;
-import io.swagger.models.properties.RefProperty;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.module.mohbilling.utils.BillingUtils;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -33,11 +32,12 @@ import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOp
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/billableService",
         supportedClass = BillableService.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class BillableServiceResource extends DelegatingCrudResource<BillableService> {
     @Override
     protected String getUniqueId(BillableService delegate) {
@@ -51,7 +51,16 @@ public class BillableServiceResource extends DelegatingCrudResource<BillableServ
 
     @Override
     protected void delete(BillableService billableService, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        billableService.setRetired(true);
+        billableService.setRetiredBy(Context.getAuthenticatedUser());
+        billableService.setRetiredDate(new Date());
+        billableService.setRetireReason(s);
+        Context.getService(BillingService.class).saveBillableService(billableService);
+    }
+
+    @Override
+    public void purge(BillableService billableService, RequestContext requestContext) throws ResponseException {
+        Context.getService(BillingService.class).purge(billableService);
     }
 
     @Override
@@ -61,7 +70,28 @@ public class BillableServiceResource extends DelegatingCrudResource<BillableServ
 
     @Override
     public BillableService save(BillableService billableService) {
-        throw new ResourceDoesNotSupportOperationException();
+        if (billableService.getCreator() == null) {
+            billableService.setCreator(Context.getAuthenticatedUser());
+        }
+        if (billableService.getCreatedDate() == null) {
+            billableService.setCreatedDate(new Date());
+        }
+        if (billableService.getStartDate() == null) {
+            billableService.setStartDate(new Date());
+        }
+        return Context.getService(BillingService.class).saveBillableService(billableService);
+    }
+
+    @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("startDate");
+        description.addRequiredProperty("facilityServicePrice");
+        description.addProperty("insurance");
+        description.addProperty("maximaToPay");
+        description.addProperty("endDate");
+        description.addProperty("serviceCategory");
+        return description;
     }
 
     @Override
@@ -86,8 +116,43 @@ public class BillableServiceResource extends DelegatingCrudResource<BillableServ
     }
 
     @Override
-    public void purge(BillableService billableService, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("facilityServicePrice", new ObjectProperty()
+                        .property("facilityServicePriceId", new IntegerProperty()
+                                .description("facilityServicePriceId of the facility service price"))
+                        .description("FacilityServicePrice reference object"))
+                .property("insurance", new ObjectProperty()
+                        .property("insuranceId", new IntegerProperty()
+                                .description("insuranceId of the insurance"))
+                        .description("Insurance reference object"))
+                .property("serviceCategory", new ObjectProperty()
+                        .property("serviceCategoryId", new IntegerProperty()
+                                .description("serviceCategoryId of the service category"))
+                        .description("ServiceCategory reference object"))
+                .property("maximaToPay", new DecimalProperty()
+                        .description("Maximum amount insurance will pay"))
+                .property("startDate", new DateTimeProperty())
+                .property("endDate", new DateTimeProperty());
+
+        model.required("facilityServicePrice")
+                .required("startDate");
+
+        return model;
+    }
+
+    @Override
+    public Model getUPDATEModel(Representation rep) {
+        ModelImpl model = new ModelImpl()
+                .property("insurance", new ObjectProperty()
+                        .property("insuranceId", new IntegerProperty()
+                                .description("insuranceId of the insurance"))
+                        .description("Insurance reference object"))
+                .property("maximaToPay", new DecimalProperty()
+                        .description("Maximum amount insurance will pay"))
+                .property("endDate", new DateTimeProperty());
+
+        return model;
     }
 
     @Override
@@ -143,5 +208,10 @@ public class BillableServiceResource extends DelegatingCrudResource<BillableServ
     @Override
     protected PageableResult doGetAll(RequestContext context) throws ResponseException {
         return new NeedsPaging<>(Context.getService(BillingService.class).getAllBillableServices(), context);
+    }
+
+    @PropertySetter("maximaToPay")
+    public static void setMaximaToPay(BillableService billableService, Object value) {
+        billableService.setMaximaToPay(BillingUtils.convertRawValueToBigDecimal(value));
     }
 }

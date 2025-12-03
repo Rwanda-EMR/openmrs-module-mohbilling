@@ -38,7 +38,7 @@ import java.util.*;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/insurancePolicy",
         supportedClass = InsurancePolicy.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePolicy> {
 
     @Override
@@ -53,7 +53,11 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
 
     @Override
     protected void delete(InsurancePolicy insurancePolicy, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        insurancePolicy.setRetired(true);
+        insurancePolicy.setRetiredBy(Context.getAuthenticatedUser());
+        insurancePolicy.setRetiredDate(new Date());
+        insurancePolicy.setRetireReason(s);
+        Context.getService(BillingService.class).saveInsurancePolicy(insurancePolicy);
     }
 
     @Override
@@ -77,12 +81,7 @@ public class InsurancePolicyResource extends DelegatingCrudResource<InsurancePol
 
     @Override
     public void purge(InsurancePolicy insurancePolicy, RequestContext requestContext) throws ResponseException {
-        insurancePolicy.setRetired(true);
-        insurancePolicy.setRetiredBy(Context.getAuthenticatedUser());
-        insurancePolicy.setRetiredDate(new Date());
-        insurancePolicy.setRetireReason("Deleted via REST");
-
-        Context.getService(BillingService.class).saveInsurancePolicy(insurancePolicy);
+        Context.getService(BillingService.class).purge(insurancePolicy);
     }
 
     @Override

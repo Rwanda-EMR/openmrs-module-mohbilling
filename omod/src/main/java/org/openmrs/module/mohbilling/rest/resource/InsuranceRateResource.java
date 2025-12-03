@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/insuranceRate",
         supportedClass = InsuranceRate.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class InsuranceRateResource extends DelegatingCrudResource<InsuranceRate> {
     @Override
     protected String getUniqueId(InsuranceRate delegate) {
@@ -64,7 +64,7 @@ public class InsuranceRateResource extends DelegatingCrudResource<InsuranceRate>
 
     @Override
     public void purge(InsuranceRate insuranceRate, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(insuranceRate);
     }
 
     @Override
@@ -160,5 +160,10 @@ public class InsuranceRateResource extends DelegatingCrudResource<InsuranceRate>
     @PropertySetter("flatFee")
     public static void setFlatFee(InsuranceRate insuranceRate, Object value) {
         insuranceRate.setFlatFee(BillingUtils.convertRawValueToBigDecimal(value));
+    }
+
+    @PropertySetter("rate")
+    public static void setRate(InsuranceRate insuranceRate, Object value) {
+        insuranceRate.setRate(BillingUtils.convertRawValueToBigDecimal(value).floatValue());
     }
 }

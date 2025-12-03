@@ -27,9 +27,11 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.Date;
+
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/insuranceBill",
         supportedClass = InsuranceBill.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class InsuranceBillResource extends DelegatingCrudResource<InsuranceBill> {
     @Override
     protected String getUniqueId(InsuranceBill delegate) {
@@ -43,7 +45,11 @@ public class InsuranceBillResource extends DelegatingCrudResource<InsuranceBill>
 
     @Override
     protected void delete(InsuranceBill insuranceBill, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        insuranceBill.setVoided(true);
+        insuranceBill.setVoidedBy(Context.getAuthenticatedUser());
+        insuranceBill.setVoidedDate(new Date());
+        insuranceBill.setVoidReason(s);
+        Context.getService(BillingService.class).saveInsuranceBill(insuranceBill);
     }
 
     @Override
@@ -100,7 +106,7 @@ public class InsuranceBillResource extends DelegatingCrudResource<InsuranceBill>
 
     @Override
     public void purge(InsuranceBill insuranceBill, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(insuranceBill);
     }
 
     @Override

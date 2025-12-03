@@ -32,7 +32,7 @@ import java.util.*;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/globalBill",
         supportedClass = GlobalBill.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
 
     private static final Map<String, String> SORT_KEYS;
@@ -87,7 +87,11 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
 
     @Override
     protected void delete(GlobalBill globalBill, String s, RequestContext requestContext) throws ResponseException {
-        // not supported
+        globalBill.setVoided(true);
+        globalBill.setVoidedBy(Context.getAuthenticatedUser());
+        globalBill.setVoidedDate(new Date());
+        globalBill.setVoidReason(s);
+        Context.getService(BillingService.class).saveGlobalBill(globalBill);
     }
 
     @Override
@@ -147,7 +151,7 @@ public class GlobalBillResource extends DelegatingCrudResource<GlobalBill> {
 
     @Override
     public void purge(GlobalBill globalBill, RequestContext requestContext) throws ResponseException {
-        // not supported
+        Context.getService(BillingService.class).purge(globalBill);
     }
 
     @Override

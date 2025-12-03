@@ -29,10 +29,11 @@ import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOp
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/paidServiceBill",
         supportedClass = PaidServiceBill.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class PaidServiceBillResource extends DelegatingCrudResource<PaidServiceBill> {
     @Override
     protected String getUniqueId(PaidServiceBill delegate) {
@@ -46,7 +47,11 @@ public class PaidServiceBillResource extends DelegatingCrudResource<PaidServiceB
 
     @Override
     protected void delete(PaidServiceBill paidServiceBill, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        paidServiceBill.setVoided(true);
+        paidServiceBill.setVoidedBy(Context.getAuthenticatedUser());
+        paidServiceBill.setVoidedDate(new Date());
+        paidServiceBill.setVoidReason(s);
+        Context.getService(BillingService.class).savePaidServiceBill(paidServiceBill);
     }
 
     @Override
@@ -104,7 +109,7 @@ public class PaidServiceBillResource extends DelegatingCrudResource<PaidServiceB
 
     @Override
     public void purge(PaidServiceBill paidServiceBill, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(paidServiceBill);
     }
 
     @Override

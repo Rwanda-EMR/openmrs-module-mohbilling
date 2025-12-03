@@ -697,7 +697,7 @@ public interface BillingService extends OpenmrsService {
 
 	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
-	Map<String, BigDecimal> getGlobalBillsSummary();
+	Map<String, BigDecimal> getGlobalBillsSummary(User creator, Date date);
 
 	List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill);
 
@@ -791,5 +791,14 @@ public interface BillingService extends OpenmrsService {
     /**
      * Count facility service prices matching search criteria
      */
-    public long countFacilityServicePrices(String category, Boolean hidden, String searchText);
+    long countFacilityServicePrices(String category, Boolean hidden, String searchText);
+
+    /**
+     * Saves the BillableService to the DB
+     * @param billableService  the BillableService to be saved
+     * @return BillableServie
+     */
+    BillableService saveBillableService(BillableService billableService);
+
+    <T> void purge(T entity);
 }

@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 @Resource(name = RestConstants.VERSION_1 + "/mohbilling/hopService",
         supportedClass = HopService.class,
-        supportedOpenmrsVersions = {"2.0 - 2.*"})
+        supportedOpenmrsVersions = {"2.0 - 9.*"})
 public class HopServiceResource extends DelegatingCrudResource<HopService> {
     @Override
     protected String getUniqueId(HopService delegate) {
@@ -54,7 +54,11 @@ public class HopServiceResource extends DelegatingCrudResource<HopService> {
 
     @Override
     protected void delete(HopService hopService, String s, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        hopService.setVoided(true);
+        hopService.setVoidedBy(Context.getAuthenticatedUser());
+        hopService.setVoidedDate(new Date());
+        hopService.setVoidReason(s);
+        Context.getService(BillingService.class).saveHopService(hopService);
     }
 
     @Override
@@ -116,7 +120,7 @@ public class HopServiceResource extends DelegatingCrudResource<HopService> {
 
     @Override
     public void purge(HopService hopService, RequestContext requestContext) throws ResponseException {
-        throw new ResourceDoesNotSupportOperationException();
+        Context.getService(BillingService.class).purge(hopService);
     }
 
 
