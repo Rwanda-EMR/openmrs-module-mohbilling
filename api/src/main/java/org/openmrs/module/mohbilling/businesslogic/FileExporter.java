@@ -879,7 +879,7 @@ public class FileExporter {
 		table.setWidthPercentage(100f);
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat dfgb = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
+		//SimpleDateFormat dfgb = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
 		FontSelector boldFont = new FontSelector();
 		boldFont.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
@@ -1103,7 +1103,7 @@ public class FileExporter {
 					if(!item.getVoided()){
 						cell = new PdfPCell(fontSelector.process(""+i));
 						table.addCell(cell);
-						cell = new PdfPCell(fontSelector.process(""+dfgb.format(item.getServiceDate())));
+						cell = new PdfPCell(fontSelector.process(""+df.format(item.getServiceDate())));
 						table.addCell(cell);
 						cell = new PdfPCell(fontSelector.process(""+item.getService().getFacilityServicePrice().getName()));
 						table.addCell(cell);
