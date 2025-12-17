@@ -1,5 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <openmrs:require privilege="Manage Billing Reports"
 	otherwise="/login.htm" redirect="/mohbilling/cohort.orm" />
 <openmrs:htmlInclude
@@ -342,4 +342,4 @@ ${hello}
 
 
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>

@@ -1,12 +1,11 @@
 package org.openmrs.module.mohbilling.automation;
 
-import org.openmrs.*;
+import org.openmrs.Obs;
+import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.htmlformentry.CustomFormSubmissionAction;
 import org.openmrs.module.htmlformentry.FormEntrySession;
-import org.openmrs.module.mohbilling.businesslogic.AdmissionUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
-import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;

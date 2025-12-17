@@ -88,7 +88,14 @@ public class MohBillingViewGlobalBillController extends
 			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.valueOf(request.getParameter("globalBillId")));
 			FileExporter exp = new FileExporter();
 			List<ServiceRevenue> sr = (List<ServiceRevenue>) request.getSession().getAttribute("serviceRevenueList" );
-			exp.printGlobalBill(request, response, gb,sr, gb.getBillIdentifier()+".pdf");
+
+			String finalDiagnosisConceptQuestion=Context.getAdministrationService().getGlobalProperty("billing.finalDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill");
+			String differentialDiagnosisConceptQuestion=Context.getAdministrationService().getGlobalProperty("billing.differentialDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill");
+
+			String finalDiagnosis=GlobalBillUtil.getDiagnosisFromAdmissionToDischarge(finalDiagnosisConceptQuestion,gb.getAdmission().getAdmissionDate()+"",gb.getClosingDate()+"",gb.getAdmission().getInsurancePolicy().getOwner().getPatientId());
+			String differentialDiagnosis=GlobalBillUtil.getDiagnosisFromAdmissionToDischarge(differentialDiagnosisConceptQuestion,gb.getAdmission().getAdmissionDate()+"",gb.getClosingDate()+"",gb.getAdmission().getInsurancePolicy().getOwner().getPatientId());
+
+			exp.printGlobalBill(request, response, gb,differentialDiagnosis+"",finalDiagnosis+"",sr, gb.getBillIdentifier()+".pdf");
 		}
 		if(request.getParameter("revert_global_bill")!=null && Context.isAuthenticated()){
 			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.parseInt(request.getParameter("globalBillId")));

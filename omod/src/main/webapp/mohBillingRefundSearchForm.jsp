@@ -1,5 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <openmrs:htmlInclude file="/scripts/calendar/calendar.js" />
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
@@ -36,7 +36,7 @@
 	<c:import url="mohBillingRefundForm.jsp" />
 </c:if>
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>
 
 
 

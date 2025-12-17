@@ -1,5 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -86,7 +86,10 @@
 
 		    <c:if test="${not globalBill.closed}">
             <openmrs:hasPrivilege privilege="Add Consommation">
+            <openmrs:globalProperty var="disableManualAddBillForNonePrivateInsurance" key="billing.disableManualAddBillForNonePrivateInsurance"  />
+            <c:if test="${(disableManualAddBillForNonePrivateInsurance == true && globalBill.insurance.category =='NONE') || disableManualAddBillForNonePrivateInsurance == false}">
 		    <a href="billing.form?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">Add</a>
+		    </c:if>
 		    </openmrs:hasPrivilege>
 		    </c:if>
 		    <a href="consommation.list?insurancePolicyId=${insurancePolicyId }&ipCardNumber=${ipCardNumber}&globalBillId=${globalBillId}">View</a>
@@ -112,5 +115,30 @@
 	</c:forEach>
 </table>
 </div>
+<div class="pagination">
+  <!-- First & Previous -->
+  <c:if test="${currentPage > 1}">
+    <a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=1&size=${pageSize}">First</a>
+    <a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=${currentPage-1}&size=${pageSize}">Previous</a>
+  </c:if>
 
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+  <!-- Numeric page links -->
+  <c:forEach var="i" begin="1" end="${totalPages}">
+    <c:choose>
+      <c:when test="${i == currentPage}">
+        <span class="current">${i}</span>
+      </c:when>
+      <c:otherwise>
+        <a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=${i}&size=${pageSize}">${i}</a>
+      </c:otherwise>
+    </c:choose>
+  </c:forEach>
+
+	<!-- Next & Last -->
+	<c:if test="${currentPage < totalPages}">
+		<a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=${currentPage+1}&size=${pageSize}">Next</a>
+		<a href="?ipCardNumber=${beneficiary.insurancePolicy.insuranceCardNo}&page=${totalPages}&size=${pageSize}">Last</a>
+	</c:if>
+</div>
+
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>

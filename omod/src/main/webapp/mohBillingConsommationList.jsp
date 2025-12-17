@@ -1,5 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
-<%@ include file="/WEB-INF/template/header.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/header.jsp"%>
 <%@ taglib prefix="billingtag"
 	uri="/WEB-INF/view/module/mohbilling/taglibs/billingtag.tld"%>
 	<openmrs:require privilege="Check Patient Bill Payment" otherwise="/login.htm" redirect="/module/@MODULE_ID@/consommation.list" />
@@ -29,7 +29,10 @@
 		<button id="btn">Discharge Patient</button>
 	</openmrs:hasPrivilege>
 	<openmrs:hasPrivilege privilege="Add Consommation">
+	<openmrs:globalProperty var="disableManualAddBillForNonePrivateInsurance" key="billing.disableManualAddBillForNonePrivateInsurance"  />
+      <c:if test="${(disableManualAddBillForNonePrivateInsurance == true && globalBill.insurance.category =='NONE') || disableManualAddBillForNonePrivateInsurance == false}">
 		<a href="billing.form?insurancePolicyId=${insurancePolicy.insurancePolicyId}&ipCardNumber=${insurancePolicy.insuranceCardNo}&globalBillId=${globalBill.globalBillId}">|Add Consommation</a></div>
+      </c:if>
 	</openmrs:hasPrivilege>
 </c:if>
 <b class="boxHeader">Consommations List for Global Bill id # ${globalBill.billIdentifier}</b>
@@ -86,5 +89,5 @@
 </table>
 </div>
 <%@ include file="templates/dischargePatient.jsp"%>
-<%@ include file="/WEB-INF/template/footer.jsp"%>
+<%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>
 

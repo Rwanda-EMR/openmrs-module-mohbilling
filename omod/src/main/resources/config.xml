@@ -6,7 +6,7 @@
     <!-- Base Module Properties -->
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
-    <version>2.0.2-SNAPSHOT</version>
+    <version>2.2.0-SNAPSHOT</version>
     <package>org.openmrs.module.@MODULE_ID@</package>
     <author>MoH Rwanda</author>
     <description>
@@ -24,6 +24,7 @@
 
     <require_modules>
         <require_module>org.openmrs.module.htmlformentry</require_module>
+        <require_module version="${webservicesRestVersion}">org.openmrs.module.webservices.rest</require_module>
     </require_modules>
 
     <aware_of_modules>
@@ -45,13 +46,7 @@
         <class>@MODULE_PACKAGE@.extension.html.BillingGutterLink</class>
     </extension>
 
-
     <!-- AOP -->
-
-    <advice>
-        <point>org.openmrs.api.PatientService</point>
-        <class>@MODULE_PACKAGE@.advice.PatientServiceAdvice</class>
-    </advice>
 
     <advice>
         <point>org.openmrs.api.EncounterService</point>
@@ -151,6 +146,39 @@
         <defaultValue>pharmacy</defaultValue>
         <description>
             This should be the categories in which tariff are provided at the high level (acts and pharmacy)
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>billing.disableManualAddBillForNonePrivateInsurance</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            This will disable the option of adding bill to admission by using manual process on none private insurances
+        </description>
+    </globalProperty>
+
+
+    <globalProperty>
+        <property>billing.differentialDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill</property>
+        <defaultValue>97667</defaultValue>
+        <description>
+            This will help the differential diagnosis Concept answers To be Displayed On GlobalBill. The concept question will be mentioned by coma(,) separator.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>billing.finalDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill</property>
+        <defaultValue>97686,97666</defaultValue>
+        <description>
+            This will help the final diagnosis Concept answers To be Displayed On GlobalBill. The concept question will be mentioned by coma(,) separator.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>billing.hideLegacyUiHeaderAndFooter</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            If this is set to true, jsp pages will hide the legacyui header and footer
         </description>
     </globalProperty>
 

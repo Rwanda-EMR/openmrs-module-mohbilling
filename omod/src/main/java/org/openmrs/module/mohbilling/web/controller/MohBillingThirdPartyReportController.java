@@ -31,7 +31,7 @@ public class MohBillingThirdPartyReportController extends
         Insurance insurance = (Insurance) request.getSession().getAttribute("insurance");
 
         if (insuranceReportRecords != null) {
-            FileExporter.exportData(response, insuranceReportRecords, insurance);
+            FileExporter.exportData(response, insurance,insuranceReportRecords);
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing export data.");
         }

@@ -101,8 +101,10 @@ public interface BillingService {
 	 * 
 	 * @throws DAOException
 	 */
-	public void savePatientBill(PatientBill bill) throws DAOException;
+	PatientBill savePatientBill(PatientBill bill) throws DAOException;
 
+	List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
+		String orderBy, String orderDirection) throws DAOException;
 
 
 	/**
@@ -668,7 +670,9 @@ public interface BillingService {
 	 * @param billCreator
 	 * @return consommation list
 	 */
-	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department, int limit, int offSet);
+	public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+
 	public List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate, Date endDate);
 
 	public List<Consommation> getDCPConsommations(Date startDate, Date endDate,User billCreator);
@@ -691,4 +695,5 @@ public interface BillingService {
 
 	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
+	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
 }
