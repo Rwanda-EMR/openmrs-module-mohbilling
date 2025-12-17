@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
 import org.openmrs.module.mohbilling.model.*;
@@ -22,6 +23,20 @@ public class MohBillingThirdPartyReportController extends
 		ParameterizableViewController {
 
 	protected final Log log = LogFactory.getLog(getClass());
+	
+	private void handleExportRequest(HttpServletRequest request, HttpServletResponse response)
+            throws Exception {
+
+        List<InsuranceReportItem> insuranceReportRecords = (List<InsuranceReportItem>) request.getSession().getAttribute("listOfAllServicesRevenue");
+        Insurance insurance = (Insurance) request.getSession().getAttribute("insurance");
+
+        if (insuranceReportRecords != null) {
+            FileExporter.exportData(response, insurance,insuranceReportRecords);
+        } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing export data.");
+        }
+    }
+
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */

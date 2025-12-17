@@ -124,13 +124,15 @@
 		</openmrs:hasPrivilege>
 	</div>
 </c:if>
-<c:if test="${globalBill.closed==true}">
-	<div style="float: left;">
-		<button id="btnRevert">Edit Global Bill</button>
-	</div>
+<openmrs:hasPrivilege privilege="Revert Patient Bill">
+	<c:if test="${globalBill.closed==true}">
+		<div style="float: left;">
+			<button id="btnRevert">Edit Global Bill</button>
+		</div>
 
-</c:if>
-<div id="revert_discharge">
+	</c:if>
+</openmrs:hasPrivilege>
+<!-- <div id="revert_discharge_error">
 	<form action="viewGlobalBill.form?globalBillId=${globalBill.globalBillId}&edit_global_bill=true&revert_global_bill=${revert_global_bill}" method="post" id="revertGB">
 		<table>
 			<tr><td style="font-size:15px">Names</td><td> : <b>${insurancePolicy.owner.personName }</b></td></tr>
@@ -156,7 +158,7 @@
 			</tr>
 		</table>
 	</form>
-</div>
+</div> -->
 
 <div id="revert_discharge">
     <openmrs:hasPrivilege privilege="Revert Patient Bill">

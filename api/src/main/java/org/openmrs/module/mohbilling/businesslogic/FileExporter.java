@@ -30,11 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import java.io.OutputStream;
 
 public class FileExporter {
 
@@ -884,7 +879,7 @@ public class FileExporter {
 		table.setWidthPercentage(100f);
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat dfgb = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
+		//SimpleDateFormat dfgb = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
 		FontSelector boldFont = new FontSelector();
 		boldFont.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
@@ -1108,7 +1103,7 @@ public class FileExporter {
 					if(!item.getVoided()){
 						cell = new PdfPCell(fontSelector.process(""+i));
 						table.addCell(cell);
-						cell = new PdfPCell(fontSelector.process(""+dfgb.format(item.getServiceDate())));
+						cell = new PdfPCell(fontSelector.process(""+df.format(item.getServiceDate())));
 						table.addCell(cell);
 						cell = new PdfPCell(fontSelector.process(""+item.getService().getFacilityServicePrice().getName()));
 						table.addCell(cell);
@@ -1734,22 +1729,22 @@ public class FileExporter {
 		document.addAuthor(Context.getAuthenticatedUser().getPersonName()
 				.toString());// the name of the author
 
-		FontSelector fontTitle = new FontSelector();
-		fontTitle.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+        FontSelector fontTitle = new FontSelector();
+        fontTitle.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
 		FontSelector fontTotals = new FontSelector();
 		fontTotals.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
 		/** ------------- Report title ------------- */
 
-		Chunk chk = new Chunk("Printed on : "+ (new Date()));
-		chk.setFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
-		//Paragraph todayDate = new Paragraph();
-		//todayDate.setAlignment(Element.ALIGN_RIGHT);
-		//todayDate.add(chk);
-		//document.add(todayDate);
-		document.add(fontTitle.process("\n"));
-		//document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
+        Chunk chk = new Chunk("Printed on : " + (new Date()));
+        chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
+        //Paragraph todayDate = new Paragraph();
+        //todayDate.setAlignment(Element.ALIGN_RIGHT);
+        //todayDate.add(chk);
+        //document.add(todayDate);
+        document.add(fontTitle.process("\n"));
+        //document.add(fontTitle.process("REPUBLIQUE DU RWANDA\n"));
 
 		//displayHeader(document, fontTitle);
 		document.add(fontTitle.process("REPUBLIQUE DU RWANDA"+"\n"));
@@ -1775,9 +1770,9 @@ public class FileExporter {
 		document.add(pa);
 		//document.add(new Paragraph("\n"));
 
-		// title row
-		FontSelector fontTitleSelector = new FontSelector();
-		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+        // title row
+        FontSelector fontTitleSelector = new FontSelector();
+        fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
 		PdfPTable tableHeader = new PdfPTable(1);
 		tableHeader.setWidthPercentage(100f);
@@ -1803,9 +1798,9 @@ public class FileExporter {
 		PdfPTable table = new PdfPTable(colsWidth);
 		table.setWidthPercentage(100f);
 
-		// normal row
-		FontSelector fontselector = new FontSelector();
-		fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+        // normal row
+        FontSelector fontselector = new FontSelector();
+        fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
 
 		int number = 0;
