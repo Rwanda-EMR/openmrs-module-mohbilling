@@ -107,11 +107,5 @@ public class BillingProcessingServiceImpl extends BaseOpenmrsService implements 
         return Context.getService(BillingService.class).getAllPatientBills();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
-            String orderBy, String orderDirection) {
-        return Context.getService(BillingService.class)
-                .getPatientBillsByPagination(startIndex, pageSize, orderBy, orderDirection);
-    }
+
 }

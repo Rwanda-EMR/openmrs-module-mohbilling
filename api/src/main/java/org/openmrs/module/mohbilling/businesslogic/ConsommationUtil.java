@@ -364,10 +364,10 @@ public class ConsommationUtil {
 		}
 		return found;
 	}
-	public static List<Consommation> getConsommations(Date startDate,
-													  Date endDate, Insurance insurance, ThirdParty tp,
-													  User billCreator,Department department, int recordsPerPage, int page){
-		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department, recordsPerPage, page);
+    public static List<Consommation> getConsommations(Date startDate,
+                                                      Date endDate, Insurance insurance, ThirdParty tp,
+                                                      User billCreator,Department department){
+        return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
 	}
 	public static List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate,
 													  Date endDate) throws IOException {
@@ -393,13 +393,5 @@ public class ConsommationUtil {
 		psb.setVoidReason("removed");
 		psb.setVoidedDate(new Date());
 		ConsommationUtil.saveConsommation(psb.getConsommation());
-	}
-
-	public static int getTotalConsommations(Date startDate,
-											Date endDate, Insurance insurance, ThirdParty tp,
-											User billCreator, Department department) {
-		return getService().getTotalConsommations(startDate,
-				endDate, insurance, tp,
-				billCreator, department);
 	}
 }

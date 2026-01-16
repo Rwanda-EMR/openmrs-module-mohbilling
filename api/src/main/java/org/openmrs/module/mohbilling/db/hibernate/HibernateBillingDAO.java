@@ -109,29 +109,7 @@ public class HibernateBillingDAO implements BillingDAO {
                 .uniqueResult();
     }
 
-    @Override
-    public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
-                                                         String orderBy, String orderDirection) throws DAOException {
 
-        Criteria criteria = sessionFactory.getCurrentSession()
-                .createCriteria(PatientBill.class)
-                .setFirstResult(startIndex)
-                .setMaxResults(pageSize);
-
-        // Add ordering
-        if (orderBy != null) {
-            if ("desc".equalsIgnoreCase(orderDirection)) {
-                criteria.addOrder(Order.desc(orderBy));
-            } else {
-                criteria.addOrder(Order.asc(orderBy));
-            }
-        } else {
-            // Default order by createdDate desc
-            criteria.addOrder(Order.desc("createdDate"));
-        }
-
-        return criteria.list();
-    }
 
     /**
      * (non-Javadoc)
@@ -1708,96 +1686,106 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
-    public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp,
-                                     User billCreator, Department department) {
-        Session session = sessionFactory.getCurrentSession();
-
-        StringBuilder combinedSearch = generateConsommationsQuery("SELECT count(*) FROM moh_bill_consommation c ",insurance, tp, billCreator, department);
-
-        Query query = session.createSQLQuery(combinedSearch.toString())
-                .setParameter("startDate", Utils.formatDateForQuery(startDate, true))
-                .setParameter("endDate", Utils.formatDateForQuery(endDate, false));
-
-        fillConsommationsQueryBaseParams(insurance, tp, billCreator, department, query);
-
-        return Integer.parseInt(query.list().get(0).toString());
-    }
+//    public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp,
+//                                     User billCreator, Department department) {
+//        Session session = sessionFactory.getCurrentSession();
+//
+//        StringBuilder combinedSearch = generateConsommationsQuery("SELECT count(*) FROM moh_bill_consommation c ",insurance, tp, billCreator, department);
+//
+//        Query query = session.createSQLQuery(combinedSearch.toString())
+//                .setParameter("startDate", Utils.formatDateForQuery(startDate, true))
+//                .setParameter("endDate", Utils.formatDateForQuery(endDate, false));
+//
+//        fillConsommationsQueryBaseParams(insurance, tp, billCreator, department, query);
+//
+//        return Integer.parseInt(query.list().get(0).toString());
+//    }
 
     /* (non-Javadoc)
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getConsommations(java.util.Date, java.util.Date, org.openmrs
      * .module.mohbilling.model.Insurance, org.openmrs.module.mohbilling.model.ThirdParty, org.openmrs.User)
      */
-    @Override
     public List<Consommation> getConsommations(Date startDate,
                                                Date endDate, Insurance insurance, ThirdParty tp,
-                                               User billCreator, Department department, int limit, int offSet) {
-        if (startDate == null || endDate == null) {
-            return new ArrayList<>();
-        }
-
+                                               User billCreator, Department department) {
         Session session = sessionFactory.getCurrentSession();
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        StringBuilder combinedSearch = new StringBuilder("");
 
-        StringBuilder combinedSearch = generateConsommationsQuery("SELECT c.* FROM moh_bill_consommation c ",insurance, tp, billCreator, department);
-
-        combinedSearch.append(" LIMIT :limit OFFSET :offSet");
-
-        Query query = session.createSQLQuery(combinedSearch.toString())
-                .addEntity("c", Consommation.class)
-                .setParameter("startDate", Utils.formatDateForQuery(startDate, true))
-                .setParameter("endDate", Utils.formatDateForQuery(endDate, false));
-
-        fillConsommationsQueryBaseParams(insurance, tp, billCreator, department, query);
-
-        // Setting limit and off set to default if zero is provided to avoid performance degradation
-        query.setParameter("limit", limit == 0 ? 100 : limit);
-        query.setParameter("offSet", offSet == 0 ? 1 : offSet);
-
-
-        return query.list();
-    }
-
-    private static void fillConsommationsQueryBaseParams(Insurance insurance, ThirdParty tp, User billCreator,
-                                                         Department department, Query query) {
-        if (insurance != null) {
-            query.setParameter("insuranceId", insurance.getInsuranceId());
-        }
-        if (tp != null) {
-            query.setParameter("thirdPartyId", tp.getThirdPartyId());
-        }
-        if (billCreator != null) {
-            query.setParameter("billCreatorId", billCreator.getUserId());
-        }
-        if (department != null) {
-            query.setParameter("departmentId", department.getDepartmentId());
-        }
-    }
-
-    private static StringBuilder generateConsommationsQuery(String baseQuery, Insurance insurance, ThirdParty tp, User billCreator,
-                                                            Department department) {
-        StringBuilder combinedSearch = new StringBuilder(baseQuery)
-                .append("INNER JOIN moh_bill_patient_bill pb ON pb.patient_bill_id = c.patient_bill_id ")
-                .append("AND c.created_date BETWEEN :startDate AND :endDate");
+        combinedSearch.append("SELECT c.* FROM moh_bill_consommation c "
+                + " inner join moh_bill_patient_bill pb on pb.patient_bill_id=c.patient_bill_id"
+                + " and c.created_date between '" + df.format(startDate) + " 00:00:00 " + "' AND '" + df.format(endDate) + " 23:59:59'");
 
         if (insurance != null || tp != null) {
             combinedSearch
-                    .append(" INNER JOIN moh_bill_beneficiary b ON b.beneficiary_id=c.beneficiary_id ")
-                    .append(" INNER JOIN moh_bill_insurance_policy ip ON ip.insurance_policy_id=b.insurance_policy_id ")
-                    .append(" INNER JOIN moh_bill_insurance i ON i.insurance_id = ip.insurance_id ");
+                    .append(" inner join moh_bill_beneficiary b on b.beneficiary_id=c.beneficiary_id "
+                            + " inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=b.insurance_policy_id "
+                            + " inner join moh_bill_insurance i on i.insurance_id = ip.insurance_id "
+                    );
 
             if (insurance != null)
-                combinedSearch.append(" AND i.insurance_id = :insuranceId");
+                combinedSearch.append(" and i.insurance_id ='" + insurance.getInsuranceId() + "'");
 
             if (tp != null)
-                combinedSearch.append(" AND ip.third_party_id = :thirdPartyId");
+                combinedSearch.append(" and ip.third_party_id ='" + tp.getThirdPartyId() + "'");
         }
 
         if (billCreator != null)
-            combinedSearch.append(" AND c.creator = :billCreatorId");
+            combinedSearch.append(" and c.creator ='" + billCreator.getUserId() + "'");
 
         if (department != null)
-            combinedSearch.append(" AND c.department_id = :departmentId");
-        return combinedSearch;
+            combinedSearch.append(" and c.department_id ='" + department.getDepartmentId() + "'");
+
+        List<Consommation> consommations = session
+                .createSQLQuery(combinedSearch.toString())
+                .addEntity("c", Consommation.class).list();
+
+        return consommations;
     }
+
+
+//    private static void fillConsommationsQueryBaseParams(Insurance insurance, ThirdParty tp, User billCreator,
+//                                                         Department department, Query query) {
+//        if (insurance != null) {
+//            query.setParameter("insuranceId", insurance.getInsuranceId());
+//        }
+//        if (tp != null) {
+//            query.setParameter("thirdPartyId", tp.getThirdPartyId());
+//        }
+//        if (billCreator != null) {
+//            query.setParameter("billCreatorId", billCreator.getUserId());
+//        }
+//        if (department != null) {
+//            query.setParameter("departmentId", department.getDepartmentId());
+//        }
+//    }
+//
+//    private static StringBuilder generateConsommationsQuery(String baseQuery, Insurance insurance, ThirdParty tp, User billCreator,
+//                                                            Department department) {
+//        StringBuilder combinedSearch = new StringBuilder(baseQuery)
+//                .append("INNER JOIN moh_bill_patient_bill pb ON pb.patient_bill_id = c.patient_bill_id ")
+//                .append("AND c.created_date BETWEEN :startDate AND :endDate");
+//
+//        if (insurance != null || tp != null) {
+//            combinedSearch
+//                    .append(" INNER JOIN moh_bill_beneficiary b ON b.beneficiary_id=c.beneficiary_id ")
+//                    .append(" INNER JOIN moh_bill_insurance_policy ip ON ip.insurance_policy_id=b.insurance_policy_id ")
+//                    .append(" INNER JOIN moh_bill_insurance i ON i.insurance_id = ip.insurance_id ");
+//
+//            if (insurance != null)
+//                combinedSearch.append(" AND i.insurance_id = :insuranceId");
+//
+//            if (tp != null)
+//                combinedSearch.append(" AND ip.third_party_id = :thirdPartyId");
+//        }
+//
+//        if (billCreator != null)
+//            combinedSearch.append(" AND c.creator = :billCreatorId");
+//
+//        if (department != null)
+//            combinedSearch.append(" AND c.department_id = :departmentId");
+//        return combinedSearch;
+//    }
 
     @Override
     public List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate,

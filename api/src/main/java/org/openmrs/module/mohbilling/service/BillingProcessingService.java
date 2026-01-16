@@ -21,6 +21,5 @@ public interface BillingProcessingService {
      * @param pageSize number of records per page
      * @return List<PatientBill> paginated list of bills
      */
-    List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
-                                                  String orderBy, String orderDirection);
+
 }
