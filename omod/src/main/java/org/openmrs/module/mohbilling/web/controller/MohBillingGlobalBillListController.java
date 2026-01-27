@@ -34,7 +34,7 @@ public class MohBillingGlobalBillListController extends
 		String ipCardNumber = request.getParameter("ipCardNumber");
 		String billIdentifier = request.getParameter("billIdentifier");
 		int page = 1;
-		int size = 20;
+		int size = 50;
 
 		try {
 			if (request.getParameter("page") != null) {
