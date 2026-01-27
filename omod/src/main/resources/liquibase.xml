@@ -1831,32 +1831,4 @@
 			constraintName="uk_moh_bill_payment_invoice_reference"/>
 
 	</changeSet>
-
-	<changeSet id="moh_bill_insurance_policy_rhip_patient_id" author="openmrs">
-		<preConditions onFail="MARK_RAN">
-			<not>
-				<columnExists tableName="moh_bill_insurance_policy" columnName="rhip_patient_id" />
-			</not>
-		</preConditions>
-		<comment>
-			Add RHIP patient identifier to insurance policy
-		</comment>
-		<addColumn tableName="moh_bill_insurance_policy">
-			<column name="rhip_patient_id" type="varchar(64)" />
-		</addColumn>
-	</changeSet>
-	<changeSet id="moh_bill_global_bill_rhip_voucher_fields" author="openmrs">
-		<preConditions onFail="MARK_RAN">
-			<not>
-				<columnExists tableName="moh_bill_global_bill" columnName="rhip_voucher_code" />
-			</not>
-		</preConditions>
-		<comment>
-			Add RHIP voucher details to global bill
-		</comment>
-		<addColumn tableName="moh_bill_global_bill">
-			<column name="rhip_voucher_code" type="varchar(64)" />
-			<column name="rhip_voucher_reference_number" type="varchar(64)" />
-		</addColumn>
-	</changeSet>
 </databaseChangeLog>

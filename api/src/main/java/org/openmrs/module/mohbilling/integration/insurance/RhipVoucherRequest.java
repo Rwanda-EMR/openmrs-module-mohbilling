@@ -6,7 +6,6 @@ public class RhipVoucherRequest {
 	private String insuranceType;
 	private String facilityFosaId;
 	private String patientIdentifier;
-	private String receptionNumber;
 	private List<RhipVoucherProcedure> procedures;
 	private String userAccountCode;
 	private String processedBy;
@@ -17,7 +16,6 @@ public class RhipVoucherRequest {
 	private String admissionDate;
 	private String dischargeDate;
 	private Boolean treatmentForNewBorn;
-	private List<String> diagnosisIds;
 	private String patientPhoneNumber;
 
 	public String getInsuranceType() {
@@ -42,14 +40,6 @@ public class RhipVoucherRequest {
 
 	public void setPatientIdentifier(String patientIdentifier) {
 		this.patientIdentifier = patientIdentifier;
-	}
-
-	public String getReceptionNumber() {
-		return receptionNumber;
-	}
-
-	public void setReceptionNumber(String receptionNumber) {
-		this.receptionNumber = receptionNumber;
 	}
 
 	public List<RhipVoucherProcedure> getProcedures() {
@@ -130,14 +120,6 @@ public class RhipVoucherRequest {
 
 	public void setTreatmentForNewBorn(Boolean treatmentForNewBorn) {
 		this.treatmentForNewBorn = treatmentForNewBorn;
-	}
-
-	public List<String> getDiagnosisIds() {
-		return diagnosisIds;
-	}
-
-	public void setDiagnosisIds(List<String> diagnosisIds) {
-		this.diagnosisIds = diagnosisIds;
 	}
 
 	public String getPatientPhoneNumber() {
