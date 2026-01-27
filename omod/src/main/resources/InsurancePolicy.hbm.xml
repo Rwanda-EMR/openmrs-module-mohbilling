@@ -14,6 +14,7 @@
 		</id>
 
 		<property name="insuranceCardNo" column="insurance_card_no" type="text" />
+		<property name="rhipPatientId" column="rhip_patient_id" type="text" />
 		<property name="coverageStartDate" column="coverage_start_date" type="date" />
 		<property name="expirationDate" column="expiration_date" type="date" />
 		<property name="createdDate" column="created_date" type="date" />

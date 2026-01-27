@@ -51,12 +51,41 @@
 			$("#invalid_close").text("Please! Select Reverting Reason").show().fadeOut(4000);
 			event.preventDefault();
 		});
+		$("#btnSendVoucher").on("click",function(){
+			if (confirm("Are you sure you want to send the RHIP voucher?")) {
+				$("#sendVoucherForm").submit();
+			}
+		});
 	});
 </script>
 
 <h2>Global Bill # ${globalBill.billIdentifier} </h2>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<c:if test="${not empty sessionScope.rhipVoucherCode or not empty sessionScope.rhipVoucherReferenceNumber or not empty sessionScope.rhipVoucherStatus}">
+	<b class="boxHeader">RHIP Voucher Receipt</b>
+	<div class="box">
+		<table>
+			<tr>
+				<td>Voucher Code:</td>
+				<td><b>${sessionScope.rhipVoucherCode}</b></td>
+			</tr>
+			<tr>
+				<td>Reference Number:</td>
+				<td><b>${sessionScope.rhipVoucherReferenceNumber}</b></td>
+			</tr>
+			<tr>
+				<td>Status:</td>
+				<td><b>${sessionScope.rhipVoucherStatus}</b></td>
+			</tr>
+		</table>
+	</div>
+	<c:remove var="rhipVoucherCode" scope="session"/>
+	<c:remove var="rhipVoucherReferenceNumber" scope="session"/>
+	<c:remove var="rhipVoucherStatus" scope="session"/>
+	<br/>
+</c:if>
 
 <c:set var="ipCardNumber" value="${globalBill.admission.insurancePolicy.insuranceCardNo}" />
 <c:set var="globalBillId" value="${globalBill.globalBillId}" />
@@ -132,6 +161,15 @@
 
 	</c:if>
 </openmrs:hasPrivilege>
+<c:if test="${globalBill.closed==true}">
+	<div style="float: left; margin-left: 10px;">
+		<button id="btnSendVoucher">Send RHIP Voucher</button>
+	</div>
+	<form action="viewGlobalBill.form" method="post" id="sendVoucherForm" style="display: none;">
+		<input type="hidden" name="globalBillId" value="${globalBill.globalBillId}" />
+		<input type="hidden" name="send_voucher" value="true" />
+	</form>
+</c:if>
 <!-- <div id="revert_discharge_error">
 	<form action="viewGlobalBill.form?globalBillId=${globalBill.globalBillId}&edit_global_bill=true&revert_global_bill=${revert_global_bill}" method="post" id="revertGB">
 		<table>
@@ -281,4 +319,3 @@
 </div>
 <%@ include file="templates/dischargePatient.jsp"%>
 <%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>
-

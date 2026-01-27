@@ -1640,4 +1640,17 @@
 			ALTER TABLE moh_bill_patient_bill CHANGE COLUMN paymentConfirmed paymentConfirmed TINYINT(1) DEFAULT 0;
 		</sql>
 	</changeSet>
+	<changeSet id="moh_bill_insurance_policy_rhip_patient_id" author="openmrs">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="moh_bill_insurance_policy" columnName="rhip_patient_id" />
+			</not>
+		</preConditions>
+		<comment>
+			Add RHIP patient identifier to insurance policy
+		</comment>
+		<addColumn tableName="moh_bill_insurance_policy">
+			<column name="rhip_patient_id" type="varchar(64)" />
+		</addColumn>
+	</changeSet>
 </databaseChangeLog>

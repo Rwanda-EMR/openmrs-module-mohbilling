@@ -63,4 +63,18 @@
 			</list>
 		</property>
 	</bean>
+
+	<bean id="rhipVoucherIntegrationConfig" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherIntegrationConfig"/>
+	<bean id="rhipVoucherProvider" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherProvider">
+		<property name="config" ref="rhipVoucherIntegrationConfig"/>
+	</bean>
+	<bean id="rhipVoucherService" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService" autowire="byType">
+		<property name="voucherProvider" ref="rhipVoucherProvider"/>
+		<property name="config" ref="rhipVoucherIntegrationConfig"/>
+		<property name="conceptService" ref="conceptService"/>
+		<property name="locationService" ref="locationService"/>
+		<property name="personService" ref="personService"/>
+		<property name="providerService" ref="providerService"/>
+		<property name="billingService" ref="mohBillingService"/>
+	</bean>
 </beans>
