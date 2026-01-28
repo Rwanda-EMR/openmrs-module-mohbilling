@@ -1653,4 +1653,18 @@
 			<column name="rhip_patient_id" type="varchar(64)" />
 		</addColumn>
 	</changeSet>
+	<changeSet id="moh_bill_global_bill_rhip_voucher_fields" author="openmrs">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="moh_bill_global_bill" columnName="rhip_voucher_code" />
+			</not>
+		</preConditions>
+		<comment>
+			Add RHIP voucher details to global bill
+		</comment>
+		<addColumn tableName="moh_bill_global_bill">
+			<column name="rhip_voucher_code" type="varchar(64)" />
+			<column name="rhip_voucher_reference_number" type="varchar(64)" />
+		</addColumn>
+	</changeSet>
 </databaseChangeLog>

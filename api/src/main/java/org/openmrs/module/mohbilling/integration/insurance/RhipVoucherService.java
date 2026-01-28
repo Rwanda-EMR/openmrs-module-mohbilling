@@ -2,9 +2,6 @@ package org.openmrs.module.mohbilling.integration.insurance;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
-import org.openmrs.Location;
-import org.openmrs.LocationAttribute;
-import org.openmrs.LocationAttributeType;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
@@ -13,8 +10,8 @@ import org.openmrs.Provider;
 import org.openmrs.ProviderAttribute;
 import org.openmrs.ProviderAttributeType;
 import org.openmrs.User;
+import org.openmrs.PersonName;
 import org.openmrs.api.ConceptService;
-import org.openmrs.api.LocationService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.context.Context;
@@ -26,7 +23,6 @@ import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
-import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.utils.Utils;
@@ -39,8 +35,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RhipVoucherService {
 
@@ -53,7 +49,6 @@ public class RhipVoucherService {
 	private BillingService billingService;
 	private ProviderService providerService;
 	private PersonService personService;
-	private LocationService locationService;
 	private ConceptService conceptService;
 
 	public IntegrationResponse submitVoucher(RhipVoucherRequest request) {
@@ -83,6 +78,10 @@ public class RhipVoucherService {
 			ret.setEnabled(config != null && config.isVoucherEnabled());
 			ret.setErrorMessage("Unable to build voucher request from global bill");
 			return ret;
+		}
+		IntegrationResponse practitionerCheck = ensurePractitionerRegistered(request, resolveProcessedBy(globalBill));
+		if (practitionerCheck != null && practitionerCheck.getErrorMessage() != null) {
+			return practitionerCheck;
 		}
 		return submitVoucher(request);
 	}
@@ -180,6 +179,188 @@ public class RhipVoucherService {
 			}
 		}
 		return null;
+	}
+
+	private IntegrationResponse ensurePractitionerRegistered(RhipVoucherRequest request, User processedBy) {
+		IntegrationResponse ret = new IntegrationResponse();
+		ret.setEnabled(config != null && config.isPractitionerIntegrationEnabled());
+		if (!ret.isEnabled()) {
+			ret.setErrorMessage("Practitioner integration is not configured");
+			return ret;
+		}
+		if (voucherProvider == null) {
+			ret.setErrorMessage("RHIP voucher provider is not configured");
+			return ret;
+		}
+		String insuranceType = normalizeInsuranceType(request == null ? null : request.getInsuranceType());
+		String licenseNumber = request == null ? null : request.getPractitionerLicenseNumber();
+		if (StringUtils.isBlank(insuranceType) || StringUtils.isBlank(licenseNumber)) {
+			ret.setErrorMessage("Practitioner license number or insurance type is missing");
+			return ret;
+		}
+		IntegrationResponse details = voucherProvider.getPractitionerDetails(insuranceType, licenseNumber);
+		if (Boolean.TRUE.equals(isSuccessResponse(details))) {
+			return ret;
+		}
+		PractitionerRegistration registration = buildPractitionerRegistration(insuranceType, licenseNumber, request, processedBy);
+		if (registration.errorMessage != null) {
+			ret.setErrorMessage(registration.errorMessage);
+			return ret;
+		}
+		IntegrationResponse createResponse = voucherProvider.createPractitioner(
+				insuranceType,
+				registration.practitionerType,
+				registration.documentNumber,
+				registration.documentType,
+				licenseNumber,
+				registration.facilityFosaId,
+				registration.phoneNumber,
+				registration.practitionerSubCategoryTypeId,
+				registration.contractType,
+				registration.firstName,
+				registration.lastName,
+				registration.gender,
+				registration.dateOfBirth);
+		if (!Boolean.TRUE.equals(isSuccessResponse(createResponse))) {
+			ret.setErrorMessage("Unable to register practitioner in RHIP");
+		}
+		return ret;
+	}
+
+	private Boolean isSuccessResponse(IntegrationResponse response) {
+		if (response == null) {
+			return null;
+		}
+		Object responseEntity = response.getResponseEntity();
+		if (responseEntity == null) {
+			return null;
+		}
+		String body = responseEntity.toString();
+		Pattern pattern = Pattern.compile("\"success\"\\s*:\\s*(true|false)", Pattern.CASE_INSENSITIVE);
+		Matcher matcher = pattern.matcher(body);
+		if (matcher.find()) {
+			return Boolean.valueOf(matcher.group(1));
+		}
+		return null;
+	}
+
+	private PractitionerRegistration buildPractitionerRegistration(String insuranceType, String licenseNumber,
+	                                                               RhipVoucherRequest request, User processedBy) {
+		PractitionerRegistration registration = new PractitionerRegistration();
+		registration.practitionerType = defaultIfBlank(config == null ? null : config.getPractitionerType(), "LOCAL");
+		registration.documentType = defaultIfBlank(config == null ? null : config.getPractitionerDocumentType(), "NID");
+		registration.contractType = defaultIfBlank(config == null ? null : config.getPractitionerContractType(), "FULL_TIME");
+		registration.practitionerSubCategoryTypeId =
+				config == null ? null : config.getPractitionerSubCategoryTypeId();
+		registration.documentNumber = resolvePractitionerDocumentNumber(processedBy, licenseNumber);
+		registration.facilityFosaId = resolvePractitionerFosaId(request);
+		registration.phoneNumber = resolvePractitionerPhoneNumber(processedBy);
+		registration.firstName = resolvePractitionerFirstName(processedBy);
+		registration.lastName = resolvePractitionerLastName(processedBy);
+		registration.gender = resolvePractitionerGender(processedBy);
+		registration.dateOfBirth = resolvePractitionerBirthDate(processedBy);
+		if (StringUtils.isBlank(registration.practitionerSubCategoryTypeId)) {
+			registration.errorMessage = "Practitioner sub-category type id is not configured";
+		} else if (StringUtils.isBlank(registration.documentNumber)) {
+			registration.errorMessage = "Practitioner document number is missing";
+		} else if (StringUtils.isBlank(registration.facilityFosaId)) {
+			registration.errorMessage = "FOSA ID is missing for practitioner registration";
+		} else if (StringUtils.isBlank(registration.firstName) || StringUtils.isBlank(registration.lastName)) {
+			registration.errorMessage = "Practitioner name is missing";
+		} else if (StringUtils.isBlank(registration.gender)) {
+			registration.errorMessage = "Practitioner gender is missing";
+		} else if (StringUtils.isBlank(registration.dateOfBirth)) {
+			registration.errorMessage = "Practitioner date of birth is missing";
+		}
+		return registration;
+	}
+
+	private String resolvePractitionerDocumentNumber(User user, String fallback) {
+		String value = resolvePersonAttributeValue(user, config == null ? null : config.getPractitionerDocumentNumberAttributeTypeUuid());
+		return StringUtils.isBlank(value) ? fallback : value;
+	}
+
+	private String resolvePractitionerPhoneNumber(User user) {
+		return resolvePersonAttributeValue(user, config == null ? null : config.getPractitionerPhoneAttributeTypeUuid());
+	}
+
+	private String resolvePersonAttributeValue(User user, String attributeTypeUuid) {
+		if (user == null || personService == null || StringUtils.isBlank(attributeTypeUuid)) {
+			return null;
+		}
+		if (user.getPerson() == null) {
+			return null;
+		}
+		PersonAttributeType attributeType = personService.getPersonAttributeTypeByUuid(attributeTypeUuid);
+		if (attributeType == null) {
+			return null;
+		}
+		PersonAttribute attribute = user.getPerson().getAttribute(attributeType);
+		if (attribute == null || attribute.getValue() == null) {
+			return null;
+		}
+		String value = attribute.getValue().toString();
+		return StringUtils.isBlank(value) ? null : value;
+	}
+
+	private String resolvePractitionerFosaId(RhipVoucherRequest request) {
+		String fosaId = request == null ? null : request.getFacilityFosaId();
+		if (StringUtils.isNotBlank(fosaId)) {
+			return fosaId;
+		}
+		return config == null ? null : config.getDefaultFosaId();
+	}
+
+	private String resolvePractitionerFirstName(User user) {
+		PersonName name = user == null || user.getPerson() == null ? null : user.getPerson().getPersonName();
+		if (name != null && StringUtils.isNotBlank(name.getGivenName())) {
+			return name.getGivenName();
+		}
+		return user == null ? null : user.getUsername();
+	}
+
+	private String resolvePractitionerLastName(User user) {
+		PersonName name = user == null || user.getPerson() == null ? null : user.getPerson().getPersonName();
+		if (name != null && StringUtils.isNotBlank(name.getFamilyName())) {
+			return name.getFamilyName();
+		}
+		return null;
+	}
+
+	private String resolvePractitionerGender(User user) {
+		String gender = user == null || user.getPerson() == null ? null : user.getPerson().getGender();
+		return StringUtils.isBlank(gender) ? null : gender;
+	}
+
+	private String resolvePractitionerBirthDate(User user) {
+		Date birthdate = user == null || user.getPerson() == null ? null : user.getPerson().getBirthdate();
+		return birthdate == null ? null : formatDate(birthdate);
+	}
+
+	private String normalizeInsuranceType(String insuranceType) {
+		if (StringUtils.isBlank(insuranceType)) {
+			return null;
+		}
+		return insuranceType.trim().toLowerCase();
+	}
+
+	private String defaultIfBlank(String value, String defaultValue) {
+		return StringUtils.isBlank(value) ? defaultValue : value;
+	}
+
+	private static class PractitionerRegistration {
+		private String practitionerType;
+		private String documentNumber;
+		private String documentType;
+		private String contractType;
+		private String practitionerSubCategoryTypeId;
+		private String facilityFosaId;
+		private String phoneNumber;
+		private String firstName;
+		private String lastName;
+		private String gender;
+		private String dateOfBirth;
+		private String errorMessage;
 	}
 
 	private String resolvePatientIdentifier(InsurancePolicy policy, Patient patient, Insurance insurance, String fosaId,
@@ -333,7 +514,7 @@ public class RhipVoucherService {
 		if (StringUtils.isNotBlank(defaultValue)) {
 			return defaultValue;
 		}
-		return isAdmitted(admission) ? "IN_PATIENT" : "OUT_PATIENT";
+		return isAdmitted(admission) ? "HOUSEHOLD_MEMBER" : "SPECIAL_CASE";
 	}
 
 	private String resolveHealthCareStayType(Admission admission) {
@@ -350,52 +531,27 @@ public class RhipVoucherService {
 	}
 
 	private String resolvePatientPhoneNumber(Patient patient, GlobalBill globalBill) {
-		if (patient == null) {
+		if (patient == null || personService == null || config == null) {
 			return null;
 		}
-		String phoneNumber = resolvePatientBillPhoneNumber(globalBill);
-		if (StringUtils.isNotBlank(phoneNumber)) {
-			return phoneNumber;
-		}
-		if (conceptService == null) {
+		String attributeTypeUuid = config.getPatientPhoneAttributeTypeUuid();
+		if (StringUtils.isBlank(attributeTypeUuid)) {
 			return null;
 		}
-		String epaymentPhoneNumberConceptRef = Context.getAdministrationService().getGlobalProperty("registration.ePaymentPhoneNumberConcept");
-		if (StringUtils.isBlank(epaymentPhoneNumberConceptRef)) {
-			log.warn("registration.ePaymentPhoneNumberConcept global property is not configured");
+		PersonAttributeType attributeType = personService.getPersonAttributeTypeByUuid(attributeTypeUuid);
+		PersonAttribute attribute = attributeType == null ? null : patient.getAttribute(attributeType);
+		Object value = attribute == null ? null : attribute.getValue();
+		if (value == null) {
 			return null;
 		}
-		Concept epaymentPhoneNumberConcept = getConcept(epaymentPhoneNumberConceptRef);
-		if (epaymentPhoneNumberConcept == null) {
-			log.warn("registration.ePaymentPhoneNumberConcept not found: {}");
-			return null;
-		}
-		List<Obs> currentPhoneNumbers = Utils.getLastNObservations(1, patient, epaymentPhoneNumberConcept, false);
-		String currentPhoneNumber = null;
-		if (!currentPhoneNumbers.isEmpty()) {
-			currentPhoneNumber = currentPhoneNumbers.get(0).getValueText();
-		}
-		return StringUtils.isBlank(currentPhoneNumber) ? null : currentPhoneNumber;
-	}
-
-	private String resolvePatientBillPhoneNumber(GlobalBill globalBill) {
-		if (billingService == null || globalBill == null) {
-			return null;
-		}
-		List<Consommation> consommations = billingService.getAllConsommationByGlobalBill(globalBill);
-		if (consommations == null) {
-			return null;
-		}
-		for (Consommation consommation : consommations) {
-			PatientBill patientBill = consommation == null ? null : consommation.getPatientBill();
-			if (patientBill != null && StringUtils.isNotBlank(patientBill.getPhoneNumber())) {
-				return patientBill.getPhoneNumber();
-			}
-		}
-		return null;
+		String text = value.toString();
+		return StringUtils.isBlank(text) ? null : text;
 	}
 
 	private Concept getConcept(String conceptRef) {
+		if (conceptService == null || StringUtils.isBlank(conceptRef)) {
+			return null;
+		}
 		String trimmed = conceptRef.trim();
 		Concept concept = conceptService.getConceptByUuid(trimmed);
 		if (concept == null) {
@@ -405,69 +561,11 @@ public class RhipVoucherService {
 	}
 
 	private String resolveFosaId(GlobalBill globalBill) {
-		Set<Location> candidateLocations = new HashSet<>();
-		List<Consommation> consommations = billingService == null ? null : billingService.getAllConsommationByGlobalBill(globalBill);
-		if (consommations != null) {
-			for (Consommation consommation : consommations) {
-				if (consommation == null || consommation.getBillItems() == null) {
-					continue;
-				}
-				for (PatientServiceBill billItem : consommation.getBillItems()) {
-					BillableService service = billItem == null ? null : billItem.getService();
-					FacilityServicePrice facilityServicePrice = service == null ? null : service.getFacilityServicePrice();
-					Location location = facilityServicePrice == null ? null : facilityServicePrice.getLocation();
-					if (location != null) {
-						candidateLocations.add(location);
-					}
-				}
-			}
+		String fosaId = config == null ? null : config.getDefaultFosaId();
+		if (StringUtils.isBlank(fosaId)) {
+			log.warn("No FOSA ID configured for RHIP voucher submission");
 		}
-		String fosaId = resolveFosaIdFromLocations(candidateLocations);
-		if (StringUtils.isNotBlank(fosaId)) {
-			return fosaId;
-		}
-		if (locationService != null) {
-			Location defaultLocation = locationService.getDefaultLocation();
-			if (defaultLocation != null) {
-				fosaId = resolveFosaIdFromLocations(Collections.singleton(defaultLocation));
-				if (StringUtils.isNotBlank(fosaId)) {
-					return fosaId;
-				}
-			}
-		}
-		return config == null ? null : config.getDefaultFosaId();
-	}
-
-	private String resolveFosaIdFromLocations(Set<Location> locations) {
-		if (locations == null || locations.isEmpty() || locationService == null || config == null) {
-			return null;
-		}
-		String attributeTypeUuid = config.getFosaIdAttributeTypeUuid();
-		if (StringUtils.isBlank(attributeTypeUuid)) {
-			return null;
-		}
-		LocationAttributeType attributeType = locationService.getLocationAttributeTypeByUuid(attributeTypeUuid);
-		if (attributeType == null) {
-			log.warn("No FOSA ID location attribute type found for uuid {}");
-			return null;
-		}
-		Set<String> fosaIdsFound = new HashSet<>();
-		for (Location location : locations) {
-			for (LocationAttribute attribute : location.getActiveAttributes()) {
-				if (attributeType.equals(attribute.getAttributeType()) && StringUtils.isNotBlank(attribute.getValueReference())) {
-					fosaIdsFound.add(attribute.getValueReference());
-				}
-			}
-		}
-		if (fosaIdsFound.size() == 1) {
-			return fosaIdsFound.iterator().next();
-		}
-		if (fosaIdsFound.size() > 1) {
-			log.warn("Multiple FOSA IDs are found across candidate locations");
-		} else {
-			log.warn("No FOSA IDs are associated with candidate locations");
-		}
-		return null;
+		return fosaId;
 	}
 
 	private Date resolveDischargeDate(GlobalBill globalBill, Admission admission) {
@@ -507,10 +605,6 @@ public class RhipVoucherService {
 
 	public void setPersonService(PersonService personService) {
 		this.personService = personService;
-	}
-
-	public void setLocationService(LocationService locationService) {
-		this.locationService = locationService;
 	}
 
 	public void setConceptService(ConceptService conceptService) {

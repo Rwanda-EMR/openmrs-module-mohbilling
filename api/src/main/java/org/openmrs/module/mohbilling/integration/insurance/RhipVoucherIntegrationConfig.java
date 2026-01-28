@@ -17,6 +17,17 @@ public class RhipVoucherIntegrationConfig {
 	public static final String DEFAULT_HEALTHCARE_STAY_TYPE = VOUCHER_PREFIX + "defaultHealthCareStayType";
 	public static final String DEFAULT_TREATMENT_FOR_NEW_BORN = VOUCHER_PREFIX + "defaultTreatmentForNewBorn";
 	public static final String FOSA_ID_ATTRIBUTE_TYPE_UUID = VOUCHER_PREFIX + "fosaIdAttributeTypeUuid";
+	public static final String PATIENT_PHONE_ATTRIBUTE_TYPE_UUID = VOUCHER_PREFIX + "patientPhoneAttributeTypeUuid";
+	public static final String PRACTITIONER_DETAILS_URL = VOUCHER_PREFIX + "practitionerDetailsUrl";
+	public static final String PRACTITIONER_CREATE_URL = VOUCHER_PREFIX + "practitionerCreateUrl";
+	public static final String PRACTITIONER_TYPE = VOUCHER_PREFIX + "practitionerType";
+	public static final String PRACTITIONER_DOCUMENT_TYPE = VOUCHER_PREFIX + "practitionerDocumentType";
+	public static final String PRACTITIONER_CONTRACT_TYPE = VOUCHER_PREFIX + "practitionerContractType";
+	public static final String PRACTITIONER_SUBCATEGORY_TYPE_ID = VOUCHER_PREFIX + "practitionerSubCategoryTypeId";
+	public static final String PRACTITIONER_DOCUMENT_NUMBER_ATTRIBUTE_TYPE_UUID =
+			VOUCHER_PREFIX + "practitionerDocumentNumberAttributeTypeUuid";
+	public static final String PRACTITIONER_PHONE_ATTRIBUTE_TYPE_UUID =
+			VOUCHER_PREFIX + "practitionerPhoneAttributeTypeUuid";
 
 	public String getVoucherUrl() {
 		return Context.getAdministrationService().getGlobalProperty(VOUCHER_URL);
@@ -48,6 +59,46 @@ public class RhipVoucherIntegrationConfig {
 
 	public String getFosaIdAttributeTypeUuid() {
 		return Context.getAdministrationService().getGlobalProperty(FOSA_ID_ATTRIBUTE_TYPE_UUID);
+	}
+
+	public String getPatientPhoneAttributeTypeUuid() {
+		return Context.getAdministrationService().getGlobalProperty(PATIENT_PHONE_ATTRIBUTE_TYPE_UUID);
+	}
+
+	public String getPractitionerDetailsUrl() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_DETAILS_URL);
+	}
+
+	public String getPractitionerCreateUrl() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_CREATE_URL);
+	}
+
+	public String getPractitionerType() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_TYPE);
+	}
+
+	public String getPractitionerDocumentType() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_DOCUMENT_TYPE);
+	}
+
+	public String getPractitionerContractType() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_CONTRACT_TYPE);
+	}
+
+	public String getPractitionerSubCategoryTypeId() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_SUBCATEGORY_TYPE_ID);
+	}
+
+	public String getPractitionerDocumentNumberAttributeTypeUuid() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_DOCUMENT_NUMBER_ATTRIBUTE_TYPE_UUID);
+	}
+
+	public String getPractitionerPhoneAttributeTypeUuid() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_PHONE_ATTRIBUTE_TYPE_UUID);
+	}
+
+	public boolean isPractitionerIntegrationEnabled() {
+		return StringUtils.isNotBlank(getPractitionerDetailsUrl()) && StringUtils.isNotBlank(getPractitionerCreateUrl());
 	}
 
 	public String getDefaultPatientType() {

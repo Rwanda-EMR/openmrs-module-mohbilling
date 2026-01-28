@@ -52,6 +52,10 @@ public class GlobalBill {
 
 	private User editedBy;
 
+	private String rhipVoucherCode;
+
+	private String rhipVoucherReferenceNumber;
+
 	public String getClosingReason() {
 		return closingReason;
 	}
@@ -84,6 +88,21 @@ public class GlobalBill {
 		this.insurance = insurance;
 	}
 
+	public String getRhipVoucherCode() {
+		return rhipVoucherCode;
+	}
+
+	public void setRhipVoucherCode(String rhipVoucherCode) {
+		this.rhipVoucherCode = rhipVoucherCode;
+	}
+
+	public String getRhipVoucherReferenceNumber() {
+		return rhipVoucherReferenceNumber;
+	}
+
+	public void setRhipVoucherReferenceNumber(String rhipVoucherReferenceNumber) {
+		this.rhipVoucherReferenceNumber = rhipVoucherReferenceNumber;
+	}
 
 
 

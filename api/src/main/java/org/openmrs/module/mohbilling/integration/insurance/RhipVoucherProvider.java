@@ -15,7 +15,6 @@ import org.openmrs.module.mohbilling.integration.IntegrationResponse;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 public class RhipVoucherProvider {
 
@@ -37,6 +36,52 @@ public class RhipVoucherProvider {
 			ret.setErrorMessage("No voucher request provided");
 			return ret;
 		}
+		String payload = buildVoucherJson(request);
+		log.info("RHIP voucher payload: " + payload);
+		return executePost(config.getVoucherUrl(), payload);
+	}
+
+	public IntegrationResponse getPractitionerDetails(String insuranceType, String licenseNumber) {
+		IntegrationResponse ret = new IntegrationResponse();
+		ret.setEnabled(config != null && config.isPractitionerIntegrationEnabled());
+		if (!ret.isEnabled()) {
+			ret.setErrorMessage("Practitioner integration is not configured");
+			return ret;
+		}
+		return executePost(config.getPractitionerDetailsUrl(), buildPractitionerDetailsJson(insuranceType, licenseNumber));
+	}
+
+	public IntegrationResponse createPractitioner(String insuranceType, String practitionerType, String documentNumber,
+	                                             String documentType, String practitionerLicenseNumber, String facilityFosaId,
+	                                             String phoneNumber, String practitionerSubCategoryTypeId, String contractType,
+	                                             String firstName, String lastName, String gender, String dateOfBirth) {
+		IntegrationResponse ret = new IntegrationResponse();
+		ret.setEnabled(config != null && config.isPractitionerIntegrationEnabled());
+		if (!ret.isEnabled()) {
+			ret.setErrorMessage("Practitioner integration is not configured");
+			return ret;
+		}
+		String payload = buildPractitionerCreateJson(insuranceType, practitionerType, documentNumber, documentType,
+				practitionerLicenseNumber, facilityFosaId, phoneNumber, practitionerSubCategoryTypeId, contractType,
+				firstName, lastName, gender, dateOfBirth);
+		return executePost(config.getPractitionerCreateUrl(), payload);
+	}
+
+	public RhipVoucherIntegrationConfig getConfig() {
+		return config;
+	}
+
+	public void setConfig(RhipVoucherIntegrationConfig config) {
+		this.config = config;
+	}
+
+	private IntegrationResponse executePost(String url, String payload) {
+		IntegrationResponse ret = new IntegrationResponse();
+		ret.setEnabled(StringUtils.isNotBlank(url));
+		if (!ret.isEnabled()) {
+			ret.setErrorMessage("Endpoint URL is not configured");
+			return ret;
+		}
 		try (CloseableHttpClient httpClient = HttpClients.custom()
 				.setDefaultRequestConfig(RequestConfig.custom()
 						.setConnectTimeout(CONNECT_TIMEOUT)
@@ -44,19 +89,18 @@ public class RhipVoucherProvider {
 						.setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT)
 						.build())
 				.build()) {
-			String url = config.getVoucherUrl();
 			HttpPost httpPost = new HttpPost(url);
-			log.debug("POSTING voucher to " + url);
+			log.debug("POSTING to " + url);
 			httpPost.setHeader("Content-Type", "application/json");
-			String apiKey = config.getVoucherApiKey();
+			String apiKey = config == null ? null : config.getVoucherApiKey();
 			if (StringUtils.isNotBlank(apiKey)) {
 				httpPost.setHeader("x-api-key", apiKey);
 			}
-			String apiOrigin = config.getVoucherApiOrigin();
+			String apiOrigin = config == null ? null : config.getVoucherApiOrigin();
 			if (StringUtils.isNotBlank(apiOrigin)) {
 				httpPost.setHeader("Origin", apiOrigin);
 			}
-			httpPost.setEntity(new StringEntity(buildVoucherJson(request)));
+			httpPost.setEntity(new StringEntity(payload));
 			ret.setEndpointAccessible(false);
 			try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
 				ret.setEndpointAccessible(true);
@@ -68,27 +112,13 @@ public class RhipVoucherProvider {
 				} catch (Exception ignored) {
 				}
 				if (StringUtils.isNotBlank(data)) {
-					try {
-						ret.setResponseEntity(data);
-					}
-					catch (Exception e) {
-						ret.setResponseEntity(data);
-					}
+					ret.setResponseEntity(data);
 				}
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			ret.setErrorMessage(e.getMessage());
 		}
 		return ret;
-	}
-
-	public RhipVoucherIntegrationConfig getConfig() {
-		return config;
-	}
-
-	public void setConfig(RhipVoucherIntegrationConfig config) {
-		this.config = config;
 	}
 
 	private String buildVoucherJson(RhipVoucherRequest request) {
@@ -110,6 +140,40 @@ public class RhipVoucherProvider {
 		first = appendJsonField(builder, "dischargeDate", jsonString(request.getDischargeDate()), first);
 		first = appendJsonField(builder, "treatmentForNewBorn", booleanJson(request.getTreatmentForNewBorn()), first);
 		appendJsonField(builder, "patientPhoneNumber", jsonString(request.getPatientPhoneNumber()), first);
+		builder.append("}");
+		return builder.toString();
+	}
+
+	private String buildPractitionerDetailsJson(String insuranceType, String licenseNumber) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("{");
+		boolean first = true;
+		first = appendJsonField(builder, "insuranceType", jsonString(insuranceType), first);
+		appendJsonField(builder, "licenseNumber", jsonString(licenseNumber), first);
+		builder.append("}");
+		return builder.toString();
+	}
+
+	private String buildPractitionerCreateJson(String insuranceType, String practitionerType, String documentNumber,
+	                                           String documentType, String practitionerLicenseNumber, String facilityFosaId,
+	                                           String phoneNumber, String practitionerSubCategoryTypeId, String contractType,
+	                                           String firstName, String lastName, String gender, String dateOfBirth) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("{");
+		boolean first = true;
+		first = appendJsonField(builder, "insuranceType", jsonString(insuranceType), first);
+		first = appendJsonField(builder, "practitionerType", jsonString(practitionerType), first);
+		first = appendJsonField(builder, "documentNumber", jsonString(documentNumber), first);
+		first = appendJsonField(builder, "documentType", jsonString(documentType), first);
+		first = appendJsonField(builder, "practitionerLicenseNumber", jsonString(practitionerLicenseNumber), first);
+		first = appendJsonField(builder, "facilityFosaId", jsonString(facilityFosaId), first);
+		first = appendJsonField(builder, "phoneNumber", jsonString(phoneNumber), first);
+		first = appendJsonField(builder, "practitionerSubCategoryTypeId", jsonString(practitionerSubCategoryTypeId), first);
+		first = appendJsonField(builder, "contractType", jsonString(contractType), first);
+		first = appendJsonField(builder, "firstName", jsonString(firstName), first);
+		first = appendJsonField(builder, "lastName", jsonString(lastName), first);
+		first = appendJsonField(builder, "gender", jsonString(gender), first);
+		appendJsonField(builder, "dateOfBirth", jsonString(dateOfBirth), first);
 		builder.append("}");
 		return builder.toString();
 	}

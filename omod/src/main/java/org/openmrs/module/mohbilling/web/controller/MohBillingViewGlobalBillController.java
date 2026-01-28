@@ -1,5 +1,6 @@
 package org.openmrs.module.mohbilling.web.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.PatientIdentifier;
@@ -129,7 +130,6 @@ public class MohBillingViewGlobalBillController extends
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "RHIP voucher service is not configured");
 			} else {
 				IntegrationResponse voucherResponse = voucherService.submitVoucherForGlobalBill(gb);
-				logVoucherResponse(voucherResponse);
 				if (voucherResponse == null) {
 					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 							"RHIP voucher submission failed: no response received");
@@ -146,30 +146,9 @@ public class MohBillingViewGlobalBillController extends
 					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Error submitting RHIP voucher: " + voucherResponse.getErrorMessage());
 					log.warn("Error submitting RHIP voucher: " + voucherResponse.getErrorMessage());
 				} else if (voucherResponse.getResponseEntity() instanceof java.util.Map) {
-					java.util.Map responseBody = (java.util.Map) voucherResponse.getResponseEntity();
-					Object success = responseBody.get("success");
-					Object message = responseBody.get("message");
-					if (Boolean.TRUE.equals(success)) {
-						request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
-								message == null ? "RHIP voucher submitted successfully" : message.toString());
-						setVoucherReceiptAttributes(request, responseBody);
-					} else {
-						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-								message == null ? "RHIP voucher submission failed" : message.toString());
-						log.warn("RHIP voucher submission failed: " + responseBody);
-					}
+					processVoucherResponse(request, gb, voucherResponse.getResponseEntity(), voucherResponse.getResponseCode());
 				} else if (voucherResponse.getResponseEntity() instanceof String) {
-					String responseBody = (String) voucherResponse.getResponseEntity();
-					VoucherResponseDetails details = parseVoucherResponseDetails(responseBody);
-					if (Boolean.TRUE.equals(details.success)) {
-						request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
-								details.message == null ? "RHIP voucher submitted successfully" : details.message);
-						setVoucherReceiptAttributes(request, details);
-					} else {
-						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-								details.message == null ? "RHIP voucher submission failed" : details.message);
-						log.warn("RHIP voucher submission failed: " + responseBody);
-					}
+					processVoucherResponse(request, gb, voucherResponse.getResponseEntity(), voucherResponse.getResponseCode());
 				} else {
 					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR, "RHIP voucher submitted successfully");
 				}
@@ -183,141 +162,91 @@ public class MohBillingViewGlobalBillController extends
 		this.voucherService = voucherService;
 	}
 
-	private void logVoucherResponse(IntegrationResponse voucherResponse) {
-		if (voucherResponse == null) {
-			log.warn("RHIP voucher response is null");
-			return;
-		}
-		Object responseEntity = voucherResponse.getResponseEntity();
-		if (responseEntity == null) {
-			log.info("RHIP voucher response received (status="
-					+ voucherResponse.getResponseCode() + ", no body)");
-			return;
-		}
+	private void processVoucherResponse(HttpServletRequest request, GlobalBill globalBill, Object responseEntity, Integer responseCode) {
+		String responseBody;
+		String success = null;
+		String message = null;
+		String voucherCode = null;
+		String voucherReferenceNumber = null;
+		String status = null;
 		if (responseEntity instanceof java.util.Map) {
-			java.util.Map responseBody = (java.util.Map) responseEntity;
-			Object success = responseBody.get("success");
-			Object message = responseBody.get("message");
-			Object voucherCode = null;
-			Object voucherReferenceNumber = null;
-			Object status = null;
-			Object data = responseBody.get("data");
+			java.util.Map responseMap = (java.util.Map) responseEntity;
+			Object data = responseMap.get("data");
 			if (data instanceof java.util.Map) {
 				java.util.Map dataMap = (java.util.Map) data;
-				voucherCode = dataMap.get("voucherCode");
-				voucherReferenceNumber = dataMap.get("voucherReferenceNumber");
-				status = dataMap.get("status");
+				voucherCode = valueString(dataMap.get("voucherCode"));
+				voucherReferenceNumber = valueString(dataMap.get("voucherReferenceNumber"));
+				status = valueString(dataMap.get("status"));
 			}
-			log.info("RHIP voucher response received (status=" + voucherResponse.getResponseCode()
-					+ ", success=" + success
-					+ ", message=" + message
-					+ ", voucherCode=" + voucherCode
-					+ ", voucherReferenceNumber=" + voucherReferenceNumber
-					+ ", voucherStatus=" + status
-					+ ")");
-			return;
+			success = valueString(responseMap.get("success"));
+			message = valueString(responseMap.get("message"));
+			responseBody = String.valueOf(responseEntity);
+		} else {
+			responseBody = String.valueOf(responseEntity);
+			String normalized = responseBody.trim();
+			if (normalized.startsWith("\"") && normalized.endsWith("\"") && normalized.length() >= 2) {
+				normalized = normalized.substring(1, normalized.length() - 1);
+			}
+			normalized = normalized.replace("\\\"", "\"").replace("\\\\", "\\");
+			success = extractJsonValue(normalized, "success");
+			message = extractJsonValue(normalized, "message");
+			voucherCode = extractJsonValue(normalized, "voucherCode");
+			voucherReferenceNumber = extractJsonValue(normalized, "voucherReferenceNumber");
+			status = extractJsonValue(normalized, "status");
 		}
-		if (responseEntity instanceof String) {
-			String responseBody = (String) responseEntity;
-			VoucherResponseDetails details = parseVoucherResponseDetails(responseBody);
-			log.info("RHIP voucher response received (status=" + voucherResponse.getResponseCode()
-					+ ", success=" + details.success
-					+ ", message=" + details.message
-					+ ", voucherCode=" + details.voucherCode
-					+ ", voucherReferenceNumber=" + details.voucherReferenceNumber
-					+ ", voucherStatus=" + details.status
-					+ ")");
-			return;
-		}
-		log.info("RHIP voucher response received (status=" + voucherResponse.getResponseCode()
-				+ "): " + responseEntity);
-	}
-
-	private void setVoucherReceiptAttributes(HttpServletRequest request, java.util.Map responseBody) {
-		if (request == null || responseBody == null) {
-			return;
-		}
-		Object data = responseBody.get("data");
-		if (!(data instanceof java.util.Map)) {
-			return;
-		}
-		java.util.Map dataMap = (java.util.Map) data;
-		Object voucherCode = dataMap.get("voucherCode");
-		Object voucherReferenceNumber = dataMap.get("voucherReferenceNumber");
-		Object status = dataMap.get("status");
-		if (voucherCode != null) {
-			request.getSession().setAttribute("rhipVoucherCode", voucherCode.toString());
-		}
-		if (voucherReferenceNumber != null) {
-			request.getSession().setAttribute("rhipVoucherReferenceNumber", voucherReferenceNumber.toString());
-		}
-		if (status != null) {
-			request.getSession().setAttribute("rhipVoucherStatus", status.toString());
-		}
-	}
-
-	private void setVoucherReceiptAttributes(HttpServletRequest request, VoucherResponseDetails details) {
-		if (request == null || details == null) {
-			return;
-		}
-		if (details.voucherCode != null) {
-			request.getSession().setAttribute("rhipVoucherCode", details.voucherCode);
-		}
-		if (details.voucherReferenceNumber != null) {
-			request.getSession().setAttribute("rhipVoucherReferenceNumber", details.voucherReferenceNumber);
-		}
-		if (details.status != null) {
-			request.getSession().setAttribute("rhipVoucherStatus", details.status);
+		log.info("RHIP voucher response received (status=" + responseCode
+				+ ", success=" + success
+				+ ", message=" + message
+				+ ", voucherCode=" + voucherCode
+				+ ", voucherReferenceNumber=" + voucherReferenceNumber
+				+ ", voucherStatus=" + status
+				+ ")");
+		if ("true".equalsIgnoreCase(success)) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+					StringUtils.isBlank(message) ? "RHIP voucher submitted successfully" : message);
+			log.info("RHIP voucher submitted successfully: " + responseBody);
+			if (voucherCode != null) {
+				request.getSession().setAttribute("rhipVoucherCode", voucherCode);
+			}
+			if (voucherReferenceNumber != null) {
+				request.getSession().setAttribute("rhipVoucherReferenceNumber", voucherReferenceNumber);
+			}
+			if (status != null) {
+				request.getSession().setAttribute("rhipVoucherStatus", status);
+			}
+			if (globalBill != null && (voucherCode != null || voucherReferenceNumber != null)) {
+				globalBill.setRhipVoucherCode(voucherCode);
+				globalBill.setRhipVoucherReferenceNumber(voucherReferenceNumber);
+				try {
+					GlobalBillUtil.saveGlobalBill(globalBill);
+				} catch (Exception e) {
+					log.warn("Unable to persist RHIP voucher details for global bill " + globalBill.getGlobalBillId(), e);
+				}
+			}
+		} else {
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					StringUtils.isBlank(message) ? "RHIP voucher submission failed" : message);
+			log.warn("RHIP voucher submission failed: " + responseBody);
 		}
 	}
 
-	private VoucherResponseDetails parseVoucherResponseDetails(String responseBody) {
-		VoucherResponseDetails details = new VoucherResponseDetails();
-		if (responseBody == null) {
-			return details;
-		}
-		String normalized = normalizeJsonString(responseBody);
-		details.success = extractJsonBoolean(normalized, "success");
-		details.message = extractJsonString(normalized, "message");
-		details.voucherCode = extractJsonString(normalized, "voucherCode");
-		details.voucherReferenceNumber = extractJsonString(normalized, "voucherReferenceNumber");
-		details.status = extractJsonString(normalized, "status");
-		return details;
+	private String valueString(Object value) {
+		return value == null ? null : value.toString();
 	}
 
-	private Boolean extractJsonBoolean(String responseBody, String key) {
-		Pattern pattern = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*(true|false)", Pattern.CASE_INSENSITIVE);
+	private String extractJsonValue(String responseBody, String key) {
+		Pattern pattern = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*(\"([^\"]*)\"|true|false|null)");
 		Matcher matcher = pattern.matcher(responseBody);
-		if (matcher.find()) {
-			return Boolean.valueOf(matcher.group(1));
+		if (!matcher.find()) {
+			return null;
 		}
-		return null;
-	}
-
-	private String extractJsonString(String responseBody, String key) {
-		Pattern pattern = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*\"([^\"]*)\"");
-		Matcher matcher = pattern.matcher(responseBody);
-		if (matcher.find()) {
-			return matcher.group(1);
+		String raw = matcher.group(1);
+		if (raw == null) {
+			return null;
 		}
-		return null;
-	}
-
-	private String normalizeJsonString(String responseBody) {
-		String normalized = responseBody.trim();
-		if (normalized.startsWith("\"") && normalized.endsWith("\"") && normalized.length() >= 2) {
-			normalized = normalized.substring(1, normalized.length() - 1);
+		if (raw.startsWith("\"") && raw.endsWith("\"") && raw.length() >= 2) {
+			return raw.substring(1, raw.length() - 1);
 		}
-		normalized = normalized.replace("\\\"", "\"");
-		normalized = normalized.replace("\\\\", "\\");
-		return normalized;
-	}
-
-	private static class VoucherResponseDetails {
-		private Boolean success;
-		private String message;
-		private String voucherCode;
-		private String voucherReferenceNumber;
-		private String status;
+		return raw;
 	}
 }

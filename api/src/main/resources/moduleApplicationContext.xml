@@ -72,7 +72,6 @@
 		<property name="voucherProvider" ref="rhipVoucherProvider"/>
 		<property name="config" ref="rhipVoucherIntegrationConfig"/>
 		<property name="conceptService" ref="conceptService"/>
-		<property name="locationService" ref="locationService"/>
 		<property name="personService" ref="personService"/>
 		<property name="providerService" ref="providerService"/>
 		<property name="billingService" ref="mohBillingService"/>
