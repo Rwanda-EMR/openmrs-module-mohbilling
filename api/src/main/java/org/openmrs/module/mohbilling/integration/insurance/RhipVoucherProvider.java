@@ -1,5 +1,7 @@
 package org.openmrs.module.mohbilling.integration.insurance;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -7,22 +9,28 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.openmrs.module.mohbilling.integration.IntegrationResponse;
 
-import java.math.BigDecimal;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class RhipVoucherProvider {
 
 	protected Log log = LogFactory.getLog(getClass());
 
+	private static final String MMI_INSURANCE_TYPE = "MMI";
+	private static final String PRACTITIONER_TYPE_FOREIGN = "FOREIGN";
+
 	private static final int CONNECT_TIMEOUT = 5000;
 	private static final int SOCKET_TIMEOUT = 5000;
 	private static final int CONNECTION_REQUEST_TIMEOUT = 5000;
+
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	private RhipVoucherIntegrationConfig config;
 
@@ -37,8 +45,36 @@ public class RhipVoucherProvider {
 			return ret;
 		}
 		String payload = buildVoucherJson(request);
+		if (payload == null) {
+			ret.setErrorMessage("Unable to serialize RHIP voucher request to JSON");
+			return ret;
+		}
+		if (StringUtils.isBlank(payload)) {
+			log.warn("RHIP voucher payload is empty");
+		}
 		log.info("RHIP voucher payload: " + payload);
 		return executePost(config.getVoucherUrl(), payload);
+	}
+
+	private String buildVoucherJson(RhipVoucherRequest request) {
+		Map<String, Object> payload = new LinkedHashMap<>();
+		payload.put("insuranceType", request.getInsuranceType());
+		payload.put("facilityFosaId", request.getFacilityFosaId());
+		payload.put("patientIdentifier", request.getPatientIdentifier());
+		payload.put("procedures", request.getProcedures());
+		payload.put("userAccountCode", request.getUserAccountCode());
+		payload.put("processedBy", request.getProcessedBy());
+		if (isMmiInsuranceType(request.getInsuranceType())) {
+			payload.put("notes", request.getNotes());
+		}
+		payload.put("practitionerLicenseNumber", request.getPractitionerLicenseNumber());
+		payload.put("patientType", request.getPatientType());
+		payload.put("healthCareStayType", request.getHealthCareStayType());
+		payload.put("admissionDate", request.getAdmissionDate());
+		payload.put("dischargeDate", request.getDischargeDate());
+		payload.put("treatmentForNewBorn", request.getTreatmentForNewBorn());
+		payload.put("patientPhoneNumber", request.getPatientPhoneNumber());
+		return toJson(payload);
 	}
 
 	public IntegrationResponse getPractitionerDetails(String insuranceType, String licenseNumber) {
@@ -48,7 +84,12 @@ public class RhipVoucherProvider {
 			ret.setErrorMessage("Practitioner integration is not configured");
 			return ret;
 		}
-		return executePost(config.getPractitionerDetailsUrl(), buildPractitionerDetailsJson(insuranceType, licenseNumber));
+		String payload = buildPractitionerDetailsJson(insuranceType, licenseNumber);
+		if (payload == null) {
+			ret.setErrorMessage("Unable to serialize RHIP practitioner details request to JSON");
+			return ret;
+		}
+		return executePost(config.getPractitionerDetailsUrl(), payload);
 	}
 
 	public IntegrationResponse createPractitioner(String insuranceType, String practitionerType, String documentNumber,
@@ -64,6 +105,10 @@ public class RhipVoucherProvider {
 		String payload = buildPractitionerCreateJson(insuranceType, practitionerType, documentNumber, documentType,
 				practitionerLicenseNumber, facilityFosaId, phoneNumber, practitionerSubCategoryTypeId, contractType,
 				firstName, lastName, gender, dateOfBirth);
+		if (payload == null) {
+			ret.setErrorMessage("Unable to serialize RHIP practitioner registration request to JSON");
+			return ret;
+		}
 		return executePost(config.getPractitionerCreateUrl(), payload);
 	}
 
@@ -100,7 +145,7 @@ public class RhipVoucherProvider {
 			if (StringUtils.isNotBlank(apiOrigin)) {
 				httpPost.setHeader("Origin", apiOrigin);
 			}
-			httpPost.setEntity(new StringEntity(payload));
+			httpPost.setEntity(new StringEntity(payload, ContentType.APPLICATION_JSON));
 			ret.setEndpointAccessible(false);
 			try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
 				ret.setEndpointAccessible(true);
@@ -121,149 +166,50 @@ public class RhipVoucherProvider {
 		return ret;
 	}
 
-	private String buildVoucherJson(RhipVoucherRequest request) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("{");
-		boolean first = true;
-		first = appendJsonField(builder, "insuranceType", jsonString(request.getInsuranceType()), first);
-		first = appendJsonField(builder, "facilityFosaId", jsonString(request.getFacilityFosaId()), first);
-		first = appendJsonField(builder, "patientIdentifier", jsonString(request.getPatientIdentifier()), first);
-		first = appendJsonField(builder, "procedures", proceduresJson(request.getProcedures()), first);
-		first = appendJsonField(builder, "userAccountCode", jsonString(request.getUserAccountCode()), first);
-		first = appendJsonField(builder, "processedBy", jsonString(request.getProcessedBy()), first);
-		first = appendJsonField(builder, "notes", jsonString(request.getNotes()), first);
-		first = appendJsonField(builder, "practitionerLicenseNumber",
-				jsonString(request.getPractitionerLicenseNumber()), first);
-		first = appendJsonField(builder, "patientType", jsonString(request.getPatientType()), first);
-		first = appendJsonField(builder, "healthCareStayType", jsonString(request.getHealthCareStayType()), first);
-		first = appendJsonField(builder, "admissionDate", jsonString(request.getAdmissionDate()), first);
-		first = appendJsonField(builder, "dischargeDate", jsonString(request.getDischargeDate()), first);
-		first = appendJsonField(builder, "treatmentForNewBorn", booleanJson(request.getTreatmentForNewBorn()), first);
-		appendJsonField(builder, "patientPhoneNumber", jsonString(request.getPatientPhoneNumber()), first);
-		builder.append("}");
-		return builder.toString();
-	}
-
 	private String buildPractitionerDetailsJson(String insuranceType, String licenseNumber) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("{");
-		boolean first = true;
-		first = appendJsonField(builder, "insuranceType", jsonString(insuranceType), first);
-		appendJsonField(builder, "licenseNumber", jsonString(licenseNumber), first);
-		builder.append("}");
-		return builder.toString();
+		Map<String, Object> payload = new LinkedHashMap<>();
+		payload.put("insuranceType", insuranceType);
+		payload.put("licenseNumber", licenseNumber);
+		return toJson(payload);
 	}
 
 	private String buildPractitionerCreateJson(String insuranceType, String practitionerType, String documentNumber,
 	                                           String documentType, String practitionerLicenseNumber, String facilityFosaId,
 	                                           String phoneNumber, String practitionerSubCategoryTypeId, String contractType,
 	                                           String firstName, String lastName, String gender, String dateOfBirth) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("{");
-		boolean first = true;
-		first = appendJsonField(builder, "insuranceType", jsonString(insuranceType), first);
-		first = appendJsonField(builder, "practitionerType", jsonString(practitionerType), first);
-		first = appendJsonField(builder, "documentNumber", jsonString(documentNumber), first);
-		first = appendJsonField(builder, "documentType", jsonString(documentType), first);
-		first = appendJsonField(builder, "practitionerLicenseNumber", jsonString(practitionerLicenseNumber), first);
-		first = appendJsonField(builder, "facilityFosaId", jsonString(facilityFosaId), first);
-		first = appendJsonField(builder, "phoneNumber", jsonString(phoneNumber), first);
-		first = appendJsonField(builder, "practitionerSubCategoryTypeId", jsonString(practitionerSubCategoryTypeId), first);
-		first = appendJsonField(builder, "contractType", jsonString(contractType), first);
-		first = appendJsonField(builder, "firstName", jsonString(firstName), first);
-		first = appendJsonField(builder, "lastName", jsonString(lastName), first);
-		first = appendJsonField(builder, "gender", jsonString(gender), first);
-		appendJsonField(builder, "dateOfBirth", jsonString(dateOfBirth), first);
-		builder.append("}");
-		return builder.toString();
-	}
-
-	private boolean appendJsonField(StringBuilder builder, String name, String value, boolean first) {
-		if (!first) {
-			builder.append(",");
+		Map<String, Object> payload = new LinkedHashMap<>();
+		payload.put("insuranceType", insuranceType);
+		payload.put("practitionerType", practitionerType);
+		payload.put("documentNumber", documentNumber);
+		payload.put("documentType", documentType);
+		payload.put("practitionerLicenseNumber", practitionerLicenseNumber);
+		payload.put("facilityFosaId", facilityFosaId);
+		payload.put("phoneNumber", phoneNumber);
+		payload.put("practitionerSubCategoryTypeId", practitionerSubCategoryTypeId);
+		payload.put("contractType", contractType);
+		if (isForeignPractitionerType(practitionerType)) {
+			payload.put("firstName", firstName);
+			payload.put("lastName", lastName);
+			payload.put("gender", gender);
+			payload.put("dateOfBirth", dateOfBirth);
 		}
-		builder.append("\"").append(escapeJson(name)).append("\":").append(value);
-		return false;
+		return toJson(payload);
 	}
 
-	private String proceduresJson(List<RhipVoucherProcedure> procedures) {
-		if (procedures == null) {
-			return "null";
+	private boolean isMmiInsuranceType(String insuranceType) {
+		return StringUtils.isNotBlank(insuranceType) && MMI_INSURANCE_TYPE.equalsIgnoreCase(insuranceType.trim());
+	}
+
+	private boolean isForeignPractitionerType(String practitionerType) {
+		return StringUtils.isNotBlank(practitionerType) && PRACTITIONER_TYPE_FOREIGN.equalsIgnoreCase(practitionerType.trim());
+	}
+
+	private String toJson(Object value) {
+		try {
+			return OBJECT_MAPPER.writeValueAsString(value);
+		} catch (JsonProcessingException e) {
+			log.warn("Unable to serialize payload to JSON", e);
+			return null;
 		}
-		StringBuilder builder = new StringBuilder();
-		builder.append("[");
-		boolean first = true;
-		for (RhipVoucherProcedure procedure : procedures) {
-			if (!first) {
-				builder.append(",");
-			}
-			first = false;
-			builder.append("{");
-			boolean innerFirst = true;
-			innerFirst = appendJsonField(builder, "code", jsonString(procedure == null ? null : procedure.getCode()), innerFirst);
-			innerFirst = appendJsonField(builder, "quantity", numberJson(procedure == null ? null : procedure.getQuantity()), innerFirst);
-			innerFirst = appendJsonField(builder, "prescribedAt", jsonString(procedure == null ? null : procedure.getPrescribedAt()), innerFirst);
-			appendJsonField(builder, "price", numberJson(procedure == null ? null : procedure.getPrice()), innerFirst);
-			builder.append("}");
-		}
-		builder.append("]");
-		return builder.toString();
-	}
-
-	private String numberJson(BigDecimal value) {
-		return value == null ? "null" : value.toString();
-	}
-
-	private String booleanJson(Boolean value) {
-		return value == null ? "null" : value.toString();
-	}
-
-	private String jsonString(String value) {
-		if (value == null) {
-			return "null";
-		}
-		return "\"" + escapeJson(value) + "\"";
-	}
-
-	private String escapeJson(String value) {
-		StringBuilder escaped = new StringBuilder();
-		for (int i = 0; i < value.length(); i++) {
-			char ch = value.charAt(i);
-			switch (ch) {
-				case '"':
-					escaped.append("\\\"");
-					break;
-				case '\\':
-					escaped.append("\\\\");
-					break;
-				case '\b':
-					escaped.append("\\b");
-					break;
-				case '\f':
-					escaped.append("\\f");
-					break;
-				case '\n':
-					escaped.append("\\n");
-					break;
-				case '\r':
-					escaped.append("\\r");
-					break;
-				case '\t':
-					escaped.append("\\t");
-					break;
-				default:
-					if (ch < 0x20) {
-						String hex = Integer.toHexString(ch);
-						escaped.append("\\u");
-						for (int pad = hex.length(); pad < 4; pad++) {
-							escaped.append("0");
-						}
-						escaped.append(hex);
-					} else {
-						escaped.append(ch);
-					}
-			}
-		}
-		return escaped.toString();
 	}
 }

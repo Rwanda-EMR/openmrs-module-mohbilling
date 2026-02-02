@@ -1,5 +1,8 @@
 package org.openmrs.module.mohbilling.web.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,13 +27,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MohBillingViewGlobalBillController extends
-		ParameterizableViewController {
+			ParameterizableViewController {
 	/** Logger for this class and subclasses */
 	protected final Log log = LogFactory.getLog(getClass());
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private RhipVoucherService voucherService;
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
@@ -163,37 +165,17 @@ public class MohBillingViewGlobalBillController extends
 	}
 
 	private void processVoucherResponse(HttpServletRequest request, GlobalBill globalBill, Object responseEntity, Integer responseCode) {
-		String responseBody;
-		String success = null;
-		String message = null;
-		String voucherCode = null;
-		String voucherReferenceNumber = null;
-		String status = null;
-		if (responseEntity instanceof java.util.Map) {
-			java.util.Map responseMap = (java.util.Map) responseEntity;
-			Object data = responseMap.get("data");
-			if (data instanceof java.util.Map) {
-				java.util.Map dataMap = (java.util.Map) data;
-				voucherCode = valueString(dataMap.get("voucherCode"));
-				voucherReferenceNumber = valueString(dataMap.get("voucherReferenceNumber"));
-				status = valueString(dataMap.get("status"));
-			}
-			success = valueString(responseMap.get("success"));
-			message = valueString(responseMap.get("message"));
-			responseBody = String.valueOf(responseEntity);
-		} else {
-			responseBody = String.valueOf(responseEntity);
-			String normalized = responseBody.trim();
-			if (normalized.startsWith("\"") && normalized.endsWith("\"") && normalized.length() >= 2) {
-				normalized = normalized.substring(1, normalized.length() - 1);
-			}
-			normalized = normalized.replace("\\\"", "\"").replace("\\\\", "\\");
-			success = extractJsonValue(normalized, "success");
-			message = extractJsonValue(normalized, "message");
-			voucherCode = extractJsonValue(normalized, "voucherCode");
-			voucherReferenceNumber = extractJsonValue(normalized, "voucherReferenceNumber");
-			status = extractJsonValue(normalized, "status");
-		}
+		String responseBody = toJsonString(responseEntity);
+		JsonNode root = toJsonNode(responseEntity);
+
+		String success = jsonValueString(root == null ? null : root.get("success"));
+		String message = jsonValueString(root == null ? null : root.get("message"));
+
+		JsonNode data = root == null ? null : root.get("data");
+		String voucherCode = jsonValueString(data == null ? null : data.get("voucherCode"));
+		String voucherReferenceNumber = jsonValueString(data == null ? null : data.get("voucherReferenceNumber"));
+		String status = jsonValueString(data == null ? null : data.get("status"));
+
 		log.info("RHIP voucher response received (status=" + responseCode
 				+ ", success=" + success
 				+ ", message=" + message
@@ -230,23 +212,77 @@ public class MohBillingViewGlobalBillController extends
 		}
 	}
 
-	private String valueString(Object value) {
-		return value == null ? null : value.toString();
+	private JsonNode toJsonNode(Object responseEntity) {
+		if (responseEntity == null) {
+			return null;
+		}
+		if (responseEntity instanceof JsonNode) {
+			return (JsonNode) responseEntity;
+		}
+		if (responseEntity instanceof String) {
+			String body = ((String) responseEntity).trim();
+			try {
+				JsonNode node = OBJECT_MAPPER.readTree(body);
+				if (node != null && node.isTextual()) {
+					String inner = node.asText();
+					try {
+						return OBJECT_MAPPER.readTree(inner);
+					} catch (Exception ignored) {
+						return node;
+					}
+				}
+				return node;
+			} catch (Exception ignored) {
+			}
+
+			String normalized = body;
+			if (normalized.startsWith("\"") && normalized.endsWith("\"") && normalized.length() >= 2) {
+				normalized = normalized.substring(1, normalized.length() - 1);
+			}
+			normalized = normalized.replace("\\\"", "\"").replace("\\\\", "\\");
+			try {
+				return OBJECT_MAPPER.readTree(normalized);
+			} catch (Exception ignored) {
+				return null;
+			}
+		}
+		try {
+			return OBJECT_MAPPER.valueToTree(responseEntity);
+		} catch (IllegalArgumentException ignored) {
+			return null;
+		}
 	}
 
-	private String extractJsonValue(String responseBody, String key) {
-		Pattern pattern = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*(\"([^\"]*)\"|true|false|null)");
-		Matcher matcher = pattern.matcher(responseBody);
-		if (!matcher.find()) {
+	private String jsonValueString(JsonNode node) {
+		if (node == null || node.isNull()) {
 			return null;
 		}
-		String raw = matcher.group(1);
-		if (raw == null) {
+		if (node.isTextual()) {
+			return node.asText();
+		}
+		if (node.isBoolean()) {
+			return String.valueOf(node.booleanValue());
+		}
+		if (node.isNumber()) {
+			return node.numberValue().toString();
+		}
+		return node.toString();
+	}
+
+	private String toJsonString(Object value) {
+		if (value == null) {
 			return null;
 		}
-		if (raw.startsWith("\"") && raw.endsWith("\"") && raw.length() >= 2) {
-			return raw.substring(1, raw.length() - 1);
+		if (value instanceof String) {
+			return (String) value;
 		}
-		return raw;
+		if (value instanceof JsonNode) {
+			return value.toString();
+		}
+		try {
+			return OBJECT_MAPPER.writeValueAsString(value);
+		} catch (JsonProcessingException e) {
+			return String.valueOf(value);
+		}
 	}
 }

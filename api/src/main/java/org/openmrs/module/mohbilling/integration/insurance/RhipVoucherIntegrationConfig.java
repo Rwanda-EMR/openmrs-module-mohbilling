@@ -20,14 +20,18 @@ public class RhipVoucherIntegrationConfig {
 	public static final String PATIENT_PHONE_ATTRIBUTE_TYPE_UUID = VOUCHER_PREFIX + "patientPhoneAttributeTypeUuid";
 	public static final String PRACTITIONER_DETAILS_URL = VOUCHER_PREFIX + "practitionerDetailsUrl";
 	public static final String PRACTITIONER_CREATE_URL = VOUCHER_PREFIX + "practitionerCreateUrl";
-	public static final String PRACTITIONER_TYPE = VOUCHER_PREFIX + "practitionerType";
-	public static final String PRACTITIONER_DOCUMENT_TYPE = VOUCHER_PREFIX + "practitionerDocumentType";
-	public static final String PRACTITIONER_CONTRACT_TYPE = VOUCHER_PREFIX + "practitionerContractType";
-	public static final String PRACTITIONER_SUBCATEGORY_TYPE_ID = VOUCHER_PREFIX + "practitionerSubCategoryTypeId";
-	public static final String PRACTITIONER_DOCUMENT_NUMBER_ATTRIBUTE_TYPE_UUID =
-			VOUCHER_PREFIX + "practitionerDocumentNumberAttributeTypeUuid";
-	public static final String PRACTITIONER_PHONE_ATTRIBUTE_TYPE_UUID =
-			VOUCHER_PREFIX + "practitionerPhoneAttributeTypeUuid";
+	public static final String PRACTITIONER_TYPE_PROVIDER_ATTRIBUTE_TYPE_UUID =
+			VOUCHER_PREFIX + "practitionerTypeProviderAttributeTypeUuid";
+	public static final String PRACTITIONER_DOCUMENT_TYPE_PROVIDER_ATTRIBUTE_TYPE_UUID =
+			VOUCHER_PREFIX + "practitionerDocumentTypeProviderAttributeTypeUuid";
+	public static final String PRACTITIONER_CONTRACT_TYPE_PROVIDER_ATTRIBUTE_TYPE_UUID =
+			VOUCHER_PREFIX + "practitionerContractTypeProviderAttributeTypeUuid";
+	public static final String PRACTITIONER_SUBCATEGORY_TYPE_ID_PROVIDER_ATTRIBUTE_TYPE_UUID =
+			VOUCHER_PREFIX + "practitionerSubCategoryTypeIdProviderAttributeTypeUuid";
+	public static final String PRACTITIONER_DOCUMENT_NUMBER_PROVIDER_ATTRIBUTE_TYPE_UUID =
+			VOUCHER_PREFIX + "practitionerDocumentNumberProviderAttributeTypeUuid";
+	public static final String PRACTITIONER_PHONE_PROVIDER_ATTRIBUTE_TYPE_UUID =
+			VOUCHER_PREFIX + "practitionerPhoneProviderAttributeTypeUuid";
 
 	public String getVoucherUrl() {
 		return Context.getAdministrationService().getGlobalProperty(VOUCHER_URL);
@@ -73,28 +77,28 @@ public class RhipVoucherIntegrationConfig {
 		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_CREATE_URL);
 	}
 
-	public String getPractitionerType() {
-		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_TYPE);
+	public String getPractitionerTypeProviderAttributeTypeUuid() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_TYPE_PROVIDER_ATTRIBUTE_TYPE_UUID);
 	}
 
-	public String getPractitionerDocumentType() {
-		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_DOCUMENT_TYPE);
+	public String getPractitionerDocumentTypeProviderAttributeTypeUuid() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_DOCUMENT_TYPE_PROVIDER_ATTRIBUTE_TYPE_UUID);
 	}
 
-	public String getPractitionerContractType() {
-		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_CONTRACT_TYPE);
+	public String getPractitionerContractTypeProviderAttributeTypeUuid() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_CONTRACT_TYPE_PROVIDER_ATTRIBUTE_TYPE_UUID);
 	}
 
-	public String getPractitionerSubCategoryTypeId() {
-		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_SUBCATEGORY_TYPE_ID);
+	public String getPractitionerSubCategoryTypeIdProviderAttributeTypeUuid() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_SUBCATEGORY_TYPE_ID_PROVIDER_ATTRIBUTE_TYPE_UUID);
 	}
 
-	public String getPractitionerDocumentNumberAttributeTypeUuid() {
-		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_DOCUMENT_NUMBER_ATTRIBUTE_TYPE_UUID);
+	public String getPractitionerDocumentNumberProviderAttributeTypeUuid() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_DOCUMENT_NUMBER_PROVIDER_ATTRIBUTE_TYPE_UUID);
 	}
 
-	public String getPractitionerPhoneAttributeTypeUuid() {
-		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_PHONE_ATTRIBUTE_TYPE_UUID);
+	public String getPractitionerPhoneProviderAttributeTypeUuid() {
+		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_PHONE_PROVIDER_ATTRIBUTE_TYPE_UUID);
 	}
 
 	public boolean isPractitionerIntegrationEnabled() {

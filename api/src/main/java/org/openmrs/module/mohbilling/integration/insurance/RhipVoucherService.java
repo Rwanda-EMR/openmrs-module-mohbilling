@@ -1,5 +1,7 @@
 package org.openmrs.module.mohbilling.integration.insurance;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
@@ -43,6 +45,11 @@ public class RhipVoucherService {
 	private static final Log log = LogFactory.getLog(RhipVoucherService.class);
 	private static final String CBHI_INSURANCE_TYPE = "CBHI";
 	private static final String DATE_FORMAT = "yyyy-MM-dd";
+	private static final String PRACTITIONER_TYPE_LOCAL = "LOCAL";
+	private static final String PRACTITIONER_TYPE_FOREIGN = "FOREIGN";
+	private static final Pattern SUCCESS_PATTERN =
+			Pattern.compile("\"success\"\\s*:\\s*(true|false)", Pattern.CASE_INSENSITIVE);
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	private RhipVoucherProvider voucherProvider;
 	private RhipVoucherIntegrationConfig config;
@@ -162,19 +169,28 @@ public class RhipVoucherService {
 			return null;
 		}
 		String attributeTypeUuid = config.getProviderLicenseAttributeTypeUuid();
+		return resolveProviderAttributeValue(user, attributeTypeUuid);
+	}
+
+	private String resolveProviderAttributeValue(User user, String attributeTypeUuid) {
 		if (StringUtils.isBlank(attributeTypeUuid)) {
 			return null;
 		}
-		ProviderAttributeType attributeType = providerService.getProviderAttributeTypeByUuid(attributeTypeUuid);
-		if (attributeType == null) {
-			log.warn("Unable to find provider attribute type for license with uuid {}");
-			return null;
-		}
+			ProviderAttributeType attributeType = providerService.getProviderAttributeTypeByUuid(attributeTypeUuid);
+			if (attributeType == null) {
+				log.warn("Unable to find provider attribute type with uuid " + attributeTypeUuid);
+				return null;
+			}
 		for (Provider provider : providerService.getProvidersByPerson(user.getPerson(), false)) {
 			for (ProviderAttribute attribute : provider.getAttributes()) {
-				if (attribute != null && attributeType.equals(attribute.getAttributeType())
-						&& StringUtils.isNotBlank(attribute.getValueReference())) {
-					return attribute.getValueReference();
+				if (attribute != null && attributeType.equals(attribute.getAttributeType())) {
+					String value = attribute.getValueReference();
+					if (StringUtils.isBlank(value) && attribute.getValue() != null) {
+						value = attribute.getValue().toString();
+					}
+					if (StringUtils.isNotBlank(value)) {
+						return value;
+					}
 				}
 			}
 		}
@@ -236,8 +252,23 @@ public class RhipVoucherService {
 			return null;
 		}
 		String body = responseEntity.toString();
-		Pattern pattern = Pattern.compile("\"success\"\\s*:\\s*(true|false)", Pattern.CASE_INSENSITIVE);
-		Matcher matcher = pattern.matcher(body);
+		try {
+			JsonNode root = OBJECT_MAPPER.readTree(body);
+			JsonNode success = root == null ? null : root.get("success");
+			if (success != null && !success.isNull()) {
+				if (success.isBoolean()) {
+					return success.booleanValue();
+				}
+				if (success.isTextual()) {
+					return Boolean.valueOf(success.asText());
+				}
+				if (success.isNumber()) {
+					return success.asInt() != 0;
+				}
+			}
+		} catch (Exception ignored) {
+		}
+		Matcher matcher = SUCCESS_PATTERN.matcher(body);
 		if (matcher.find()) {
 			return Boolean.valueOf(matcher.group(1));
 		}
@@ -247,41 +278,80 @@ public class RhipVoucherService {
 	private PractitionerRegistration buildPractitionerRegistration(String insuranceType, String licenseNumber,
 	                                                               RhipVoucherRequest request, User processedBy) {
 		PractitionerRegistration registration = new PractitionerRegistration();
-		registration.practitionerType = defaultIfBlank(config == null ? null : config.getPractitionerType(), "LOCAL");
-		registration.documentType = defaultIfBlank(config == null ? null : config.getPractitionerDocumentType(), "NID");
-		registration.contractType = defaultIfBlank(config == null ? null : config.getPractitionerContractType(), "FULL_TIME");
-		registration.practitionerSubCategoryTypeId =
-				config == null ? null : config.getPractitionerSubCategoryTypeId();
+		registration.practitionerType = resolvePractitionerType(processedBy);
+		registration.documentType = resolvePractitionerDocumentType(processedBy);
+		registration.contractType = resolvePractitionerContractType(processedBy);
+		registration.practitionerSubCategoryTypeId = resolvePractitionerSubCategoryTypeId(processedBy);
 		registration.documentNumber = resolvePractitionerDocumentNumber(processedBy, licenseNumber);
 		registration.facilityFosaId = resolvePractitionerFosaId(request);
 		registration.phoneNumber = resolvePractitionerPhoneNumber(processedBy);
-		registration.firstName = resolvePractitionerFirstName(processedBy);
-		registration.lastName = resolvePractitionerLastName(processedBy);
-		registration.gender = resolvePractitionerGender(processedBy);
-		registration.dateOfBirth = resolvePractitionerBirthDate(processedBy);
+		if (isForeignPractitionerType(registration.practitionerType)) {
+			registration.firstName = resolvePractitionerFirstName(processedBy);
+			registration.lastName = resolvePractitionerLastName(processedBy);
+			registration.gender = resolvePractitionerGender(processedBy);
+			registration.dateOfBirth = resolvePractitionerBirthDate(processedBy);
+		}
 		if (StringUtils.isBlank(registration.practitionerSubCategoryTypeId)) {
 			registration.errorMessage = "Practitioner sub-category type id is not configured";
+		} else if (StringUtils.isBlank(registration.practitionerType)) {
+			registration.errorMessage = "Practitioner type is missing";
+		} else if (StringUtils.isBlank(registration.documentType)) {
+			registration.errorMessage = "Practitioner document type is missing";
+		} else if (StringUtils.isBlank(registration.contractType)) {
+			registration.errorMessage = "Practitioner contract type is missing";
 		} else if (StringUtils.isBlank(registration.documentNumber)) {
 			registration.errorMessage = "Practitioner document number is missing";
 		} else if (StringUtils.isBlank(registration.facilityFosaId)) {
 			registration.errorMessage = "FOSA ID is missing for practitioner registration";
-		} else if (StringUtils.isBlank(registration.firstName) || StringUtils.isBlank(registration.lastName)) {
+		} else if (isForeignPractitionerType(registration.practitionerType)
+				&& (StringUtils.isBlank(registration.firstName) || StringUtils.isBlank(registration.lastName))) {
 			registration.errorMessage = "Practitioner name is missing";
-		} else if (StringUtils.isBlank(registration.gender)) {
+		} else if (isForeignPractitionerType(registration.practitionerType) && StringUtils.isBlank(registration.gender)) {
 			registration.errorMessage = "Practitioner gender is missing";
-		} else if (StringUtils.isBlank(registration.dateOfBirth)) {
+		} else if (isForeignPractitionerType(registration.practitionerType) && StringUtils.isBlank(registration.dateOfBirth)) {
 			registration.errorMessage = "Practitioner date of birth is missing";
 		}
 		return registration;
 	}
 
 	private String resolvePractitionerDocumentNumber(User user, String fallback) {
-		String value = resolvePersonAttributeValue(user, config == null ? null : config.getPractitionerDocumentNumberAttributeTypeUuid());
+		String value = resolveProviderAttributeValue(user,
+				config == null ? null : config.getPractitionerDocumentNumberProviderAttributeTypeUuid());
 		return StringUtils.isBlank(value) ? fallback : value;
 	}
 
 	private String resolvePractitionerPhoneNumber(User user) {
-		return resolvePersonAttributeValue(user, config == null ? null : config.getPractitionerPhoneAttributeTypeUuid());
+		String value = resolveProviderAttributeValue(user,
+				config == null ? null : config.getPractitionerPhoneProviderAttributeTypeUuid());
+		return StringUtils.isBlank(value) ? null : value;
+	}
+
+	private String resolvePractitionerType(User user) {
+		String value = resolveProviderAttributeValue(user,
+				config == null ? null : config.getPractitionerTypeProviderAttributeTypeUuid());
+		return defaultIfBlank(value, PRACTITIONER_TYPE_LOCAL);
+	}
+
+	private String resolvePractitionerDocumentType(User user) {
+		String value = resolveProviderAttributeValue(user,
+				config == null ? null : config.getPractitionerDocumentTypeProviderAttributeTypeUuid());
+		return defaultIfBlank(value, "NID");
+	}
+
+	private String resolvePractitionerContractType(User user) {
+		String value = resolveProviderAttributeValue(user,
+				config == null ? null : config.getPractitionerContractTypeProviderAttributeTypeUuid());
+		return defaultIfBlank(value, "FULL_TIME");
+	}
+
+	private String resolvePractitionerSubCategoryTypeId(User user) {
+		return resolveProviderAttributeValue(user,
+				config == null ? null : config.getPractitionerSubCategoryTypeIdProviderAttributeTypeUuid());
+	}
+
+	private boolean isForeignPractitionerType(String practitionerType) {
+		return StringUtils.isNotBlank(practitionerType)
+				&& PRACTITIONER_TYPE_FOREIGN.equalsIgnoreCase(practitionerType.trim());
 	}
 
 	private String resolvePersonAttributeValue(User user, String attributeTypeUuid) {
@@ -329,7 +399,17 @@ public class RhipVoucherService {
 
 	private String resolvePractitionerGender(User user) {
 		String gender = user == null || user.getPerson() == null ? null : user.getPerson().getGender();
-		return StringUtils.isBlank(gender) ? null : gender;
+		if (StringUtils.isBlank(gender)) {
+			return null;
+		}
+		String normalized = gender.trim();
+		if ("M".equalsIgnoreCase(normalized) || "MALE".equalsIgnoreCase(normalized)) {
+			return "MALE";
+		}
+		if ("F".equalsIgnoreCase(normalized) || "FEMALE".equalsIgnoreCase(normalized)) {
+			return "FEMALE";
+		}
+		return null;
 	}
 
 	private String resolvePractitionerBirthDate(User user) {
