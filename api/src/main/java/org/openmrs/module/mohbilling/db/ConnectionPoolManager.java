@@ -51,7 +51,7 @@ public class ConnectionPoolManager {
     }
 
     public BasicDataSource getEtlDataSource() {
-        String etlDatabase = getProperty("mambaetl.analysis.db.etl_database", "openmrs");
+        String etlDatabase = getProperty("mambaetl.analysis.db.etl_database", "openmrs_etl");
         String modifiedUrl = getModifiedUrl(dataSource.getUrl(), etlDatabase);
 
         BasicDataSource etlDataSource = new BasicDataSource();
