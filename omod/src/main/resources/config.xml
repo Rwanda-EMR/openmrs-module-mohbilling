@@ -199,14 +199,6 @@
     </globalProperty>
 
     <globalProperty>
-        <property>mohbilling.irembopay.secretkey</property>
-        <defaultValue></defaultValue>
-        <description>
-            Global Property to control authentincation with irembo pay data
-        </description>
-    </globalProperty>
-
-    <globalProperty>
         <property>mohbilling.irembopay.accountidentifier</property>
         <defaultValue>OpenMRS-002</defaultValue>
         <description>
