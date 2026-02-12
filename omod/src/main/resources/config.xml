@@ -200,7 +200,7 @@
 
     <globalProperty>
         <property>mohbilling.irembopay.secretkey</property>
-        <defaultValue>sk_live_715b734a838a4cbd9a98c5b5333af4e9</defaultValue>
+        <defaultValue>ChangeMeLater</defaultValue>
         <description>
             Global Property to control authentincation with irembo pay data
         </description>
