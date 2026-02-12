@@ -198,22 +198,6 @@
         </description>
     </globalProperty>
 
-    <globalProperty>
-        <property>mohbilling.irembopay.accountidentifier</property>
-        <defaultValue>OpenMRS-002</defaultValue>
-        <description>
-            Controlling the settings of Hospital Account Information
-        </description>
-    </globalProperty>
-
-    <globalProperty>
-        <property>mohbilling.irembopay.productcode</property>
-        <defaultValue>PC-16a4b8a06c</defaultValue>
-        <description>
-            Controlling the settings of Hospital provided accounts
-        </description>
-    </globalProperty>
-
     <!-- /Required Global Properties -->
 
     <dwr>
