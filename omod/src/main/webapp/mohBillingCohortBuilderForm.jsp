@@ -51,8 +51,9 @@ a.print {
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<!-- <a href="cohort.form?print=true" class="print">PDF</a> -->
-</b>
+
+
+<a href="cohort.form?print=true" class="print">PDF</a></b>
 <div class="box">
 <table width="99%">
 	<tr>
@@ -162,11 +163,10 @@ a.print {
             </c:choose>
 
 			<td class="rowTotalValue"><a href="patientBillPayment.form?consommationId=${c.consommationId}">View/</a></td>
-			<td class="rowValue">
              <c:forEach items="${c.patientBill.payments}" var="payment" varStatus="status">
-                ${payment.collector.person.familyName}&nbsp;${payment.collector.person.givenName} <br />
+                                 <td class="rowValue">${payment.collector.person.familyName}&nbsp;</br>${payment.collector.person.givenName}</td>
               </c:forEach>
-			</td>
+
 		</tr>
 	<c:set var="totalAmountAllConsom" value="${totalAmountAllConsom+totalAmountByConsom}" />
 	<c:set var="totalAmountPaidAllConsom" value="${totalAmountPaidAllConsom+totalAmountPaidByCons}" />

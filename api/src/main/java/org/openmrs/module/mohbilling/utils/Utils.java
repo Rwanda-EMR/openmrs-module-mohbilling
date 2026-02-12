@@ -19,10 +19,8 @@ public class Utils {
     private static final SimpleDateFormat QUERY_DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private static final SimpleDateFormat FORM_PARAMETER_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
 
-    public static List<Obs> getLastNObservations(java.lang.Integer n, Person who, Concept question,
-                                                 boolean includeVoided) {
-        return Context.getObsService().getObservations(Arrays.asList(who), null, Arrays.asList(question), null, null,
-                null, null, n, null, null, null, includeVoided);
+    public static List<Obs> getLastNObservations(java.lang.Integer n, Person who, Concept question, boolean includeVoided) {
+        return Context.getObsService().getObservations(Arrays.asList( who), null, Arrays.asList(question), null, null, null, null, n, null, null, null, includeVoided);
     }
 
     public static String formatDateForQuery(Date date, boolean isStart) {
