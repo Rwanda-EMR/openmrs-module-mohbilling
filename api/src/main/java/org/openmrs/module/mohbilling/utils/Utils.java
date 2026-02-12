@@ -17,7 +17,7 @@ public class Utils {
 
     private static final Logger log = LoggerFactory.getLogger(Utils.class);
     private static final SimpleDateFormat QUERY_DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-    private static final SimpleDateFormat FORM_PARAMETER_DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
+    private static final SimpleDateFormat FORM_PARAMETER_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
 
     public static List<Obs> getLastNObservations(java.lang.Integer n, Person who, Concept question,
                                                  boolean includeVoided) {
@@ -34,6 +34,7 @@ public class Utils {
             FORM_PARAMETER_DATE_FORMAT.setLenient(false);
             return FORM_PARAMETER_DATE_FORMAT.parse(date);
         } catch (ParseException e) {
+            log.error(e.getMessage());
             return null;
         }
     }

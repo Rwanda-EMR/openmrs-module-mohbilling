@@ -79,4 +79,9 @@ public class BillingConstants {
 	 public static final   String IMAGERIE = "IMAGERIE";
 
 
+	public static final String BLOBAL_PROPERTY_IREMBO_ENVIRONMENT = "mohbilling.irembopay.environement";
+	public static final String BLOBAL_PROPERTY_IREMBO_PAY_SECRET= "mohbilling.irembopay.secretkey";
+	public static final String BLOBAL_PROPERTY_ACCOUNT_IDENTIFIER = "mohbilling.irembopay.accountidentifier";
+	public static final String BLOBAL_PROPERTY_PRODUCT_CODE = "mohbilling.irembopay.productcode";
+
 }

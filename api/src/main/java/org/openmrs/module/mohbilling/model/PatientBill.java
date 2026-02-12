@@ -35,6 +35,10 @@ public class PatientBill {
 	private User paymentConfirmedBy;
 	private Date paymentConfirmedDate;
 
+	private String invoiceNumber;
+	private Date paidAt;
+	private String paymentReference;
+
 	/**
 	 * @return the patientBillId
 	 */
@@ -348,4 +352,36 @@ public class PatientBill {
 	public void setPaymentConfirmedDate(Date paymentConfirmedDate) {
 		this.paymentConfirmedDate = paymentConfirmedDate;
 	}
+
+    public boolean isPaid() {
+        return isPaid;
+    }
+
+    public void setPaid(boolean paid) {
+        isPaid = paid;
+    }
+
+    public String getInvoiceNumber() {
+        return invoiceNumber;
+    }
+
+    public void setInvoiceNumber(String invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
+
+    public Date getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(Date paidAt) {
+        this.paidAt = paidAt;
+    }
+
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
+    }
 }

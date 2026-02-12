@@ -30,6 +30,10 @@
 		<many-to-one name="paymentConfirmedBy" class="org.openmrs.User" column="paymentConfirmedBy" />
 		<property name="paymentConfirmedDate" column="paymentConfirmedDate" type="java.util.Date" />
 
+		<property name="invoiceNumber" column="invoice_number" type="text" />
+		<property name="paidAt" column="paid_at" type="java.util.Date" />
+		<property name="paymentReference" column="payment_reference" type="text" />
+
 
 		<set name="payments" lazy="false" inverse="true"
 			 cascade="all-delete-orphan" sort="natural"

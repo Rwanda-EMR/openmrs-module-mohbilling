@@ -1692,6 +1692,7 @@ public class FileExporter {
             outputStream.flush();
             outputStream.close();
         } catch (Exception e) {
+			e.printStackTrace();
             log.error("Failed to write to excel File with Error: " + e.getMessage() + " \n " + e.getCause());
         }
     }

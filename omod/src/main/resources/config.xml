@@ -6,7 +6,7 @@
     <!-- Base Module Properties -->
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.2.1-SNAPSHOT</version>
     <package>org.openmrs.module.@MODULE_ID@</package>
     <author>MoH Rwanda</author>
     <description>
@@ -179,6 +179,46 @@
         <defaultValue>false</defaultValue>
         <description>
             If this is set to true, jsp pages will hide the legacyui header and footer
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay_enabled</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Global Property to controll the IremboPay features
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.environement</property>
+        <defaultValue>testing</defaultValue>
+        <description>
+            Global Property to change working environment irembo pay feature
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.secretkey</property>
+        <defaultValue>sk_live_715b734a838a4cbd9a98c5b5333af4e9</defaultValue>
+        <description>
+            Global Property to control authentincation with irembo pay data
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.accountidentifier</property>
+        <defaultValue>OpenMRS-002</defaultValue>
+        <description>
+            Controlling the settings of Hospital Account Information
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.productcode</property>
+        <defaultValue>PC-16a4b8a06c</defaultValue>
+        <description>
+            Controlling the settings of Hospital provided accounts
         </description>
     </globalProperty>
 

@@ -8,15 +8,28 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.db.BillingDAO;
+import org.openmrs.module.mohbilling.irembo.Invoice;
+import org.openmrs.module.mohbilling.irembo.IremboPay;
+import org.openmrs.module.mohbilling.irembo.models.Customer;
+import org.openmrs.module.mohbilling.irembo.models.PaymentItem;
+import org.openmrs.module.mohbilling.irembo.util.Environment;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayResponse;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.util.ConfigUtil;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author rbcemr
@@ -1130,5 +1143,128 @@ public class BillingServiceImpl implements BillingService {
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid){
 		return billingDAO.getDiagnosisFromAdmissionToDischarge(primaryAndSecondaryDiagnosis,startDate,endDate,patientid);
 	};
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PatientBillIrembo> getUnpaidBills(Patient patient) throws DAOException {
+        //billingDAO.getUnpaidBills(patient).getFirst().
+        return billingDAO.getUnpaidBills(patient);
+    }
+
+    public static String detectTelco(String phoneNumber) {
+
+        // Normalize number
+        String normalized = phoneNumber.replaceAll("\\s+", "");
+
+        if (normalized.startsWith("+250")) {
+            normalized = "0" + normalized.substring(4);
+        }
+
+        if (!normalized.matches("^07\\d{8}$")) {
+            return "Unknown operator";
+        }
+
+        String prefix = normalized.substring(0, 3);
+
+        switch (prefix) {
+            case "078":
+            case "079":
+                return "MTN";
+
+            case "072":
+            case "073":
+                return "AIRTEL";
+
+            default:
+                return "Unknown operator";
+        }
+    }
+
+	public void initIremboPay(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException {
+
+        Boolean isProduction = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_ENVIRONMENT).equalsIgnoreCase("production")?true:false;
+        String iremboPaySecretKey = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_PAY_SECRET);
+
+        String iremboPayProductCode = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_PRODUCT_CODE);
+
+        String iremboPayAccountIdentifier = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_ACCOUNT_IDENTIFIER);
+
+        String transactionId = UUID.randomUUID().toString();
+        //Create Customer information
+        Customer customer = new Customer();
+        customer.setFullName(patient.getPersonName().getFullName());
+        customer.setPhoneNumber(phoneNumber);
+
+        List<PaymentItem> paymentItems = new ArrayList<>();
+        PaymentItem paymentItem = new PaymentItem();
+        paymentItem.setCode(iremboPayProductCode);
+        paymentItem.setQuantity(1);
+        paymentItem.setUnitAmount(patientBill.getAmount().setScale(0, RoundingMode.CEILING).doubleValue());
+
+        //Add the Item to the list
+        paymentItems.add(paymentItem);
+
+        String invoiceDescription = billingDAO.getConsommationByPatientBill(patientBill).getDepartment().getName();
+
+        //Create a the expiration Date to be 24Hours
+        Date expiryDate = Date.from(Instant.now().plus(24, ChronoUnit.HOURS));
+
+        String language = "EN";
+
+        IremboPay iremboPay = null;
+        if(!isProduction) {
+            iremboPay = new IremboPay(iremboPaySecretKey, Environment.SANDBOX);
+        } else {
+            iremboPay = new IremboPay(iremboPaySecretKey, Environment.PRODUCTION);
+        }
+        //Start by creating invoice
+        IremboPayResponse<Invoice> iremboPayResponse = iremboPay.invoice.createInvoice(transactionId, iremboPayAccountIdentifier, customer, paymentItems, invoiceDescription, expiryDate, language);
+        Invoice invoice = iremboPayResponse.getData();
+        //After the invoice create operation make sure to save comming returned information into database for later reference
+        patientBill.setReferenceId(transactionId);
+        patientBill.setInvoiceNumber(invoice.getInvoiceNumber());
+        patientBill.setPhoneNumber(phoneNumber);
+        patientBill.setTransactionStatus("Pending");
+
+        //Save the patient into the database
+        billingDAO.savePatientBill(patientBill);
+
+        //Detect if we are in sandbox environment
+        String company = detectTelco(phoneNumber);
+        if(!isProduction){
+            //rename the phone number to be used for testing purpose
+            if(company.equalsIgnoreCase("AIRTEL")){
+                phoneNumber = "0731234567";
+            } else if(company.equalsIgnoreCase("MTN")){
+                phoneNumber = "0781234567";
+            }
+        }
+
+        //Now initiate the Payment
+        if(!company.equalsIgnoreCase("Unknown operator")){
+            String paymentUuid = UUID.randomUUID().toString();
+
+            iremboPay.mobileMoney.initiate(phoneNumber, company, invoice.getInvoiceNumber(), paymentUuid);
+        }
+    }
+
+    public PatientBill getPatientBillByInvoiceNumber(String invoiceId) throws DAOException {
+        return billingDAO.getPatientBillByInvoiceNumber(invoiceId);
+    }
+
+    public List<PatientServiceBill> getPatientServiceBillByConsomation(Integer consommationId) throws DAOException {
+        return billingDAO.getPatientServiceBillByConsomation(consommationId);
+    }
+
+    public PatientBill getPatientBillStatus(String invoiceId) throws DAOException {
+        return billingDAO.getPatientBillStatus(invoiceId);
+    }
+
+    @Override
+	public List<Consommation> getConsommationsOld(Date startDate, Date endDate,
+			Insurance insurance, ThirdParty tp, User billCreator,Department department) {
+		return billingDAO.getConsommationsOld(startDate, endDate, insurance, tp, billCreator,department);
+	}
 
 }

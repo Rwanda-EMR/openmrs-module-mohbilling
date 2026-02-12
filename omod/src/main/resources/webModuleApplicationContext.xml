@@ -11,6 +11,16 @@
            http://www.springframework.org/schema/util
            http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
+	<!-- Higher priority (order 1) so callback is handled by our controller before REST framework -->
+	<bean id="irembopayCallbackUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="order" value="1" />
+		<property name="mappings">
+			<props>
+				<prop key="/ws/rest/v1/mohbilling/irembopay/callback">irembopayCallbackController</prop>
+			</props>
+		</property>
+	</bean>
+
 	<bean id="mohbillingUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
 
 		<property name="order">
@@ -20,6 +30,7 @@
 		<property name="mappings">
 			<props>
 				<prop key="**/billingPortlet.portlet">billingPortletController</prop>
+				<prop key="/ws/rest/v1/mohbilling/irembopay">IrembopayStatusResource</prop>
 				<prop key="/ws/rest/v1/mohbilling/*">PatientBillResource</prop>
 				<prop key="module/@MODULE_ID@/insurance.list">mohBillingInsuranceListController</prop>
 				<prop key="module/@MODULE_ID@/insurance.form">mohBillingInsuranceFormController</prop>
@@ -75,6 +86,7 @@
 
 	<!-- Controllers -->
 
+	<bean id="irembopayCallbackController" class="org.openmrs.module.mohbilling.rest.controller.IrembopayCallbackController" />
 	<bean id="billingPortletController" class="org.openmrs.module.mohbilling.web.controller.BillingDashboardPortletController" />
 
 	<bean id="mohBillingThirdPatryFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingThirdPatryFormController">
@@ -291,6 +303,8 @@
 
 	<!-- Register our REST resources -->
 	<bean id="PatientBillResource" class="org.openmrs.module.mohbilling.rest.resource.PatientBillResource" />
+	<bean id="IrembopayStatusResource" class="org.openmrs.module.mohbilling.rest.resource.IrembopayStatusResource" />
+	<bean id="IrembopayCallbackResource" class="org.openmrs.module.mohbilling.rest.resource.IrembopayCallbackResource" />
 
 	<!-- <bean id="mohBillingProviderReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProviderReportController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingProviderDCPReport</value></property>
