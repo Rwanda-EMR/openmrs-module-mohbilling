@@ -409,5 +409,6 @@ public class ConsommationUtil {
 		return getService().getTotalConsommations(startDate,
 				endDate, insurance, tp,
 				billCreator, department);
+				
 	}
 }
