@@ -140,15 +140,7 @@ public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissio
 
         }
 
-        //drugs start
 
-        List<Order> orders=session.getSubmissionActions().getCurrentEncounter().getOrdersWithoutOrderGroups();
-        for (Order order:orders) {
-            DrugOrder drugOrder=(DrugOrder)order;
-            //Billng code here
-        }
-
-        //Drugs end
 
 
 

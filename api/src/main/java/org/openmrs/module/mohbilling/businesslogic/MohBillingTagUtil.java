@@ -137,7 +137,11 @@ public class MohBillingTagUtil {
 
         for (Consommation consommation : consommations) {
 
-            allPaidAmount =allPaidAmount+Double.valueOf(getTotalAmountPaidByPatientBill(consommation.getConsommationId()));
+            String totalPaid = getTotalAmountPaidByPatientBill(consommation.getConsommationId());
+            if (totalPaid == null || totalPaid.trim().isEmpty()) {
+                continue;
+            }
+            allPaidAmount = allPaidAmount + Double.valueOf(totalPaid);
         }
         return ""+allPaidAmount;
     }

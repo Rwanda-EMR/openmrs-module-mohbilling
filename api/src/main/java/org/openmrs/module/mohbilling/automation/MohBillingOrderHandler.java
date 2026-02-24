@@ -24,9 +24,12 @@ import org.openmrs.User;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.AdmissionUtil;
+import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ThirdPartyBillUtil;
+import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Consommation;
@@ -166,7 +169,11 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         // Get the patient's global bill, if none found, throw an Exception
         GlobalBill globalBill = billingService.getOpenGlobalBillByInsuranceCardNo(insurancePolicy.getInsuranceCardNo());
         if (globalBill == null) {
-            throw new RuntimeException("No global bill found for patient: " + patient);
+            log.warn("No global bill found for patient {}. Creating a new global bill.", patient);
+            globalBill = createGlobalBillForPolicy(insurancePolicy);
+            if (globalBill == null) {
+                throw new RuntimeException("Unable to create global bill for patient: " + patient);
+            }
         }
         log.debug("Starting global bill amount: {}", globalBill.getGlobalAmount());
 
@@ -492,6 +499,30 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             }
         }
         return ret;
+    }
+
+    private GlobalBill createGlobalBillForPolicy(InsurancePolicy insurancePolicy) {
+        Date now = new Date();
+        Admission admission = new Admission();
+        admission.setAdmissionDate(now);
+        admission.setInsurancePolicy(insurancePolicy);
+        admission.setIsAdmitted(false);
+        admission.setAdmissionType(1);
+        admission.setCreator(Context.getAuthenticatedUser());
+        admission.setCreatedDate(now);
+
+        Admission savedAdmission = AdmissionUtil.savePatientAdmission(admission);
+        if (savedAdmission == null) {
+            return null;
+        }
+
+        GlobalBill globalBill = new GlobalBill();
+        globalBill.setAdmission(savedAdmission);
+        globalBill.setBillIdentifier(insurancePolicy.getInsuranceCardNo() + savedAdmission.getAdmissionId());
+        globalBill.setCreatedDate(now);
+        globalBill.setCreator(Context.getAuthenticatedUser());
+        globalBill.setInsurance(insurancePolicy.getInsurance());
+        return GlobalBillUtil.saveGlobalBill(globalBill);
     }
 
     /**
