@@ -23,6 +23,7 @@
 	<li class="<c:if test='<%= request.getRequestURI().contains("rhipIntegrationLogs")%>'> active</c:if>">
 	<a href="rhipIntegrationLogs.form" style="white-space: nowrap;">RHIP Integration Logs</a>
 	</li>
+	
 </ul>
 </openmrs:hasPrivilege>
 

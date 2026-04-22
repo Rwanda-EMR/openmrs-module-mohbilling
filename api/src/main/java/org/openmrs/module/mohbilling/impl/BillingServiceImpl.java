@@ -67,6 +67,13 @@ public class BillingServiceImpl implements BillingService {
         this.billingDAO = billingDAO;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize, String orderBy,
+            String orderDirection) throws DAOException {
+        return billingDAO.getPatientBillsByPagination(startIndex, pageSize, orderBy, orderDirection);
+    }
+
     /**
      * (non-Javadoc)
      *
@@ -1073,16 +1080,13 @@ public class BillingServiceImpl implements BillingService {
      * org.openmrs.module.mohbilling.model.ThirdParty, org.openmrs.User)
      */
     @Override
+    @Transactional(readOnly = true)
     public List<Consommation> getConsommations(Date startDate, Date endDate,
-                                               Insurance insurance, ThirdParty tp, User billCreator,Department department) {
-        return billingDAO.getConsommations(startDate, endDate, insurance, tp, billCreator,department);
+            Insurance insurance, ThirdParty tp, User billCreator,
+            Department department, int limit, int offSet) {
+        return billingDAO.getConsommations(startDate, endDate, insurance, tp, billCreator, department, limit, offSet);
     }
-//    public List<Consommation> getConsommations(Date startDate, Date endDate,
-//            Insurance insurance, ThirdParty tp, User billCreator,
-//            Department department, int limit, int offSet) {
-//        return billingDAO.getConsommations(startDate, endDate, insurance, tp, billCreator, department, limit, offSet);
-//    }
-//
+
     @Override
     @Transactional(readOnly = true)
     public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp,
@@ -1827,19 +1831,6 @@ public class BillingServiceImpl implements BillingService {
 	@Transactional(readOnly = true)
 	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit) {
 		return billingDAO.getRecentRhipIntegrationLogs(limit);
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult,
-	                                                       Integer maxResults) {
-		return billingDAO.getRhipIntegrationLogs(criteria, firstResult, maxResults);
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria) {
-		return billingDAO.countRhipIntegrationLogs(criteria);
 	}
 
 }

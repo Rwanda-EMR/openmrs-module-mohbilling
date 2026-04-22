@@ -63,22 +63,25 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
-<c:if test="${not empty sessionScope.rhipVoucherCode or not empty sessionScope.rhipVoucherReferenceNumber or not empty sessionScope.rhipVoucherStatus}">
+<c:set var="voucherCode" value="${not empty sessionScope.rhipVoucherCode ? sessionScope.rhipVoucherCode : globalBill.rhipVoucherCode}" />
+<c:set var="voucherReferenceNumber" value="${not empty sessionScope.rhipVoucherReferenceNumber ? sessionScope.rhipVoucherReferenceNumber : globalBill.rhipVoucherReferenceNumber}" />
+<c:set var="voucherStatus" value="${sessionScope.rhipVoucherStatus}" />
+<c:if test="${not empty voucherCode or not empty voucherReferenceNumber or not empty voucherStatus}">
 	<b class="boxHeader">RHIP Voucher Receipt</b>
 	<div class="box">
 		<table>
 			<tr>
 				<td>Voucher Code:</td>
-				<td><b>${sessionScope.rhipVoucherCode}</b></td>
+				<td><b>${voucherCode}</b></td>
 			</tr>
 			<tr>
 				<td>Reference Number:</td>
-				<td><b>${sessionScope.rhipVoucherReferenceNumber}</b></td>
+				<td><b>${voucherReferenceNumber}</b></td>
 			</tr>
-			<tr>
+			<!--<tr>
 				<td>Status:</td>
-				<td><b>${sessionScope.rhipVoucherStatus}</b></td>
-			</tr>
+				<td><b>${voucherStatus}</b></td>
+			</tr>-->
 		</table>
 	</div>
 	<c:remove var="rhipVoucherCode" scope="session"/>
@@ -161,7 +164,7 @@
 
 	</c:if>
 </openmrs:hasPrivilege>
-<c:if test="${globalBill.closed==true}">
+<c:if test="${showRhipVoucherButton}">
 	<div style="float: left; margin-left: 10px;">
 		<button id="btnSendVoucher">Send RHIP Voucher</button>
 	</div>
