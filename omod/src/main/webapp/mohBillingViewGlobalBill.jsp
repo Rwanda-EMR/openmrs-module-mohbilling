@@ -164,7 +164,7 @@
 
 	</c:if>
 </openmrs:hasPrivilege>
-<c:if test="${globalBill.closed==true && insurancePolicy.insurance.category == 'MUTUELLE' && empty globalBill.rhipVoucherCode}">
+<c:if test="${showRhipVoucherButton}">
 	<div style="float: left; margin-left: 10px;">
 		<button id="btnSendVoucher">Send RHIP Voucher</button>
 	</div>

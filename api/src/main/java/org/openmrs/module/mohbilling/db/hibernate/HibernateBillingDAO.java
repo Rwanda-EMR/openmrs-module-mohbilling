@@ -1918,4 +1918,20 @@ public class HibernateBillingDAO implements BillingDAO {
             return Diagnosis.get(0);
         }
     }
+
+	@Override
+	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog logEntry) {
+		sessionFactory.getCurrentSession().saveOrUpdate(logEntry);
+		return logEntry;
+	}
+
+	@Override
+	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit) {
+		int maxRows = (limit == null || limit <= 0) ? 200 : limit;
+		return sessionFactory.getCurrentSession()
+				.createCriteria(RhipIntegrationLog.class)
+				.addOrder(Order.desc("dateCreated"))
+				.setMaxResults(maxRows)
+				.list();
+	}
 }

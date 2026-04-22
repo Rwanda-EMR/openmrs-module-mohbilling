@@ -733,5 +733,7 @@ public interface BillingDAO {
 
 	public FacilityServicePrice getFacilityServiceByName(String name);
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
+	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog log);
+	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);
 
 }

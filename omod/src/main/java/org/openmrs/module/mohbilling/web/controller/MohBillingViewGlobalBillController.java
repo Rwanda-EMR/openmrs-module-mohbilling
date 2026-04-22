@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.integration.IntegrationResponse;
+import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherIntegrationConfig;
 import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
@@ -34,6 +35,7 @@ public class MohBillingViewGlobalBillController extends
 	protected final Log log = LogFactory.getLog(getClass());
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private RhipVoucherService voucherService;
+	private RhipVoucherIntegrationConfig voucherIntegrationConfig;
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
@@ -84,6 +86,7 @@ public class MohBillingViewGlobalBillController extends
 
 			mav.addObject("globalBill", globalBill);
 			mav.addObject("patientIdentifier",patientIdentifier);
+			mav.addObject("showRhipVoucherButton", shouldShowRhipVoucherButton(globalBill));
 			request.getSession().setAttribute("globalBill" , globalBill);
 
 		}
@@ -128,30 +131,33 @@ public class MohBillingViewGlobalBillController extends
 			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.parseInt(request.getParameter("globalBillId")));
 			if (!Boolean.TRUE.equals(gb.getClosed())) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Global Bill must be discharged before sending a voucher");
+			} else if (StringUtils.isNotBlank(gb.getRhipVoucherCode()) || StringUtils.isNotBlank(gb.getRhipVoucherReferenceNumber())) {
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "RHIP voucher already exists for this global bill");
 			} else if (voucherService == null) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "RHIP voucher service is not configured");
-			} else {
-				IntegrationResponse voucherResponse = voucherService.submitVoucherForGlobalBill(gb);
-				if (voucherResponse == null) {
-					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-							"RHIP voucher submission failed: no response received");
-					log.warn("RHIP voucher submission failed: no response received");
-				} else if (!voucherResponse.isEnabled()) {
-					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-							"RHIP voucher submission failed: integration is disabled");
-					log.warn("RHIP voucher submission failed: integration is disabled");
-				} else if (voucherResponse.getResponseCode() == null && voucherResponse.getResponseEntity() == null) {
-					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-							"RHIP voucher submission failed: empty response from RHIP");
-					log.warn("RHIP voucher submission failed: empty response from RHIP");
-				} else if (voucherResponse.getErrorMessage() != null) {
-					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Error submitting RHIP voucher: " + voucherResponse.getErrorMessage());
-					log.warn("Error submitting RHIP voucher: " + voucherResponse.getErrorMessage());
-				} else if (voucherResponse.getResponseEntity() instanceof java.util.Map) {
-					processVoucherResponse(request, gb, voucherResponse.getResponseEntity(), voucherResponse.getResponseCode());
-				} else if (voucherResponse.getResponseEntity() instanceof String) {
-					processVoucherResponse(request, gb, voucherResponse.getResponseEntity(), voucherResponse.getResponseCode());
 				} else {
+					IntegrationResponse voucherResponse = voucherService.submitVoucherForGlobalBill(gb);
+					if (voucherResponse == null) {
+						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+								"RHIP voucher submission failed: no response received");
+						log.warn("RHIP voucher submission failed: no response received");
+					} else if (!voucherResponse.isEnabled()) {
+						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+								"RHIP voucher submission failed: integration is disabled");
+						log.warn("RHIP voucher submission failed: integration is disabled");
+					} else if (voucherResponse.getErrorMessage() != null) {
+						String friendlyError = toFriendlyVoucherError(voucherResponse);
+						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, friendlyError);
+						log.warn("Error submitting RHIP voucher: " + friendlyError);
+					} else if (voucherResponse.getResponseCode() == null && voucherResponse.getResponseEntity() == null) {
+						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+								"RHIP voucher submission failed: empty response from RHIP");
+						log.warn("RHIP voucher submission failed: empty response from RHIP");
+					} else if (voucherResponse.getResponseEntity() instanceof java.util.Map) {
+						processVoucherResponse(request, gb, voucherResponse.getResponseEntity(), voucherResponse.getResponseCode());
+					} else if (voucherResponse.getResponseEntity() instanceof String) {
+						processVoucherResponse(request, gb, voucherResponse.getResponseEntity(), voucherResponse.getResponseCode());
+					} else {
 					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR, "RHIP voucher submitted successfully");
 				}
 			}
@@ -162,6 +168,30 @@ public class MohBillingViewGlobalBillController extends
 
 	public void setVoucherService(RhipVoucherService voucherService) {
 		this.voucherService = voucherService;
+	}
+
+	public void setVoucherIntegrationConfig(RhipVoucherIntegrationConfig voucherIntegrationConfig) {
+		this.voucherIntegrationConfig = voucherIntegrationConfig;
+	}
+
+	private boolean shouldShowRhipVoucherButton(GlobalBill globalBill) {
+		if (globalBill == null || !Boolean.TRUE.equals(globalBill.getClosed())) {
+			return false;
+		}
+		if (StringUtils.isNotBlank(globalBill.getRhipVoucherCode())
+				|| StringUtils.isNotBlank(globalBill.getRhipVoucherReferenceNumber())) {
+			return false;
+		}
+		Admission admission = globalBill.getAdmission();
+		InsurancePolicy insurancePolicy = admission == null ? null : admission.getInsurancePolicy();
+		Insurance insurance = insurancePolicy == null ? null : insurancePolicy.getInsurance();
+		if (insurance == null) {
+			return false;
+		}
+		RhipVoucherIntegrationConfig config = voucherIntegrationConfig == null
+				? new RhipVoucherIntegrationConfig()
+				: voucherIntegrationConfig;
+		return config.isVoucherButtonEnabledForInsurance(insurance.getCategory(), insurance.getName());
 	}
 
 	private void processVoucherResponse(HttpServletRequest request, GlobalBill globalBill, Object responseEntity, Integer responseCode) {
@@ -186,7 +216,7 @@ public class MohBillingViewGlobalBillController extends
 		if ("true".equalsIgnoreCase(success)) {
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 					StringUtils.isBlank(message) ? "RHIP voucher submitted successfully" : message);
-			log.info("RHIP voucher submitted successfully: " + responseBody);
+			log.info("RHIP voucher submitted successfully");
 			if (voucherCode != null) {
 				request.getSession().setAttribute("rhipVoucherCode", voucherCode);
 			}
@@ -208,7 +238,7 @@ public class MohBillingViewGlobalBillController extends
 		} else {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					StringUtils.isBlank(message) ? "RHIP voucher submission failed" : message);
-			log.warn("RHIP voucher submission failed: " + responseBody);
+			log.warn("RHIP voucher submission failed");
 		}
 	}
 
@@ -283,6 +313,66 @@ public class MohBillingViewGlobalBillController extends
 			return OBJECT_MAPPER.writeValueAsString(value);
 		} catch (JsonProcessingException e) {
 			return String.valueOf(value);
+		}
+	}
+
+	private String toFriendlyVoucherError(IntegrationResponse response) {
+		String message = extractRhipMessage(response);
+		if (StringUtils.isBlank(message)) {
+			String raw = response == null ? null : response.getErrorMessage();
+			return StringUtils.isBlank(raw) ? "Unable to submit RHIP voucher. Please try again." : "Error submitting RHIP voucher: " + raw;
+		}
+		String normalized = message.toLowerCase();
+		if (normalized.contains("at least one diagnosis id")
+				|| normalized.contains("icd-11")
+				|| normalized.contains("diagnosis")) {
+			return "Unable to submit RHIP voucher: at least one ICD-11 diagnosis code is required. "
+					+ "Please enter/select a diagnosis with code format like XM1QR3 and try again.";
+		}
+		if (normalized.contains("treatmentfornewborn")) {
+			return "Unable to submit RHIP voucher: treatment for newborn must be set to Yes or No.";
+		}
+		if (normalized.contains("receptionnumber")) {
+			return "Unable to submit RHIP voucher: MMI reception number is required. "
+					+ "Please create MMI patient reception first, then try again.";
+		}
+		return "Unable to submit RHIP voucher: " + message;
+	}
+
+	private String extractRhipMessage(IntegrationResponse response) {
+		if (response == null) {
+			return null;
+		}
+		String fromEntity = extractMessageFromJsonString(toJsonString(response.getResponseEntity()));
+		if (StringUtils.isNotBlank(fromEntity)) {
+			return fromEntity;
+		}
+		String errorMessage = response.getErrorMessage();
+		if (StringUtils.isBlank(errorMessage)) {
+			return null;
+		}
+		int firstBrace = errorMessage.indexOf('{');
+		if (firstBrace >= 0) {
+			String jsonPart = errorMessage.substring(firstBrace);
+			String fromErrorJson = extractMessageFromJsonString(jsonPart);
+			if (StringUtils.isNotBlank(fromErrorJson)) {
+				return fromErrorJson;
+			}
+		}
+		return errorMessage;
+	}
+
+	private String extractMessageFromJsonString(String json) {
+		if (StringUtils.isBlank(json)) {
+			return null;
+		}
+		try {
+			JsonNode node = OBJECT_MAPPER.readTree(json);
+			JsonNode messageNode = node == null ? null : node.get("message");
+			return jsonValueString(messageNode);
+		}
+		catch (Exception ignored) {
+			return null;
 		}
 	}
 }

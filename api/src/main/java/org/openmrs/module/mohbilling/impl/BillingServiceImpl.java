@@ -1127,4 +1127,15 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getDiagnosisFromAdmissionToDischarge(primaryAndSecondaryDiagnosis,startDate,endDate,patientid);
 	};
 
+	@Override
+	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog logEntry) {
+		return billingDAO.saveRhipIntegrationLog(logEntry);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit) {
+		return billingDAO.getRecentRhipIntegrationLogs(limit);
+	}
+
 }

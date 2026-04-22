@@ -64,16 +64,52 @@
 		</property>
 	</bean>
 
-	<bean id="rhipVoucherIntegrationConfig" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherIntegrationConfig"/>
-	<bean id="rhipVoucherProvider" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherProvider">
-		<property name="config" ref="rhipVoucherIntegrationConfig"/>
+		<bean id="rhipVoucherIntegrationConfig" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherIntegrationConfig"/>
+		<bean id="rhipVoucherProvider" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherProvider">
+			<property name="config" ref="rhipVoucherIntegrationConfig"/>
+		</bean>
+		<bean id="rhipVoucherService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+			<property name="transactionManager" ref="transactionManager"/>
+			<property name="target">
+				<bean class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService" autowire="byType">
+					<property name="voucherProvider" ref="rhipVoucherProvider"/>
+					<property name="config" ref="rhipVoucherIntegrationConfig"/>
+					<property name="conceptService" ref="conceptService"/>
+					<property name="personService" ref="personService"/>
+					<property name="providerService" ref="providerService"/>
+					<property name="billingService" ref="mohBillingService"/>
+				</bean>
+			</property>
+			<property name="preInterceptors" ref="serviceInterceptors"/>
+			<property name="transactionAttributeSource">
+				<bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
+			</property>
+			<property name="proxyTargetClass" value="true"/>
+		</bean>
+
+	<bean id="rhipPractitionerTypeDAO" class="org.openmrs.module.mohbilling.db.hibernate.HibernateRhipPractitionerTypeDAO">
+		<property name="sessionFactory" ref="sessionFactory"/>
 	</bean>
-	<bean id="rhipVoucherService" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService" autowire="byType">
-		<property name="voucherProvider" ref="rhipVoucherProvider"/>
-		<property name="config" ref="rhipVoucherIntegrationConfig"/>
-		<property name="conceptService" ref="conceptService"/>
-		<property name="personService" ref="personService"/>
-		<property name="providerService" ref="providerService"/>
-		<property name="billingService" ref="mohBillingService"/>
+
+	<bean id="rhipPractitionerTypeService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager" ref="transactionManager"/>
+		<property name="target">
+			<bean class="org.openmrs.module.mohbilling.impl.RhipPractitionerTypeServiceImpl">
+				<property name="rhipPractitionerTypeDAO" ref="rhipPractitionerTypeDAO"/>
+			</bean>
+		</property>
+		<property name="preInterceptors" ref="serviceInterceptors"/>
+		<property name="transactionAttributeSource">
+			<bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
+		</property>
+	</bean>
+
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list>
+				<value>org.openmrs.module.mohbilling.service.RhipPractitionerTypeService</value>
+				<ref bean="rhipPractitionerTypeService"/>
+			</list>
+		</property>
 	</bean>
 </beans>

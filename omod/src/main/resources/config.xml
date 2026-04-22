@@ -181,6 +181,14 @@
             If this is set to true, jsp pages will hide the legacyui header and footer
         </description>
     </globalProperty>
+    <globalProperty>
+        <property>mohbilling.rhipVoucher.enabledInsuranceKeys</property>
+        <defaultValue>MUTUELLE,MMI</defaultValue>
+        <description>
+            Comma-separated insurance keys that can show Send RHIP Voucher button.
+            Each key matches either insurance category exactly or insurance name containing the key (case-insensitive).
+        </description>
+    </globalProperty>
 
     <!-- /Required Global Properties -->
 
@@ -476,6 +484,8 @@
         DepositPayment.hbm.xml
         PaidServiceBillRefund.hbm.xml
         PaymentRefund.hbm.xml
+        RhipPractitionerType.hbm.xml
+        RhipIntegrationLog.hbm.xml
     </mappingFiles>
 
 </module>
