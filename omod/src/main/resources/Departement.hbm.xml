@@ -14,6 +14,8 @@
 		</id>
 		<property name="name" column="name" type="text" />
 		<property name="description" column="description" type="text" />
+		<property name="accountIdentifier" column="account_identifier" type="text" />
+		
 		<property name="createdDate" column="created_date" />
 		<property name="voided" column="voided" type="boolean" />
 		<property name="voidedDate" column="voided_date" />

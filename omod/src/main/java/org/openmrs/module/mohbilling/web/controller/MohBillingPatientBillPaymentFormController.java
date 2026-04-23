@@ -212,6 +212,7 @@ public class MohBillingPatientBillPaymentFormController extends
 
 
 					if (pb.getAmountPaid().doubleValue() == pb.getAmount().doubleValue()){
+						pb.setIsPaid(true);
 						pb.setPaymentConfirmed(true);
 						pb.setPaymentConfirmedDate(new Date());
 						pb.setPaymentConfirmedBy(Context.getAuthenticatedUser());
@@ -251,6 +252,7 @@ public class MohBillingPatientBillPaymentFormController extends
 						System.out.println("From patient billlllllllllll2:"+consommation.getPatientBill().getAmount());
 
 						if (consommation.getPatientBill().getAmountPaid().doubleValue()==consommation.getPatientBill().getAmount().doubleValue()){
+							pb.setIsPaid(true);
 							pb.setPaymentConfirmed(true);
 							pb.setPaymentConfirmedDate(new Date());
 							pb.setPaymentConfirmedBy(Context.getAuthenticatedUser());

@@ -100,7 +100,7 @@ public class MohBillingOpenBillConfirmationPageFormController extends
 						billPayment = cp;
 
 						createPaidServiceBill(consommation, cp);
-
+						pb.setIsPaid(true);
 						pb.setPaymentConfirmed(true);
 						pb.setPaymentConfirmedBy(Context.getAuthenticatedUser());
 						pb.setPaymentConfirmedDate(new Date());

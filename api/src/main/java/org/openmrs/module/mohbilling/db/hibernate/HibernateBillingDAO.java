@@ -20,6 +20,7 @@ import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.transform.Transformers;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
@@ -1321,6 +1322,15 @@ public class HibernateBillingDAO implements BillingDAO {
         return (BillPayment) sessionFactory.getCurrentSession().get(BillPayment.class, paymentId);
     }
 
+    @Override
+    public List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill) {
+        return sessionFactory.getCurrentSession().createCriteria(BillPayment.class)
+        .add(Restrictions.eq("patientBill", patientBill))
+        .add(Restrictions.eq("amountPaid", patientBill.getAmount()))
+        .list()
+        ;
+    }
+
     /* (non-Javadoc)
      * @see org.openmrs.module.mohbilling.db.BillingDAO#getPaidServices(org.openmrs.module.mohbilling.model.BillPayment)
      */
@@ -1509,14 +1519,43 @@ public class HibernateBillingDAO implements BillingDAO {
         String sqlQuery = String.format("CALL `%s`.sp_mamba_fact_insurance_report_query(:insurance_id, :start_date, :end_date)", etlDatabase);
         SQLQuery billingReportQuery = sessionFactory.getCurrentSession().createSQLQuery(sqlQuery);
 
+        // Column aliases for name-based access (order must match SP result set)
+        billingReportQuery.addScalar("first_closing_date_id");
+        billingReportQuery.addScalar("admission_date");
+        billingReportQuery.addScalar("closing_date");
+        billingReportQuery.addScalar("beneficiary_name");
+        billingReportQuery.addScalar("household_head_name");
+        billingReportQuery.addScalar("family_code");
+        billingReportQuery.addScalar("beneficiary_level");
+        billingReportQuery.addScalar("card_number");
+        billingReportQuery.addScalar("company_name");
+        billingReportQuery.addScalar("age");
+        billingReportQuery.addScalar("birth_date");
+        billingReportQuery.addScalar("gender");
+        billingReportQuery.addScalar("doctor_name");
+        billingReportQuery.addScalar("insurance_id");
+        billingReportQuery.addScalar("global_bill_id");
+        billingReportQuery.addScalar("global_bill_identifier");
+        billingReportQuery.addScalar("MEDICAMENTS");
+        billingReportQuery.addScalar("CONSULTATION");
+        billingReportQuery.addScalar("HOSPITALISATION");
+        billingReportQuery.addScalar("LABORATOIRE");
+        billingReportQuery.addScalar("CONSOMMABLES");
+        billingReportQuery.addScalar("AMBULANCE");
+        billingReportQuery.addScalar("OXYGENOTHERAPIE");
+        billingReportQuery.addScalar("FORMALITES ADMINISTRATIVES");
+        billingReportQuery.addScalar("IMAGING");
+        billingReportQuery.addScalar("PROCED.");
+        billingReportQuery.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+
         long endTime = System.nanoTime();
         double elapsedTimeInSeconds = (endTime - startTime) / 1e9; // Convert nanoseconds to seconds
 
         billingReportQuery.setParameter("insurance_id", insuranceIdentifier);
         billingReportQuery.setParameter("start_date", startDate);
         billingReportQuery.setParameter("end_date", endDate);
-        //TODO: Create a hibernate Object for this result-set type
-        List<Object[]> resultSet = billingReportQuery.list();
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> resultSet = billingReportQuery.list();
 
         System.out.println("It took MambaETL: " + elapsedTimeInSeconds + " seconds to retrieve: " + resultSet.size() + " items");
 
@@ -1527,55 +1566,39 @@ public class HibernateBillingDAO implements BillingDAO {
         Float insurancePatientRate = 100 - insuranceRate.getRate();
 
         //Double totalInsuranceFirm = 0.9 * total;
+        Integer id=1;
+        for (Map<String, Object> row : resultSet) {
 
-        for (Object[] objects : resultSet) {
+            Date admissionDate = parseDateSubstring(dateFormat, row.get("admission_date"));
+            Date closingDate = parseDateSubstring(dateFormat, row.get("closing_date"));
+            String beneficiaryName = getString(row, "beneficiary_name");
+            String houseHoldHeadName = getString(row, "household_head_name");
+            String familyCode = getString(row, "family_code");
+            Integer beneficiaryLevel = getInt(row, "beneficiary_level");
+            String cardNumber = getString(row, "card_number");
+            String companyName = getString(row, "company_name");
+            Integer age = getInt(row, "age");
+            Date birthDate = parseDateSubstring(dateFormat, row.get("birth_date"));
+            String gender = getString(row, "gender");
+            String doctorName = getString(row, "doctor_name");
+            Integer insuranceId = getInt(row, "insurance_id");
+            Integer globalBillId = getInt(row, "global_bill_id");
+            String globalBillIdentifier = getString(row, "global_bill_identifier");
 
-            Integer id = (objects[0] != null) ? Integer.parseInt(objects[0].toString()) : null;
-            Date admissionDate = null;
-            try {
-                admissionDate = (objects[1] != null) ? dateFormat.parse(objects[1].toString().substring(0, 10)) : null;
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            Date closingDate = null;
-            try {
-                closingDate = (objects[2] != null) ? dateFormat.parse(objects[2].toString().substring(0, 10)) : null;
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            String beneficiaryName = (objects[3] != null) ? objects[3].toString() : null;
-            String houseHoldHeadName = (objects[4] != null) ? objects[4].toString() : null;
-            String familyCode = (objects[5] != null) ? objects[5].toString() : null;
-            Integer beneficiaryLevel = (objects[6] != null) ? Integer.parseInt(objects[6].toString()) : null;
-            String cardNumber = (objects[7] != null) ? objects[7].toString() : null;
-            String companyName = (objects[8] != null) ? objects[8].toString() : null;
-            Integer age = (objects[9] != null) ? Integer.parseInt(objects[9].toString()) : null;
-            Date birthDate = null;
-            try {
-                birthDate = (objects[10] != null) ? dateFormat.parse(objects[10].toString().substring(0, 10)) : null;
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            String gender = (objects[11] != null) ? objects[11].toString() : null;
-            String doctorName = (objects[12] != null) ? objects[12].toString() : null;
-            Integer insuranceId = (objects[13] != null) ? Integer.parseInt(objects[13].toString()) : null;
-            Integer globalBillId = (objects[14] != null) ? Integer.parseInt(objects[14].toString()) : null;
-            String globalBillIdentifier = (objects[15] != null) ? objects[15].toString() : null;
-
-            //services
-            Double consultation = (objects[16] != null) ? Double.parseDouble(objects[16].toString()) : 0;
-            Double hospitalisation = (objects[17] != null) ? Double.parseDouble(objects[17].toString()) : 0;
-            Double laboratoire = (objects[18] != null) ? Double.parseDouble(objects[18].toString()) : 0;
-            Double formaliteAdministratives = (objects[19] != null) ? Double.parseDouble(objects[19].toString()) : 0;
-            Double medicament = (objects[20] != null) ? Double.parseDouble(objects[20].toString()) : 0;
-            Double consommables = (objects[21] != null) ? Double.parseDouble(objects[21].toString()) : 0;
-            Double ambulance = (objects[22] != null) ? Double.parseDouble(objects[22].toString()) : 0;
-            Double oxygenotherapie = Double.parseDouble("0"); //(objects[23] != null) ? Double.parseDouble(objects[23].toString()) : 0;
-            Double imaging = (objects[23] != null) ? Double.parseDouble(objects[23].toString()) : 0;
-            Double proced = (objects[24] != null) ? Double.parseDouble(objects[24].toString()) : 0;
+            // services
+            Double medicament = getDouble(row, "MEDICAMENTS");
+            Double consultation = getDouble(row, "CONSULTATION");
+            Double hospitalisation = getDouble(row, "HOSPITALISATION");
+            Double laboratoire = getDouble(row, "LABORATOIRE");
+            Double consommables = getDouble(row, "CONSOMMABLES");
+            Double ambulance = getDouble(row, "AMBULANCE");
+            Double oxygenotherapie = getDouble(row, "OXYGENOTHERAPIE");
+            Double formaliteAdministratives = getDouble(row, "FORMALITES ADMINISTRATIVES");
+            Double imaging = getDouble(row, "IMAGING");
+            Double proced = getDouble(row, "PROCED.");
 
             InsuranceReportItem reportItem = new InsuranceReportItem();
-            reportItem.setId(id);
+            reportItem.setId(id++);
             reportItem.setAdmissionDate(admissionDate);
             reportItem.setClosingDate(closingDate);
             reportItem.setBeneficiaryName(beneficiaryName);
@@ -1633,6 +1656,33 @@ public class HibernateBillingDAO implements BillingDAO {
         System.out.println("Done Fetching Insurance Report of size: " + report.getReportItems().size() + ", from " +
                 "MambaETL tables");
         return report;
+    }
+
+    private static Integer getInt(Map<String, Object> row, String key) {
+        Object v = row.get(key);
+        return (v != null) ? Integer.parseInt(v.toString()) : null;
+    }
+
+    private static String getString(Map<String, Object> row, String key) {
+        Object v = row.get(key);
+        return (v != null) ? v.toString() : null;
+    }
+
+    private static Double getDouble(Map<String, Object> row, String key) {
+        Object v = row.get(key);
+        return (v != null) ? Double.parseDouble(v.toString()) : 0.0;
+    }
+
+    private static Date parseDateSubstring(DateFormat dateFormat, Object value) {
+        if (value == null) return null;
+        String s = value.toString();
+        if (s.length() < 10) return null;
+        try {
+            return dateFormat.parse(s.substring(0, 10));
+        } catch (ParseException e) {
+            LogFactory.getLog(HibernateBillingDAO.class).warn("Failed to parse date: " + s, e);
+            return null;
+        }
     }
 
     @Override
@@ -1966,18 +2016,38 @@ public class HibernateBillingDAO implements BillingDAO {
         String sql = "SELECT pb.patient_bill_id FROM moh_bill_patient_bill as pb "
                 + " INNER JOIN moh_bill_consommation cn ON pb.patient_bill_id = cn.patient_bill_id"
                 + " INNER JOIN moh_bill_beneficiary b ON cn.beneficiary_id = b.beneficiary_id "
-                + " WHERE b.patient_id = :patientId AND pb.is_paid = 0 AND (pb.voided = 0 OR pb.voided IS NULL)";
+                + " WHERE b.patient_id = :patientId AND pb.paymentConfirmed=0 AND (pb.voided = 0 OR pb.voided IS NULL)"
+                + " AND NOT EXISTS (SELECT 1 FROM moh_bill_payment bp WHERE bp.patient_bill_id = pb.patient_bill_id)"
+                + " ORDER BY cn.created_date DESC";
 
-        log.error("The SQL Produces: " + sql);
+        // log.error("The SQL Produces: " + sql);
         SQLQuery query = session.createSQLQuery(sql);
         query.setInteger("patientId", patient.getPatientId());
         List<?> ids = query.list();
+        log.error(ids.size() + " bills are unpaid");
         List<PatientBillIrembo> bills = new ArrayList<PatientBillIrembo>();
+        BigDecimal minimumPayment = BigDecimal.ZERO;
+        String minimumPaymentGp = Context.getAdministrationService()
+                .getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_IREMBO_MINIMUM_PAYMENT);
+        if (minimumPaymentGp != null && !minimumPaymentGp.trim().isEmpty()) {
+            try {
+                minimumPayment = new BigDecimal(minimumPaymentGp.trim());
+            } catch (NumberFormatException nfe) {
+                log.warn("Invalid global property value for " + BillingConstants.GLOBAL_PROPERTY_IREMBO_MINIMUM_PAYMENT
+                        + ": " + minimumPaymentGp + ". Defaulting to 0.");
+            }
+        }
 
         PersonAttributeType phoneNumberType = Context.getPersonService().getPersonAttributeType(11);
         if (ids != null) {
             for (Object id : ids) {
                 PatientBill patientBill = getPatientBill((Integer) id);
+                if (patientBill == null) {
+                    continue;
+                }
+                if (patientBill.getAmount() == null || patientBill.getAmount().compareTo(minimumPayment) < 0) {
+                    continue;
+                }
 
                 PatientBillIrembo patientBillIrembo = new PatientBillIrembo();
                 patientBillIrembo.setPatientBillId(patientBill.getPatientBillId());
@@ -1985,21 +2055,35 @@ public class HibernateBillingDAO implements BillingDAO {
                 patientBillIrembo.setInvoiceNumber(patientBill.getInvoiceNumber());
 
                 //Get the Phone number in person attribute type if ready
-                //log.error("Phone Number 1: " + patientBill.getPhoneNumber() );
-                if(patientBill.getPhoneNumber() == null) {
-                    String phoneNumber = patient.getPerson().getAttribute(phoneNumberType).getValue();
-                    //log.error("Phone Number 2: " + phoneNumber );
-                    patientBillIrembo.setPhoneNumber(phoneNumber);
-                } else {
-                    //log.error("Phone Number 3: " + patientBill.getPhoneNumber() );
+                if (patientBill.getPhoneNumber() == null && patient.getPerson() != null && phoneNumberType != null) {
+                    PersonAttribute attr = patient.getPerson().getAttribute(phoneNumberType);
+                    if (attr != null) {
+                        patientBillIrembo.setPhoneNumber(attr.getValue());
+                    }
+                } else if (patientBill.getPhoneNumber() != null) {
                     patientBillIrembo.setPhoneNumber(patientBill.getPhoneNumber());
                 }
 
-                patientBillIrembo.setDepartment(getConsommationByPatientBill(patientBill).getDepartment().getName());
+                Consommation consommation = getConsommationByPatientBill(patientBill);
+                if (consommation != null && consommation.getDepartment() != null) {
+                    patientBillIrembo.setDepartment(consommation.getDepartment().getName());
+                }
+
+                patientBillIrembo.setBillDate(patientBill.getCreatedDate());
                 bills.add(patientBillIrembo);
             }
         }
         return bills;
+    }
+
+    @Override
+    public List<PatientBill> getUnpaidBillsWithInvoiceNumber() {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientBill.class);
+        criteria.add(Restrictions.or(Restrictions.eq("isPaid", false),Restrictions.eq("paymentConfirmed", false)));
+        criteria.add(Restrictions.or(Restrictions.eq("voided", false), Restrictions.isNull("voided")));
+        criteria.add(Restrictions.isNotNull("invoiceNumber"));
+        criteria.add(Restrictions.ne("invoiceNumber", ""));
+        return criteria.list();
     }
 
     public PatientBill getPatientBillByInvoiceNumber(String invoiceNumber){

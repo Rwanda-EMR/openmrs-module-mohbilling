@@ -83,5 +83,10 @@ public class BillingConstants {
 	public static final String BLOBAL_PROPERTY_IREMBO_PAY_SECRET= "mohbilling.irembopay.secretkey";
 	public static final String BLOBAL_PROPERTY_ACCOUNT_IDENTIFIER = "mohbilling.irembopay.accountidentifier";
 	public static final String BLOBAL_PROPERTY_PRODUCT_CODE = "mohbilling.irembopay.productcode";
+	public static final String BLOBAL_PROPERTY_IREMBO_USER = "mohbilling.irembopay.username";
+	public static final String GLOBAL_PROPERTY_IREMBO_MINIMUM_PAYMENT = "mohbilling.irembopay.minimumpayment";
+	public static final String GLOBAL_PROPERTY_IREMBO_SCHEDULER_ENABLED = "mohbilling.irembopay.scheduler.enabled";
+	public static final String GLOBAL_PROPERTY_IREMBO_SCHEDULER_INTERVAL_SECONDS = "mohbilling.irembopay.scheduler.intervalSeconds";
+	public static final String GLOBAL_PROPERTY_GLOBAL_BILL_PAGE_SIZE = "mohbilling.globalbill.pagesize";
 
 }

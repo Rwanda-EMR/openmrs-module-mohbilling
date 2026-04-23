@@ -152,7 +152,8 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         // Get the patient's insurance.  If none is found, throw an Exception
         InsurancePolicy insurancePolicy = getInsurancePolicyForPatient(patient);
         if (insurancePolicy == null) {
-            throw new RuntimeException("No insurance policy found for patient: " + patient);
+            log.debug("\n\n\n\n\nNo insurance policy found for patient: " + patient + " Unable to create billing information.\\n\\n\\n\\n\\n");
+            return;
         }
         log.debug("insurancePolicy: {}", insurancePolicy);
 
@@ -218,6 +219,10 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             }
 
             BillableService billableService = billingService.getBillableServiceByConcept(facilityServicePrice, insurancePolicy.getInsurance());
+            if(billableService == null ){
+                log.debug("unable to locate billable service for {}, on {} insurance", facilityServicePrice.getName(), insurancePolicy.getInsurance().getName());
+                continue;
+            }
             HopService hopService = billingService.getHopService(facilityServicePrice.getCategory());
             BigDecimal unitPrice = billableService.getMaximaToPay();
             log.debug("unitPrice: {}", unitPrice);
@@ -250,6 +255,7 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             patientServiceBill.setCreatedDate(now);
             patientServiceBill.setItemType(1);
             patientServiceBillsByDepartment.computeIfAbsent(department, k -> new ArrayList<>()).add(patientServiceBill);
+            
         }
 
         // For each department, create appropriate bills

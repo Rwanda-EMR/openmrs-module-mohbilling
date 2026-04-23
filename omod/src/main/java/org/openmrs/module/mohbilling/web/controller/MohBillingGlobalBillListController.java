@@ -2,12 +2,14 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.util.ConfigUtil;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
@@ -34,7 +36,8 @@ public class MohBillingGlobalBillListController extends
 		String ipCardNumber = request.getParameter("ipCardNumber");
 		String billIdentifier = request.getParameter("billIdentifier");
 		int page = 1;
-		int size = 20;
+		String sizeFromConfig = ConfigUtil.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_GLOBAL_BILL_PAGE_SIZE);
+		int size = Integer.parseInt(sizeFromConfig);
 
 		try {
 			if (request.getParameter("page") != null) {

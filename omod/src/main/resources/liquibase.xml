@@ -1664,4 +1664,20 @@
 			<column name="payment_reference" type="varchar(255)"/>
 		</addColumn>
 	</changeSet>
+	<changeSet id="moh_bill_department_adding_account_identifier_2" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_department" columnName="account_identifier"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_department">
+			<column name="account_identifier" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_retry_count" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="retry_count"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="retry_count" type="int"/>
+		</addColumn>
+	</changeSet>
 </databaseChangeLog>

@@ -91,7 +91,7 @@ public class MohBillingThirdPartyReportController extends
 		    		
 		    		if(thirdParty!=null){			    		
 			    		
-//						try {
+						// try {
 							List<GlobalBill> globalBills = ReportsUtil.getGlobalBills(startDate, endDate);
 							
 							List<GlobalBill> globalBillsByInsuranceAndThirdParty = new ArrayList<GlobalBill>();
@@ -102,33 +102,31 @@ public class MohBillingThirdPartyReportController extends
 										globalBillsByInsuranceAndThirdParty.add(gb);
 							}
 							if(startDate!=null && endDate!=null){
-						System.out.print(" globalBillsByInsuranceAndThirdParty globalBillsByInsuranceAndThirdParty "+globalBillsByInsuranceAndThirdParty.size());
+								System.out.print(" globalBillsByInsuranceAndThirdParty globalBillsByInsuranceAndThirdParty "+globalBillsByInsuranceAndThirdParty.size());
 								for (GlobalBill gb : globalBillsByInsuranceAndThirdParty) {
 									BigDecimal globalBillAmount = new BigDecimal(0);
 									if(ReportsUtil.getConsommationByGlobalBill(gb)!=null)
-									initialConsom = ReportsUtil.getConsommationByGlobalBill(gb);
+										initialConsom = ReportsUtil.getConsommationByGlobalBill(gb);
 									
 									List<ServiceRevenue> insuranceColumnsRevenues=new ArrayList<ServiceRevenue>();
 									if(gb.isClosed()){
-									List<PatientServiceBill> gbItems = ReportsUtil.getAllItemsByGlobalBill(gb);
+										List<PatientServiceBill> gbItems = ReportsUtil.getAllItemsByGlobalBill(gb);
 
-										 List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.thirdPartyReportColumns");
-										 for (HopService hopService : reportColumns) {
-											 if(!columns.contains(hopService.getName()))
-											 columns.add(hopService.getName());
-											 
-											 insuranceColumnsRevenues.add(ReportsUtil.getServiceRevenues(gbItems, hopService));
+										List<HopService> reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.thirdPartyReportColumns");
+										for (HopService hopService : reportColumns) {
+											if(!columns.contains(hopService.getName()))
+												columns.add(hopService.getName());
+											insuranceColumnsRevenues.add(ReportsUtil.getServiceRevenues(gbItems, hopService));
 											 
 										}
+										ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.IMAGING");
+										insuranceColumnsRevenues.add(imagingRevenue);
 										 
-										 ServiceRevenue imagingRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.IMAGING");
-										 insuranceColumnsRevenues.add(imagingRevenue);
 										 
+										ServiceRevenue proceduresRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.PROCEDURES");
+										insuranceColumnsRevenues.add(proceduresRevenue);
 										 
-										 ServiceRevenue proceduresRevenue = ReportsUtil.getServiceRevenue(gbItems, "mohbilling.PROCEDURES");
-										 insuranceColumnsRevenues.add(proceduresRevenue);
-										 
-										 globalBillAmount=globalBillAmount.add(ReportsUtil.getTotalByItems(gbItems));
+										globalBillAmount=globalBillAmount.add(ReportsUtil.getTotalByItems(gbItems));
 										 
 									 //populate asr
 									 AllServicesRevenue servicesRevenu = new AllServicesRevenue(new BigDecimal(0), new BigDecimal(0), "2016-09-11");

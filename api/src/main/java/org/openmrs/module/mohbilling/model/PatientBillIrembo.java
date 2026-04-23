@@ -1,9 +1,11 @@
 package org.openmrs.module.mohbilling.model;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 public class PatientBillIrembo {
     private Integer patientBillId;
+    private Date billDate;
     private BigDecimal amount = new BigDecimal(0);
     private String phoneNumber;
     private String invoiceNumber;
@@ -48,5 +50,13 @@ public class PatientBillIrembo {
 
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    public Date getBillDate() {
+        return billDate;
+    }
+
+    public void setBillDate(Date billDate) {
+        this.billDate = billDate;
     }
 }

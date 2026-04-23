@@ -38,6 +38,7 @@ public class PatientBill {
 	private String invoiceNumber;
 	private Date paidAt;
 	private String paymentReference;
+	private Integer retryCount;
 
 	/**
 	 * @return the patientBillId
@@ -384,4 +385,12 @@ public class PatientBill {
     public void setPaymentReference(String paymentReference) {
         this.paymentReference = paymentReference;
     }
+
+	public Integer getRetryCount() {
+		return retryCount;
+	}
+
+	public void setRetryCount(Integer retryCount) {
+		this.retryCount = retryCount;
+	}
 }

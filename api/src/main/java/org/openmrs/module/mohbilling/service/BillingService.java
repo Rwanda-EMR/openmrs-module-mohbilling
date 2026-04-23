@@ -698,8 +698,19 @@ public interface BillingService {
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
 
 	public List<PatientBillIrembo> getUnpaidBills(Patient patient) throws DAOException;
+	public List<PatientBill> getUnpaidBillsWithInvoiceNumber() throws DAOException;
 
 	public void initIremboPay(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
+
+	public PatientBill getInvoiceStatus(String invoiceId) throws DAOException;
+
+	/**
+	 * Process Irembo Pay callback in a single transaction: validate, update PatientBill,
+	 * create BillPayment, update PatientServiceBills and create PaidServiceBills.
+	 * Rolls back on any exception.
+	 */
+	void processIrembopayCallback(String invoiceNumber, Boolean success, java.math.BigDecimal callbackAmount,
+		String paymentReference, String paidAtStr, String paymentStatus);
 
 	public PatientBill getPatientBillByInvoiceNumber(String invoiceId) throws DAOException;
 

@@ -3,12 +3,18 @@
  */
 package org.openmrs.module.mohbilling.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.APIException;
+import org.openmrs.api.UserService;
+import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.irembo.Invoice;
 import org.openmrs.module.mohbilling.irembo.IremboPay;
@@ -19,9 +25,12 @@ import org.openmrs.module.mohbilling.irembo.util.IremboPayResponse;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.util.ConfigUtil;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -39,7 +48,9 @@ import java.util.UUID;
 @Transactional
 public class BillingServiceImpl implements BillingService {
 
+    private static final Log log = LogFactory.getLog(BillingServiceImpl.class);
     private BillingDAO billingDAO;
+    private final Object iremboPaymentCreationLock = new Object();
 
     /**
      * @return the billingDAO
@@ -1152,6 +1163,11 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getUnpaidBills(patient);
     }
 
+    @Override
+    public List<PatientBill> getUnpaidBillsWithInvoiceNumber() throws DAOException {
+        return billingDAO.getUnpaidBillsWithInvoiceNumber();
+    }
+
     public static String detectTelco(String phoneNumber) {
 
         // Normalize number
@@ -1188,8 +1204,6 @@ public class BillingServiceImpl implements BillingService {
 
         String iremboPayProductCode = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_PRODUCT_CODE);
 
-        String iremboPayAccountIdentifier = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_ACCOUNT_IDENTIFIER);
-
         String transactionId = UUID.randomUUID().toString();
         //Create Customer information
         Customer customer = new Customer();
@@ -1204,8 +1218,16 @@ public class BillingServiceImpl implements BillingService {
 
         //Add the Item to the list
         paymentItems.add(paymentItem);
+        Department myDepartment = billingDAO.getConsommationByPatientBill(patientBill).getDepartment();
+        
+        String invoiceDescription = myDepartment.getName();
 
-        String invoiceDescription = billingDAO.getConsommationByPatientBill(patientBill).getDepartment().getName();
+        //Check if the account hold a specific account identifier and make sure to use that once please
+        String iremboPayAccountIdentifier = myDepartment.getAccountIdentifier();
+        if(iremboPayAccountIdentifier == null){
+            //Once configuration does not support specific fallback to default one
+            iremboPayAccountIdentifier = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_ACCOUNT_IDENTIFIER);
+        }
 
         //Create a the expiration Date to be 24Hours
         Date expiryDate = Date.from(Instant.now().plus(24, ChronoUnit.HOURS));
@@ -1244,8 +1266,199 @@ public class BillingServiceImpl implements BillingService {
         //Now initiate the Payment
         if(!company.equalsIgnoreCase("Unknown operator")){
             String paymentUuid = UUID.randomUUID().toString();
+            IremboPayResponse<?> initiateResponse = iremboPay.mobileMoney
+                    .initiate(phoneNumber, company, invoice.getInvoiceNumber(), paymentUuid);
+            if (initiateResponse != null) {
+                log.info("Irembo initiate payment response for invoice " + invoice.getInvoiceNumber() + ": "
+                        + initiateResponse);
+            } else {
+                log.warn("Irembo initiate payment returned null response for invoice " + invoice.getInvoiceNumber());
+            }
+        }
+    }
 
-            iremboPay.mobileMoney.initiate(phoneNumber, company, invoice.getInvoiceNumber(), paymentUuid);
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public PatientBill getInvoiceStatus(String invoiceId) throws DAOException {
+        Boolean isProduction = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_ENVIRONMENT).equalsIgnoreCase("production")?true:false;
+        String iremboPaySecretKey = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_PAY_SECRET);
+        
+        IremboPay iremboPay = null;
+        if(!isProduction) {
+            iremboPay = new IremboPay(iremboPaySecretKey, Environment.SANDBOX);
+        } else {
+            iremboPay = new IremboPay(iremboPaySecretKey, Environment.PRODUCTION);
+        }
+        IremboPayResponse<Invoice> iremboPayResponse = iremboPay.invoice.getInvoice(invoiceId);
+        System.out.println(iremboPayResponse);
+        Invoice invoice = iremboPayResponse.getData();
+        BillingService billingService = Context.getService(BillingService.class);
+        if(invoice.getPaymentStatus().equalsIgnoreCase("PAID")) {
+            //Here we need to make sure update the patient bill if it was not yet marked as paid
+
+            User iremboUser = Context.getService(UserService.class).getUserByUsername(ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_USER));
+
+            PatientBill billToConfirm = billingService.getPatientBillStatus(invoiceId);
+            if (billToConfirm == null) {
+                return null;
+            }
+
+            //Get the invoice amount
+            BigDecimal invoiceAmount = BigDecimal.valueOf(invoice.getAmount()).setScale(0, RoundingMode.CEILING);
+            BigDecimal billAmount = billToConfirm.getAmount().setScale(0, RoundingMode.CEILING);
+
+            if (invoiceAmount.compareTo(billAmount) == 0) {
+                // Always update bill-level payment status fields when invoice is PAID.
+                billToConfirm.setIsPaid(true);
+                billToConfirm.setPaymentReference(invoice.getPaymentReference());
+                billToConfirm.setPaymentConfirmed(true);
+                billToConfirm.setPaymentConfirmedBy(iremboUser);
+                billToConfirm.setPaymentConfirmedDate(new Date());
+                billToConfirm.setTransactionStatus(invoice.getPaymentStatus());
+
+                Date paidAt = invoice.getPaidAt();
+                if (paidAt != null) {
+                    billToConfirm.setPaidAt(paidAt);
+                } else if (billToConfirm.getPaidAt() == null) {
+                    billToConfirm.setPaidAt(new Date());
+                }
+                billingService.savePatientBill(billToConfirm);
+
+                // Create payment records only if none exists yet.
+                List<BillPayment> billPayments = billingDAO.getBillPaymentsByPatientBill(billToConfirm);
+                boolean hasNonVoidedPayment = billPayments != null && billPayments.stream()
+                        .anyMatch(p -> p.getVoided() == null || !Boolean.TRUE.equals(p.getVoided()));
+                if (!hasNonVoidedPayment) {
+                    //now create the payment records
+                    Date paymentDate = billToConfirm.getPaidAt() != null ? billToConfirm.getPaidAt() : new Date();
+                    
+                    BillPayment billPayment = new BillPayment();
+                    billPayment.setAmountPaid(billAmount);
+                    billPayment.setDateReceived(paymentDate);
+                    billPayment.setPatientBill(billToConfirm);
+                    billPayment.setCollector(iremboUser);
+                    billPayment.setCreator(iremboUser);
+                    billPayment.setCreatedDate(new Date());
+                    billPayment.setVoided(false);
+                    billingService.saveBillPayment(billPayment);
+
+                    Consommation affectedConsommation = billingService.getConsommationByPatientBill(billToConfirm);
+                    if (affectedConsommation != null && affectedConsommation.getBillItems() != null) {
+                        Set<PatientServiceBill> billItems = affectedConsommation.getBillItems();
+                        for (PatientServiceBill psb : billItems) {
+                            PaidServiceBill paidSb = new PaidServiceBill();
+                            paidSb.setBillItem(psb);
+                            BigDecimal paidQuantity = psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO;
+                            paidSb.setPaidQty(paidQuantity);
+                            paidSb.setBillPayment(billPayment);
+                            paidSb.setCreator(iremboUser);
+                            paidSb.setCreatedDate(new Date());
+                            paidSb.setVoided(false);
+                            BillPaymentUtil.createPaidServiceBill(paidSb);
+
+                            psb.setPaid(true);
+                            psb.setPaidQuantity(psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO);
+                            ConsommationUtil.createPatientServiceBill(psb);
+                        }
+                    }
+                }
+                System.out.println("Irembopay invoice check: confirmed payment for PatientBill id=" + billToConfirm.getPatientBillId());
+            } else {
+                // Here make sure to log some error to checked on later
+                System.out.println("Paid amount from irembo pay " + invoiceAmount  + " is different from the expected amount " + billAmount);
+            }
+        }
+        
+        return billingService.getPatientBillStatus(invoiceId);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void processIrembopayCallback(String invoiceNumber, Boolean success, BigDecimal callbackAmount,
+            String paymentReference, String paidAtStr, String paymentStatus) {
+        PatientBill billToConfirm = billingDAO.getPatientBillByInvoiceNumber(invoiceNumber);
+        if (billToConfirm == null) {
+            throw new IllegalArgumentException("No PatientBill found for invoice number " + invoiceNumber);
+        }
+        if (!Boolean.TRUE.equals(success)) {
+            return;
+        }
+        if (callbackAmount == null) {
+            throw new IllegalArgumentException("Callback amount is missing for invoice " + invoiceNumber);
+        }
+        BigDecimal callbackAmountScaled = callbackAmount.setScale(0, RoundingMode.CEILING);
+        BigDecimal billAmount = billToConfirm.getAmount().setScale(0, RoundingMode.CEILING);
+        if (callbackAmountScaled.compareTo(billAmount) != 0) {
+            throw new IllegalArgumentException(String.format(
+                "Amount mismatch: callback amount=%.2f, bill amount=%.2f for invoice %s",
+                callbackAmountScaled.doubleValue(), billAmount.doubleValue(), invoiceNumber));
+        }
+        synchronized (iremboPaymentCreationLock) {
+            // Idempotency: if this bill already has a payment (e.g. from scheduler/status check or duplicate callback),
+            // do not create another BillPayment nor repeat PaidServiceBill updates.
+            List<BillPayment> existingPayments = billingDAO.getBillPaymentsByPatientBill(billToConfirm);
+            boolean hasNonVoidedPayment = existingPayments != null && existingPayments.stream()
+                .anyMatch(p -> p.getVoided() == null || !Boolean.TRUE.equals(p.getVoided()));
+            if (hasNonVoidedPayment) {
+                return;
+            }
+
+            User currentUser = Context.getAuthenticatedUser();
+            billToConfirm.setIsPaid(true);
+            billToConfirm.setPaymentReference(paymentReference);
+            billToConfirm.setPaymentConfirmed(true);
+            billToConfirm.setPaymentConfirmedBy(currentUser);
+            billToConfirm.setPaymentConfirmedDate(new Date());
+            billToConfirm.setTransactionStatus(paymentStatus);
+            Date paidAt = parsePaidAt(paidAtStr);
+            billToConfirm.setPaidAt(paidAt != null ? paidAt : new Date());
+            billingDAO.savePatientBill(billToConfirm);
+
+            Date paymentDate = billToConfirm.getPaidAt();
+            BillPayment billPayment = new BillPayment();
+            billPayment.setAmountPaid(callbackAmount);
+            billPayment.setDateReceived(paymentDate);
+            billPayment.setPatientBill(billToConfirm);
+            billPayment.setCollector(currentUser);
+            billPayment.setCreator(currentUser);
+            billPayment.setCreatedDate(new Date());
+            billPayment.setVoided(false);
+            billingDAO.getPatientServiceBill(billPayment);
+
+            Consommation affectedConsommation = billingDAO.getConsommationByPatientBill(billToConfirm);
+            if (affectedConsommation != null && affectedConsommation.getBillItems() != null) {
+                Set<PatientServiceBill> billItems = affectedConsommation.getBillItems();
+                for (PatientServiceBill psb : billItems) {
+                    PaidServiceBill paidSb = new PaidServiceBill();
+                    paidSb.setBillItem(psb);
+                    BigDecimal paidQuantity = psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO;
+                    paidSb.setPaidQty(paidQuantity);
+                    paidSb.setBillPayment(billPayment);
+                    paidSb.setCreator(currentUser);
+                    paidSb.setCreatedDate(new Date());
+                    paidSb.setVoided(false);
+                    billingDAO.savePaidServiceBill(paidSb);
+
+                    psb.setPaid(true);
+                    psb.setPaidQuantity(psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO);
+                    ConsommationUtil.createPatientServiceBill(psb);
+                }
+            }
+        }
+    }
+
+    private static Date parsePaidAt(String paidAtStr) {
+        if (paidAtStr == null || paidAtStr.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").parse(paidAtStr.trim());
+        } catch (Exception e1) {
+            try {
+                return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(paidAtStr.trim());
+            } catch (Exception e2) {
+                return null;
+            }
         }
     }
 

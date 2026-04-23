@@ -583,6 +583,7 @@ public interface BillingDAO {
 	 * @return billPayment
 	 */
 	public BillPayment getBillPayment(Integer paymentId);
+	public List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill);
 
 	/**
 	 * Gets all paid service bills by BillPayment
@@ -740,6 +741,7 @@ public interface BillingDAO {
 	public PatientBill getBills(Patient patient, Date startDate, Date endDate);*/
 
 	public List<PatientBillIrembo> getUnpaidBills(Patient patient);
+	public List<PatientBill> getUnpaidBillsWithInvoiceNumber();
 
 	public PatientBill getPatientBillByInvoiceNumber(String invoiceNumber);
 

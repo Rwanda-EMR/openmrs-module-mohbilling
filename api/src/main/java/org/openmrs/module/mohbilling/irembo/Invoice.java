@@ -21,10 +21,13 @@ public class Invoice extends Config {
     private Date createdAt;
     private Date updatedAt;
     private Date expiryAt;
+    private Date paidAt;
     private String description;
     private String paymentLinkUrl;
     private String type;
     private String paymentStatus;
+    private String paymentReference;
+    private String paymentMethod;
     private String currency;
     private Customer customer;
     private String createdBy;
@@ -161,7 +164,31 @@ public class Invoice extends Config {
     }
 
     public void setExpiryAt(Date expiryAt) {
-        this.expiryAt = expiryAt;
+    this.expiryAt = expiryAt;
+    }
+
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Date getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(Date paidAt) {
+        this.paidAt = paidAt;
     }
 
     @Override
@@ -177,6 +204,8 @@ public class Invoice extends Config {
                 ", paymentLinkUrl='" + paymentLinkUrl + '\'' +
                 ", type='" + type + '\'' +
                 ", paymentStatus='" + paymentStatus + '\'' +
+                ", paymentReference='" + paymentReference + '\'' +
+                ", paymentMethod='" + paymentMethod + '\'' +
                 ", currency='" + currency + '\'' +
                 ", customer=" + customer +
                 ", createdBy='" + createdBy + '\'' +

@@ -33,6 +33,7 @@
 		<property name="invoiceNumber" column="invoice_number" type="text" />
 		<property name="paidAt" column="paid_at" type="java.util.Date" />
 		<property name="paymentReference" column="payment_reference" type="text" />
+		<property name="retryCount" column="retry_count" type="int" />
 
 
 		<set name="payments" lazy="false" inverse="true"

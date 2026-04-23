@@ -19,6 +19,8 @@ public class Department {
 	private String name;
 	
 	private String description;
+
+	private String accountIdentifier;
 	
 	private User creator;
 	
@@ -158,7 +160,15 @@ public class Department {
 		this.voidReason = voidReason;
 	}
 
-	@Override
+    public String getAccountIdentifier() {
+        return accountIdentifier;
+    }
+
+    public void setAccountIdentifier(String accountIdentifier) {
+        this.accountIdentifier = accountIdentifier;
+    }
+
+    @Override
 	public boolean equals(Object o) {
 		if (o == null || getClass() != o.getClass()) return false;
 		if (o == this) return true;

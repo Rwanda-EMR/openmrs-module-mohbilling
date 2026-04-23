@@ -101,7 +101,7 @@ public class FileExporter {
 		image.scaleToFit(40, 40);
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		document.add(fontSelector.process("REPUBLIQUE DU RWANDA                                                        Date:"+df.format(new Date())+"\n"));
+		document.add(fontSelector.process("REPUBLIQUE DU RWANDA\n"));
 
 		document.add(image);
 		document.add(fontSelector.process(Context.getAdministrationService().getGlobalProperty(
@@ -805,7 +805,7 @@ public class FileExporter {
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);*/
 
-			cell = new PdfPCell(fontselector.process("Beneficiary Names/Signature: \n\n........................."));
+			cell = new PdfPCell(fontselector.process("Beneficiary Signature: \n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 
@@ -2033,7 +2033,7 @@ public class FileExporter {
 		//for report where a patient has to sign on it
 		if(patient!=null){
 
-			cell = new PdfPCell(fontselector.process("Beneficiary Names/Signature: \n\n........................."));
+			cell = new PdfPCell(fontselector.process("Beneficiary Signature: \n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 
@@ -2208,7 +2208,7 @@ public class FileExporter {
 				.toString());// the name of the author
 
 		FontSelector fontTitle = new FontSelector();
-		fontTitle.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		fontTitle.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
 		FontSelector fontTotals = new FontSelector();
 		fontTotals.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
@@ -2216,7 +2216,7 @@ public class FileExporter {
 		/** ------------- Report title ------------- */
 
 		Chunk chk = new Chunk("Printed on : "+ (new Date()));
-		chk.setFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		chk.setFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 		//Paragraph todayDate = new Paragraph();
 		//todayDate.setAlignment(Element.ALIGN_RIGHT);
 		//todayDate.add(chk);
@@ -2250,7 +2250,7 @@ public class FileExporter {
 
 		// title row
 		FontSelector fontTitleSelector = new FontSelector();
-		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		fontTitleSelector.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
 		PdfPTable tableHeader = new PdfPTable(1);
 		tableHeader.setWidthPercentage(100f);
@@ -2278,7 +2278,7 @@ public class FileExporter {
 
 		// normal row
 		FontSelector fontselector = new FontSelector();
-		fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
 
 
 		int number = 0;

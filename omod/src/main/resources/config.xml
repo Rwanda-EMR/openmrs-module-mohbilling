@@ -222,6 +222,46 @@
         </description>
     </globalProperty>
 
+    <globalProperty>
+        <property>mohbilling.irembopay.username</property>
+        <defaultValue>admin</defaultValue>
+        <description>
+            Username to be used when configuring irembo pay
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.scheduler.enabled</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Enable/disable OpenMRS scheduled background reconciliation for Irembo Pay
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.scheduler.intervalSeconds</property>
+        <defaultValue>120</defaultValue>
+        <description>
+            Scheduler interval in seconds for Irembo reconciliation task
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.globalbill.pagesize</property>
+        <defaultValue>40</defaultValue>
+        <description>
+            Global pagination page size
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.minimumpayment</property>
+        <defaultValue>20</defaultValue>
+        <description>
+            Global pagination page size
+        </description>
+    </globalProperty>
+
     <!-- /Required Global Properties -->
 
     <dwr>
