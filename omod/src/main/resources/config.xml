@@ -258,7 +258,7 @@
         <property>mohbilling.irembopay.minimumpayment</property>
         <defaultValue>20</defaultValue>
         <description>
-            Global pagination page size
+            Minimum payment accepted by irembo pay api
         </description>
     </globalProperty>
 

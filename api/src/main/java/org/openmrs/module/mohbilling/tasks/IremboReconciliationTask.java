@@ -7,6 +7,8 @@ import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -20,6 +22,7 @@ public class IremboReconciliationTask extends AbstractTask {
     private static final Log log = LogFactory.getLog(IremboReconciliationTask.class);
     private static final int MAX_RETRY_ATTEMPTS = 20;
     private static final long REQUEST_DELAY_MS = 1000L;
+    private static final long INVOICE_EXPIRY_HOURS = 24L;
 
     @Override
     public void execute() {
@@ -33,10 +36,12 @@ public class IremboReconciliationTask extends AbstractTask {
 
             int checked = 0;
             int updated = 0;
+            int expiredCleared = 0;
             for (PatientBill bill : unpaidBills) {
                 if (bill == null || bill.getInvoiceNumber() == null || bill.getInvoiceNumber().trim().isEmpty()) {
                     continue;
                 }
+                boolean expired = isInvoiceExpired(bill);
                 int currentRetryCount = bill.getRetryCount() != null ? bill.getRetryCount() : 0;
                 if (currentRetryCount >= MAX_RETRY_ATTEMPTS) {
                     continue;
@@ -48,6 +53,22 @@ public class IremboReconciliationTask extends AbstractTask {
                     PatientBill latest = billingService.getInvoiceStatus(bill.getInvoiceNumber());
                     if (latest != null && Boolean.TRUE.equals(latest.getIsPaid())) {
                         updated++;
+                    } else if (expired && isPendingStatus(latest)) {
+                        // Invoice expired (>24h) and still pending on Irembo: clear invoice linkage so a new invoice can be initiated.
+                        String oldInvoiceNumber = latest.getInvoiceNumber();
+                        java.util.Date oldInitiatedAt = latest.getInitiatedAt();
+                        Integer oldRetryCount = latest.getRetryCount();
+                        latest.setInvoiceNumber(null);
+                        latest.setInitiatedAt(null);
+                        latest.setRetryCount(0);
+                        latest.setReferenceId(null);
+                        latest.setTransactionStatus("EXPIRED");
+                        billingService.savePatientBill(latest);
+                        log.info("Cleared expired Irembo invoice from PatientBill id=" + latest.getPatientBillId()
+                                + ", oldInvoiceNumber=" + oldInvoiceNumber
+                                + ", oldInitiatedAt=" + oldInitiatedAt
+                                + ", oldRetryCount=" + oldRetryCount);
+                        expiredCleared++;
                     }
                 } catch (Exception perBillError) {
                     log.error("Failed invoice status check for invoice " + bill.getInvoiceNumber(), perBillError);
@@ -60,9 +81,26 @@ public class IremboReconciliationTask extends AbstractTask {
                     }
                 }
             }
-            log.info("Irembo reconciliation task completed: checked=" + checked + ", paidUpdated=" + updated);
+            log.info("Irembo reconciliation task completed: checked=" + checked + ", paidUpdated=" + updated
+                    + ", expiredCleared=" + expiredCleared);
         } catch (Exception e) {
             log.error("Error while running Irembo reconciliation task", e);
         }
+    }
+
+    private static boolean isInvoiceExpired(PatientBill bill) {
+        if (bill.getInitiatedAt() == null) {
+            return false;
+        }
+        Instant initiatedAt = bill.getInitiatedAt().toInstant();
+        return Duration.between(initiatedAt, Instant.now()).toHours() >= INVOICE_EXPIRY_HOURS;
+    }
+
+    private static boolean isPendingStatus(PatientBill bill) {
+        if (bill == null || bill.getTransactionStatus() == null) {
+            return true;
+        }
+        String status = bill.getTransactionStatus().trim().toUpperCase();
+        return status.isEmpty() || status.contains("PENDING");
     }
 }

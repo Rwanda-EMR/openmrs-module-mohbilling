@@ -132,7 +132,6 @@ public class ConsommationUtil {
 		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
 		Department department = DepartementUtil.getDepartement(departmentId);
 
-		BigDecimal globalAmount = globalBill.getGlobalAmount();
 		BigDecimal totalAmount = new BigDecimal(0);
 		Beneficiary beneficiary = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request
 				.getParameter("ipCardNumber"));
@@ -256,10 +255,8 @@ public class ConsommationUtil {
 				}
 			}
 		}
-		BigDecimal addedItemTotalAmountt=addedItemTotalAmount.add(totalExistingConsomm);
-		totalAmount = totalAmount.add(addedItemTotalAmountt);
-		totalAmount = totalAmount.subtract(voidedItemTotalAmount);
-		totalAmount = totalAmount.subtract(removedItemTotalAmount);
+		// Recompute from current active items to avoid including removed/voided items
+		totalAmount = calculateNonVoidedItemsTotal(existingConsom);
 
 		PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());
 		InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);
@@ -272,9 +269,7 @@ public class ConsommationUtil {
 		existingConsom.setThirdPartyBill(thirdPartyBill);
 
 		saveConsommation = ConsommationUtil.saveConsommation(existingConsom);
-		globalAmount = globalAmount.subtract(voidedItemTotalAmount).subtract(removedItemTotalAmount).add(addedItemTotalAmount);
-		//globalAmount =globalAmount.add(totalAmount);
-		globalBill.setGlobalAmount(globalAmount);
+		globalBill.setGlobalAmount(calculateGlobalBillNonVoidedTotal(globalBill));
 		GlobalBillUtil.saveGlobalBill(globalBill);
 
 		request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR, message);
@@ -401,6 +396,43 @@ public class ConsommationUtil {
 		psb.setVoidReason("removed");
 		psb.setVoidedDate(new Date());
 		ConsommationUtil.saveConsommation(psb.getConsommation());
+	}
+
+	private static BigDecimal calculateNonVoidedItemsTotal(Consommation consommation) {
+		BigDecimal total = BigDecimal.ZERO;
+		if (consommation == null || consommation.getBillItems() == null) {
+			return total;
+		}
+
+		for (PatientServiceBill item : consommation.getBillItems()) {
+			if (item == null || Boolean.TRUE.equals(item.getVoided())) {
+				continue;
+			}
+			BigDecimal quantity = item.getQuantity() != null ? item.getQuantity() : BigDecimal.ZERO;
+			BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice() : BigDecimal.ZERO;
+			total = total.add(quantity.multiply(unitPrice));
+		}
+		return total;
+	}
+
+	private static BigDecimal calculateGlobalBillNonVoidedTotal(GlobalBill globalBill) {
+		BigDecimal total = BigDecimal.ZERO;
+		if (globalBill == null) {
+			return total;
+		}
+
+		List<Consommation> consommations = getConsommationsByGlobalBill(globalBill);
+		if (consommations == null) {
+			return total;
+		}
+
+		for (Consommation consommation : consommations) {
+			if (consommation == null || Boolean.TRUE.equals(consommation.getVoided())) {
+				continue;
+			}
+			total = total.add(calculateNonVoidedItemsTotal(consommation));
+		}
+		return total;
 	}
 
 	public static int getTotalConsommations(Date startDate,

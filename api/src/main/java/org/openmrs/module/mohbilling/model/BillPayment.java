@@ -40,6 +40,8 @@ public class BillPayment implements Comparable<BillPayment> {
 	private Date voidedDate;
 	
 	private String voidReason;
+
+	private String paymentReference;
 	
 	
 	//constructors
@@ -228,6 +230,14 @@ public class BillPayment implements Comparable<BillPayment> {
 	 */
 	public void setVoidReason(String voidReason) {
 		this.voidReason = voidReason;
+	}
+
+	public String getPaymentReference() {
+		return paymentReference;
+	}
+
+	public void setPaymentReference(String paymentReference) {
+		this.paymentReference = paymentReference;
 	}
 
 	/*

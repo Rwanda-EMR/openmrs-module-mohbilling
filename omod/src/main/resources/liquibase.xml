@@ -1680,4 +1680,30 @@
 			<column name="retry_count" type="int"/>
 		</addColumn>
 	</changeSet>
+	<changeSet id="moh_bill_payment_adding_payment_reference" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="moh_bill_payment" columnName="payment_reference"/>
+			</not>
+		</preConditions>
+
+		<addColumn tableName="moh_bill_payment">
+			<column name="payment_reference" type="varchar(255)">
+				<constraints nullable="true"/>
+			</column>
+		</addColumn>
+
+		<addUniqueConstraint
+			tableName="moh_bill_payment"
+			columnNames="payment_reference"
+			constraintName="uk_moh_bill_payment_reference"/>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_inititated_at" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="inititated_at"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="inititated_at" type="DATETIME"/>
+		</addColumn>
+	</changeSet>
 </databaseChangeLog>

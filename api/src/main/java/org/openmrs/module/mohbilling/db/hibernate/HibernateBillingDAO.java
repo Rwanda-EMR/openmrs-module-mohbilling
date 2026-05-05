@@ -2053,6 +2053,8 @@ public class HibernateBillingDAO implements BillingDAO {
                 patientBillIrembo.setPatientBillId(patientBill.getPatientBillId());
                 patientBillIrembo.setAmount(patientBill.getAmount());
                 patientBillIrembo.setInvoiceNumber(patientBill.getInvoiceNumber());
+                patientBillIrembo.setRetryCount(patientBill.getRetryCount());
+                patientBillIrembo.setInitiatedAt(patientBill.getInitiatedAt());
 
                 //Get the Phone number in person attribute type if ready
                 if (patientBill.getPhoneNumber() == null && patient.getPerson() != null && phoneNumberType != null) {
@@ -2106,6 +2108,15 @@ public class HibernateBillingDAO implements BillingDAO {
         .createCriteria(PatientBill.class)
         .add(Restrictions.eq("invoiceNumber", invoiceNumber))
         .uniqueResult();
+    }
+
+    @Override
+    public PatientBill getPatientBillStatusForUpdate(String invoiceNumber) {
+        return (PatientBill) sessionFactory.getCurrentSession()
+                .createCriteria(PatientBill.class)
+                .add(Restrictions.eq("invoiceNumber", invoiceNumber))
+                .setLockMode(LockMode.UPGRADE)
+                .uniqueResult();
     }
 
     @Override

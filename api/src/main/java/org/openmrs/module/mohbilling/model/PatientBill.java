@@ -39,6 +39,7 @@ public class PatientBill {
 	private Date paidAt;
 	private String paymentReference;
 	private Integer retryCount;
+	private Date initiatedAt;
 
 	/**
 	 * @return the patientBillId
@@ -392,5 +393,13 @@ public class PatientBill {
 
 	public void setRetryCount(Integer retryCount) {
 		this.retryCount = retryCount;
+	}
+
+	public Date getInitiatedAt() {
+		return initiatedAt;
+	}
+
+	public void setInitiatedAt(Date initiatedAt) {
+		this.initiatedAt = initiatedAt;
 	}
 }

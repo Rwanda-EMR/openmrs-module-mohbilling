@@ -9,6 +9,8 @@ public class PatientBillIrembo {
     private BigDecimal amount = new BigDecimal(0);
     private String phoneNumber;
     private String invoiceNumber;
+    private Integer retryCount;
+    private Date initiatedAt;
 
     private String department;
 
@@ -58,5 +60,21 @@ public class PatientBillIrembo {
 
     public void setBillDate(Date billDate) {
         this.billDate = billDate;
+    }
+
+    public Integer getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(Integer retryCount) {
+        this.retryCount = retryCount;
+    }
+
+    public Date getInitiatedAt() {
+        return initiatedAt;
+    }
+
+    public void setInitiatedAt(Date initiatedAt) {
+        this.initiatedAt = initiatedAt;
     }
 }

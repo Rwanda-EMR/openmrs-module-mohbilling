@@ -748,6 +748,7 @@ public interface BillingDAO {
 	public List<PatientServiceBill> getPatientServiceBillByConsomation(Integer consommationId);
 
 	public PatientBill getPatientBillStatus(String invoiceNumber);
+	public PatientBill getPatientBillStatusForUpdate(String invoiceNumber);
 
 	public List<Consommation> getConsommationsOld(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
 

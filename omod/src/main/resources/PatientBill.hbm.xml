@@ -31,6 +31,7 @@
 		<property name="paymentConfirmedDate" column="paymentConfirmedDate" type="java.util.Date" />
 
 		<property name="invoiceNumber" column="invoice_number" type="text" />
+		<property name="initiatedAt" column="inititated_at" type="java.util.Date" />
 		<property name="paidAt" column="paid_at" type="java.util.Date" />
 		<property name="paymentReference" column="payment_reference" type="text" />
 		<property name="retryCount" column="retry_count" type="int" />

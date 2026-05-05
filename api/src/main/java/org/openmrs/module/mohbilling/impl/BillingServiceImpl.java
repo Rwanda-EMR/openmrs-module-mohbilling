@@ -1246,8 +1246,10 @@ public class BillingServiceImpl implements BillingService {
         //After the invoice create operation make sure to save comming returned information into database for later reference
         patientBill.setReferenceId(transactionId);
         patientBill.setInvoiceNumber(invoice.getInvoiceNumber());
+        patientBill.setInitiatedAt(new Date());
         patientBill.setPhoneNumber(phoneNumber);
         patientBill.setTransactionStatus("Pending");
+        patientBill.setRetryCount(0);
 
         //Save the patient into the database
         billingDAO.savePatientBill(patientBill);
@@ -1298,7 +1300,7 @@ public class BillingServiceImpl implements BillingService {
 
             User iremboUser = Context.getService(UserService.class).getUserByUsername(ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_USER));
 
-            PatientBill billToConfirm = billingService.getPatientBillStatus(invoiceId);
+            PatientBill billToConfirm = billingDAO.getPatientBillStatusForUpdate(invoiceId);
             if (billToConfirm == null) {
                 return null;
             }
@@ -1308,9 +1310,15 @@ public class BillingServiceImpl implements BillingService {
             BigDecimal billAmount = billToConfirm.getAmount().setScale(0, RoundingMode.CEILING);
 
             if (invoiceAmount.compareTo(billAmount) == 0) {
+                String resolvedPaymentReference = resolveIremboPaymentReference(invoice.getPaymentReference(),
+                        billToConfirm.getPaymentReference(), invoiceId);
+                if (resolvedPaymentReference == null) {
+                    log.warn("Skipping PAID invoice update because payment reference is missing for invoice " + invoiceId);
+                    return billToConfirm;
+                }
                 // Always update bill-level payment status fields when invoice is PAID.
                 billToConfirm.setIsPaid(true);
-                billToConfirm.setPaymentReference(invoice.getPaymentReference());
+                billToConfirm.setPaymentReference(resolvedPaymentReference);
                 billToConfirm.setPaymentConfirmed(true);
                 billToConfirm.setPaymentConfirmedBy(iremboUser);
                 billToConfirm.setPaymentConfirmedDate(new Date());
@@ -1324,41 +1332,46 @@ public class BillingServiceImpl implements BillingService {
                 }
                 billingService.savePatientBill(billToConfirm);
 
-                // Create payment records only if none exists yet.
-                List<BillPayment> billPayments = billingDAO.getBillPaymentsByPatientBill(billToConfirm);
-                boolean hasNonVoidedPayment = billPayments != null && billPayments.stream()
-                        .anyMatch(p -> p.getVoided() == null || !Boolean.TRUE.equals(p.getVoided()));
-                if (!hasNonVoidedPayment) {
-                    //now create the payment records
-                    Date paymentDate = billToConfirm.getPaidAt() != null ? billToConfirm.getPaidAt() : new Date();
-                    
-                    BillPayment billPayment = new BillPayment();
-                    billPayment.setAmountPaid(billAmount);
-                    billPayment.setDateReceived(paymentDate);
-                    billPayment.setPatientBill(billToConfirm);
-                    billPayment.setCollector(iremboUser);
-                    billPayment.setCreator(iremboUser);
-                    billPayment.setCreatedDate(new Date());
-                    billPayment.setVoided(false);
-                    billingService.saveBillPayment(billPayment);
+                synchronized (iremboPaymentCreationLock) {
+                    // Create payment records only if none exists yet.
+                    List<BillPayment> billPayments = billingDAO.getBillPaymentsByPatientBill(billToConfirm);
+                    boolean hasNonVoidedPayment = billPayments != null && billPayments.stream()
+                            .anyMatch(p -> p.getVoided() == null || !Boolean.TRUE.equals(p.getVoided()));
+                    if (!hasNonVoidedPayment) {
+                        Date paymentDate = billToConfirm.getPaidAt() != null ? billToConfirm.getPaidAt() : new Date();
 
-                    Consommation affectedConsommation = billingService.getConsommationByPatientBill(billToConfirm);
-                    if (affectedConsommation != null && affectedConsommation.getBillItems() != null) {
-                        Set<PatientServiceBill> billItems = affectedConsommation.getBillItems();
-                        for (PatientServiceBill psb : billItems) {
-                            PaidServiceBill paidSb = new PaidServiceBill();
-                            paidSb.setBillItem(psb);
-                            BigDecimal paidQuantity = psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO;
-                            paidSb.setPaidQty(paidQuantity);
-                            paidSb.setBillPayment(billPayment);
-                            paidSb.setCreator(iremboUser);
-                            paidSb.setCreatedDate(new Date());
-                            paidSb.setVoided(false);
-                            BillPaymentUtil.createPaidServiceBill(paidSb);
+                        BillPayment billPayment = new BillPayment();
+                        billPayment.setAmountPaid(billAmount);
+                        billPayment.setDateReceived(paymentDate);
+                        billPayment.setPatientBill(billToConfirm);
+                        billPayment.setCollector(iremboUser);
+                        billPayment.setCreator(iremboUser);
+                        billPayment.setCreatedDate(new Date());
+                        billPayment.setVoided(false);
+                        billPayment.setPaymentReference(resolvedPaymentReference);
+                        billingService.saveBillPayment(billPayment);
 
-                            psb.setPaid(true);
-                            psb.setPaidQuantity(psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO);
-                            ConsommationUtil.createPatientServiceBill(psb);
+                        Consommation affectedConsommation = billingService.getConsommationByPatientBill(billToConfirm);
+                        if (affectedConsommation != null && affectedConsommation.getBillItems() != null) {
+                            Set<PatientServiceBill> billItems = affectedConsommation.getBillItems();
+                            for (PatientServiceBill psb : billItems) {
+                                if(psb.getVoided()){
+                                    continue;
+                                }
+                                PaidServiceBill paidSb = new PaidServiceBill();
+                                paidSb.setBillItem(psb);
+                                BigDecimal paidQuantity = psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO;
+                                paidSb.setPaidQty(paidQuantity);
+                                paidSb.setBillPayment(billPayment);
+                                paidSb.setCreator(iremboUser);
+                                paidSb.setCreatedDate(new Date());
+                                paidSb.setVoided(false);
+                                BillPaymentUtil.createPaidServiceBill(paidSb);
+
+                                psb.setPaid(true);
+                                psb.setPaidQuantity(psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO);
+                                ConsommationUtil.createPatientServiceBill(psb);
+                            }
                         }
                     }
                 }
@@ -1376,7 +1389,7 @@ public class BillingServiceImpl implements BillingService {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void processIrembopayCallback(String invoiceNumber, Boolean success, BigDecimal callbackAmount,
             String paymentReference, String paidAtStr, String paymentStatus) {
-        PatientBill billToConfirm = billingDAO.getPatientBillByInvoiceNumber(invoiceNumber);
+        PatientBill billToConfirm = billingDAO.getPatientBillStatusForUpdate(invoiceNumber);
         if (billToConfirm == null) {
             throw new IllegalArgumentException("No PatientBill found for invoice number " + invoiceNumber);
         }
@@ -1393,6 +1406,12 @@ public class BillingServiceImpl implements BillingService {
                 "Amount mismatch: callback amount=%.2f, bill amount=%.2f for invoice %s",
                 callbackAmountScaled.doubleValue(), billAmount.doubleValue(), invoiceNumber));
         }
+        String resolvedPaymentReference = resolveIremboPaymentReference(paymentReference,
+                billToConfirm.getPaymentReference(), invoiceNumber);
+        if (resolvedPaymentReference == null) {
+            throw new IllegalArgumentException(
+                    "Payment reference is missing for invoice " + invoiceNumber + "; callback processing aborted");
+        }
         synchronized (iremboPaymentCreationLock) {
             // Idempotency: if this bill already has a payment (e.g. from scheduler/status check or duplicate callback),
             // do not create another BillPayment nor repeat PaidServiceBill updates.
@@ -1405,7 +1424,7 @@ public class BillingServiceImpl implements BillingService {
 
             User currentUser = Context.getAuthenticatedUser();
             billToConfirm.setIsPaid(true);
-            billToConfirm.setPaymentReference(paymentReference);
+            billToConfirm.setPaymentReference(resolvedPaymentReference);
             billToConfirm.setPaymentConfirmed(true);
             billToConfirm.setPaymentConfirmedBy(currentUser);
             billToConfirm.setPaymentConfirmedDate(new Date());
@@ -1423,6 +1442,7 @@ public class BillingServiceImpl implements BillingService {
             billPayment.setCreator(currentUser);
             billPayment.setCreatedDate(new Date());
             billPayment.setVoided(false);
+            billPayment.setPaymentReference(resolvedPaymentReference);
             billingDAO.getPatientServiceBill(billPayment);
 
             Consommation affectedConsommation = billingDAO.getConsommationByPatientBill(billToConfirm);
@@ -1460,6 +1480,23 @@ public class BillingServiceImpl implements BillingService {
                 return null;
             }
         }
+    }
+
+    private static String resolveIremboPaymentReference(String incomingReference, String existingBillReference,
+            String invoiceNumber) {
+        if (incomingReference != null && !incomingReference.trim().isEmpty()) {
+            String incomingTrimmed = incomingReference.trim();
+            if (!incomingTrimmed.equals(invoiceNumber)) {
+                return incomingTrimmed;
+            }
+        }
+        if (existingBillReference != null && !existingBillReference.trim().isEmpty()) {
+            String existingTrimmed = existingBillReference.trim();
+            if (!existingTrimmed.equals(invoiceNumber)) {
+                return existingTrimmed;
+            }
+        }
+        return null;
     }
 
     public PatientBill getPatientBillByInvoiceNumber(String invoiceId) throws DAOException {
