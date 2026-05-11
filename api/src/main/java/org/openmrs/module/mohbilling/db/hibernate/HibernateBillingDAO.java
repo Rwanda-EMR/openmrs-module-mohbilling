@@ -2187,4 +2187,63 @@ public class HibernateBillingDAO implements BillingDAO {
 				.setMaxResults(maxRows)
 				.list();
 	}
+
+	@Override
+	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult,
+	                                                       Integer maxResults) {
+		Criteria hibernateCriteria = buildRhipIntegrationLogCriteria(criteria);
+		hibernateCriteria.addOrder(Order.desc("dateCreated"));
+		hibernateCriteria.addOrder(Order.desc("rhipIntegrationLogId"));
+		if (firstResult != null && firstResult > 0) {
+			hibernateCriteria.setFirstResult(firstResult);
+		}
+		if (maxResults != null && maxResults > 0) {
+			hibernateCriteria.setMaxResults(maxResults);
+		}
+		return hibernateCriteria.list();
+	}
+
+	@Override
+	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria) {
+		Number count = (Number) buildRhipIntegrationLogCriteria(criteria)
+				.setProjection(Projections.rowCount())
+				.uniqueResult();
+		return count == null ? 0 : count.intValue();
+	}
+
+	private Criteria buildRhipIntegrationLogCriteria(RhipIntegrationLogSearchCriteria searchCriteria) {
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(RhipIntegrationLog.class);
+		if (searchCriteria == null) {
+			return criteria;
+		}
+		if (searchCriteria.getStartDate() != null) {
+			criteria.add(Restrictions.ge("dateCreated", searchCriteria.getStartDate()));
+		}
+		if (searchCriteria.getEndDate() != null) {
+			criteria.add(Restrictions.le("dateCreated", searchCriteria.getEndDate()));
+		}
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(searchCriteria.getSenderUsername())) {
+			criteria.add(Restrictions.ilike("senderUsername", "%" + searchCriteria.getSenderUsername().trim() + "%"));
+		}
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(searchCriteria.getOperationType())) {
+			criteria.add(Restrictions.eq("operationType", searchCriteria.getOperationType().trim()));
+		}
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(searchCriteria.getResponseStatus())) {
+			criteria.add(Restrictions.eq("responseStatus", searchCriteria.getResponseStatus().trim()));
+		}
+		if (searchCriteria.getResponseCode() != null) {
+			criteria.add(Restrictions.eq("responseCode", searchCriteria.getResponseCode()));
+		}
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(searchCriteria.getQuery())) {
+			String query = "%" + searchCriteria.getQuery().trim() + "%";
+			criteria.add(Restrictions.or(
+					Restrictions.ilike("endpointUrl", query),
+					Restrictions.or(
+							Restrictions.ilike("requestPayload", query),
+							Restrictions.or(
+									Restrictions.ilike("responseBody", query),
+									Restrictions.ilike("errorMessage", query)))));
+		}
+		return criteria;
+	}
 }

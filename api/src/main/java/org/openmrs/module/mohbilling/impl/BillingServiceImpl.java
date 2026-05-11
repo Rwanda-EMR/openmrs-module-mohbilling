@@ -1833,4 +1833,17 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.getRecentRhipIntegrationLogs(limit);
 	}
 
+	@Override
+	@Transactional(readOnly = true)
+	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult,
+	                                                       Integer maxResults) {
+		return billingDAO.getRhipIntegrationLogs(criteria, firstResult, maxResults);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria) {
+		return billingDAO.countRhipIntegrationLogs(criteria);
+	}
+
 }

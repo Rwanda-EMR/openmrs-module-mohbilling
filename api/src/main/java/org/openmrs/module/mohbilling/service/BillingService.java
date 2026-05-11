@@ -727,4 +727,6 @@ public interface BillingService {
 
 	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog log);
 	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);
+	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult, Integer maxResults);
+	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria);
 }
