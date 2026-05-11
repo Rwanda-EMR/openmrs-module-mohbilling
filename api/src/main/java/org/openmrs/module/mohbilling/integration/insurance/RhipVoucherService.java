@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
-import org.openmrs.ConceptClass;
-import org.openmrs.ConceptDatatype;
-import org.openmrs.ConceptName;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
@@ -17,12 +14,10 @@ import org.openmrs.ProviderAttributeType;
 import org.openmrs.User;
 import org.openmrs.PersonName;
 import org.openmrs.api.ConceptService;
-import org.openmrs.api.DuplicateConceptNameException;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.integration.IntegrationResponse;
-import org.openmrs.module.mohbilling.metadata.RhipPractitionerConceptMetadata;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.BillableService;
 import org.openmrs.module.mohbilling.model.Consommation;
@@ -1072,142 +1067,6 @@ public class RhipVoucherService {
 		this.rhipPractitionerTypeService = rhipPractitionerTypeService;
 	}
 
-	@Transactional(readOnly = true)
-	public boolean hasPractitionerSubCategoryConceptAnswers() {
-		if (conceptService == null) {
-			return false;
-		}
-		Concept question = conceptService.getConceptByUuid(RhipPractitionerConceptMetadata.RHIP_PRACTITIONER_SUBCATEGORY_CONCEPT_UUID);
-		if (question == null) {
-			return false;
-		}
-		return question.getAnswers() != null && !question.getAnswers().isEmpty();
-	}
-
-	/**
-	 * Syncs RHIP practitioner sub-category types (from {@code /practitioner/types}) into OpenMRS Concepts,
-	 * and attaches them as answers to the {@code RHIP Practitioner Sub-Category Type} coded question.
-	 *
-	 * This enables building UIs that present a controlled list of sub-categories while still sending
-	 * the RHIP UUID (as the answer concept UUID) to the integration.
-	 */
-	@Transactional
-	public IntegrationResponse syncPractitionerSubCategoryConceptAnswers(String insuranceType, String categoryId) {
-		IntegrationResponse ret = new IntegrationResponse();
-		ret.setEnabled(config != null && StringUtils.isNotBlank(config.getPractitionerTypesUrl()));
-		if (!ret.isEnabled()) {
-			ret.setErrorMessage("Practitioner types endpoint is not configured");
-			return ret;
-		}
-		if (voucherProvider == null) {
-			ret.setErrorMessage("RHIP voucher provider is not configured");
-			return ret;
-		}
-		if (conceptService == null) {
-			ret.setErrorMessage("Concept service is not configured");
-			return ret;
-		}
-
-		RhipPractitionerConceptMetadata.ensureInstalled();
-
-		String normalizedInsuranceType = normalizeInsuranceType(insuranceType);
-		IntegrationResponse typesResponse = voucherProvider.getPractitionerTypes(normalizedInsuranceType, categoryId);
-		Object entity = typesResponse == null ? null : typesResponse.getResponseEntity();
-		boolean useLocalStore = !Boolean.TRUE.equals(isSuccessResponse(typesResponse)) || entity == null;
-
-		int createdConcepts = 0;
-		int attachedAnswers = 0;
-
-		Concept question = conceptService.getConceptByUuid(RhipPractitionerConceptMetadata.RHIP_PRACTITIONER_SUBCATEGORY_CONCEPT_UUID);
-		if (question == null) {
-			ret.setErrorMessage("RHIP Practitioner Sub-Category Type concept is missing");
-			return ret;
-		}
-
-		try {
-			if (useLocalStore) {
-				if (rhipPractitionerTypeService == null) {
-					ret.setEndpointAccessible(typesResponse != null && typesResponse.isEndpointAccessible());
-					ret.setResponseCode(typesResponse == null ? null : typesResponse.getResponseCode());
-					ret.setResponseEntity(typesResponse == null ? null : typesResponse.getResponseEntity());
-					ret.setErrorMessage("Unable to fetch practitioner types from RHIP and local store is not configured");
-					return ret;
-				}
-					List<org.openmrs.module.mohbilling.model.RhipPractitionerType> local =
-							rhipPractitionerTypeService.getByType("SUB_CATEGORY");
-					for (org.openmrs.module.mohbilling.model.RhipPractitionerType item : local) {
-						if (item == null || StringUtils.isBlank(item.getRhipId()) || StringUtils.isBlank(item.getName())) {
-							continue;
-						}
-						try {
-							String id = item.getRhipId().trim();
-							String name = item.getName().trim();
-							if (!looksLikeUuid(id)) {
-								continue;
-							}
-							int[] delta = ensureSubCategoryAnswer(question, id, name);
-							createdConcepts += delta[0];
-							attachedAnswers += delta[1];
-						}
-						catch (Exception e) {
-							log.warn("Unable to sync RHIP sub-category concept answer from local store for rhipId=" + item.getRhipId(), e);
-						}
-					}
-				if (attachedAnswers > 0) {
-					conceptService.saveConcept(question);
-				}
-				ret.setEndpointAccessible(typesResponse != null && typesResponse.isEndpointAccessible());
-				ret.setResponseCode(typesResponse == null ? null : typesResponse.getResponseCode());
-				ret.setResponseEntity("Used local store. Created " + createdConcepts + " concepts; attached " + attachedAnswers + " answers");
-				return ret;
-			}
-
-			JsonNode root = OBJECT_MAPPER.readTree(entity.toString());
-			JsonNode data = root == null ? null : root.get("data");
-			if (data == null || !data.isArray()) {
-				ret.setErrorMessage("Invalid response from RHIP practitioner types endpoint: missing data array");
-				return ret;
-			}
-
-				for (JsonNode item : data) {
-					if (item == null || item.isNull()) {
-						continue;
-					}
-					try {
-						upsertLocalPractitionerTypeFromJson(item);
-						String type = jsonText(item.get("type"));
-						if (StringUtils.isBlank(type) || !"SUB_CATEGORY".equalsIgnoreCase(type.trim())) {
-							continue;
-						}
-						String id = jsonText(item.get("id"));
-						String name = jsonText(item.get("name"));
-						if (StringUtils.isBlank(id) || StringUtils.isBlank(name) || !looksLikeUuid(id.trim())) {
-							continue;
-						}
-						int[] delta = ensureSubCategoryAnswer(question, id.trim(), name.trim());
-						createdConcepts += delta[0];
-						attachedAnswers += delta[1];
-					}
-					catch (Exception e) {
-						log.warn("Unable to sync RHIP sub-category concept answer for item: " + item, e);
-					}
-				}
-
-			if (attachedAnswers > 0) {
-				conceptService.saveConcept(question);
-			}
-
-			ret.setEndpointAccessible(true);
-			ret.setResponseCode(typesResponse.getResponseCode());
-			ret.setResponseEntity("Created " + createdConcepts + " concepts; attached " + attachedAnswers + " answers");
-			return ret;
-		}
-		catch (Exception e) {
-			ret.setErrorMessage(e.getMessage());
-			return ret;
-		}
-	}
-
 	private void upsertLocalPractitionerTypeFromJson(JsonNode item) {
 		if (rhipPractitionerTypeService == null || item == null || item.isNull()) {
 			return;
@@ -1242,70 +1101,5 @@ public class RhipVoucherService {
 		catch (Exception e) {
 			log.debug("Unable to upsert RHIP practitioner type into local store", e);
 		}
-	}
-
-	private int[] ensureSubCategoryAnswer(Concept question, String id, String name) {
-		int createdConcepts = 0;
-		int attachedAnswers = 0;
-
-		Concept answer = conceptService.getConceptByUuid(id);
-		if (answer == null) {
-			answer = new Concept();
-			answer.setUuid(id);
-			ConceptDatatype textDatatype = conceptService.getConceptDatatypeByName("Text");
-			ConceptClass miscClass = conceptService.getConceptClassByName("Misc");
-			if (textDatatype == null || miscClass == null) {
-				return new int[] { 0, 0 };
-			}
-			answer.setDatatype(textDatatype);
-			answer.setConceptClass(miscClass);
-			answer.addName(new ConceptName(buildSubCategoryConceptName(name, null), java.util.Locale.ENGLISH));
-			try {
-				answer = conceptService.saveConcept(answer);
-				createdConcepts++;
-			}
-			catch (DuplicateConceptNameException e) {
-				answer.getNames().clear();
-				answer.addName(new ConceptName(buildSubCategoryConceptName(name, id), java.util.Locale.ENGLISH));
-				answer = conceptService.saveConcept(answer);
-				createdConcepts++;
-			}
-		}
-
-		boolean alreadyAnswer = false;
-		for (org.openmrs.ConceptAnswer existingAnswer : question.getAnswers()) {
-			if (existingAnswer != null && existingAnswer.getAnswerConcept() != null
-					&& StringUtils.equals(existingAnswer.getAnswerConcept().getUuid(), answer.getUuid())) {
-				alreadyAnswer = true;
-				break;
-			}
-		}
-		if (!alreadyAnswer) {
-			question.addAnswer(new org.openmrs.ConceptAnswer(answer));
-			attachedAnswers++;
-		}
-		return new int[] { createdConcepts, attachedAnswers };
-	}
-
-	private String buildSubCategoryConceptName(String name, String id) {
-		String base = "RHIP Sub-Category - " + (name == null ? "" : name.trim());
-		if (StringUtils.isNotBlank(id)) {
-			base = base + " (" + id.trim() + ")";
-		}
-		// concept_name.name is typically limited to 255 chars in OpenMRS
-		if (base.length() <= 255) {
-			return base;
-		}
-		String suffix = StringUtils.isNotBlank(id) ? " (" + id.trim() + ")" : "";
-		String prefix = "RHIP Sub-Category - ";
-		int maxNameLen = 255 - prefix.length() - suffix.length();
-		if (maxNameLen < 0) {
-			return base.substring(0, 255);
-		}
-		String trimmedName = name == null ? "" : name.trim();
-		if (trimmedName.length() > maxNameLen) {
-			trimmedName = trimmedName.substring(0, maxNameLen);
-		}
-		return prefix + trimmedName + suffix;
 	}
 }
