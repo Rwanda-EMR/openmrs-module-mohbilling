@@ -255,7 +255,7 @@
 		<c:set var="totalInsurance" value="0"/>
 		<c:set var="totalTM" value="0"/>
 		<c:forEach items="${serviceRevenueList}" var="sr" varStatus="status">
-			<c:if test="${sr.dueAmount !=0 }">
+			<c:if test="${not empty sr.billItems}">
 				<tr>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
