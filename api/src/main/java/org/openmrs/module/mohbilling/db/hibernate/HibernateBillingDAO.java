@@ -2037,8 +2037,9 @@ public class HibernateBillingDAO implements BillingDAO {
                         + ": " + minimumPaymentGp + ". Defaulting to 0.");
             }
         }
-
-        PersonAttributeType phoneNumberType = Context.getPersonService().getPersonAttributeType(11);
+        Integer attributeTypeId = Integer.parseInt(Context.getAdministrationService()
+                .getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE));
+        PersonAttributeType phoneNumberType = Context.getPersonService().getPersonAttributeType(attributeTypeId);
         if (ids != null) {
             for (Object id : ids) {
                 PatientBill patientBill = getPatientBill((Integer) id);
@@ -2052,7 +2053,12 @@ public class HibernateBillingDAO implements BillingDAO {
                 PatientBillIrembo patientBillIrembo = new PatientBillIrembo();
                 patientBillIrembo.setPatientBillId(patientBill.getPatientBillId());
                 patientBillIrembo.setAmount(patientBill.getAmount());
-                patientBillIrembo.setInvoiceNumber(patientBill.getInvoiceNumber());
+                String batchNumber = patientBill.getBatchNumber();
+                if (batchNumber != null && !batchNumber.trim().isEmpty()) {
+                    patientBillIrembo.setInvoiceNumber(batchNumber.trim());
+                } else {
+                    patientBillIrembo.setInvoiceNumber(patientBill.getInvoiceNumber());
+                }
                 patientBillIrembo.setRetryCount(patientBill.getRetryCount());
                 patientBillIrembo.setInitiatedAt(patientBill.getInitiatedAt());
 
@@ -2117,6 +2123,14 @@ public class HibernateBillingDAO implements BillingDAO {
                 .add(Restrictions.eq("invoiceNumber", invoiceNumber))
                 .setLockMode(LockMode.UPGRADE)
                 .uniqueResult();
+    }
+
+    @Override
+    public List<PatientBill> getPatientBillsByBatchNumber(String batchNumber) {
+        return sessionFactory.getCurrentSession()
+                .createCriteria(PatientBill.class)
+                .add(Restrictions.eq("batchNumber", batchNumber))
+                .list();
     }
 
     @Override

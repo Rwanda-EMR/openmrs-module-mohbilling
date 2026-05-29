@@ -21,6 +21,7 @@
 		<property name="voidedDate" column="voided_date"  />
 		<property name="voidReason" column="void_reason" type="text" />
 		<property name="paymentReference" column="payment_reference" type="text" />
+		<property name="invoiceNumber" column="invoice_number" type="text" />
 		
 		<many-to-one name="collector" class="org.openmrs.User" column="collector" />
 		<many-to-one name="patientBill" class="org.openmrs.module.mohbilling.model.PatientBill" column="patient_bill_id" />	

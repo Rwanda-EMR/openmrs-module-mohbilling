@@ -88,5 +88,6 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_IREMBO_SCHEDULER_ENABLED = "mohbilling.irembopay.scheduler.enabled";
 	public static final String GLOBAL_PROPERTY_IREMBO_SCHEDULER_INTERVAL_SECONDS = "mohbilling.irembopay.scheduler.intervalSeconds";
 	public static final String GLOBAL_PROPERTY_GLOBAL_BILL_PAGE_SIZE = "mohbilling.globalbill.pagesize";
+	public static final String GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE = "mohbilling.irembopay.phone_attribute";
 
 }

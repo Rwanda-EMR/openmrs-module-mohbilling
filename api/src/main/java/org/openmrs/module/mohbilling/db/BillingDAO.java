@@ -577,7 +577,6 @@ public interface BillingDAO {
 	public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary);
 
 	/**
-<<<<<<< HEAD
 	 * Gets BillPayment by a given paymentId
 	 * @param paymentId
 	 * @return billPayment
@@ -749,6 +748,7 @@ public interface BillingDAO {
 
 	public PatientBill getPatientBillStatus(String invoiceNumber);
 	public PatientBill getPatientBillStatusForUpdate(String invoiceNumber);
+	public List<PatientBill> getPatientBillsByBatchNumber(String batchNumber);
 
 	public List<Consommation> getConsommationsOld(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
 

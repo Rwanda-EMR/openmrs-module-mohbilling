@@ -80,6 +80,7 @@ public class MohBillingOpenBillConfirmationPageFormController extends
 				PatientBill pb=consommation.getPatientBill();
 				if (!pb.isPaymentConfirmed()) {
 					BillPayment billPayment = new BillPayment();
+					billPayment.setInvoiceNumber(pb.getInvoiceNumber());
 					billPayment.setCollector(Context.getAuthenticatedUser());
 					billPayment.setDateReceived(new Date());
 					billPayment.setPatientBill(pb);

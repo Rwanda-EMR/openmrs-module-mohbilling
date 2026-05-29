@@ -38,6 +38,7 @@ public class PatientBill {
 	private String invoiceNumber;
 	private Date paidAt;
 	private String paymentReference;
+	private String batchNumber;
 	private Integer retryCount;
 	private Date initiatedAt;
 
@@ -386,6 +387,14 @@ public class PatientBill {
     public void setPaymentReference(String paymentReference) {
         this.paymentReference = paymentReference;
     }
+
+	public String getBatchNumber() {
+		return batchNumber;
+	}
+
+	public void setBatchNumber(String batchNumber) {
+		this.batchNumber = batchNumber;
+	}
 
 	public Integer getRetryCount() {
 		return retryCount;

@@ -50,8 +50,10 @@ public class IrembopayCallbackRequest {
         private String type;
         private String paymentMethod;
         private String paymentReference;
+        private String batchNumber;
         private IrembopayCallbackCustomer customer;
         private List<IrembopayPaymentItem> paymentItems;
+        private List<String> childInvoices;
         private String paymentAccountIdentifier;
 
         public Double getAmount() { return amount; }
@@ -78,10 +80,14 @@ public class IrembopayCallbackRequest {
         public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
         public String getPaymentReference() { return paymentReference; }
         public void setPaymentReference(String paymentReference) { this.paymentReference = paymentReference; }
+        public String getBatchNumber() { return batchNumber; }
+        public void setBatchNumber(String batchNumber) { this.batchNumber = batchNumber; }
         public IrembopayCallbackCustomer getCustomer() { return customer; }
         public void setCustomer(IrembopayCallbackCustomer customer) { this.customer = customer; }
         public List<IrembopayPaymentItem> getPaymentItems() { return paymentItems; }
         public void setPaymentItems(List<IrembopayPaymentItem> paymentItems) { this.paymentItems = paymentItems; }
+        public List<String> getChildInvoices() { return childInvoices; }
+        public void setChildInvoices(List<String> childInvoices) { this.childInvoices = childInvoices; }
         public String getPaymentAccountIdentifier() { return paymentAccountIdentifier; }
         public void setPaymentAccountIdentifier(String paymentAccountIdentifier) { this.paymentAccountIdentifier = paymentAccountIdentifier; }
     }

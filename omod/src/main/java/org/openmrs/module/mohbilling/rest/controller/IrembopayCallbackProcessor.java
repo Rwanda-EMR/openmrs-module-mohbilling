@@ -36,6 +36,22 @@ public class IrembopayCallbackProcessor {
             : BigDecimal.valueOf(delegate.getData().getAmount());
 
         BillingService billingService = Context.getService(BillingService.class);
+        if ("BATCH".equalsIgnoreCase(delegate.getData().getType())) {
+            String batchNumber = delegate.getData().getBatchNumber();
+            if (batchNumber == null || batchNumber.trim().isEmpty()) {
+                batchNumber = invoiceNumber;
+            }
+            billingService.processIrembopayBatchCallback(
+                batchNumber,
+                delegate.getData().getChildInvoices(),
+                delegate.getSuccess(),
+                delegate.getData().getPaymentReference(),
+                delegate.getData().getPaidAt(),
+                delegate.getData().getPaymentStatus());
+            log.info("Irembopay callback: confirmed batch payment for batch " + batchNumber);
+            return;
+        }
+
         billingService.processIrembopayCallback(
             invoiceNumber,
             delegate.getSuccess(),

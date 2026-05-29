@@ -711,6 +711,8 @@ public interface BillingService {
 	 */
 	void processIrembopayCallback(String invoiceNumber, Boolean success, java.math.BigDecimal callbackAmount,
 		String paymentReference, String paidAtStr, String paymentStatus);
+	void processIrembopayBatchCallback(String batchNumber, java.util.List<String> childInvoices, Boolean success,
+		String paymentReference, String paidAtStr, String paymentStatus);
 
 	public PatientBill getPatientBillByInvoiceNumber(String invoiceId) throws DAOException;
 
@@ -719,4 +721,8 @@ public interface BillingService {
 	public PatientBill getPatientBillStatus(String invoiceId) throws DAOException;
 
 	public List<Consommation> getConsommationsOld(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+
+	public String createIremboInvoice(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
+
+	public void initIremboPayBatch(Patient patient,List<String> invoices, String phoneNumber) throws DAOException;
 }

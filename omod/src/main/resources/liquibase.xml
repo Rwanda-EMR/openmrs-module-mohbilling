@@ -1706,4 +1706,69 @@
 			<column name="inititated_at" type="DATETIME"/>
 		</addColumn>
 	</changeSet>
+	<changeSet id="moh_bill_patient_bill_add_unique_invoice_number" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><indexExists tableName="moh_bill_patient_bill" indexName="uk_moh_bill_patient_bill_invoice_number"/></not>
+		</preConditions>
+
+		<createIndex tableName="moh_bill_patient_bill"
+					indexName="uk_moh_bill_patient_bill_invoice_number"
+					unique="true">
+			<column name="invoice_number"/>
+		</createIndex>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_batch_number" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="batch_number"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="batch_number" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_payment_adding_invoice_number" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_payment" columnName="invoice_number"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_payment">
+			<column name="invoice_number" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="drop_uk_moh_bill_payment_reference" author="moh-dev">
+		<!-- uniqueConstraintExists is not valid in older Liquibase / OpenMRS XSD; use sqlCheck (MySQL/MariaDB). -->
+		<preConditions onFail="MARK_RAN">
+			<dbms type="mysql,mariadb"/>
+			<sqlCheck expectedResult="1">
+				SELECT COUNT(*) FROM information_schema.table_constraints
+				WHERE constraint_schema = DATABASE()
+				AND table_name = 'moh_bill_payment'
+				AND constraint_name = 'uk_moh_bill_payment_reference'
+				AND constraint_type = 'UNIQUE'
+			</sqlCheck>
+		</preConditions>
+
+		<dropUniqueConstraint
+			tableName="moh_bill_payment"
+			constraintName="uk_moh_bill_payment_reference"/>
+			
+	</changeSet>
+
+	<changeSet id="add-uk-moh-bill-payment-invoice-reference" author="chatgpt">
+		<preConditions onFail="MARK_RAN">
+			<dbms type="mysql,mariadb"/>
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM information_schema.table_constraints
+				WHERE constraint_schema = DATABASE()
+				AND table_name = 'moh_bill_payment'
+				AND constraint_name = 'uk_moh_bill_payment_invoice_reference'
+				AND constraint_type = 'UNIQUE'
+			</sqlCheck>
+		</preConditions>
+
+		<addUniqueConstraint
+			tableName="moh_bill_payment"
+			columnNames="invoice_number,payment_reference"
+			constraintName="uk_moh_bill_payment_invoice_reference"/>
+
+	</changeSet>
 </databaseChangeLog>

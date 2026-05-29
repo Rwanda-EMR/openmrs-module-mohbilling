@@ -34,6 +34,8 @@ public class Invoice extends Config {
     private String paymentAccountIdentifier;
     private List<PaymentItem> paymentItems;
     private String language;
+    private String batchNumber;
+    private List<String> childInvoices;
 
     public Invoice(String apiKey, Environment environment) {
         super(apiKey, environment);
@@ -159,6 +161,22 @@ public class Invoice extends Config {
         this.language = language;
     }
 
+    public String getBatchNumber() {
+        return batchNumber;
+    }
+
+    public void setBatchNumber(String batchNumber) {
+        this.batchNumber = batchNumber;
+    }
+
+    public List<String> getChildInvoices() {
+        return childInvoices;
+    }
+
+    public void setChildInvoices(List<String> childInvoices) {
+        this.childInvoices = childInvoices;
+    }
+
     public Date getExpiryAt() {
         return expiryAt;
     }
@@ -212,6 +230,8 @@ public class Invoice extends Config {
                 ", paymentAccountIdentifier='" + paymentAccountIdentifier + '\'' +
                 ", paymentItems=" + paymentItems +
                 ", language='" + language + '\'' +
+                ", batchNumber='" + batchNumber + '\'' +
+                ", childInvoices=" + childInvoices +
                 '}';
     }
 
@@ -416,7 +436,16 @@ public class Invoice extends Config {
         this.setTransactionId(data.getString("transactionId"));
         this.setCreatedAt(DateToJson.deserialize(data.getString("createdAt")));
         this.setUpdatedAt(DateToJson.deserialize(data.getString("updatedAt")));
-        this.setExpiryAt(DateToJson.deserialize(data.getString("expiryAt")));
+        if (data.has("expiryAt") && !data.isNull("expiryAt")) {
+            this.setExpiryAt(DateToJson.deserialize(data.getString("expiryAt")));
+        } else {
+            this.setExpiryAt(null);
+        }
+        if (data.has("paidAt") && !data.isNull("paidAt")) {
+            this.setPaidAt(DateToJson.deserialize(data.getString("paidAt")));
+        } else {
+            this.setPaidAt(null);
+        }
         this.setDescription(data.getString("description"));
         this.setType(data.getString("type"));
         this.setPaymentStatus(data.getString("paymentStatus"));
@@ -433,18 +462,46 @@ public class Invoice extends Config {
                 responseCustomer.setFullName(customerObject.getString("fullName"));
             this.setCustomer(responseCustomer);
         }
-
-        this.setPaymentAccountIdentifier(data.getString("paymentAccountIdentifier"));
+        if(data.has("paymentAccountIdentifier"))
+            this.setPaymentAccountIdentifier(data.getString("paymentAccountIdentifier"));
+        if (data.has("paymentReference") && !data.isNull("paymentReference")) {
+            String paymentReference = data.getString("paymentReference");
+            if (paymentReference != null && !paymentReference.trim().isEmpty()
+                    && !"null".equalsIgnoreCase(paymentReference.trim())) {
+                this.setPaymentReference(paymentReference.trim());
+            } else {
+                this.setPaymentReference(null);
+            }
+        } else {
+            this.setPaymentReference(null);
+        }
         List<PaymentItem> items = new ArrayList<>();
-        for (Object paymentItemObject : data.getJSONArray("paymentItems")) {
-            PaymentItem paymentItem = new PaymentItem();
-            JSONObject paymentObject = (JSONObject) paymentItemObject;
-            paymentItem.setQuantity(paymentObject.getInt("quantity"));
-            paymentItem.setUnitAmount(paymentObject.getDouble("unitAmount"));
-            paymentItem.setCode(paymentObject.getString("code"));
-            items.add(paymentItem);
+        if (data.has("paymentItems") && !data.isNull("paymentItems")) {
+            for (Object paymentItemObject : data.getJSONArray("paymentItems")) {
+                PaymentItem paymentItem = new PaymentItem();
+                JSONObject paymentObject = (JSONObject) paymentItemObject;
+                paymentItem.setQuantity(paymentObject.getInt("quantity"));
+                paymentItem.setUnitAmount(paymentObject.getDouble("unitAmount"));
+                paymentItem.setCode(paymentObject.getString("code"));
+                items.add(paymentItem);
+            }
         }
         this.setPaymentItems(items);
+        if (data.has("batchNumber") && !data.isNull("batchNumber")) {
+            this.setBatchNumber(data.getString("batchNumber"));
+        } else {
+            this.setBatchNumber(null);
+        }
+        if (data.has("childInvoices") && !data.isNull("childInvoices")) {
+            List<String> responseChildInvoices = new ArrayList<>();
+            JSONArray childInvoiceArray = data.getJSONArray("childInvoices");
+            for (int i = 0; i < childInvoiceArray.length(); i++) {
+                responseChildInvoices.add(childInvoiceArray.getString(i));
+            }
+            this.setChildInvoices(responseChildInvoices);
+        } else {
+            this.setChildInvoices(null);
+        }
         return this;
     }
 

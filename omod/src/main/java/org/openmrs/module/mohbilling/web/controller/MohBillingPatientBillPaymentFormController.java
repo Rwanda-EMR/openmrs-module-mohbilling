@@ -148,6 +148,10 @@ public class MohBillingPatientBillPaymentFormController extends
 				cpyPay.setCreatedDate(billPayment.getCreatedDate());
 				cpyPay.setCreator(billPayment.getCreator());
 				cpyPay.setAmountPaid(newAmount);
+				if (billPayment.getPatientBill() != null) {
+					cpyPay.setInvoiceNumber(billPayment.getPatientBill().getInvoiceNumber());
+					cpyPay.setPaymentReference(billPayment.getPaymentReference());
+				}
 				Context.getService(BillingService.class).saveBillPayment(cpyPay);
 
 
@@ -183,6 +187,7 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			else{
 				billPayment=new BillPayment();
+				billPayment.setInvoiceNumber(pb.getInvoiceNumber());
 				billPayment.setCollector(Context.getAuthenticatedUser());
 	/*			billPayment.setDateReceived(Context.getDateFormat().parse(
 						request.getParameter("dateBillReceived")));*/

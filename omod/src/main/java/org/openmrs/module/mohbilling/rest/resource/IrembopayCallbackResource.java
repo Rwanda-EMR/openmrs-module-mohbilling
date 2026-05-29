@@ -63,6 +63,10 @@ public class IrembopayCallbackResource extends DelegatingCrudResource<IrembopayC
             // Return HTTP 200 with success=false and error message
             delegate.setSuccess(false);
             delegate.setError(e.getMessage());
+        } catch (Exception e) {
+            log.error("Irembopay callback: unexpected processing error", e);
+            delegate.setSuccess(false);
+            delegate.setError(e.getMessage());
         }
         return delegate;
     }

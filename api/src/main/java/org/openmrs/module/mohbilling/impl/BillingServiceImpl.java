@@ -1197,6 +1197,7 @@ public class BillingServiceImpl implements BillingService {
         }
     }
 
+    @Override
 	public void initIremboPay(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException {
 
         Boolean isProduction = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_ENVIRONMENT).equalsIgnoreCase("production")?true:false;
@@ -1282,6 +1283,7 @@ public class BillingServiceImpl implements BillingService {
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public PatientBill getInvoiceStatus(String invoiceId) throws DAOException {
+        log.info("Irembo status check start: invoiceId=" + invoiceId);
         Boolean isProduction = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_ENVIRONMENT).equalsIgnoreCase("production")?true:false;
         String iremboPaySecretKey = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_PAY_SECRET);
         
@@ -1293,29 +1295,58 @@ public class BillingServiceImpl implements BillingService {
         }
         IremboPayResponse<Invoice> iremboPayResponse = iremboPay.invoice.getInvoice(invoiceId);
         System.out.println(iremboPayResponse);
+        if (iremboPayResponse == null) {
+            log.warn("Irembo status check: null response object returned for invoiceId=" + invoiceId);
+            return billingDAO.getPatientBillStatus(invoiceId);
+        }
         Invoice invoice = iremboPayResponse.getData();
+        if (invoice == null) {
+            log.warn("Irembo status check: null invoice data returned for invoiceId=" + invoiceId);
+            return billingDAO.getPatientBillStatus(invoiceId);
+        }
+        log.info("Irembo status check response: invoiceId=" + invoiceId
+                + ", status=" + invoice.getPaymentStatus()
+                + ", amount=" + invoice.getAmount()
+                + ", paymentReference=" + invoice.getPaymentReference());
         BillingService billingService = Context.getService(BillingService.class);
-        if(invoice.getPaymentStatus().equalsIgnoreCase("PAID")) {
+        if (invoice.getPaymentStatus() != null && invoice.getPaymentStatus().equalsIgnoreCase("PAID")) {
             //Here we need to make sure update the patient bill if it was not yet marked as paid
 
             User iremboUser = Context.getService(UserService.class).getUserByUsername(ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_USER));
 
             PatientBill billToConfirm = billingDAO.getPatientBillStatusForUpdate(invoiceId);
             if (billToConfirm == null) {
+                log.warn("Irembo status check: no PatientBill found for invoiceId=" + invoiceId);
                 return null;
             }
+            log.info("Irembo PAID pre-check: invoiceId=" + invoiceId
+                    + ", patientBillId=" + billToConfirm.getPatientBillId()
+                    + ", currentBillIsPaid=" + billToConfirm.getIsPaid()
+                    + ", currentPaymentConfirmed=" + billToConfirm.isPaymentConfirmed()
+                    + ", currentTransactionStatus=" + billToConfirm.getTransactionStatus()
+                    + ", currentBillPaymentReference=" + billToConfirm.getPaymentReference());
 
             //Get the invoice amount
             BigDecimal invoiceAmount = BigDecimal.valueOf(invoice.getAmount()).setScale(0, RoundingMode.CEILING);
             BigDecimal billAmount = billToConfirm.getAmount().setScale(0, RoundingMode.CEILING);
+            log.info("Irembo PAID amount compare: invoiceId=" + invoiceId
+                    + ", iremboAmountRaw=" + invoice.getAmount()
+                    + ", iremboAmountScaled=" + invoiceAmount
+                    + ", billAmountScaled=" + billAmount);
 
             if (invoiceAmount.compareTo(billAmount) == 0) {
                 String resolvedPaymentReference = resolveIremboPaymentReference(invoice.getPaymentReference(),
                         billToConfirm.getPaymentReference(), invoiceId);
                 if (resolvedPaymentReference == null) {
-                    log.warn("Skipping PAID invoice update because payment reference is missing for invoice " + invoiceId);
+                    log.warn("Skipping PAID invoice update because payment reference is missing for invoice " + invoiceId
+                            + ", iremboPaymentReference=" + invoice.getPaymentReference()
+                            + ", existingBillPaymentReference=" + billToConfirm.getPaymentReference());
                     return billToConfirm;
                 }
+                log.info("Irembo PAID invoice matched: invoiceId=" + invoiceId
+                        + ", patientBillId=" + billToConfirm.getPatientBillId()
+                        + ", resolvedPaymentReference=" + resolvedPaymentReference
+                        + ", iremboPaidAt=" + invoice.getPaidAt());
                 // Always update bill-level payment status fields when invoice is PAID.
                 billToConfirm.setIsPaid(true);
                 billToConfirm.setPaymentReference(resolvedPaymentReference);
@@ -1337,7 +1368,13 @@ public class BillingServiceImpl implements BillingService {
                     List<BillPayment> billPayments = billingDAO.getBillPaymentsByPatientBill(billToConfirm);
                     boolean hasNonVoidedPayment = billPayments != null && billPayments.stream()
                             .anyMatch(p -> p.getVoided() == null || !Boolean.TRUE.equals(p.getVoided()));
+                    log.info("Irembo PAID payment record check: invoiceId=" + invoiceId
+                            + ", patientBillId=" + billToConfirm.getPatientBillId()
+                            + ", billPaymentsFound=" + (billPayments == null ? 0 : billPayments.size())
+                            + ", hasNonVoidedPayment=" + hasNonVoidedPayment);
                     if (!hasNonVoidedPayment) {
+                        log.info("Irembo PAID invoice creating payment records: invoiceId=" + invoiceId
+                                + ", patientBillId=" + billToConfirm.getPatientBillId());
                         Date paymentDate = billToConfirm.getPaidAt() != null ? billToConfirm.getPaidAt() : new Date();
 
                         BillPayment billPayment = new BillPayment();
@@ -1349,13 +1386,15 @@ public class BillingServiceImpl implements BillingService {
                         billPayment.setCreatedDate(new Date());
                         billPayment.setVoided(false);
                         billPayment.setPaymentReference(resolvedPaymentReference);
+                        billPayment.setInvoiceNumber(billToConfirm.getInvoiceNumber());
                         billingService.saveBillPayment(billPayment);
 
                         Consommation affectedConsommation = billingService.getConsommationByPatientBill(billToConfirm);
                         if (affectedConsommation != null && affectedConsommation.getBillItems() != null) {
                             Set<PatientServiceBill> billItems = affectedConsommation.getBillItems();
+                            int paidItemsCreated = 0;
                             for (PatientServiceBill psb : billItems) {
-                                if(psb.getVoided()){
+                                if (Boolean.TRUE.equals(psb.getVoided())) {
                                     continue;
                                 }
                                 PaidServiceBill paidSb = new PaidServiceBill();
@@ -1371,15 +1410,35 @@ public class BillingServiceImpl implements BillingService {
                                 psb.setPaid(true);
                                 psb.setPaidQuantity(psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO);
                                 ConsommationUtil.createPatientServiceBill(psb);
+                                paidItemsCreated++;
                             }
+                            log.info("Irembo PAID invoice paid item updates complete: invoiceId=" + invoiceId
+                                    + ", patientBillId=" + billToConfirm.getPatientBillId()
+                                    + ", paidItemsCreated=" + paidItemsCreated);
                         }
+                    } else {
+                        log.info("Irembo PAID invoice skipped BillPayment creation (already exists): invoiceId=" + invoiceId
+                                + ", patientBillId=" + billToConfirm.getPatientBillId());
                     }
                 }
                 System.out.println("Irembopay invoice check: confirmed payment for PatientBill id=" + billToConfirm.getPatientBillId());
+                log.info("Irembo status check complete (PAID): invoiceId=" + invoiceId
+                        + ", patientBillId=" + billToConfirm.getPatientBillId()
+                        + ", isPaid=" + billToConfirm.getIsPaid()
+                        + ", paymentConfirmed=" + billToConfirm.isPaymentConfirmed()
+                        + ", paymentReference=" + billToConfirm.getPaymentReference()
+                        + ", transactionStatus=" + billToConfirm.getTransactionStatus());
             } else {
                 // Here make sure to log some error to checked on later
+                log.warn("Skipping PAID invoice update due amount mismatch for invoice " + invoiceId
+                        + ": iremboAmount=" + invoiceAmount + ", billAmount=" + billAmount
+                        + ", patientBillId=" + billToConfirm.getPatientBillId()
+                        + ", iremboPaymentReference=" + invoice.getPaymentReference()
+                        + ", billPaymentReference=" + billToConfirm.getPaymentReference());
                 System.out.println("Paid amount from irembo pay " + invoiceAmount  + " is different from the expected amount " + billAmount);
             }
+        } else {
+            log.info("Irembo status check non-PAID: invoiceId=" + invoiceId + ", status=" + invoice.getPaymentStatus());
         }
         
         return billingService.getPatientBillStatus(invoiceId);
@@ -1412,6 +1471,103 @@ public class BillingServiceImpl implements BillingService {
             throw new IllegalArgumentException(
                     "Payment reference is missing for invoice " + invoiceNumber + "; callback processing aborted");
         }
+        confirmPatientBillPayment(billToConfirm, callbackAmount, resolvedPaymentReference, paidAtStr, paymentStatus);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void processIrembopayBatchCallback(String batchNumber, List<String> childInvoices, Boolean success,
+            String paymentReference, String paidAtStr, String paymentStatus) {
+        log.info("Irembo batch callback start: batchNumber=" + batchNumber
+                + ", success=" + success
+                + ", paymentStatus=" + paymentStatus
+                + ", childInvoicesFromPayload=" + (childInvoices == null ? 0 : childInvoices.size()));
+        if (!Boolean.TRUE.equals(success)) {
+            log.warn("Irembo batch callback skipped because success=false: batchNumber=" + batchNumber);
+            return;
+        }
+        if (batchNumber == null || batchNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("Batch number is missing for batch callback");
+        }
+        String resolvedPaymentReference = resolveIremboPaymentReference(paymentReference, null, batchNumber);
+        if (resolvedPaymentReference == null) {
+            throw new IllegalArgumentException(
+                    "Payment reference is missing for batch " + batchNumber + "; callback processing aborted");
+        }
+
+        List<String> invoicesToProcess = new ArrayList<>();
+        if (childInvoices != null) {
+            for (String childInvoice : childInvoices) {
+                if (childInvoice != null && !childInvoice.trim().isEmpty()) {
+                    invoicesToProcess.add(childInvoice.trim());
+                }
+            }
+        }
+        if (invoicesToProcess.isEmpty()) {
+            List<PatientBill> billsByBatch = billingDAO.getPatientBillsByBatchNumber(batchNumber);
+            if (billsByBatch != null) {
+                for (PatientBill bill : billsByBatch) {
+                    if (bill != null && bill.getInvoiceNumber() != null && !bill.getInvoiceNumber().trim().isEmpty()) {
+                        invoicesToProcess.add(bill.getInvoiceNumber().trim());
+                    }
+                }
+            }
+            log.info("Irembo batch callback child invoice fallback from DB: batchNumber=" + batchNumber
+                    + ", invoicesResolvedFromDb=" + invoicesToProcess.size());
+        }
+        if (invoicesToProcess.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No child invoices found to process for batch " + batchNumber);
+        }
+
+        int processed = 0;
+        int skipped = 0;
+        for (String childInvoice : invoicesToProcess) {
+            log.info("Irembo batch callback invoice processing start: batchNumber=" + batchNumber
+                    + ", childInvoice=" + childInvoice);
+            PatientBill billToConfirm = billingDAO.getPatientBillStatusForUpdate(childInvoice);
+            if (billToConfirm == null) {
+                log.warn("Irembo batch callback skipped: no PatientBill found for child invoice " + childInvoice
+                        + ", batchNumber=" + batchNumber);
+                skipped++;
+                continue;
+            }
+            if (billToConfirm.getBatchNumber() != null && !batchNumber.equals(billToConfirm.getBatchNumber())) {
+                log.warn("Irembo batch callback skipped: child invoice " + childInvoice
+                        + " belongs to different batch " + billToConfirm.getBatchNumber()
+                        + ", callback batchNumber=" + batchNumber);
+                skipped++;
+                continue;
+            }
+            log.info("Irembo batch callback invoice pre-check: batchNumber=" + batchNumber
+                    + ", childInvoice=" + childInvoice
+                    + ", patientBillId=" + billToConfirm.getPatientBillId()
+                    + ", billAmount=" + billToConfirm.getAmount()
+                    + ", isPaid=" + billToConfirm.getIsPaid()
+                    + ", paymentConfirmed=" + billToConfirm.isPaymentConfirmed()
+                    + ", existingPaymentReference=" + billToConfirm.getPaymentReference());
+            boolean paymentCreated = confirmPatientBillPayment(billToConfirm, billToConfirm.getAmount(),
+                    resolvedPaymentReference, paidAtStr, paymentStatus);
+            if (paymentCreated) {
+                log.info("Irembo batch callback invoice processed successfully: batchNumber=" + batchNumber
+                        + ", childInvoice=" + childInvoice
+                        + ", patientBillId=" + billToConfirm.getPatientBillId()
+                        + ", paymentReference=" + resolvedPaymentReference);
+            } else {
+                log.info("Irembo batch callback invoice skipped by idempotency: batchNumber=" + batchNumber
+                        + ", childInvoice=" + childInvoice
+                        + ", patientBillId=" + billToConfirm.getPatientBillId());
+            }
+            processed++;
+        }
+        log.info("Irembo batch callback processed: batchNumber=" + batchNumber
+                + ", totalInvoices=" + invoicesToProcess.size()
+                + ", processed=" + processed
+                + ", skipped=" + skipped);
+    }
+
+    private boolean confirmPatientBillPayment(PatientBill billToConfirm, BigDecimal amountPaid, String resolvedPaymentReference,
+            String paidAtStr, String paymentStatus) {
         synchronized (iremboPaymentCreationLock) {
             // Idempotency: if this bill already has a payment (e.g. from scheduler/status check or duplicate callback),
             // do not create another BillPayment nor repeat PaidServiceBill updates.
@@ -1419,7 +1575,7 @@ public class BillingServiceImpl implements BillingService {
             boolean hasNonVoidedPayment = existingPayments != null && existingPayments.stream()
                 .anyMatch(p -> p.getVoided() == null || !Boolean.TRUE.equals(p.getVoided()));
             if (hasNonVoidedPayment) {
-                return;
+                return false;
             }
 
             User currentUser = Context.getAuthenticatedUser();
@@ -1435,7 +1591,7 @@ public class BillingServiceImpl implements BillingService {
 
             Date paymentDate = billToConfirm.getPaidAt();
             BillPayment billPayment = new BillPayment();
-            billPayment.setAmountPaid(callbackAmount);
+            billPayment.setAmountPaid(amountPaid);
             billPayment.setDateReceived(paymentDate);
             billPayment.setPatientBill(billToConfirm);
             billPayment.setCollector(currentUser);
@@ -1443,6 +1599,7 @@ public class BillingServiceImpl implements BillingService {
             billPayment.setCreatedDate(new Date());
             billPayment.setVoided(false);
             billPayment.setPaymentReference(resolvedPaymentReference);
+            billPayment.setInvoiceNumber(billToConfirm.getInvoiceNumber());
             billingDAO.getPatientServiceBill(billPayment);
 
             Consommation affectedConsommation = billingDAO.getConsommationByPatientBill(billToConfirm);
@@ -1464,6 +1621,7 @@ public class BillingServiceImpl implements BillingService {
                     ConsommationUtil.createPatientServiceBill(psb);
                 }
             }
+            return true;
         }
     }
 
@@ -1516,5 +1674,153 @@ public class BillingServiceImpl implements BillingService {
 			Insurance insurance, ThirdParty tp, User billCreator,Department department) {
 		return billingDAO.getConsommationsOld(startDate, endDate, insurance, tp, billCreator,department);
 	}
+
+    @Override
+	public String createIremboInvoice(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException {
+
+        Boolean isProduction = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_ENVIRONMENT).equalsIgnoreCase("production")?true:false;
+        String iremboPaySecretKey = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_PAY_SECRET);
+
+        String iremboPayProductCode = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_PRODUCT_CODE);
+
+        String transactionId = UUID.randomUUID().toString();
+        //Create Customer information
+        Customer customer = new Customer();
+        customer.setFullName(patient.getPersonName().getFullName());
+        customer.setPhoneNumber(phoneNumber);
+
+        List<PaymentItem> paymentItems = new ArrayList<>();
+        PaymentItem paymentItem = new PaymentItem();
+        paymentItem.setCode(iremboPayProductCode);
+        paymentItem.setQuantity(1);
+        paymentItem.setUnitAmount(patientBill.getAmount().setScale(0, RoundingMode.CEILING).doubleValue());
+
+        //Add the Item to the list
+        paymentItems.add(paymentItem);
+        Department myDepartment = billingDAO.getConsommationByPatientBill(patientBill).getDepartment();
+        
+        String invoiceDescription = myDepartment.getName();
+
+        //Check if the account hold a specific account identifier and make sure to use that once please
+        String iremboPayAccountIdentifier = myDepartment.getAccountIdentifier();
+        if(iremboPayAccountIdentifier == null){
+            //Once configuration does not support specific fallback to default one
+            iremboPayAccountIdentifier = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_ACCOUNT_IDENTIFIER);
+        }
+
+        //Create a the expiration Date to be 24Hours
+        Date expiryDate = Date.from(Instant.now().plus(24, ChronoUnit.HOURS));
+
+        String language = "EN";
+
+        IremboPay iremboPay = null;
+        if(!isProduction) {
+            iremboPay = new IremboPay(iremboPaySecretKey, Environment.SANDBOX);
+        } else {
+            iremboPay = new IremboPay(iremboPaySecretKey, Environment.PRODUCTION);
+        }
+        //Start by creating invoice
+        IremboPayResponse<Invoice> iremboPayResponse = iremboPay.invoice.createInvoice(transactionId, iremboPayAccountIdentifier, customer, paymentItems, invoiceDescription, expiryDate, language);
+        Invoice invoice = iremboPayResponse.getData();
+        //After the invoice create operation make sure to save comming returned information into database for later reference
+        patientBill.setReferenceId(transactionId);
+        patientBill.setInvoiceNumber(invoice.getInvoiceNumber());
+        patientBill.setInitiatedAt(new Date());
+        patientBill.setPhoneNumber(phoneNumber);
+        patientBill.setTransactionStatus("Pending");
+        patientBill.setRetryCount(0);
+
+        //Save the patient into the database
+        billingDAO.savePatientBill(patientBill);
+
+        return invoice.getInvoiceNumber();
+
+    }
+
+    @Override
+    public void initIremboPayBatch(Patient patient,List<String> invoices, String phoneNumber) throws DAOException {
+        String batchDescription = patient.getPersonName().getFullName() + " medical service payments";
+
+        String transactionId = UUID.randomUUID().toString();
+
+        Boolean isProduction = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_ENVIRONMENT).equalsIgnoreCase("production")?true:false;
+        String iremboPaySecretKey = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_PAY_SECRET);
+
+        IremboPay iremboPay = null;
+        if(!isProduction) {
+            iremboPay = new IremboPay(iremboPaySecretKey, Environment.SANDBOX);
+        } else {
+            iremboPay = new IremboPay(iremboPaySecretKey, Environment.PRODUCTION);
+        }
+        IremboPayResponse<Invoice> iremboPayResponse = iremboPay.invoice.createBatchInvoice(invoices,transactionId,batchDescription);
+        if (iremboPayResponse == null || !Boolean.TRUE.equals(iremboPayResponse.isSuccess())
+                || iremboPayResponse.getData() == null) {
+            log.warn("Irembo batch invoice creation failed: transactionId=" + transactionId
+                    + ", requestedInvoiceCount=" + (invoices == null ? 0 : invoices.size())
+                    + ", response=" + iremboPayResponse);
+            return;
+        }
+
+        Invoice batchInvoice = iremboPayResponse.getData();
+        String batchNumber = batchInvoice.getBatchNumber();
+        List<String> childInvoices = batchInvoice.getChildInvoices();
+        if (batchNumber == null || batchNumber.trim().isEmpty()) {
+            log.warn("Irembo batch invoice response missing batchNumber: transactionId=" + transactionId
+                    + ", responseInvoiceNumber=" + batchInvoice.getInvoiceNumber());
+            return;
+        }
+        if (childInvoices == null || childInvoices.isEmpty()) {
+            log.warn("Irembo batch invoice response has no childInvoices: transactionId=" + transactionId
+                    + ", batchNumber=" + batchNumber);
+            return;
+        }
+
+        int updatedBills = 0;
+        for (String childInvoiceNumber : childInvoices) {
+            if (childInvoiceNumber == null || childInvoiceNumber.trim().isEmpty()) {
+                continue;
+            }
+            PatientBill patientBill = billingDAO.getPatientBillStatus(childInvoiceNumber.trim());
+            if (patientBill == null) {
+                log.warn("Irembo batch mapping skipped: no PatientBill found for child invoice "
+                        + childInvoiceNumber + ", batchNumber=" + batchNumber);
+                continue;
+            }
+            patientBill.setBatchNumber(batchNumber);
+            billingDAO.savePatientBill(patientBill);
+            updatedBills++;
+        }
+        log.info("Irembo batch mapping complete: transactionId=" + transactionId
+                + ", batchNumber=" + batchNumber
+                + ", childInvoicesCount=" + childInvoices.size()
+                + ", updatedBills=" + updatedBills);
+        //From here we need to initiate the momo payment again the batch Number generated now
+
+        //Detect if we are in sandbox environment
+        String company = detectTelco(phoneNumber);
+        if(!isProduction){
+            //rename the phone number to be used for testing purpose
+            if(company.equalsIgnoreCase("AIRTEL")){
+                phoneNumber = "0731234567";
+            } else if(company.equalsIgnoreCase("MTN")){
+                phoneNumber = "0781234567";
+            } else {
+                log.error("Unable to detect phonenumber and company " + phoneNumber);
+            }
+        }
+
+        //Now initiate the Payment
+        if(!company.equalsIgnoreCase("Unknown operator")){
+            String paymentUuid = UUID.randomUUID().toString();
+            IremboPayResponse<?> initiateResponse = iremboPay.mobileMoney
+                    .initiate(phoneNumber, company, batchNumber, paymentUuid);
+            if (initiateResponse != null) {
+                log.info("Irembo initiate payment response for invoice " + batchNumber + ": "
+                        + initiateResponse);
+            } else {
+                log.warn("Irembo initiate payment returned null response for invoice " + batchNumber);
+            }
+        }
+    }
 
 }

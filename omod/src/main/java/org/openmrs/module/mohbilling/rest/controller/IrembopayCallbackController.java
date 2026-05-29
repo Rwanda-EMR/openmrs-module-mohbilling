@@ -28,9 +28,13 @@ public class IrembopayCallbackController implements Controller {
     @Override
     public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
-            response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            response.setStatus(HttpServletResponse.SC_OK);
             SimpleObject err = new SimpleObject();
-            err.put("error", new SimpleObject().put("message", "POST required"));
+            err.put("success", false);
+            SimpleObject error = new SimpleObject();
+            error.put("code", "INVALID_METHOD");
+            error.put("message", "POST required");
+            err.put("error", error);
             writeJson(response, err);
             return null;
         }
@@ -40,17 +44,25 @@ public class IrembopayCallbackController implements Controller {
             body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             log.warn("Irembopay callback: failed to read body", e);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setStatus(HttpServletResponse.SC_OK);
             SimpleObject err = new SimpleObject();
-            err.put("error", new SimpleObject().put("message", "Invalid body"));
+            err.put("success", false);
+            SimpleObject error = new SimpleObject();
+            error.put("code", "INVALID_BODY");
+            error.put("message", "Invalid body");
+            err.put("error", error);
             writeJson(response, err);
             return null;
         }
 
         if (body == null || body.trim().isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setStatus(HttpServletResponse.SC_OK);
             SimpleObject err = new SimpleObject();
-            err.put("error", new SimpleObject().put("message", "Empty body"));
+            err.put("success", false);
+            SimpleObject error = new SimpleObject();
+            error.put("code", "EMPTY_BODY");
+            error.put("message", "Empty body");
+            err.put("error", error);
             writeJson(response, err);
             return null;
         }
@@ -62,9 +74,13 @@ public class IrembopayCallbackController implements Controller {
             IrembopayCallbackRequest delegate = mapper.readValue(body, IrembopayCallbackRequest.class);
 
             if (delegate.getData() == null || delegate.getData().getInvoiceNumber() == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.setStatus(HttpServletResponse.SC_OK);
                 SimpleObject err = new SimpleObject();
-                err.put("error", new SimpleObject().put("message", "Missing data or invoice number"));
+                err.put("success", false);
+                SimpleObject error = new SimpleObject();
+                error.put("code", "MISSING_REQUIRED_FIELDS");
+                error.put("message", "Missing data or invoice number");
+                err.put("error", error);
                 writeJson(response, err);
                 return null;
             }
@@ -80,19 +96,27 @@ public class IrembopayCallbackController implements Controller {
             writeJson(response, ok);
         } catch (IllegalArgumentException e) {
             log.error("Irembopay callback: validation error", e);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             SimpleObject err = new SimpleObject();
-            err.put("error", new SimpleObject().put("message", e.getMessage()));
+            err.put("success", false);
+            SimpleObject error = new SimpleObject();
+            error.put("code", "VALIDATION_ERROR");
+            error.put("message", e.getMessage());
+            err.put("error", error);
             writeJson(response, err);
         } catch (Exception e) {
             log.error("Irembopay callback: error processing request", e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             SimpleObject err = new SimpleObject();
-            err.put("error", new SimpleObject().put("message", e.getMessage()));
+            err.put("success", false);
+            SimpleObject error = new SimpleObject();
+            error.put("code", "PROCESSING_ERROR");
+            error.put("message", e.getMessage());
+            err.put("error", error);
             writeJson(response, err);
         }
         return null;

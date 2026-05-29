@@ -42,6 +42,9 @@ public class BillPayment implements Comparable<BillPayment> {
 	private String voidReason;
 
 	private String paymentReference;
+
+	/** Irembo child invoice number; stored with payment so batch rows can share the same payment_reference. */
+	private String invoiceNumber;
 	
 	
 	//constructors
@@ -57,6 +60,8 @@ public class BillPayment implements Comparable<BillPayment> {
 		dateReceived = bPayment.getDateReceived();
 		patientBill = bPayment.getPatientBill();
 		collector =bPayment.getCollector();
+		paymentReference = bPayment.getPaymentReference();
+		invoiceNumber = bPayment.getInvoiceNumber();
 	
 	}
 	
@@ -238,6 +243,14 @@ public class BillPayment implements Comparable<BillPayment> {
 
 	public void setPaymentReference(String paymentReference) {
 		this.paymentReference = paymentReference;
+	}
+
+	public String getInvoiceNumber() {
+		return invoiceNumber;
+	}
+
+	public void setInvoiceNumber(String invoiceNumber) {
+		this.invoiceNumber = invoiceNumber;
 	}
 
 	/*

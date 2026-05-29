@@ -262,6 +262,14 @@
         </description>
     </globalProperty>
 
+    <globalProperty>
+        <property>mohbilling.irembopay.phone_attribute</property>
+        <defaultValue>11</defaultValue>
+        <description>
+            Personal Attribute for phone number identification
+        </description>
+    </globalProperty>
+
     <!-- /Required Global Properties -->
 
     <dwr>
