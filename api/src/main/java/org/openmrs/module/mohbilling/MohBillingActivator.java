@@ -42,7 +42,6 @@ public class MohBillingActivator extends BaseModuleActivator {
 
 		scheduleIremboReconciliationTask();
 		log.info("MoH-Billing Module started");
-
 	}
 
 	/**

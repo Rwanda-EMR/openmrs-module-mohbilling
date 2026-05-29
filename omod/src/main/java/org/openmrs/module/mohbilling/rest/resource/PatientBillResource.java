@@ -125,45 +125,45 @@ public class PatientBillResource extends DelegatingCrudResource<PatientBill> {
         return description;
     }
 
-    @Override
-    protected PageableResult doSearch(RequestContext context) {
-        BillingProcessingService service = Context.getService(BillingProcessingService.class);
-
-        Integer startIndex = context.getStartIndex();
-        Integer limit = context.getLimit();
-
-        // Get order parameters from request
-        String orderBy = context.getRequest().getParameter("orderBy");
-        String orderDirection = context.getRequest().getParameter("order");
-
-        List<PatientBill> bills = service.getPatientBillsByPagination(
-                startIndex,
-                limit,
-                orderBy,
-                orderDirection
-        );
-
-        return new AlreadyPaged<>(context, bills, false);
-    }
-
-    @Override
-    protected PageableResult doGetAll(RequestContext context) throws ResponseException {
-        BillingProcessingService service = Context.getService(BillingProcessingService.class);
-
-        Integer startIndex = context.getStartIndex();
-        Integer limit = context.getLimit();
-
-        // Get order parameters from request
-        String orderBy = context.getRequest().getParameter("orderBy");
-        String orderDirection = context.getRequest().getParameter("order");
-
-        List<PatientBill> bills = service.getPatientBillsByPagination(
-                startIndex,
-                limit,
-                orderBy,
-                orderDirection
-        );
-
-        return new NeedsPaging<PatientBill>(bills, context);
-    }
+//    @Override
+//    protected PageableResult doSearch(RequestContext context) {
+//        BillingProcessingService service = Context.getService(BillingProcessingService.class);
+//
+//        Integer startIndex = context.getStartIndex();
+//        Integer limit = context.getLimit();
+//
+//        // Get order parameters from request
+//        String orderBy = context.getRequest().getParameter("orderBy");
+//        String orderDirection = context.getRequest().getParameter("order");
+//
+//        List<PatientBill> bills = service.getPatientBillsByPagination(
+//                startIndex,
+//                limit,
+//                orderBy,
+//                orderDirection
+//        );
+//
+//        return new AlreadyPaged<>(context, bills, false);
+//    }
+//
+//    @Override
+//    protected PageableResult doGetAll(RequestContext context) throws ResponseException {
+//        BillingProcessingService service = Context.getService(BillingProcessingService.class);
+//
+//        Integer startIndex = context.getStartIndex();
+//        Integer limit = context.getLimit();
+//
+//        // Get order parameters from request
+//        String orderBy = context.getRequest().getParameter("orderBy");
+//        String orderDirection = context.getRequest().getParameter("order");
+//
+//        List<PatientBill> bills = service.getPatientBillsByPagination(
+//                startIndex,
+//                limit,
+//                orderBy,
+//                orderDirection
+//        );
+//
+//        return new NeedsPaging<PatientBill>(bills, context);
+//    }
 }

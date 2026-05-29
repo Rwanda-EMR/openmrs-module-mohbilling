@@ -21,6 +21,7 @@ public class InsurancePolicy {
 	private Insurance insurance;
 	private Patient owner;
 	private String insuranceCardNo;
+	private String rhipPatientId;
 	private Date coverageStartDate;
 	private Date expirationDate;
 	private ThirdParty thirdParty;
@@ -77,6 +78,14 @@ public class InsurancePolicy {
 	 */
 	public void setInsuranceCardNo(String insuranceCardNo) {
 		this.insuranceCardNo = insuranceCardNo;
+	}
+
+	public String getRhipPatientId() {
+		return rhipPatientId;
+	}
+
+	public void setRhipPatientId(String rhipPatientId) {
+		this.rhipPatientId = rhipPatientId;
 	}
 
 	/**

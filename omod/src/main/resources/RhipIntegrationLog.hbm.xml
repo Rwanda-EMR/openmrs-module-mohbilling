@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<class name="RhipIntegrationLog" table="moh_bill_rhip_integration_log">
+
+		<id name="rhipIntegrationLogId" type="int" column="rhip_integration_log_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="dateCreated" column="date_created" not-null="true" />
+		<property name="senderUsername" column="sender_username" type="string" />
+		<property name="operationType" column="operation_type" type="string" />
+		<property name="endpointUrl" column="endpoint_url" type="string" />
+		<property name="requestPayload" column="request_payload" type="text" />
+		<property name="responseCode" column="response_code" type="integer" />
+		<property name="responseStatus" column="response_status" type="string" />
+		<property name="responseBody" column="response_body" type="text" />
+		<property name="errorMessage" column="error_message" type="text" />
+		<property name="uuid" column="uuid" type="string" not-null="true" />
+
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+	</class>
+
+</hibernate-mapping>

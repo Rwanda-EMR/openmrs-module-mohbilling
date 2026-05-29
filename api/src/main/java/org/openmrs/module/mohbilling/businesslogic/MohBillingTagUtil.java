@@ -16,6 +16,7 @@ import java.util.Set;
 
 /**
  * @author @EMR RBC
+ *
  */
 public class MohBillingTagUtil {
 
@@ -28,12 +29,12 @@ public class MohBillingTagUtil {
                 Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
 
                 PatientBill pb = consomm.getPatientBill();
-                Set<BillPayment> allPayments = pb.getPayments();
-                if (allPayments != null) {
+                Set<BillPayment> allPayments =pb.getPayments();
+                if (allPayments !=null) {
                     for (BillPayment billPayment : allPayments) {
 
                         // amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
-                        if (billPayment.getVoidReason() == null)
+                        if(billPayment.getVoidReason()==null)
                             amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
                     }
 
@@ -52,7 +53,8 @@ public class MohBillingTagUtil {
     /**
      * Gets the REST of the whole Patient Bill
      *
-     * @param patientBillId the patient bill ID
+     * @param patientBillId
+     *            the patient bill ID
      * @return the REST that is in String
      */
     public static String getTotalAmountNotPaidByPatientBill(Integer consommationId) {
@@ -75,14 +77,14 @@ public class MohBillingTagUtil {
                 for (PatientServiceBill psb : consomm.getBillItems()) {
                     Double cost = null;
 
-                    if (psb.getVoided() == false) {
-                        cost = psb.getUnitPrice().doubleValue() * psb.getQuantity().doubleValue();
-                        amountDueByPatient += cost * patientRate.doubleValue();
+                    if(psb.getVoided()==false){
+                        cost = psb.getUnitPrice().doubleValue()*psb.getQuantity().doubleValue();
+                        amountDueByPatient+=cost*patientRate.doubleValue();
                     }
                 }
 
                 for (BillPayment bp : consomm.getPatientBill().getPayments()) {
-                    if (bp.getVoidReason() == null)
+                    if(bp.getVoidReason()==null)
                         amountPaid = amountPaid + bp.getAmountPaid().doubleValue();
                 }
 
@@ -113,81 +115,59 @@ public class MohBillingTagUtil {
     public static String getAmountPaidByThirdPart(Integer consommationId) {
 
         Double amountPaidByThirdPart = 0d;
-        if (consommationId == null)
+        if(consommationId == null)
             return "";
         else {
             try {
 
                 Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
-                amountPaidByThirdPart = +consomm.getThirdPartyBill().getAmount().doubleValue();
+                amountPaidByThirdPart =+consomm.getThirdPartyBill().getAmount().doubleValue();
             } catch (Exception e) {
                 // TODO: handle exception
             }
         }
-        return "" + amountPaidByThirdPart;
+        return ""+ amountPaidByThirdPart;
     }
-
-    public static String getGlobalPaidAmountFromGlobalBill(Integer globalBillId) {
+    public static String getGlobalPaidAmountFromGlobalBill(Integer globalBillId){
 
         double allPaidAmount = 0d;
         GlobalBill globalBill = Context.getService(BillingService.class).GetGlobalBill(globalBillId);
 
-        List<Consommation> consommations =
-                Context.getService(BillingService.class).getAllConsommationByGlobalBill(globalBill);
+        List<Consommation> consommations = Context.getService(BillingService.class).getAllConsommationByGlobalBill(globalBill);
 
         for (Consommation consommation : consommations) {
 
-            allPaidAmount =
-                    allPaidAmount + Double.valueOf(getTotalAmountPaidByPatientBill(consommation.getConsommationId()));
+            allPaidAmount =allPaidAmount+Double.valueOf(getTotalAmountPaidByPatientBill(consommation.getConsommationId()));
         }
-        return "" + allPaidAmount;
+        return ""+allPaidAmount;
     }
-
-    public static String getServicesByDepartment(Integer departmentId) {
+    public static String getServicesByDepartment(Integer departmentId){
         Department department = DepartementUtil.getDepartement(departmentId);
         List<HopService> services = new ArrayList<HopService>();
-        if (GlobalPropertyConfig.getListOfHopServicesByDepartment1(department) != null) {
-            String[] servicesByDepartStr = GlobalPropertyConfig.getListOfHopServicesByDepartment1(department).split(
-                    ",");
+        if(GlobalPropertyConfig.getListOfHopServicesByDepartment1(department)!=null){
+            String[] servicesByDepartStr = GlobalPropertyConfig.getListOfHopServicesByDepartment1(department).split(",");
             for (String s : servicesByDepartStr) {
-                if (s != null && !s.equals(""))
+                if(s!=null && !s.equals(""))
                     services.add(HopServiceUtil.getHopServiceById(Integer.valueOf(s)));
             }
         }
-        return "" + services.size();
+        return ""+services.size();
     }
 
 
-    public static String getConsommationStatus(Integer id) {
+    public static String getConsommationStatus(Integer id){
         return ConsommationUtil.getConsommationStatus(id);
     }
 
-    public static Long getTotalPaidByConsommation(Integer consommationId) {
+    public static String getTotalPaidByConsommation(Integer consommationId){
         Consommation c = ConsommationUtil.getConsommation(consommationId);
         BigDecimal totalPaid = new BigDecimal(0);
         for (BillPayment pay : c.getPatientBill().getPayments()) {
             //if(!pay.isVoided())
-            if (pay.getVoidReason() == null)
-                totalPaid = totalPaid.add(pay.getAmountPaid());
+            if(pay.getVoidReason()==null)
+                totalPaid=totalPaid.add(pay.getAmountPaid());
         }
-        return totalPaid.longValue();
-    }
-
-    public static String getBillStatus(Long totalPaid, Long dueToPatient) {
-        if (totalPaid == null || dueToPatient == null) {
-            return "N/A";
-        }
-
-        if (dueToPatient <= 0) {
-            return "FULLY PAID";
-        }
-        if (totalPaid == 0) {
-            return "UNPAID";
-        } else if (totalPaid < dueToPatient) {
-            return "PARTLY PAID";
-        }
-
-        return "FULLY PAID";
+        return ""+totalPaid;
     }
 
 }

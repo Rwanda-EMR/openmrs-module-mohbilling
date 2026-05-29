@@ -327,10 +327,23 @@ public class ConsommationUtil {
 		}
 		return found;
 	}
+    public static List<Consommation> getConsommations(Date startDate,
+                                                      Date endDate, Insurance insurance, ThirdParty tp,
+                                                      User billCreator,Department department){
+        return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+	}
+
 	public static List<Consommation> getConsommations(Date startDate,
 													  Date endDate, Insurance insurance, ThirdParty tp,
-													  User billCreator,Department department, int recordsPerPage, int page){
-		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department, recordsPerPage, page);
+													  User billCreator, Department department, int limit, int page) {
+		List<Consommation> consommations = getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+		if (consommations == null || consommations.isEmpty() || limit <= 0) {
+			return consommations;
+		}
+		int currentPage = Math.max(page, 1);
+		int fromIndex = Math.min((currentPage - 1) * limit, consommations.size());
+		int toIndex = Math.min(fromIndex + limit, consommations.size());
+		return consommations.subList(fromIndex, toIndex);
 	}
 
 	public static List<Consommation> getConsommationsOld(Date startDate,

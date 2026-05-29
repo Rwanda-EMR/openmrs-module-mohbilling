@@ -33,11 +33,214 @@ import java.util.List;
 
 public class FileExporter {
 
-	private static final String WHITESPACE = " ";
-	protected static final Log log = LogFactory.getLog(FileExporter.class);
-	private PatientIdentifierType patientID= Context.getPatientService().getPatientIdentifierType(Integer.valueOf(Context.getAdministrationService().getGlobalProperty(
-									BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE)));
+    protected static final Log log = LogFactory.getLog(FileExporter.class);
+    private static final String WHITESPACE = " ";
+    private PatientIdentifierType patientID = Context.getPatientService()
+            .getPatientIdentifierType(Integer.valueOf(Context.getAdministrationService().getGlobalProperty(
+                    BillingConstants.GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE)));
 
+    public static void exportDCPData(HttpServletRequest request, HttpServletResponse response, List<AllServiceRevenueCons> listOfAllServicesRevenue, List<String> columns) throws Exception {
+
+        Date date = new Date();
+        SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+
+        PrintWriter dcp = response.getWriter();
+        response.setContentType("text/plain");
+        response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + f.format(date) + ".csv\"");
+
+        dcp.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+        dcp.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+        dcp.println("" + Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+        dcp.println();
+        dcp.println();
+
+        dcp.println("," + "," + "," + "DCP PROVIDER REPORT");
+        dcp.println();
+        dcp.println();
+
+        dcp.print("#,Beneficiary Name,Insurance Name,Insurance Card No,Date Created,Creator");
+        for (String service : columns) {
+            dcp.print("," + service);
+        }
+        dcp.print(",GRAND TOT(100%),INSURANCE TOT,PATIENT TOT");
+
+        dcp.println();
+        Float insuranceDueByConsom = 0.0f;
+        BigDecimal insurancePercentage = new BigDecimal(100);
+        float pRate = 0.0f;
+
+        int i = 0;
+        for (AllServiceRevenueCons asr : listOfAllServicesRevenue) {
+            i++;
+            dcp.print(i
+                    + "," + asr.getConsommation().getBeneficiary().getPatient().getPersonName()
+                    + "," + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getName()
+                    + ",'" + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
+                    + "," + f.format(asr.getConsommation().getCreatedDate())
+                    + "," + asr.getConsommation().getCreator().getPersonName()
+            );
+            float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+            pRate = 100 - insuranceRate;
+            for (ServiceRevenue serviceRevenue : asr.getRevenues()) {
+                List<PatientServiceBill> billItems = new ArrayList<PatientServiceBill>();
+                if (pRate > 0) {
+                    dcp.print("," + ReportsUtil.roundTwoDecimals(serviceRevenue.getDueAmount().multiply(insurancePercentage).divide(BigDecimal.valueOf(pRate)).doubleValue()));
+                } else if (pRate == 0) {
+                    BigDecimal amount = new BigDecimal(0);
+                    for (PatientServiceBill psb : serviceRevenue.getBillItems()) {
+                        billItems.add(psb);
+                        amount = amount.add(psb.getQuantity().multiply(psb.getUnitPrice()));
+                    }
+                    dcp.print("," + ReportsUtil.roundTwoDecimals(amount.doubleValue()));
+                } else {
+                    dcp.print("," + 0);
+                }
+            }
+            Consommation cons = asr.getConsommation();
+            BigDecimal totalConsAmount = new BigDecimal(0);
+            for (PatientServiceBill psb : cons.getBillItems()) {
+                BigDecimal reqQty = psb.getQuantity();
+                BigDecimal unitPrice = psb.getUnitPrice();
+                totalConsAmount = totalConsAmount.add(reqQty.multiply(unitPrice));
+            }
+            BigDecimal totalASR = new BigDecimal(0);
+            BigDecimal totalPatientASR = new BigDecimal(0);
+            totalASR = totalConsAmount.multiply(BigDecimal.valueOf(insuranceRate)).divide(new BigDecimal(100));
+            totalPatientASR = totalConsAmount.multiply(BigDecimal.valueOf(pRate)).divide(new BigDecimal(100));
+
+            dcp.print("," + ReportsUtil.roundTwoDecimals(totalConsAmount.doubleValue()));
+            dcp.print("," + ReportsUtil.roundTwoDecimals(totalASR.doubleValue()));
+            dcp.print("," + ReportsUtil.roundTwoDecimals(totalPatientASR.doubleValue()));
+            dcp.println();
+
+        }
+        dcp.println();
+        dcp.flush();
+        dcp.close();
+    }
+
+    public static void exportData(HttpServletResponse response,
+                                  List<InsuranceReportItem> reportRecords, Insurance insurance) throws IOException {
+
+        if (response == null || reportRecords == null) {
+            throw new IllegalArgumentException("exportData method expects non-null parameters.");
+        }
+
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        String fileName = String.format("releve_%s.csv", formatter.format(new Date()));
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+
+        try (PrintWriter writer = response.getWriter()) {
+
+            writeHeaderInfo(writer, insurance);
+            writeReportData(writer, reportRecords, formatter);
+            writer.flush();
+
+        } catch (Exception e) {
+            log.error("Failed to write to file: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Method to write header information
+    private static void writeHeaderInfo(PrintWriter writer, Insurance insurance) {
+
+        writer.println(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+        writer.println(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+        writer.println(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+        writer.println(); // Empty line for spacing
+        writer.println(",,,,,,,,,,,SUMMARY OF VOUCHERS FOR (" + insurance.getName() + "),,,,,,,,,,,");
+        writer.println(); // Empty line for spacing
+
+        double patientRate = getInsurancePatientRate(insurance.getInsuranceId());
+        double insuranceRate = getInsuranceFirmRate(insurance.getInsuranceId());
+
+        String[] headers = {
+                "#", "Admission Date", "Closing Date", "BENEFICIARY'S NAMES",
+                "HEAD HOUSEHOLD'S NAMES", "FAMILY'S CODE", "LEVEL", "Card NUMBER",
+                "COMPANY", "AGE", "BIRTH DATE", "GENDER", "DOCTOR", "CONSULTATION", "LABORATOIRE", "HOSPITALISATION", "FORMALITES ADMINISTRATIVES",
+                "AMBULANCE", "CONSOMMABLES", "MEDICAMENTS","IMAGING", "PROCED.",
+                "Total (100%)", "Insurance Rate (" + insuranceRate + "%)", "Patient share (" + patientRate + "%)"
+        };
+
+        writer.println(String.join(",", headers));
+    }
+
+    // Method to write report data
+    private static void writeReportData(PrintWriter writer, List<InsuranceReportItem> reportRecords, DateFormat formatter) {
+
+        for (int i = 0; i < reportRecords.size(); i++) {
+            InsuranceReportItem reportItem = reportRecords.get(i);
+
+            String[] data = {
+                    String.valueOf(i + 1),
+                    formatter.format(reportItem.getAdmissionDate()),
+                    formatter.format(reportItem.getClosingDate()),
+                    quoteValue(reportItem.getBeneficiaryName()),
+                    quoteValue(reportItem.getHouseholdHeadName()),
+                    wrapLongNumber(reportItem.getFamilyCode()),
+                    String.valueOf(reportItem.getBeneficiaryLevel()),
+                    wrapLongNumber(reportItem.getCardNumber()),
+                    quoteValue(reportItem.getCompanyName()),
+                    String.valueOf(reportItem.getAge()),
+                    formatter.format(reportItem.getBirthDate()),
+                    quoteValue(reportItem.getGender()),
+                    quoteValue(reportItem.getDoctorName()),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getConsultation())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getLaboratoire())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getHospitalisation())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getFormaliteAdministratives())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getAmbulance())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getConsommables())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getMedicament())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getImaging())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getProced())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getTotal100())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getTotalInsurance())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getTotalPatient()))
+            };
+            writer.println(String.join(",", data));
+        }
+    }
+
+    private static double getInsuranceFirmRate(Integer insuranceIdentifier) {
+        return InsuranceUtil.getInsuranceFirmRate(insuranceIdentifier);
+    }
+
+    private static double getInsurancePatientRate(Integer insuranceIdentifier) {
+        return InsuranceUtil.getInsurancePatientRate(insuranceIdentifier);
+    }
+
+    private static String getGlobalProperty(String propertyKey) {
+        return Context.getAdministrationService().getGlobalProperty(propertyKey);
+    }
+
+    private static String quoteValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        if (value.contains(",") || value.contains("\"")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
+    private static String wrapLongNumber(Object value) {
+        if (value == null) {
+            return "";
+        }
+
+        String stringValue = String.valueOf(value);
+
+        // If the value is a long number, wrap it in double quotes to prevent scientific notation
+        if (stringValue.matches("\\d{11,}")) {  // Matches numbers with 11 or more digits
+            return "=\"" + stringValue + "\"";  // Forces Excel to treat as text
+        }
+
+        return stringValue;
+    }
 
 	public void printTransaction(HttpServletRequest request,	HttpServletResponse response, Transaction transaction,String filename) throws Exception{
 		response.setContentType("application/pdf");
@@ -872,7 +1075,6 @@ public class FileExporter {
 			e.printStackTrace();
 		}
 	}
-
     public void displayServiceRevenues(Document document, GlobalBill gb,String differentialDiagnosis,String finalDiagnosis, List<ServiceRevenue> sr, FontSelector fontSelector) throws DocumentException {
 		float[] colsWidt = {5f,20f,55f,25f,15f,25f,25f,25f,25f};
 		PdfPTable table = new PdfPTable(colsWidt);
@@ -1507,88 +1709,6 @@ public class FileExporter {
 		document.add(table);
 	}
 
-	public static void exportDCPData(HttpServletRequest request, HttpServletResponse response,List<AllServiceRevenueCons> listOfAllServicesRevenue,List<String> columns) throws Exception{
-
-		Date date = new Date();
-		SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-
-		PrintWriter dcp = response.getWriter();
-		response.setContentType("text/plain");
-		response.setHeader("Content-Disposition", "attachment; filename=\"releve_"+f.format(date)+".csv\"");
-
-		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
-		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
-		dcp.println(""+ Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
-		dcp.println();
-		dcp.println();
-
-		dcp.println(","+","+","+"DCP PROVIDER REPORT");
-		dcp.println();
-		dcp.println();
-
-		dcp.print("#,Beneficiary Name,Insurance Name,Insurance Card No,Date Created,Creator");
-		for (String service : columns){
-			dcp.print(","+service);
-		}
-		dcp.print(",GRAND TOT(100%),INSURANCE TOT,PATIENT TOT");
-
-		dcp.println();
-		Float insuranceDueByConsom = 0.0f;
-		BigDecimal insurancePercentage = new BigDecimal(100);
-		float pRate = 0.0f;
-
-		int i=0;
-		for (AllServiceRevenueCons asr : listOfAllServicesRevenue){
-			i++;
-			dcp.print(i
-					+ "," + asr.getConsommation().getBeneficiary().getPatient().getPersonName()
-					+ "," + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getName()
-					+ ",'" + asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsuranceCardNo()
-					+ "," + f.format(asr.getConsommation().getCreatedDate())
-					+ "," + asr.getConsommation().getCreator().getPersonName()
-			);
-			float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
-			pRate=100-insuranceRate;
-			for (ServiceRevenue serviceRevenue : asr.getRevenues()){
-				List<PatientServiceBill> billItems = new ArrayList<PatientServiceBill>();
-				if (pRate>0){
-					dcp.print(","+ReportsUtil.roundTwoDecimals(serviceRevenue.getDueAmount().multiply(insurancePercentage).divide(BigDecimal.valueOf(pRate)).doubleValue()));
-				}
-				else if (pRate==0){
-					BigDecimal amount = new BigDecimal(0);
-					for (PatientServiceBill psb : serviceRevenue.getBillItems()){
-						billItems.add(psb);
-						amount = amount.add(psb.getQuantity().multiply(psb.getUnitPrice()));
-					}
-					dcp.print(","+ReportsUtil.roundTwoDecimals(amount.doubleValue()));
-				}
-				else {
-					dcp.print(","+0);
-				}
-			}
-			Consommation cons = asr.getConsommation();
-			BigDecimal totalConsAmount = new BigDecimal(0);
-			for (PatientServiceBill psb : cons.getBillItems()){
-				BigDecimal reqQty = psb.getQuantity();
-				BigDecimal unitPrice =psb.getUnitPrice();
-				totalConsAmount =totalConsAmount.add(reqQty.multiply(unitPrice));
-			}
-			BigDecimal totalASR = new BigDecimal(0);
-			BigDecimal totalPatientASR = new BigDecimal(0);
-			totalASR = totalConsAmount.multiply(BigDecimal.valueOf(insuranceRate)).divide(new BigDecimal(100));
-			totalPatientASR = totalConsAmount.multiply(BigDecimal.valueOf(pRate)).divide(new BigDecimal(100));
-
-			dcp.print(","+ReportsUtil.roundTwoDecimals(totalConsAmount.doubleValue()));
-			dcp.print(","+ReportsUtil.roundTwoDecimals(totalASR.doubleValue()));
-			dcp.print(","+ReportsUtil.roundTwoDecimals(totalPatientASR.doubleValue()));
-			dcp.println();
-
-		}
-		dcp.println();
-		dcp.flush();
-		dcp.close();
-	}
-
     /*
      * Exports to Excel (.xlsx) format
      */
@@ -1695,16 +1815,6 @@ public class FileExporter {
 			e.printStackTrace();
             log.error("Failed to write to excel File with Error: " + e.getMessage() + " \n " + e.getCause());
         }
-    }
-
-    private static String quoteValue(String value) {
-        if (value == null) {
-            return null;
-        }
-        if (value.contains(",") || value.contains("\"")) {
-            return "\"" + value.replace("\"", "\"\"") + "\"";
-        }
-        return value;
     }
 
 	public void epsonPrinter(HttpServletRequest request,HttpServletResponse response,BillPayment payment,String filename) throws Exception {

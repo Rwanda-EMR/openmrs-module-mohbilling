@@ -1,3 +1,4 @@
+<%@ page import="org.openmrs.api.context.Context" %>
 <openmrs:hasPrivilege privilege="Billing Configuration - View Billing Admin">
 <ul id="menu">
 
@@ -19,7 +20,9 @@
 	<li class="<c:if test='<%= request.getRequestURI().contains("billingConfig")%>'> active</c:if>">
 	<a href="billingConfig.form">Billing Configuration</a>
 	</li>
-
+	<li class="<c:if test='<%= request.getRequestURI().contains("rhipIntegrationLogs")%>'> active</c:if>">
+	<a href="rhipIntegrationLogs.form" style="white-space: nowrap;">RHIP Integration Logs</a>
+	</li>
 </ul>
 </openmrs:hasPrivilege>
 

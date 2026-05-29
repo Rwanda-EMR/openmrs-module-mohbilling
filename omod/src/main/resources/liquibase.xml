@@ -33,6 +33,66 @@
 		</sql>
 	</changeSet>
 
+	<changeSet id="moh_bill_rhip_practitioner_type" author="codex">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_rhip_practitioner_type" /></not>
+		</preConditions>
+		<comment>
+			Local cache table for RHIP practitioner types/sub-categories (fallback when RHIP types endpoint is unavailable).
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_rhip_practitioner_type (
+			rhip_practitioner_type_id int(11) NOT NULL AUTO_INCREMENT,
+			rhip_id char(38) NOT NULL,
+			name varchar(255) NOT NULL,
+			type varchar(50) NOT NULL,
+			category_rhip_id char(38) DEFAULT NULL,
+			category_name varchar(255) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			date_created datetime NOT NULL,
+			changed_by int(11) DEFAULT NULL,
+			date_changed datetime DEFAULT NULL,
+			voided tinyint(1) NOT NULL DEFAULT '0',
+			voided_by int(11) DEFAULT NULL,
+			date_voided datetime DEFAULT NULL,
+			void_reason varchar(255) DEFAULT NULL,
+			uuid char(38) NOT NULL,
+			PRIMARY KEY (rhip_practitioner_type_id),
+			UNIQUE KEY uuid (uuid),
+			UNIQUE KEY rhip_id (rhip_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_rhip_integration_log" author="codex">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_rhip_integration_log" /></not>
+		</preConditions>
+		<comment>
+			Audit log table for RHIP integration requests/responses.
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_rhip_integration_log (
+			rhip_integration_log_id int(11) NOT NULL AUTO_INCREMENT,
+			date_created datetime NOT NULL,
+			creator int(11) DEFAULT NULL,
+			sender_username varchar(255) DEFAULT NULL,
+			operation_type varchar(80) DEFAULT NULL,
+			endpoint_url varchar(500) DEFAULT NULL,
+			request_payload mediumtext DEFAULT NULL,
+			response_code int(11) DEFAULT NULL,
+			response_status varchar(50) DEFAULT NULL,
+			response_body mediumtext DEFAULT NULL,
+			error_message mediumtext DEFAULT NULL,
+			uuid char(38) NOT NULL,
+			PRIMARY KEY (rhip_integration_log_id),
+			UNIQUE KEY uuid (uuid),
+			KEY date_created (date_created),
+			KEY response_status (response_status)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
 
 	<changeSet id="moh_bill_beneficiary" author="jberchmas">
 		<preConditions onFail="MARK_RAN">
@@ -1770,5 +1830,33 @@
 			columnNames="invoice_number,payment_reference"
 			constraintName="uk_moh_bill_payment_invoice_reference"/>
 
+	</changeSet>
+
+	<changeSet id="moh_bill_insurance_policy_rhip_patient_id" author="openmrs">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="moh_bill_insurance_policy" columnName="rhip_patient_id" />
+			</not>
+		</preConditions>
+		<comment>
+			Add RHIP patient identifier to insurance policy
+		</comment>
+		<addColumn tableName="moh_bill_insurance_policy">
+			<column name="rhip_patient_id" type="varchar(64)" />
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_global_bill_rhip_voucher_fields" author="openmrs">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="moh_bill_global_bill" columnName="rhip_voucher_code" />
+			</not>
+		</preConditions>
+		<comment>
+			Add RHIP voucher details to global bill
+		</comment>
+		<addColumn tableName="moh_bill_global_bill">
+			<column name="rhip_voucher_code" type="varchar(64)" />
+			<column name="rhip_voucher_reference_number" type="varchar(64)" />
+		</addColumn>
 	</changeSet>
 </databaseChangeLog>

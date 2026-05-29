@@ -66,8 +66,8 @@ public interface BillingDAO {
 	 * @return List<PatientBill> paginated and ordered list of bills
 	 * @throws DAOException
 	 */
-	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize, String orderBy,
-		String orderDirection) throws DAOException;
+//	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize, String orderBy,
+//		String orderDirection) throws DAOException;
 
 	/**
 	 * Gets the insurance from the DB by specifying the Object/ID
@@ -712,7 +712,7 @@ public interface BillingDAO {
 	 * @param billCreator
 	 * @return consommation list
 	 */
-	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department, int limit, int offSet);
+	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
 	public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
 	List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate, Date endDate);
 	public List<Consommation> getDCPConsommations(Date startDate, Date endDate, User billCreator);
@@ -733,6 +733,10 @@ public interface BillingDAO {
 
 	public FacilityServicePrice getFacilityServiceByName(String name);
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
+	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog log);
+	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);
+	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult, Integer maxResults);
+	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria);
 
 	/*public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
 														User collector);

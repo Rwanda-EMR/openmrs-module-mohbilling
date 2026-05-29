@@ -103,8 +103,8 @@ public interface BillingService {
 	 */
 	PatientBill savePatientBill(PatientBill bill) throws DAOException;
 
-	List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
-		String orderBy, String orderDirection) throws DAOException;
+//	List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
+//		String orderBy, String orderDirection) throws DAOException;
 
 
 	/**
@@ -670,7 +670,8 @@ public interface BillingService {
 	 * @param billCreator
 	 * @return consommation list
 	 */
-	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department, int limit, int offSet);
+    public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+//	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
 	public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
 
 	public List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate, Date endDate);
@@ -725,4 +726,9 @@ public interface BillingService {
 	public String createIremboInvoice(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
 
 	public void initIremboPayBatch(Patient patient,List<String> invoices, String phoneNumber) throws DAOException;
+
+	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog log);
+	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);
+	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult, Integer maxResults);
+	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria);
 }
