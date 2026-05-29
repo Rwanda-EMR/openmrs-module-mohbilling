@@ -295,8 +295,8 @@ public class ReportsUtil {
 			}
 			
 		}
-		// ||pRate==0 to fix mutuelle indigent which was not allowing the printout to display some items
-		   if(dueAmount.compareTo(BigDecimal.ZERO)>0 || pRate==0.0){
+		// Show categories that contain bill items even when their computed amount is zero.
+		   if(!serviceItems.isEmpty()){
 		revenue = new ServiceRevenue(hopService.getName(), dueAmount);
 	    revenue.setBillItems(serviceItems);
 		}
@@ -379,7 +379,7 @@ public class ReportsUtil {
 			}
 		}
 		
-		if(amount.compareTo(BigDecimal.ZERO)>0){	
+		if(!billItems.isEmpty()){
 			String[]	parts =  categ.split("\\.");
 			categ = parts[1]; 
 	        revenue = new ServiceRevenue(categ.toUpperCase(), amount);
@@ -689,7 +689,7 @@ public class ReportsUtil {
 			}
 		}
 		String category="";
-		if(amount.compareTo(BigDecimal.ZERO)>0 || pRate==0.0){
+		if(!matchingItems.isEmpty()){
 			String[]	parts =  groupedCategories.split("\\.");
 			category = parts[1]; 
 	        revenue = new ServiceRevenue(category.toUpperCase(), amount);
