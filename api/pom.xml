@@ -118,11 +118,6 @@
 			<version>20251224</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.openmrs.api</groupId>
-			<artifactId>openmrs-api</artifactId>
-			<scope>compile</scope>
-		</dependency>
 	</dependencies>
 
 </project>
