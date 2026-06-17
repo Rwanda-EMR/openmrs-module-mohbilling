@@ -225,6 +225,7 @@ public class MohBillingViewGlobalBillController extends
 
 		String success = jsonValueString(root == null ? null : root.get("success"));
 		String message = jsonValueString(root == null ? null : root.get("message"));
+		String failureMessage = extractRhipFailureMessage(root);
 
 		JsonNode data = root == null ? null : root.get("data");
 		String voucherCode = jsonValueString(data == null ? null : data.get("voucherCode"));
@@ -234,6 +235,7 @@ public class MohBillingViewGlobalBillController extends
 		log.info("RHIP voucher response received (status=" + responseCode
 				+ ", success=" + success
 				+ ", message=" + message
+				+ ", failureMessage=" + failureMessage
 				+ ", voucherCode=" + voucherCode
 				+ ", voucherReferenceNumber=" + voucherReferenceNumber
 				+ ", voucherStatus=" + status
@@ -262,8 +264,9 @@ public class MohBillingViewGlobalBillController extends
 			}
 		} else {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-					StringUtils.isBlank(message) ? "RHIP voucher submission failed" : message);
-			log.warn("RHIP voucher submission failed");
+					StringUtils.isBlank(failureMessage) ? "RHIP voucher submission failed" : failureMessage);
+			log.warn("RHIP voucher submission failed"
+					+ (StringUtils.isBlank(failureMessage) ? "" : ": " + failureMessage));
 		}
 	}
 
@@ -393,11 +396,81 @@ public class MohBillingViewGlobalBillController extends
 		}
 		try {
 			JsonNode node = OBJECT_MAPPER.readTree(json);
-			JsonNode messageNode = node == null ? null : node.get("message");
-			return jsonValueString(messageNode);
+			return extractRhipFailureMessage(node);
 		}
 		catch (Exception ignored) {
 			return null;
 		}
+	}
+
+	private String extractRhipFailureMessage(JsonNode root) {
+		String detailedErrors = extractRhipErrorMessages(root == null ? null : root.get("errors"));
+		if (StringUtils.isNotBlank(detailedErrors)) {
+			return detailedErrors;
+		}
+		return jsonValueString(root == null ? null : root.get("message"));
+	}
+
+	private String extractRhipErrorMessages(JsonNode errorsNode) {
+		if (errorsNode == null || errorsNode.isNull()) {
+			return null;
+		}
+		List<String> messages = new ArrayList<String>();
+		if (errorsNode.isArray()) {
+			for (JsonNode errorNode : errorsNode) {
+				String message = null;
+				if (errorNode != null && errorNode.isObject()) {
+					message = jsonValueString(errorNode.get("message"));
+				} else {
+					message = jsonValueString(errorNode);
+				}
+				message = normalizeRhipErrorMessage(message);
+				if (StringUtils.isNotBlank(message) && !messages.contains(message)) {
+					messages.add(message);
+				}
+			}
+		} else {
+			String message = normalizeRhipErrorMessage(jsonValueString(errorsNode));
+			if (StringUtils.isNotBlank(message)) {
+				messages.add(message);
+			}
+		}
+		return messages.isEmpty() ? null : StringUtils.join(messages, "; ");
+	}
+
+	private String normalizeRhipErrorMessage(String message) {
+		if (StringUtils.isBlank(message)) {
+			return null;
+		}
+		String normalized = message.trim();
+		if (normalized.startsWith("[") || normalized.startsWith("\"") || normalized.startsWith("'")) {
+			try {
+				JsonNode parsed = OBJECT_MAPPER.readTree(normalized);
+				if (parsed != null && parsed.isArray()) {
+					List<String> values = new ArrayList<String>();
+					for (JsonNode value : parsed) {
+						String parsedValue = normalizeRhipErrorMessage(jsonValueString(value));
+						if (StringUtils.isNotBlank(parsedValue)) {
+							values.add(parsedValue);
+						}
+					}
+					if (!values.isEmpty()) {
+						return StringUtils.join(values, "; ");
+					}
+				}
+				if (parsed != null && parsed.isTextual()) {
+					normalized = parsed.asText();
+				}
+			} catch (Exception ignored) {
+			}
+		}
+		normalized = normalized.trim();
+		while (normalized.startsWith("[") || normalized.startsWith("\"") || normalized.startsWith("'")) {
+			normalized = normalized.substring(1).trim();
+		}
+		while (normalized.endsWith("]") || normalized.endsWith("\"") || normalized.endsWith("'")) {
+			normalized = normalized.substring(0, normalized.length() - 1).trim();
+		}
+		return normalized;
 	}
 }
