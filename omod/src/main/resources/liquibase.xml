@@ -33,7 +33,7 @@
 		</sql>
 	</changeSet>
 
-	<changeSet id="moh_bill_rhip_practitioner_type" author="codex">
+	<changeSet id="moh_bill_rhip_practitioner_type" author="bniyonshuti">
 		<preConditions onFail="MARK_RAN">
 			<not><tableExists tableName="moh_bill_rhip_practitioner_type" /></not>
 		</preConditions>
@@ -64,7 +64,7 @@
 		</sql>
 	</changeSet>
 
-	<changeSet id="moh_bill_rhip_integration_log" author="codex">
+	<changeSet id="moh_bill_rhip_integration_log" author="bniyonshuti">
 		<preConditions onFail="MARK_RAN">
 			<not><tableExists tableName="moh_bill_rhip_integration_log" /></not>
 		</preConditions>

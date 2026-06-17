@@ -59,6 +59,7 @@
 				<prop key="module/@MODULE_ID@/services.list">mohBillingHopServiceListController</prop>
 				<prop key="module/@MODULE_ID@/service.form">mohBillingHopserviceFormController</prop>
 				<prop key="module/@MODULE_ID@/admissionSearch.form">mohBillingAdmissionSearchFormController</prop>
+				<prop key="module/@MODULE_ID@/beneficiarySearch.form">mohBillingBeneficiarySearchController</prop>
 				<prop key="module/@MODULE_ID@/globalBill.list">mohBillingGlobalBillListController</prop>
 				<prop key="module/@MODULE_ID@/consommation.list">mohBillingConsommationListController</prop>
 				<prop key="module/@MODULE_ID@/billSearch.form">mohBillingBillSearchFormController</prop>
@@ -212,6 +213,7 @@
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillAdmissionSearchForm</value></property>
 	</bean>
+	<bean id="mohBillingBeneficiarySearchController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBeneficiarySearchController" />
 	<bean id="mohBillingGlobalBillListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingGlobalBillListController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingGlobalBillList</value></property>

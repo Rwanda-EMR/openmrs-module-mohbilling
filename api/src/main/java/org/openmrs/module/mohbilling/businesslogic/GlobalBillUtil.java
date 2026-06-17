@@ -13,6 +13,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -80,7 +81,7 @@ public class GlobalBillUtil {
 		return getService().getGlobalBillByBillIdentifier(billIdentifier);
 	}
 
-	public static String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid) {
+	public static String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid) {
 		return getService().getDiagnosisFromAdmissionToDischarge(primaryAndSecondaryDiagnosis, startDate, endDate, patientid);
 	}
 

@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -101,8 +102,12 @@ public class MohBillingViewGlobalBillController extends
 			String finalDiagnosisConceptQuestion=Context.getAdministrationService().getGlobalProperty("billing.finalDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill");
 			String differentialDiagnosisConceptQuestion=Context.getAdministrationService().getGlobalProperty("billing.differentialDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill");
 
-			String finalDiagnosis=GlobalBillUtil.getDiagnosisFromAdmissionToDischarge(finalDiagnosisConceptQuestion,gb.getAdmission().getAdmissionDate()+"",gb.getClosingDate()+"",gb.getAdmission().getInsurancePolicy().getOwner().getPatientId());
-			String differentialDiagnosis=GlobalBillUtil.getDiagnosisFromAdmissionToDischarge(differentialDiagnosisConceptQuestion,gb.getAdmission().getAdmissionDate()+"",gb.getClosingDate()+"",gb.getAdmission().getInsurancePolicy().getOwner().getPatientId());
+			Date diagnosisStartDate = getStartOfDay(gb.getAdmission().getAdmissionDate());
+			Date diagnosisEndDate = getEndOfDay(gb.getClosingDate() == null ? new Date() : gb.getClosingDate());
+			Integer patientId = gb.getAdmission().getInsurancePolicy().getOwner().getPatientId();
+
+			String finalDiagnosis=GlobalBillUtil.getDiagnosisFromAdmissionToDischarge(finalDiagnosisConceptQuestion,diagnosisStartDate,diagnosisEndDate,patientId);
+			String differentialDiagnosis=GlobalBillUtil.getDiagnosisFromAdmissionToDischarge(differentialDiagnosisConceptQuestion,diagnosisStartDate,diagnosisEndDate,patientId);
 
 			exp.printGlobalBill(request, response, gb,differentialDiagnosis+"",finalDiagnosis+"",sr, gb.getBillIdentifier()+".pdf");
 		}
@@ -164,6 +169,26 @@ public class MohBillingViewGlobalBillController extends
 			return new ModelAndView(new RedirectView("viewGlobalBill.form?globalBillId=" + gb.getGlobalBillId()));
 		}
 		return mav;
+	}
+
+	private Date getStartOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
+	}
+
+	private Date getEndOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 23);
+		calendar.set(Calendar.MINUTE, 59);
+		calendar.set(Calendar.SECOND, 59);
+		calendar.set(Calendar.MILLISECOND, 999);
+		return calendar.getTime();
 	}
 
 	public void setVoucherService(RhipVoucherService voucherService) {

@@ -291,13 +291,18 @@
     </dwr>
 
     <!-- Servlets -->
-    <!--
-        Accessed through the url
-        /pageContext()/moduleServlet/<moduleId>/<servlet-name> <servlet>
-        <servlet-name>formDownload</servlet-name>
-        <servlet-class>@MODULE_PACKAGE@.web.FormDownloadServlet</servlet-class>
-        </servlet>
-    -->
+    <servlet>
+        <servlet-name>call</servlet-name>
+        <servlet-class>org.directwebremoting.servlet.DwrServlet</servlet-class>
+        <init-param>
+            <param-name>config</param-name>
+            <param-value>/WEB-INF/dwr-modules.xml</param-value>
+        </init-param>
+        <init-param>
+            <param-name>crossDomainSessionSecurity</param-name>
+            <param-value>false</param-value>
+        </init-param>
+    </servlet>
     <!-- /Servlets -->
     <privilege>
         <name>Add Facility service</name>

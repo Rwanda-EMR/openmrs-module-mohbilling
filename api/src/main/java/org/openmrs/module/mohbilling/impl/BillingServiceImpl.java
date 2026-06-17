@@ -1151,7 +1151,7 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getBillItemsByCategoryFromMamba(insuranceId, startDate, endDate);
     }
 
-	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid){
+	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid){
 		return billingDAO.getDiagnosisFromAdmissionToDischarge(primaryAndSecondaryDiagnosis,startDate,endDate,patientid);
 	};
 

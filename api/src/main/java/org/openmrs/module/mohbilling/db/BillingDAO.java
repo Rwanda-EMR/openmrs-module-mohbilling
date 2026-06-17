@@ -732,7 +732,7 @@ public interface BillingDAO {
 	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException;
 
 	public FacilityServicePrice getFacilityServiceByName(String name);
-	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
+	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid);
 	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog log);
 	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);
 	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult, Integer maxResults);

@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -857,9 +858,9 @@ public class RhipVoucherService {
 		if (StringUtils.isBlank(conceptIds) || patient == null) {
 			return null;
 		}
-		String admissionDate = formatSqlDateTime(resolveAdmissionDate(globalBill, admission), false);
-		String dischargeDate = formatSqlDateTime(resolveDischargeDate(globalBill, admission), true);
-		if (StringUtils.isBlank(admissionDate) || StringUtils.isBlank(dischargeDate)) {
+		Date admissionDate = getStartOfDay(resolveAdmissionDate(globalBill, admission));
+		Date dischargeDate = getEndOfDay(resolveDischargeDate(globalBill, admission));
+		if (admissionDate == null || dischargeDate == null) {
 			return null;
 		}
 		return billingService.getDiagnosisFromAdmissionToDischarge(conceptIds, admissionDate, dischargeDate, patient.getPatientId());
@@ -1036,6 +1037,32 @@ public class RhipVoucherService {
 			return null;
 		}
 		return endOfDay ? day + " 23:59:59" : day + " 00:00:00";
+	}
+
+	private Date getStartOfDay(Date date) {
+		if (date == null) {
+			return null;
+		}
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
+	}
+
+	private Date getEndOfDay(Date date) {
+		if (date == null) {
+			return null;
+		}
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 23);
+		calendar.set(Calendar.MINUTE, 59);
+		calendar.set(Calendar.SECOND, 59);
+		calendar.set(Calendar.MILLISECOND, 999);
+		return calendar.getTime();
 	}
 
 	public void setVoucherProvider(RhipVoucherProvider voucherProvider) {

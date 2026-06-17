@@ -1995,16 +1995,49 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
-    public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid) {
-        StringBuilder queryString = new StringBuilder("");
-        queryString.append("select group_concat((select name from concept_name where concept_id=value_coded limit 1)) as Diagnosis from obs where concept_id in ("+primaryAndSecondaryDiagnosis+") and obs_datetime>= '"+startDate+"' and obs_datetime<= '"+endDate+"' and person_id="+patientid+" and voided=0 group by person_id");
-        Query query = sessionFactory.getCurrentSession().createSQLQuery(queryString.toString());
-        List<String> Diagnosis = query.list();
-        if(Diagnosis.size()==0){
+    public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid) {
+        List<Integer> conceptIds = getConceptIds(primaryAndSecondaryDiagnosis);
+        if (conceptIds.isEmpty() || startDate == null || endDate == null || patientid == null) {
             return "";
-        }else {
-            return Diagnosis.get(0);
         }
+
+        String queryString = "select group_concat(cn.name order by o.obs_datetime separator ', ') as Diagnosis "
+                + "from obs o "
+                + "inner join concept_name cn on cn.concept_id = o.value_coded "
+                + "where o.concept_id in (:conceptIds) "
+                + "and o.obs_datetime >= :startDate "
+                + "and o.obs_datetime <= :endDate "
+                + "and o.person_id = :patientId "
+                + "and o.voided = 0 "
+                + "and cn.voided = 0 "
+                + "group by o.person_id";
+
+        Query query = sessionFactory.getCurrentSession().createSQLQuery(queryString);
+        query.setParameterList("conceptIds", conceptIds);
+        query.setTimestamp("startDate", startDate);
+        query.setTimestamp("endDate", endDate);
+        query.setInteger("patientId", patientid);
+
+        List<String> diagnosis = query.list();
+        if (diagnosis.size() == 0 || diagnosis.get(0) == null) {
+            return "";
+        }
+        return diagnosis.get(0);
+    }
+
+    private List<Integer> getConceptIds(String conceptIds) {
+        List<Integer> result = new ArrayList<Integer>();
+        if (conceptIds == null) {
+            return result;
+        }
+        for (String conceptId : conceptIds.split(",")) {
+            try {
+                result.add(Integer.valueOf(conceptId.trim()));
+            } catch (NumberFormatException e) {
+                log.warn("Ignoring invalid diagnosis concept id in global property: " + conceptId);
+            }
+        }
+        return result;
     }
 
     @Override

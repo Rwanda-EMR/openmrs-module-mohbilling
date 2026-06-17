@@ -695,7 +695,7 @@ public interface BillingService {
 
 	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
-	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
+	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid);
 	public List<PatientBillIrembo> getUnpaidBills(Patient patient) throws DAOException;
 	public List<PatientBill> getUnpaidBillsWithInvoiceNumber() throws DAOException;
 

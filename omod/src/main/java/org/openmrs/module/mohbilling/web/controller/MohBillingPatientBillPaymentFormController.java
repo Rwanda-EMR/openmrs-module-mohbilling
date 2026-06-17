@@ -2,9 +2,12 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
+import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
@@ -108,6 +111,8 @@ public class MohBillingPatientBillPaymentFormController extends
 			mav.addObject("todayDate", today);
 			mav.addObject("authUser", Context.getAuthenticatedUser());
 			mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(consommation.getBeneficiary().getPatient()));
+			mav.addObject("iremboPayEnabled", isIremboPayEnabled());
+			mav.addObject("iremboPhoneNumber", resolveIremboPhoneNumber(consommation));
 
 		} catch (Exception e) {
 			log.error(">>>>MOH>>BILLING>> " + e.getMessage());
@@ -185,9 +190,9 @@ public class MohBillingPatientBillPaymentFormController extends
 			 * third part
 			 */
 
-			else{
-				billPayment=new BillPayment();
-				billPayment.setInvoiceNumber(pb.getInvoiceNumber());
+				else{
+					billPayment=new BillPayment();
+					billPayment.setInvoiceNumber(pb.getInvoiceNumber());
 				billPayment.setCollector(Context.getAuthenticatedUser());
 	/*			billPayment.setDateReceived(Context.getDateFormat().parse(
 						request.getParameter("dateBillReceived")));*/
@@ -199,10 +204,40 @@ public class MohBillingPatientBillPaymentFormController extends
 				billPayment.setCreator(Context.getAuthenticatedUser());
 				//bp = PatientBillUtil.createBillPayment(bp);
 
-				//mark as paid all  selected items for payment purpose
+					//mark as paid all  selected items for payment purpose
 
-				if(request.getParameter("cashPayment")!=null){
-					billPayment.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
+					if(request.getParameter("iremboPayment")!=null){
+						if (!isIremboPayEnabled()) {
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+									"Irembo Pay is not enabled.");
+							return null;
+						}
+						if (Boolean.TRUE.equals(pb.getIsPaid()) || pb.isPaymentConfirmed()) {
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+									"This bill is already paid.");
+							return null;
+						}
+						if (pb.getInvoiceNumber() != null && !pb.getInvoiceNumber().trim().isEmpty()
+								&& (pb.getTransactionStatus() == null || !"EXPIRED".equalsIgnoreCase(pb.getTransactionStatus()))) {
+							request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+									"Irembo Pay invoice already exists: " + pb.getInvoiceNumber());
+							return null;
+						}
+						String phoneNumber = request.getParameter("iremboPhoneNumber");
+						if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+									"Phone number is required for Irembo Pay.");
+							return null;
+						}
+						Context.getService(BillingService.class).initIremboPay(
+								consommation.getBeneficiary().getPatient(), pb, phoneNumber.trim());
+						request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+								"Irembo Pay request has been sent to patient on phone number " + phoneNumber.trim() + " !");
+						return null;
+					}
+
+					if(request.getParameter("cashPayment")!=null){
+						billPayment.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
 							.getParameter("receivedCash"))));
 					//create cashPayment
 					CashPayment cp =new CashPayment(billPayment);
@@ -329,6 +364,42 @@ public class MohBillingPatientBillPaymentFormController extends
 		payment.setCreator(Context.getAuthenticatedUser());
 		payment.setVoided(false);
 		payment.setCreatedDate(new Date());
+	}
+
+	private boolean isIremboPayEnabled() {
+		String enabled = Context.getAdministrationService()
+				.getGlobalProperty("mohbilling.irembopay_enabled", "false");
+		return "true".equalsIgnoreCase(enabled);
+	}
+
+	private String resolveIremboPhoneNumber(Consommation consommation) {
+		if (consommation == null || consommation.getPatientBill() == null) {
+			return "";
+		}
+		PatientBill patientBill = consommation.getPatientBill();
+		if (patientBill.getPhoneNumber() != null && !patientBill.getPhoneNumber().trim().isEmpty()) {
+			return patientBill.getPhoneNumber().trim();
+		}
+		try {
+			String phoneAttributeType = Context.getAdministrationService()
+					.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE);
+			if (phoneAttributeType == null || phoneAttributeType.trim().isEmpty()
+					|| consommation.getBeneficiary() == null
+					|| consommation.getBeneficiary().getPatient() == null
+					|| consommation.getBeneficiary().getPatient().getPerson() == null) {
+				return "";
+			}
+			PersonAttributeType attrType = Context.getPersonService()
+					.getPersonAttributeType(Integer.valueOf(phoneAttributeType.trim()));
+			if (attrType == null) {
+				return "";
+			}
+			PersonAttribute attr = consommation.getBeneficiary().getPatient().getPerson().getAttribute(attrType);
+			return attr == null || attr.getValue() == null ? "" : attr.getValue().trim();
+		} catch (Exception e) {
+			log.warn("Unable to resolve Irembo Pay phone number", e);
+			return "";
+		}
 	}
 
 
