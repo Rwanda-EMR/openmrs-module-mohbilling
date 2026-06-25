@@ -330,20 +330,15 @@ public class ConsommationUtil {
     public static List<Consommation> getConsommations(Date startDate,
                                                       Date endDate, Insurance insurance, ThirdParty tp,
                                                       User billCreator,Department department){
-        return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+        return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department, Integer.MAX_VALUE, 0);
 	}
 
 	public static List<Consommation> getConsommations(Date startDate,
 													  Date endDate, Insurance insurance, ThirdParty tp,
 													  User billCreator, Department department, int limit, int page) {
-		List<Consommation> consommations = getConsommations(startDate, endDate, insurance, tp, billCreator, department);
-		if (consommations == null || consommations.isEmpty() || limit <= 0) {
-			return consommations;
-		}
 		int currentPage = Math.max(page, 1);
-		int fromIndex = Math.min((currentPage - 1) * limit, consommations.size());
-		int toIndex = Math.min(fromIndex + limit, consommations.size());
-		return consommations.subList(fromIndex, toIndex);
+		int offSet = limit <= 0 ? 0 : (currentPage - 1) * limit;
+		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department, limit, offSet);
 	}
 
 	public static List<Consommation> getConsommationsOld(Date startDate,

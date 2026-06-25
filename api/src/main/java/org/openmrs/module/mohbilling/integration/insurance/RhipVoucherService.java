@@ -13,6 +13,9 @@ import org.openmrs.ProviderAttribute;
 import org.openmrs.ProviderAttributeType;
 import org.openmrs.User;
 import org.openmrs.PersonName;
+import org.openmrs.Visit;
+import org.openmrs.VisitAttribute;
+import org.openmrs.VisitAttributeType;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.ProviderService;
@@ -26,6 +29,7 @@ import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.RhipIntegrationLog;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.service.RhipPractitionerTypeService;
 import org.openmrs.module.mohbilling.utils.Utils;
@@ -43,6 +47,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,6 +60,9 @@ public class RhipVoucherService {
 	private static final String DATE_FORMAT = "yyyy-MM-dd";
 	private static final String PRACTITIONER_TYPE_LOCAL = "LOCAL";
 	private static final String PRACTITIONER_TYPE_FOREIGN = "FOREIGN";
+	private static final String MMI_RECEPTION_NUMBER_VISIT_ATTRIBUTE_KEY = "visitAttribute.mmiReceptionNumber.uuid";
+	private static final String MMI_RECEPTION_NUMBER_VISIT_ATTRIBUTE_GP =
+			"rwandaemr.visitAttribute.mmiReceptionNumber.uuid";
 	private static final Pattern SUCCESS_PATTERN =
 			Pattern.compile("\"success\"\\s*:\\s*(true|false)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern UUID_PATTERN = Pattern.compile(
@@ -82,6 +90,7 @@ public class RhipVoucherService {
 		}
 		IntegrationResponse validation = validateVoucherRequest(request);
 		if (validation != null) {
+			persistLocalVoucherValidationLog(request, validation);
 			return validation;
 		}
 		if (voucherProvider == null) {
@@ -113,6 +122,7 @@ public class RhipVoucherService {
 		}
 		IntegrationResponse validation = validateVoucherRequest(request);
 		if (validation != null) {
+			persistLocalVoucherValidationLog(request, validation);
 			return validation;
 		}
 		if (!isMmiInsuranceType(request.getInsuranceType())) {
@@ -153,7 +163,7 @@ public class RhipVoucherService {
 		request.setFacilityFosaId(fosaId);
 		request.setPatientIdentifier(resolvePatientIdentifier(policy, patient, insurance, fosaId, eligibilityIdentifier));
 		if (isMmiInsuranceType(normalizedInsuranceType)) {
-			request.setReceptionNumber(resolveMmiReceptionNumber(request.getPatientIdentifier(), patient));
+			request.setReceptionNumber(resolveMmiReceptionNumber(request.getPatientIdentifier(), patient, admission));
 		}
 		request.setProcedures(buildProcedures(globalBill, admission));
 
@@ -281,6 +291,48 @@ public class RhipVoucherService {
 		}
 		ret.setErrorMessage("Invalid RHIP voucher request: " + StringUtils.join(errors, "; "));
 		return ret;
+	}
+
+	private void persistLocalVoucherValidationLog(RhipVoucherRequest request, IntegrationResponse validation) {
+		if (billingService == null) {
+			return;
+		}
+		try {
+			User currentUser = Context.getAuthenticatedUser();
+			RhipIntegrationLog logEntry = new RhipIntegrationLog();
+			logEntry.setDateCreated(new Date());
+			logEntry.setCreator(currentUser);
+			logEntry.setSenderUsername(resolveSenderUsername(request, currentUser));
+			logEntry.setOperationType("VOUCHER_VALIDATE");
+			logEntry.setEndpointUrl(config == null ? null : config.getVoucherUrl());
+			logEntry.setRequestPayload(toJson(request));
+			logEntry.setResponseCode(validation == null ? null : validation.getResponseCode());
+			logEntry.setResponseStatus("ERROR");
+			logEntry.setResponseBody(toJson(validation == null ? null : validation.getResponseEntity()));
+			logEntry.setErrorMessage(validation == null ? "No validation response" : validation.getErrorMessage());
+			logEntry.setUuid(UUID.randomUUID().toString());
+			billingService.saveRhipIntegrationLog(logEntry);
+		}
+		catch (Exception e) {
+			log.warn("Unable to persist local RHIP voucher validation log", e);
+		}
+	}
+
+	private String resolveSenderUsername(RhipVoucherRequest request, User currentUser) {
+		if (request != null && StringUtils.isNotBlank(request.getProcessedBy())) {
+			return request.getProcessedBy().trim();
+		}
+		return currentUser == null ? null : currentUser.getUsername();
+	}
+
+	private String toJson(Object value) {
+		try {
+			return OBJECT_MAPPER.writeValueAsString(value);
+		}
+		catch (Exception e) {
+			log.warn("Unable to serialize RHIP voucher validation payload", e);
+			return null;
+		}
 	}
 
 	private User resolveProcessedBy(GlobalBill globalBill) {
@@ -709,7 +761,11 @@ public class RhipVoucherService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private String resolveMmiReceptionNumber(String patientIdentifier, Patient patient) {
+	private String resolveMmiReceptionNumber(String patientIdentifier, Patient patient, Admission admission) {
+		String visitAttributeReceptionNumber = resolveMmiReceptionNumberFromVisitAttribute(patient, admission);
+		if (StringUtils.isNotBlank(visitAttributeReceptionNumber)) {
+			return visitAttributeReceptionNumber;
+		}
 		String identifier = StringUtils.trimToNull(patientIdentifier);
 		if (identifier == null) {
 			return null;
@@ -745,6 +801,129 @@ public class RhipVoucherService {
 			}
 			catch (Exception e) {
 				log.warn("Unable to resolve MMI reception number by patient id", e);
+			}
+		}
+		return null;
+	}
+
+	private String resolveMmiReceptionNumberFromVisitAttribute(Patient patient, Admission admission) {
+		if (patient == null) {
+			return null;
+		}
+		VisitAttributeType attributeType = resolveMmiReceptionNumberVisitAttributeType();
+		if (attributeType == null) {
+			return null;
+		}
+		List<Visit> visits = Context.getVisitService().getActiveVisitsByPatient(patient);
+		if (visits == null || visits.isEmpty()) {
+			return null;
+		}
+		Visit bestVisit = resolveBestVisitForAdmission(visits, admission);
+		String receptionNumber = resolveMmiReceptionNumberFromVisit(bestVisit, attributeType);
+		if (StringUtils.isNotBlank(receptionNumber)) {
+			return receptionNumber;
+		}
+		for (Visit visit : visits) {
+			if (visit != null && !visit.equals(bestVisit)) {
+				receptionNumber = resolveMmiReceptionNumberFromVisit(visit, attributeType);
+				if (StringUtils.isNotBlank(receptionNumber)) {
+					return receptionNumber;
+				}
+			}
+		}
+		return null;
+	}
+
+	private Visit resolveBestVisitForAdmission(List<Visit> visits, Admission admission) {
+		if (visits == null || visits.isEmpty()) {
+			return null;
+		}
+		if (admission == null || admission.getAdmissionDate() == null) {
+			return visits.get(0);
+		}
+		for (Visit visit : visits) {
+			if (visit == null || visit.getStartDatetime() == null) {
+				continue;
+			}
+			if (isSameDay(visit.getStartDatetime(), admission.getAdmissionDate())) {
+				return visit;
+			}
+		}
+		return visits.get(0);
+	}
+
+	private boolean isSameDay(Date first, Date second) {
+		if (first == null || second == null) {
+			return false;
+		}
+		Calendar firstCal = Calendar.getInstance();
+		firstCal.setTime(first);
+		Calendar secondCal = Calendar.getInstance();
+		secondCal.setTime(second);
+		return firstCal.get(Calendar.YEAR) == secondCal.get(Calendar.YEAR)
+				&& firstCal.get(Calendar.DAY_OF_YEAR) == secondCal.get(Calendar.DAY_OF_YEAR);
+	}
+
+	private String resolveMmiReceptionNumberFromVisit(Visit visit, VisitAttributeType attributeType) {
+		if (visit == null || attributeType == null) {
+			return null;
+		}
+		for (VisitAttribute attribute : visit.getActiveAttributes()) {
+			if (attributeType.equals(attribute.getAttributeType())) {
+				Object value = attribute.getValue();
+				return value == null ? null : StringUtils.trimToNull(value.toString());
+			}
+		}
+		return null;
+	}
+
+	private VisitAttributeType resolveMmiReceptionNumberVisitAttributeType() {
+		try {
+			String uuid = StringUtils.trimToNull(Context.getAdministrationService()
+					.getGlobalProperty(MMI_RECEPTION_NUMBER_VISIT_ATTRIBUTE_GP));
+			if (uuid == null) {
+				uuid = resolveInitializerValue(MMI_RECEPTION_NUMBER_VISIT_ATTRIBUTE_KEY);
+			}
+			if (uuid != null) {
+				VisitAttributeType attributeType = Context.getVisitService().getVisitAttributeTypeByUuid(uuid);
+				if (attributeType != null) {
+					return attributeType;
+				}
+				log.warn("Unable to find MMI reception number visit attribute type with uuid " + uuid);
+			}
+			return resolveMmiReceptionNumberVisitAttributeTypeByName();
+		}
+		catch (Exception e) {
+			log.warn("Unable to resolve MMI reception number visit attribute type", e);
+			return null;
+		}
+	}
+
+	private String resolveInitializerValue(String key) {
+		try {
+			Object initializerService = Context.getService(
+					Class.forName("org.openmrs.module.initializer.api.InitializerService"));
+			Object value = initializerService.getClass().getMethod("getValueFromKey", String.class)
+					.invoke(initializerService, key);
+			return value == null ? null : StringUtils.trimToNull(value.toString());
+		}
+		catch (Exception ignored) {
+			return null;
+		}
+	}
+
+	private VisitAttributeType resolveMmiReceptionNumberVisitAttributeTypeByName() {
+		List<VisitAttributeType> attributeTypes = Context.getVisitService().getAllVisitAttributeTypes();
+		if (attributeTypes == null) {
+			return null;
+		}
+		for (VisitAttributeType attributeType : attributeTypes) {
+			if (attributeType == null || attributeType.getName() == null) {
+				continue;
+			}
+			String name = attributeType.getName().toLowerCase();
+			if (name.contains("mmi") && name.contains("reception")) {
+				return attributeType;
 			}
 		}
 		return null;
