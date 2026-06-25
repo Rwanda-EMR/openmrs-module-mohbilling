@@ -1697,7 +1697,6 @@ public class BillingServiceImpl implements BillingService {
         //Add the Item to the list
         paymentItems.add(paymentItem);
         Department myDepartment = billingDAO.getConsommationByPatientBill(patientBill).getDepartment();
-        
         String invoiceDescription = myDepartment.getName();
 
         //Check if the account hold a specific account identifier and make sure to use that once please

@@ -190,9 +190,9 @@ public class MohBillingPatientBillPaymentFormController extends
 			 * third part
 			 */
 
-				else{
-					billPayment=new BillPayment();
-					billPayment.setInvoiceNumber(pb.getInvoiceNumber());
+			else{
+				billPayment=new BillPayment();
+				billPayment.setInvoiceNumber(pb.getInvoiceNumber());
 				billPayment.setCollector(Context.getAuthenticatedUser());
 	/*			billPayment.setDateReceived(Context.getDateFormat().parse(
 						request.getParameter("dateBillReceived")));*/
