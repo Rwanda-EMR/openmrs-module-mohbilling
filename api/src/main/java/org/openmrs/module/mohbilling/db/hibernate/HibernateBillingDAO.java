@@ -1812,9 +1812,9 @@ public class HibernateBillingDAO implements BillingDAO {
 
         fillConsommationsQueryBaseParams(insurance, tp, billCreator, department, query);
 
-        // Setting limit and off set to default if zero is provided to avoid performance degradation
+        // Setting limit to default if zero is provided to avoid performance degradation
         query.setParameter("limit", limit == 0 ? 100 : limit);
-        query.setParameter("offSet", offSet == 0 ? 1 : offSet);
+        query.setParameter("offSet", Math.max(offSet, 0));
 
 
         return query.list();

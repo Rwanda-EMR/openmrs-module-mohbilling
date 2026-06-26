@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -327,23 +328,25 @@ public class ConsommationUtil {
 		}
 		return found;
 	}
-    public static List<Consommation> getConsommations(Date startDate,
-                                                      Date endDate, Insurance insurance, ThirdParty tp,
-                                                      User billCreator,Department department){
-        return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+	public static List<Consommation> getConsommations(Date startDate,
+													  Date endDate, Insurance insurance, ThirdParty tp,
+													  User billCreator,Department department){
+		int totalConsommations = getService().getTotalConsommations(startDate, endDate, insurance, tp, billCreator, department);
+		if (totalConsommations == 0) {
+			return Collections.emptyList();
+		}
+		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department, totalConsommations, 0);
 	}
 
 	public static List<Consommation> getConsommations(Date startDate,
 													  Date endDate, Insurance insurance, ThirdParty tp,
 													  User billCreator, Department department, int limit, int page) {
-		List<Consommation> consommations = getConsommations(startDate, endDate, insurance, tp, billCreator, department);
-		if (consommations == null || consommations.isEmpty() || limit <= 0) {
-			return consommations;
+		if (limit <= 0) {
+			return getConsommations(startDate, endDate, insurance, tp, billCreator, department);
 		}
 		int currentPage = Math.max(page, 1);
-		int fromIndex = Math.min((currentPage - 1) * limit, consommations.size());
-		int toIndex = Math.min(fromIndex + limit, consommations.size());
-		return consommations.subList(fromIndex, toIndex);
+		int offset = (currentPage - 1) * limit;
+		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department, limit, offset);
 	}
 
 	public static List<Consommation> getConsommationsOld(Date startDate,
