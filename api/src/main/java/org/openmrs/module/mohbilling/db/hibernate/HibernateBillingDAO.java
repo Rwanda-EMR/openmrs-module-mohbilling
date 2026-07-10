@@ -2143,10 +2143,15 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     public PatientBill getPatientBillStatus(String invoiceNumber){
-        return (PatientBill) sessionFactory.getCurrentSession()
+        List<PatientBill> results = sessionFactory.getCurrentSession()
         .createCriteria(PatientBill.class)
-        .add(Restrictions.eq("invoiceNumber", invoiceNumber))
-        .uniqueResult();
+        .add(Restrictions.or(
+            Restrictions.eq("invoiceNumber", invoiceNumber),
+            Restrictions.eq("batchNumber", invoiceNumber)))
+        .addOrder(Order.asc("patientBillId"))
+        .setMaxResults(1)
+        .list();
+        return results.isEmpty() ? null : results.get(0);
     }
 
     @Override

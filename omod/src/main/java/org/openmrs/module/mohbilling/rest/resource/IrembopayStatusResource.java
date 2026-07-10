@@ -3,12 +3,9 @@ package org.openmrs.module.mohbilling.rest.resource;
 import java.util.Collections;
 import java.util.Date;
 
-import org.openmrs.api.context.Context;
 import org.openmrs.module.webservices.rest.SimpleObject;
-import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
-import org.openmrs.module.webservices.rest.web.api.RestService;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
@@ -101,11 +98,8 @@ public class IrembopayStatusResource extends DelegatingCrudResource<IrembopaySta
     @Override
     public Object update(String uuid, SimpleObject propertiesToUpdate, RequestContext context) throws ResponseException {
         if ("callback".equals(uuid)) {
-            IrembopayCallbackResource callbackResource = (IrembopayCallbackResource) Context.getService(RestService.class)
-                .getResourceByName(RestConstants.VERSION_1 + "/mohbilling/irembopay/callback");
-            IrembopayCallbackRequest delegate = callbackResource.convert(propertiesToUpdate);
-            delegate = callbackResource.save(delegate);
-            return ConversionUtil.convertToRepresentation(delegate, context.getRepresentation());
+            throw new UnsupportedOperationException(
+                "Irembo callback is handled by IrembopayCallbackRestController at POST .../irembopay/callback");
         }
         return super.update(uuid, propertiesToUpdate, context);
     }

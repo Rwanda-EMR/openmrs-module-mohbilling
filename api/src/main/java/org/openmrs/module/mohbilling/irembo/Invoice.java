@@ -258,7 +258,6 @@ public class Invoice extends Config {
         }
 
         payload.put("description", description);
-        payload.put("expiryAt", new DateToJson(expiryAt).serialize());
         payload.put("language", language);
         OkHttpClient client = new OkHttpClient();
         // Create request body
@@ -382,7 +381,6 @@ public class Invoice extends Config {
         String url = baseUrl + "/invoices/" + invoiceNumber;
         // Create JSON payload
         JSONObject payload = new JSONObject();
-        payload.put("expiryAt", new DateToJson(expiry).serialize());
         JSONArray paymentItemsArray = new JSONArray();
 
         for (PaymentItem paymentItem : paymentItems) {
