@@ -63,7 +63,7 @@ public class ReportsUtil {
 /*
 		if (getService().getAllPatientBills() != null)
 			for (PatientBill pb : getService().getAllPatientBills())
-				if (!pb.isVoided())
+				if (!Boolean.TRUE.equals(pb.getVoided()))
 					if (pb != null && pb.getIsPaid() == isPaid) {
 
 						for (PatientServiceBill psb : pb.getBillItems())
@@ -104,14 +104,14 @@ public class ReportsUtil {
 
 		/*for (PatientBill pb : getService().getAllPatientBills())
 			if (isPaid != null) {
-				if (!pb.isVoided() && pb.getIsPaid() == isPaid)
+				if (!Boolean.TRUE.equals(pb.getVoided()) && pb.getIsPaid() == isPaid)
 					for (PatientServiceBill psb : pb.getBillItems())
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0
 								&& psb.getServiceDate().compareTo(endDate) <= 0)
 							bills.add(pb);
 			} else {
-				if (!pb.isVoided())
+				if (!Boolean.TRUE.equals(pb.getVoided()))
 					for (PatientServiceBill psb : pb.getBillItems())
 						if (!psb.isVoided()
 								&& psb.getServiceDate().compareTo(startDate) >= 0

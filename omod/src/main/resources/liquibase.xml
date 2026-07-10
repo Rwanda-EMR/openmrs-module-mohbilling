@@ -1640,4 +1640,28 @@
 			ALTER TABLE moh_bill_patient_bill CHANGE COLUMN paymentConfirmed paymentConfirmed TINYINT(1) DEFAULT 0;
 		</sql>
 	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_invoice_number" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="invoice_number"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="invoice_number" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_add_paid_at" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="paid_at"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="paid_at" type="DATETIME"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_payment_reference" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="payment_reference"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="payment_reference" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
 </databaseChangeLog>

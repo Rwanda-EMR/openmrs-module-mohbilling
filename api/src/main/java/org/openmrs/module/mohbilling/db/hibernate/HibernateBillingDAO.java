@@ -22,7 +22,10 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
+import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.businesslogic.*;
@@ -1917,5 +1920,111 @@ public class HibernateBillingDAO implements BillingDAO {
         }else {
             return Diagnosis.get(0);
         }
+    }
+
+    @Override
+    public List<PatientBillIrembo> getUnpaidBills(Patient patient) {
+        if (patient == null || patient.getPatientId() == null) {
+            return new ArrayList<PatientBillIrembo>();
+        }
+        Session session = sessionFactory.getCurrentSession();
+        String sql = "SELECT pb.patient_bill_id FROM moh_bill_patient_bill as pb "
+                + " INNER JOIN moh_bill_consommation cn ON pb.patient_bill_id = cn.patient_bill_id"
+                + " INNER JOIN moh_bill_beneficiary b ON cn.beneficiary_id = b.beneficiary_id "
+                + " WHERE b.patient_id = :patientId AND pb.is_paid = 0 AND (pb.voided = 0 OR pb.voided IS NULL)";
+
+        log.error("The SQL Produces: " + sql);
+        SQLQuery query = session.createSQLQuery(sql);
+        query.setInteger("patientId", patient.getPatientId());
+        List<?> ids = query.list();
+        List<PatientBillIrembo> bills = new ArrayList<PatientBillIrembo>();
+
+        PersonAttributeType phoneNumberType = Context.getPersonService().getPersonAttributeType(11);
+        if (ids != null) {
+            for (Object id : ids) {
+                PatientBill patientBill = getPatientBill((Integer) id);
+
+                PatientBillIrembo patientBillIrembo = new PatientBillIrembo();
+                patientBillIrembo.setPatientBillId(patientBill.getPatientBillId());
+                patientBillIrembo.setAmount(patientBill.getAmount());
+                patientBillIrembo.setInvoiceNumber(patientBill.getInvoiceNumber());
+
+                //Get the Phone number in person attribute type if ready
+                log.error("Phone Number 1: " + patientBill.getPhoneNumber() );
+                if(patientBill.getPhoneNumber() == null) {
+                    String phoneNumber = patient.getPerson().getAttribute(phoneNumberType).getValue();
+                    log.error("Phone Number 2: " + phoneNumber );
+                    patientBillIrembo.setPhoneNumber(phoneNumber);
+                } else {
+                    log.error("Phone Number 3: " + patientBill.getPhoneNumber() );
+                    patientBillIrembo.setPhoneNumber(patientBill.getPhoneNumber());
+                }
+
+                patientBillIrembo.setDepartment(getConsommationByPatientBill(patientBill).getDepartment().getName());
+                bills.add(patientBillIrembo);
+            }
+        }
+        return bills;
+    }
+
+    public PatientBill getPatientBillByInvoiceNumber(String invoiceNumber){
+        return (PatientBill) sessionFactory.getCurrentSession()
+        .createCriteria(PatientBill.class)
+        .add(Restrictions.eq("invoiceNumber", invoiceNumber))
+        .add(Restrictions.eq("isPaid", false))
+        .uniqueResult();
+    }
+
+    public List<PatientServiceBill> getPatientServiceBillByConsomation(Integer consommationId){
+        return sessionFactory.getCurrentSession()
+        .createCriteria(PatientServiceBill.class)
+        .add(Restrictions.eq("consommationId", consommationId))
+        .list();
+    }
+
+    public PatientBill getPatientBillStatus(String invoiceNumber){
+        return (PatientBill) sessionFactory.getCurrentSession()
+        .createCriteria(PatientBill.class)
+        .add(Restrictions.eq("invoiceNumber", invoiceNumber))
+        .uniqueResult();
+    }
+
+    @Override
+    public List<Consommation> getConsommationsOld(Date startDate,
+                                               Date endDate, Insurance insurance, ThirdParty tp,
+                                               User billCreator, Department department) {
+        Session session = sessionFactory.getCurrentSession();
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        StringBuilder combinedSearch = new StringBuilder("");
+
+        combinedSearch.append("SELECT c.* FROM moh_bill_consommation c "
+                + " inner join moh_bill_patient_bill pb on pb.patient_bill_id=c.patient_bill_id"
+                + " and c.created_date between '" + df.format(startDate) + " 00:00:00 " + "' AND '" + df.format(endDate) + " 23:59:59'");
+
+        if (insurance != null || tp != null) {
+            combinedSearch
+                    .append(" inner join moh_bill_beneficiary b on b.beneficiary_id=c.beneficiary_id "
+                            + " inner join moh_bill_insurance_policy ip on ip.insurance_policy_id=b.insurance_policy_id "
+                            + " inner join moh_bill_insurance i on i.insurance_id = ip.insurance_id "
+                    );
+
+            if (insurance != null)
+                combinedSearch.append(" and i.insurance_id ='" + insurance.getInsuranceId() + "'");
+
+            if (tp != null)
+                combinedSearch.append(" and ip.third_party_id ='" + tp.getThirdPartyId() + "'");
+        }
+
+        if (billCreator != null)
+            combinedSearch.append(" and c.creator ='" + billCreator.getUserId() + "'");
+
+        if (department != null)
+            combinedSearch.append(" and c.department_id ='" + department.getDepartmentId() + "'");
+
+        List<Consommation> consommations = session
+                .createSQLQuery(combinedSearch.toString())
+                .addEntity("c", Consommation.class).list();
+
+        return consommations;
     }
 }

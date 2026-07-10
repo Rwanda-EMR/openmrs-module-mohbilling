@@ -734,4 +734,19 @@ public interface BillingDAO {
 	public FacilityServicePrice getFacilityServiceByName(String name);
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
 
+	/*public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
+														User collector);
+
+	public PatientBill getBills(Patient patient, Date startDate, Date endDate);*/
+
+	public List<PatientBillIrembo> getUnpaidBills(Patient patient);
+
+	public PatientBill getPatientBillByInvoiceNumber(String invoiceNumber);
+
+	public List<PatientServiceBill> getPatientServiceBillByConsomation(Integer consommationId);
+
+	public PatientBill getPatientBillStatus(String invoiceNumber);
+
+	public List<Consommation> getConsommationsOld(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+
 }

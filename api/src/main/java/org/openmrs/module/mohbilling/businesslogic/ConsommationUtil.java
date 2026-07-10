@@ -369,6 +369,14 @@ public class ConsommationUtil {
                                                       User billCreator,Department department){
         return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
 	}
+
+	public static List<Consommation> getConsommationsOld(Date startDate,
+													  Date endDate, Insurance insurance, ThirdParty tp,
+													  User billCreator,Department department){
+		return getService().getConsommationsOld(startDate, endDate, insurance, tp, billCreator, department);
+	}
+
+	
 	public static List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate,
 													  Date endDate) throws IOException {
 		List<Consommation> cons=getService().getConsommationsWithPatientNotConfirmed(startDate, endDate);
