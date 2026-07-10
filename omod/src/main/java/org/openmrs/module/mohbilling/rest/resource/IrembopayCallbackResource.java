@@ -53,21 +53,8 @@ public class IrembopayCallbackResource extends DelegatingCrudResource<IrembopayC
     @Override
     public IrembopayCallbackRequest save(IrembopayCallbackRequest delegate) throws ResponseException {
         log.info("Irembopay callback: REST resource save() called");
-        try {
-            IrembopayCallbackProcessor.process(delegate);
-            // Success - ensure success flag is set
-            delegate.setSuccess(true);
-        } catch (IllegalArgumentException e) {
-            log.error("Irembopay callback: validation failed");
-            log.error(e.getMessage());
-            // Return HTTP 200 with success=false and error message
-            delegate.setSuccess(false);
-            delegate.setError(e.getMessage());
-        } catch (Exception e) {
-            log.error("Irembopay callback: unexpected processing error", e);
-            delegate.setSuccess(false);
-            delegate.setError(e.getMessage());
-        }
+        IrembopayCallbackProcessor.process(delegate);
+        delegate.setSuccess(true);
         return delegate;
     }
 

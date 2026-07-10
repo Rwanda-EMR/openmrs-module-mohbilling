@@ -20,13 +20,11 @@ public class IrembopayCallbackProcessor {
     /**
      * Process a successful callback in a single transaction: validate, update PatientBill,
      * create BillPayment, update PatientServiceBills and create PaidServiceBills.
-     * Safe to call when delegate.getData() or invoice number is null; logs and returns.
      * Throws IllegalArgumentException on validation failure; any other exception rolls back the transaction.
      */
     public static void process(IrembopayCallbackRequest delegate) {
         if (delegate == null || delegate.getData() == null || delegate.getData().getInvoiceNumber() == null) {
-            log.warn("Irembopay callback: skipped (missing data or invoice number)");
-            return;
+            throw new IllegalArgumentException("Missing data or invoice number");
         }
         String invoiceNumber = delegate.getData().getInvoiceNumber();
         log.info("Irembopay callback: invoiceNumber=" + invoiceNumber + ", transactionId=" + delegate.getData().getTransactionId());
