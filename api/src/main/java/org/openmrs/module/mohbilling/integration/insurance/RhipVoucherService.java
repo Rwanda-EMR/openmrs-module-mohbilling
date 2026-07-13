@@ -56,7 +56,9 @@ public class RhipVoucherService {
 
 	private static final Log log = LogFactory.getLog(RhipVoucherService.class);
 	private static final String CBHI_INSURANCE_TYPE = "CBHI";
+	private static final String RAMA_INSURANCE_TYPE = "RAMA";
 	private static final String MMI_INSURANCE_TYPE = "MMI";
+	private static final String DEFAULT_RAMA_PRESCRIPTION_DESTINATION = "FACILITY_DISPENSE";
 	private static final String DATE_FORMAT = "yyyy-MM-dd";
 	private static final String PRACTITIONER_TYPE_LOCAL = "LOCAL";
 	private static final String PRACTITIONER_TYPE_FOREIGN = "FOREIGN";
@@ -85,7 +87,7 @@ public class RhipVoucherService {
 		if (request != null && !isSupportedVoucherInsuranceType(request.getInsuranceType())) {
 			IntegrationResponse ret = new IntegrationResponse();
 			ret.setEnabled(config != null && config.isVoucherEnabled());
-			ret.setErrorMessage("insuranceType must be CBHI, MUTUELLE, or MMI");
+			ret.setErrorMessage("insuranceType must be CBHI, MUTUELLE, RAMA, RSSB, or MMI");
 			return ret;
 		}
 		IntegrationResponse validation = validateVoucherRequest(request);
@@ -188,6 +190,9 @@ public class RhipVoucherService {
 			request.setTreatmentForNewBorn(resolveTreatmentForNewBorn());
 		}
 		request.setPatientPhoneNumber(resolvePatientPhoneNumber(patient, globalBill));
+		if (isRamaInsuranceType(normalizedInsuranceType)) {
+			request.setPrescriptionDestination(DEFAULT_RAMA_PRESCRIPTION_DESTINATION);
+		}
 
 		return request;
 	}
@@ -202,6 +207,13 @@ public class RhipVoucherService {
 		return isCbhiInsuranceType(insurance.getName());
 	}
 
+	private boolean isRamaInsurance(Insurance insurance) {
+		if (insurance == null) {
+			return false;
+		}
+		return isRamaInsuranceType(insurance.getCategory()) || isRamaInsuranceType(insurance.getName());
+	}
+
 	private boolean isCbhiInsuranceType(String type) {
 		if (StringUtils.isBlank(type)) {
 			return false;
@@ -214,16 +226,32 @@ public class RhipVoucherService {
 		return StringUtils.isNotBlank(type) && MMI_INSURANCE_TYPE.equalsIgnoreCase(type.trim());
 	}
 
+	private boolean isRamaInsuranceType(String type) {
+		if (StringUtils.isBlank(type)) {
+			return false;
+		}
+		String normalized = type.trim();
+		return RAMA_INSURANCE_TYPE.equalsIgnoreCase(normalized)
+		        || "RSSB".equalsIgnoreCase(normalized)
+		        || normalized.toUpperCase().contains("RAMA");
+	}
+
 	private boolean isSupportedVoucherInsuranceType(String type) {
-		return isCbhiInsuranceType(type) || isMmiInsuranceType(type);
+		return isCbhiInsuranceType(type) || isRamaInsuranceType(type) || isMmiInsuranceType(type);
 	}
 
 	private boolean isSupportedVoucherInsurance(Insurance insurance) {
-		return isCbhiInsurance(insurance) || isMmiInsurance(insurance);
+		return isCbhiInsurance(insurance) || isRamaInsurance(insurance) || isMmiInsurance(insurance);
 	}
 
 	private String normalizeVoucherInsuranceType(Insurance insurance) {
-		return isMmiInsurance(insurance) ? MMI_INSURANCE_TYPE : CBHI_INSURANCE_TYPE;
+		if (isMmiInsurance(insurance)) {
+			return MMI_INSURANCE_TYPE;
+		}
+		if (isRamaInsurance(insurance)) {
+			return RAMA_INSURANCE_TYPE;
+		}
+		return CBHI_INSURANCE_TYPE;
 	}
 
 	private boolean hasExistingVoucherIdentifiers(GlobalBill globalBill) {
@@ -243,7 +271,7 @@ public class RhipVoucherService {
 		}
 		List<String> errors = new ArrayList<>();
 		if (!isSupportedVoucherInsuranceType(request.getInsuranceType())) {
-			errors.add("insuranceType must be CBHI, MUTUELLE, or MMI");
+			errors.add("insuranceType must be CBHI, MUTUELLE, RAMA, RSSB, or MMI");
 		}
 		if (StringUtils.isBlank(request.getFacilityFosaId())) {
 			errors.add("facilityFosaId is required");

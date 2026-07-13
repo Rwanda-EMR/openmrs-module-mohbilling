@@ -37,6 +37,8 @@ public class RhipVoucherProvider {
 	protected Log log = LogFactory.getLog(getClass());
 
 	private static final String MMI_INSURANCE_TYPE = "MMI";
+	private static final String RAMA_INSURANCE_TYPE = "rama";
+	private static final String DEFAULT_RAMA_PRESCRIPTION_DESTINATION = "FACILITY_DISPENSE";
 	private static final String PRACTITIONER_TYPE_FOREIGN = "FOREIGN";
 
 	// RHIP endpoints can be slow (especially immediately after practitioner creation); keep these generous.
@@ -73,7 +75,7 @@ public class RhipVoucherProvider {
 
 	private String buildVoucherJson(RhipVoucherRequest request) {
 		Map<String, Object> payload = new LinkedHashMap<>();
-		payload.put("insuranceType", request.getInsuranceType());
+		payload.put("insuranceType", normalizeInsuranceTypeForRhip(request.getInsuranceType()));
 		payload.put("facilityFosaId", request.getFacilityFosaId());
 		payload.put("patientIdentifier", request.getPatientIdentifier());
 		if (isMmiInsuranceType(request.getInsuranceType())) {
@@ -93,7 +95,22 @@ public class RhipVoucherProvider {
 		payload.put("treatmentForNewBorn", request.getTreatmentForNewBorn());
 		payload.put("diagnosisIds", request.getDiagnosisIds());
 		payload.put("patientPhoneNumber", request.getPatientPhoneNumber());
+		payload.put("prescriptionDestination", resolvePrescriptionDestination(request));
+		payload.put("visitReferenceNumber", request.getVisitReferenceNumber());
 		return toJson(payload);
+	}
+
+	private String resolvePrescriptionDestination(RhipVoucherRequest request) {
+		if (request == null) {
+			return null;
+		}
+		if (StringUtils.isNotBlank(request.getPrescriptionDestination())) {
+			return request.getPrescriptionDestination().trim();
+		}
+		if (RAMA_INSURANCE_TYPE.equals(normalizeInsuranceTypeForRhip(request.getInsuranceType()))) {
+			return DEFAULT_RAMA_PRESCRIPTION_DESTINATION;
+		}
+		return null;
 	}
 
 	public IntegrationResponse getPractitionerDetails(String insuranceType, String licenseNumber) {
@@ -142,7 +159,7 @@ public class RhipVoucherProvider {
 		}
 		Map<String, Object> payload = new LinkedHashMap<>();
 		// RHIP types endpoint expects lower-cased insuranceType (e.g. "cbhi") in some environments.
-		payload.put("insuranceType", StringUtils.isBlank(insuranceType) ? null : insuranceType.trim().toLowerCase());
+		payload.put("insuranceType", normalizeInsuranceTypeForRhip(insuranceType));
 		// categoryId is optional; when not filtering, RHIP accepts an empty string.
 		payload.put("categoryId", categoryId == null ? "" : categoryId);
 		String json = toJson(payload);
@@ -366,7 +383,7 @@ public class RhipVoucherProvider {
 
 	private String buildPractitionerDetailsJson(String insuranceType, String licenseNumber) {
 		Map<String, Object> payload = new LinkedHashMap<>();
-		payload.put("insuranceType", insuranceType);
+		payload.put("insuranceType", normalizeInsuranceTypeForRhip(insuranceType));
 		payload.put("licenseNumber", licenseNumber);
 		return toJson(payload);
 	}
@@ -376,7 +393,7 @@ public class RhipVoucherProvider {
 	                                           String phoneNumber, String practitionerSubCategoryTypeId, String contractType,
 	                                           String firstName, String lastName, String gender, String dateOfBirth) {
 		Map<String, Object> payload = new LinkedHashMap<>();
-		payload.put("insuranceType", insuranceType);
+		payload.put("insuranceType", normalizeInsuranceTypeForRhip(insuranceType));
 		payload.put("practitionerType", practitionerType);
 		payload.put("documentNumber", documentNumber);
 		payload.put("documentType", documentType);
@@ -396,6 +413,17 @@ public class RhipVoucherProvider {
 
 	private boolean isMmiInsuranceType(String insuranceType) {
 		return StringUtils.isNotBlank(insuranceType) && MMI_INSURANCE_TYPE.equalsIgnoreCase(insuranceType.trim());
+	}
+
+	private String normalizeInsuranceTypeForRhip(String insuranceType) {
+		if (StringUtils.isBlank(insuranceType)) {
+			return null;
+		}
+		String normalized = insuranceType.trim();
+		if ("MUTUELLE".equalsIgnoreCase(normalized)) {
+			return "cbhi";
+		}
+		return normalized.toLowerCase();
 	}
 
 	private boolean isForeignPractitionerType(String practitionerType) {

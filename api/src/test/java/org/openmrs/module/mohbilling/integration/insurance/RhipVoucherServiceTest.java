@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openmrs.module.mohbilling.integration.IntegrationResponse;
 import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.Insurance;
 
 import java.math.BigDecimal;
 import java.lang.reflect.Method;
@@ -142,6 +143,19 @@ public class RhipVoucherServiceTest {
 		Assert.assertEquals(2, diagnosisIds.size());
 		Assert.assertEquals("XN7K1", diagnosisIds.get(0));
 		Assert.assertEquals("CA40.1", diagnosisIds.get(1));
+	}
+
+	@Test
+	public void normalizeVoucherInsuranceType_shouldResolveRamaInsuranceSeparatelyFromCbhi() throws Exception {
+		RhipVoucherService service = new RhipVoucherService();
+		Insurance insurance = new Insurance();
+		insurance.setCategory("RSSB");
+		insurance.setName("RAMA");
+
+		Method method = RhipVoucherService.class.getDeclaredMethod("normalizeVoucherInsuranceType", Insurance.class);
+		method.setAccessible(true);
+
+		Assert.assertEquals("RAMA", method.invoke(service, insurance));
 	}
 
 	private static class CountingProvider extends RhipVoucherProvider {
