@@ -85,6 +85,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		<th class="columnHeader">CONSOMMABLES</th>
 		<th class="columnHeader">MEDICAMENTS</th>
 		<th class="columnHeader">OXYGENOTHERAPIE</th>
+		<th class="columnHeader">AUTRES</th>
 		<th class="columnHeader">IMAGING</th>
 		<th class="columnHeader">PROCED</th>
 		<th class="columnHeader">Tot 100%</th>
@@ -127,6 +128,7 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.consommables}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.medicament}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.oxygenotherapie}" type="number" pattern="#.##"/></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.autres}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.imaging}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.proced}" type="number" pattern="#.##"/></td>
 

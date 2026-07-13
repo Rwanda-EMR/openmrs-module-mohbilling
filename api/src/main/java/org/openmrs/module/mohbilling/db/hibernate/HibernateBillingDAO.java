@@ -1543,6 +1543,7 @@ public class HibernateBillingDAO implements BillingDAO {
         billingReportQuery.addScalar("CONSOMMABLES");
         billingReportQuery.addScalar("AMBULANCE");
         billingReportQuery.addScalar("OXYGENOTHERAPIE");
+        billingReportQuery.addScalar("AUTRES");
         billingReportQuery.addScalar("FORMALITES ADMINISTRATIVES");
         billingReportQuery.addScalar("IMAGING");
         billingReportQuery.addScalar("PROCED.");
@@ -1593,6 +1594,7 @@ public class HibernateBillingDAO implements BillingDAO {
             Double consommables = getDouble(row, "CONSOMMABLES");
             Double ambulance = getDouble(row, "AMBULANCE");
             Double oxygenotherapie = getDouble(row, "OXYGENOTHERAPIE");
+            Double autres = getDouble(row, "AUTRES");
             Double formaliteAdministratives = getDouble(row, "FORMALITES ADMINISTRATIVES");
             Double imaging = getDouble(row, "IMAGING");
             Double proced = getDouble(row, "PROCED.");
@@ -1623,6 +1625,7 @@ public class HibernateBillingDAO implements BillingDAO {
             reportItem.setAmbulance(ambulance);
             reportItem.setConsommables(consommables);
             reportItem.setOxygenotherapie(oxygenotherapie);
+            reportItem.setAutres(autres);
             reportItem.setImaging(imaging);
             reportItem.setProced(proced);
 
@@ -1644,6 +1647,7 @@ public class HibernateBillingDAO implements BillingDAO {
             report.addServiceRevenue("AMBULANCE", BigDecimal.valueOf(ambulance));
             report.addServiceRevenue("CONSOMMABLES", BigDecimal.valueOf(consommables));
             report.addServiceRevenue("OXYGENOTHERAPIE", BigDecimal.valueOf(oxygenotherapie));
+            report.addServiceRevenue("AUTRES", BigDecimal.valueOf(autres));
             report.addServiceRevenue("IMAGING", BigDecimal.valueOf(imaging));
             report.addServiceRevenue("PROCED.", BigDecimal.valueOf(proced));
 
