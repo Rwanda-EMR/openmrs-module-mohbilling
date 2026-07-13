@@ -35,6 +35,7 @@ public class InsuranceReportItem {
     private Double ambulance;
     private Double consommables;
     private Double oxygenotherapie;
+    private Double autres;
     private Double imaging;
     private Double proced;
     private Double total100;
@@ -298,6 +299,14 @@ public class InsuranceReportItem {
 
     public void setOxygenotherapie(Double oxygenotherapie) {
         this.oxygenotherapie = oxygenotherapie;
+    }
+
+    public Double getAutres() {
+        return autres;
+    }
+
+    public void setAutres(Double autres) {
+        this.autres = autres;
     }
 
     public Double getImaging() {
