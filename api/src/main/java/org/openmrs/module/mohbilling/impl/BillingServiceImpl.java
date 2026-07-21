@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1244,8 +1245,20 @@ public class BillingServiceImpl implements BillingService {
         //Here Make sure not to recreate the billId while the patient bill already hold one
         patientBill = refreshPatientBill(patientBill);
         if (!hasText(patientBill.getInvoiceNumber())) {
-            //Start by creating invoice
+            log.info("Irembo single init createInvoice start: patientBillId=" + patientBill.getPatientBillId()
+                    + ", transactionId=" + transactionId
+                    + ", amount=" + patientBill.getAmount()
+                    + ", phoneNumber=" + phoneNumber
+                    + ", accountIdentifier=" + iremboPayAccountIdentifier);
+            long createStartedAt = System.currentTimeMillis();
             IremboPayResponse<Invoice> iremboPayResponse = iremboPay.invoice.createInvoice(transactionId, iremboPayAccountIdentifier, customer, paymentItems, invoiceDescription, null, language);
+            logIremboApiCall("createInvoice(single-init)", createStartedAt, iremboPayResponse);
+            if (iremboPayResponse == null || !Boolean.TRUE.equals(iremboPayResponse.isSuccess())
+                    || iremboPayResponse.getData() == null) {
+                log.warn("Irembo single init aborted: createInvoice failed for patientBillId="
+                        + patientBill.getPatientBillId() + ", transactionId=" + transactionId);
+                return;
+            }
             invoice = iremboPayResponse.getData();
             //After the invoice create operation make sure to save comming returned information into database for later reference
             patientBill.setReferenceId(transactionId);
@@ -1257,6 +1270,9 @@ public class BillingServiceImpl implements BillingService {
 
             //Save the patient into the database
             billingDAO.savePatientBill(patientBill);
+            log.info("Irembo single init createInvoice saved: patientBillId=" + patientBill.getPatientBillId()
+                    + ", invoiceNumber=" + invoice.getInvoiceNumber()
+                    + ", paymentStatus=" + invoice.getPaymentStatus());
         } else {
             log.info("Irembo init skipped createInvoice: PatientBill id=" + patientBill.getPatientBillId()
                     + " already has invoiceNumber=" + patientBill.getInvoiceNumber());
@@ -1279,14 +1295,23 @@ public class BillingServiceImpl implements BillingService {
         //Now initiate the Payment
         if(!company.equalsIgnoreCase("Unknown operator")){
             String paymentUuid = UUID.randomUUID().toString();
-            IremboPayResponse<?> initiateResponse = iremboPay.mobileMoney
-                    .initiate(phoneNumber, company, invoice.getInvoiceNumber(), paymentUuid);
-            if (initiateResponse != null) {
-                log.info("Irembo initiate payment response for invoice " + invoice.getInvoiceNumber() + ": "
-                        + initiateResponse);
-            } else {
-                log.warn("Irembo initiate payment returned null response for invoice " + invoice.getInvoiceNumber());
+            log.info("Irembo single init payment start: invoiceNumber=" + invoice.getInvoiceNumber()
+                    + ", provider=" + company
+                    + ", phoneNumber=" + phoneNumber
+                    + ", paymentUuid=" + paymentUuid);
+            long initiateStartedAt = System.currentTimeMillis();
+            try {
+                IremboPayResponse<?> initiateResponse = iremboPay.mobileMoney
+                        .initiate(phoneNumber, company, invoice.getInvoiceNumber(), paymentUuid);
+                logIremboApiCall("initiatePayment(single)", initiateStartedAt, initiateResponse);
+            } catch (Exception e) {
+                long durationMs = System.currentTimeMillis() - initiateStartedAt;
+                log.error("Irembo initiatePayment(single) failed after " + durationMs
+                        + "ms for invoiceNumber=" + invoice.getInvoiceNumber(), e);
             }
+        } else {
+            log.warn("Irembo single init payment skipped: unknown operator for phoneNumber=" + phoneNumber
+                    + ", invoiceNumber=" + (invoice != null ? invoice.getInvoiceNumber() : null));
         }
     }
 
@@ -1735,7 +1760,20 @@ public class BillingServiceImpl implements BillingService {
                 iremboPay = new IremboPay(iremboPaySecretKey, Environment.PRODUCTION);
             }
             //Start by creating invoice
+            log.info("Irembo createInvoice start: patientBillId=" + patientBill.getPatientBillId()
+                    + ", transactionId=" + transactionId
+                    + ", amount=" + patientBill.getAmount()
+                    + ", phoneNumber=" + phoneNumber
+                    + ", accountIdentifier=" + iremboPayAccountIdentifier);
+            long createStartedAt = System.currentTimeMillis();
             IremboPayResponse<Invoice> iremboPayResponse = iremboPay.invoice.createInvoice(transactionId, iremboPayAccountIdentifier, customer, paymentItems, invoiceDescription, null, language);
+            logIremboApiCall("createInvoice(child)", createStartedAt, iremboPayResponse);
+            if (iremboPayResponse == null || !Boolean.TRUE.equals(iremboPayResponse.isSuccess())
+                    || iremboPayResponse.getData() == null) {
+                throw new DAOException("Irembo createInvoice failed for patientBillId="
+                        + patientBill.getPatientBillId() + ", transactionId=" + transactionId
+                        + ", response=" + iremboPayResponse);
+            }
             Invoice invoice = iremboPayResponse.getData();
             //After the invoice create operation make sure to save comming returned information into database for later reference
             patientBill.setReferenceId(transactionId);
@@ -1747,12 +1785,41 @@ public class BillingServiceImpl implements BillingService {
 
             //Save the patient into the database
             billingDAO.savePatientBill(patientBill);
+            log.info("Irembo createInvoice saved: patientBillId=" + patientBill.getPatientBillId()
+                    + ", invoiceNumber=" + invoice.getInvoiceNumber()
+                    + ", paymentStatus=" + invoice.getPaymentStatus());
 
             return invoice.getInvoiceNumber();
     }
 
     private static boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    /**
+     * Compact log line for an Irembo API call: operation, duration, success/message, and response body.
+     */
+    private void logIremboApiCall(String operation, long startedAtMs, Object response) {
+        long durationMs = System.currentTimeMillis() - startedAtMs;
+        if (response == null) {
+            log.warn("Irembo " + operation + " completed in " + durationMs + "ms with null response");
+            return;
+        }
+        if (response instanceof IremboPayResponse) {
+            IremboPayResponse<?> iremboResponse = (IremboPayResponse<?>) response;
+            String level = Boolean.TRUE.equals(iremboResponse.isSuccess()) ? "info" : "warn";
+            String message = "Irembo " + operation + " completed in " + durationMs + "ms"
+                    + ", success=" + iremboResponse.isSuccess()
+                    + ", message=" + iremboResponse.getMessage()
+                    + ", response=" + iremboResponse;
+            if ("warn".equals(level)) {
+                log.warn(message);
+            } else {
+                log.info(message);
+            }
+            return;
+        }
+        log.info("Irembo " + operation + " completed in " + durationMs + "ms, response=" + response);
     }
 
     private PatientBill refreshPatientBill(PatientBill patientBill) throws DAOException {
@@ -1791,6 +1858,42 @@ public class BillingServiceImpl implements BillingService {
         return resolvedBatchNumber;
     }
 
+    /**
+     * Sets the given batchNumber on every PatientBill found for the supplied invoice numbers,
+     * skipping bills that are missing or already mapped to this batch. Returns the number of
+     * bills that were updated (newly mapped).
+     */
+    private int applyBatchNumberToBills(String batchNumber, List<String> invoiceNumbers) throws DAOException {
+        if (!hasText(batchNumber) || invoiceNumbers == null || invoiceNumbers.isEmpty()) {
+            return 0;
+        }
+        String trimmedBatch = batchNumber.trim();
+        int updated = 0;
+        Set<String> processed = new LinkedHashSet<>();
+        for (String invoiceNumber : invoiceNumbers) {
+            if (!hasText(invoiceNumber)) {
+                continue;
+            }
+            String key = invoiceNumber.trim();
+            if (!processed.add(key)) {
+                continue;
+            }
+            PatientBill patientBill = billingDAO.getPatientBillStatus(key);
+            if (patientBill == null) {
+                log.warn("Irembo batch mapping skipped: no PatientBill found for invoice " + key
+                        + ", batchNumber=" + trimmedBatch);
+                continue;
+            }
+            if (trimmedBatch.equals(patientBill.getBatchNumber())) {
+                continue;
+            }
+            patientBill.setBatchNumber(trimmedBatch);
+            billingDAO.savePatientBill(patientBill);
+            updated++;
+        }
+        return updated;
+    }
+
     public boolean canWeInitiateBatch(List<String> invoices) throws DAOException {
         if (invoices == null || invoices.isEmpty()) {
             log.warn("Irembo batch eligibility check: no invoices provided");
@@ -1806,6 +1909,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void initIremboPayBatch(Patient patient,List<String> invoices, String phoneNumber) throws DAOException {
         String batchDescription = patient.getPersonName().getFullName() + " medical service payments";
 
@@ -1823,7 +1927,13 @@ public class BillingServiceImpl implements BillingService {
 
         String batchNumber = null;
         if (canWeInitiateBatch(invoices)) {
+            log.info("Irembo createBatchInvoice start: transactionId=" + transactionId
+                    + ", requestedInvoiceCount=" + (invoices == null ? 0 : invoices.size())
+                    + ", invoices=" + invoices
+                    + ", phoneNumber=" + phoneNumber);
+            long batchCreateStartedAt = System.currentTimeMillis();
             IremboPayResponse<Invoice> iremboPayResponse = iremboPay.invoice.createBatchInvoice(invoices,transactionId,batchDescription);
+            logIremboApiCall("createBatchInvoice", batchCreateStartedAt, iremboPayResponse);
             if (iremboPayResponse == null || !Boolean.TRUE.equals(iremboPayResponse.isSuccess())
                     || iremboPayResponse.getData() == null) {
                 log.warn("Irembo batch invoice creation failed: transactionId=" + transactionId
@@ -1834,36 +1944,41 @@ public class BillingServiceImpl implements BillingService {
 
             Invoice batchInvoice = iremboPayResponse.getData();
             batchNumber = batchInvoice.getBatchNumber();
-            List<String> childInvoices = batchInvoice.getChildInvoices();
-            if (batchNumber == null || batchNumber.trim().isEmpty()) {
+            // Fallback: some batch responses carry the batch id in invoiceNumber when type == BATCH.
+            if (!hasText(batchNumber) && "BATCH".equalsIgnoreCase(batchInvoice.getType())) {
+                batchNumber = batchInvoice.getInvoiceNumber();
+                log.warn("Irembo batch response missing batchNumber; falling back to invoiceNumber="
+                        + batchNumber + ", transactionId=" + transactionId);
+            }
+            if (!hasText(batchNumber)) {
                 log.warn("Irembo batch invoice response missing batchNumber: transactionId=" + transactionId
                         + ", responseInvoiceNumber=" + batchInvoice.getInvoiceNumber());
                 return;
             }
+
+            List<String> childInvoices = batchInvoice.getChildInvoices();
             if (childInvoices == null || childInvoices.isEmpty()) {
-                log.warn("Irembo batch invoice response has no childInvoices: transactionId=" + transactionId
-                        + ", batchNumber=" + batchNumber);
-                return;
+                log.warn("Irembo batch invoice response has no childInvoices; mapping requested invoices instead: transactionId="
+                        + transactionId + ", batchNumber=" + batchNumber);
             }
 
-            int updatedBills = 0;
-            for (String childInvoiceNumber : childInvoices) {
-                if (childInvoiceNumber == null || childInvoiceNumber.trim().isEmpty()) {
-                    continue;
-                }
-                PatientBill patientBill = billingDAO.getPatientBillStatus(childInvoiceNumber.trim());
-                if (patientBill == null) {
-                    log.warn("Irembo batch mapping skipped: no PatientBill found for child invoice "
-                            + childInvoiceNumber + ", batchNumber=" + batchNumber);
-                    continue;
-                }
-                patientBill.setBatchNumber(batchNumber);
-                billingDAO.savePatientBill(patientBill);
-                updatedBills++;
+            // Map using both the requested invoices and any child invoices returned by Irembo,
+            // so bills always get their batch_number even if childInvoices is empty or mismatched.
+            List<String> invoicesToMap = new ArrayList<>();
+            if (invoices != null) {
+                invoicesToMap.addAll(invoices);
             }
+            if (childInvoices != null) {
+                invoicesToMap.addAll(childInvoices);
+            }
+            int updatedBills = applyBatchNumberToBills(batchNumber, invoicesToMap);
             log.info("Irembo batch mapping complete: transactionId=" + transactionId
                     + ", batchNumber=" + batchNumber
-                    + ", childInvoicesCount=" + childInvoices.size()
+                    + ", type=" + batchInvoice.getType()
+                    + ", paymentStatus=" + batchInvoice.getPaymentStatus()
+                    + ", amount=" + batchInvoice.getAmount()
+                    + ", childInvoicesCount=" + (childInvoices == null ? 0 : childInvoices.size())
+                    + ", requestedInvoiceCount=" + (invoices == null ? 0 : invoices.size())
                     + ", updatedBills=" + updatedBills);
         } else {
             batchNumber = resolveExistingBatchNumber(invoices);
@@ -1872,12 +1987,22 @@ public class BillingServiceImpl implements BillingService {
                         + invoices);
                 return;
             }
-            log.info("Irembo batch creation skipped; reusing existing batchNumber=" + batchNumber);
+            // Backfill batch_number on any requested bill that has invoice_number but is still missing batch_number.
+            int backfilledBills = applyBatchNumberToBills(batchNumber, invoices);
+            log.info("Irembo batch creation skipped; reusing existing batchNumber=" + batchNumber
+                    + ", backfilledBills=" + backfilledBills);
         }
 
         if (!hasText(batchNumber)) {
             log.warn("Irembo batch payment skipped: batchNumber is missing");
             return;
+        }
+
+        // Fail hard if no bill ended up mapped to this batch; do not initiate MoMo for an unmapped batch.
+        List<PatientBill> billsForBatch = billingDAO.getPatientBillsByBatchNumber(batchNumber);
+        if (billsForBatch == null || billsForBatch.isEmpty()) {
+            throw new DAOException("Irembo batch aborted: no PatientBill mapped to batchNumber " + batchNumber
+                    + " for transactionId=" + transactionId);
         }
         //Detect if we are in sandbox environment
         String company = detectTelco(phoneNumber);
@@ -1893,16 +2018,29 @@ public class BillingServiceImpl implements BillingService {
         }
 
         //Now initiate the Payment
+        // Guard the MoMo initiate call: a payment-initiation failure must NOT roll back the
+        // batch_number mapping we already persisted above.
         if(!company.equalsIgnoreCase("Unknown operator")){
             String paymentUuid = UUID.randomUUID().toString();
-            IremboPayResponse<?> initiateResponse = iremboPay.mobileMoney
-                    .initiate(phoneNumber, company, batchNumber, paymentUuid);
-            if (initiateResponse != null) {
-                log.info("Irembo initiate payment response for invoice " + batchNumber + ": "
-                        + initiateResponse);
-            } else {
-                log.warn("Irembo initiate payment returned null response for invoice " + batchNumber);
+            log.info("Irembo batch payment start: batchNumber=" + batchNumber
+                    + ", provider=" + company
+                    + ", phoneNumber=" + phoneNumber
+                    + ", paymentUuid=" + paymentUuid
+                    + ", mappedBillCount=" + billsForBatch.size());
+            long initiateStartedAt = System.currentTimeMillis();
+            try {
+                IremboPayResponse<?> initiateResponse = iremboPay.mobileMoney
+                        .initiate(phoneNumber, company, batchNumber, paymentUuid);
+                logIremboApiCall("initiatePayment(batch)", initiateStartedAt, initiateResponse);
+            } catch (Exception e) {
+                long durationMs = System.currentTimeMillis() - initiateStartedAt;
+                log.error("Irembo initiatePayment(batch) failed after " + durationMs
+                        + "ms for batchNumber=" + batchNumber
+                        + "; batch mapping is already saved", e);
             }
+        } else {
+            log.warn("Irembo batch payment skipped: unknown operator for phoneNumber=" + phoneNumber
+                    + ", batchNumber=" + batchNumber);
         }
     }
 
