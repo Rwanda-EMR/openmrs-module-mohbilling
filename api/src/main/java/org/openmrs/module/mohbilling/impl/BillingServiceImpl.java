@@ -15,6 +15,10 @@ import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.ThirdPartyBillUtil;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.irembo.Invoice;
 import org.openmrs.module.mohbilling.irembo.IremboPay;
@@ -2066,6 +2070,126 @@ public class BillingServiceImpl implements BillingService {
 	@Transactional(readOnly = true)
 	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria) {
 		return billingDAO.countRhipIntegrationLogs(criteria);
+	}
+
+	@Override
+	@Transactional
+	public Consommation createAmbulanceBill(String insurancePolicyNumber, int kilometers, String description) {
+		if (insurancePolicyNumber == null || insurancePolicyNumber.trim().isEmpty()) {
+			throw new APIException("Insurance policy number is required");
+		}
+		if (kilometers <= 0) {
+			throw new APIException("Number of kilometers must be greater than zero");
+		}
+		if (description == null || description.trim().isEmpty()) {
+			throw new APIException("Ambulance bill description is required");
+		}
+
+		String policyNumber = insurancePolicyNumber.trim();
+		String billDescription = description.trim();
+
+		InsurancePolicy insurancePolicy = getInsurancePolicyByCardNo(policyNumber);
+		if (insurancePolicy == null) {
+			throw new APIException("Insurance policy not found for card number: " + policyNumber);
+		}
+
+		Beneficiary beneficiary = getBeneficiaryByPolicyNumber(policyNumber);
+		if (beneficiary == null) {
+			throw new APIException("Beneficiary not found for policy number: " + policyNumber);
+		}
+
+		GlobalBill globalBill = getOpenGlobalBillByInsuranceCardNo(insurancePolicy.getInsuranceCardNo());
+		if (globalBill == null) {
+			throw new APIException("No open global bill found for insurance policy: " + policyNumber);
+		}
+
+		Department department = resolveAmbulanceDepartment();
+		Insurance insurance = insurancePolicy.getInsurance();
+		BillableService billableService = resolveAmbulanceBillableService(insurance);
+		HopService hopService = HopServiceUtil.getServiceByName(billableService.getServiceCategory().getName());
+
+		BigDecimal quantity = BigDecimal.valueOf(kilometers);
+		BigDecimal unitPrice = billableService.getMaximaToPay();
+		if (unitPrice == null) {
+			throw new APIException("Ambulance billable service has no unit price configured for insurance: "
+					+ insurance.getName());
+		}
+
+		BigDecimal totalAmount = quantity.multiply(unitPrice);
+		User creator = Context.getAuthenticatedUser();
+		Date now = new Date();
+
+		Integer itemType = null;
+		if (billableService.getFacilityServicePrice() != null
+				&& billableService.getFacilityServicePrice().getItemType() != null) {
+			itemType = billableService.getFacilityServicePrice().getItemType().intValue();
+		}
+
+		PatientServiceBill patientServiceBill = new PatientServiceBill(
+				billableService, hopService, now, unitPrice, quantity, creator, now, null, itemType);
+		patientServiceBill.setServiceOtherDescription(billDescription);
+
+		PatientBill patientBill = PatientBillUtil.createPatientBill(totalAmount, insurancePolicy);
+		InsuranceBill insuranceBill = InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);
+		ThirdPartyBill thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(insurancePolicy, totalAmount);
+
+		Consommation consommation = new Consommation(globalBill, beneficiary, now, creator, false);
+		consommation.setDepartment(department);
+		consommation.setPatientBill(patientBill);
+		consommation.setInsuranceBill(insuranceBill);
+		consommation.setThirdPartyBill(thirdPartyBill);
+		consommation.addBillItem(patientServiceBill);
+
+		saveConsommation(consommation);
+
+		BigDecimal globalAmount = globalBill.getGlobalAmount() != null ? globalBill.getGlobalAmount() : BigDecimal.ZERO;
+		globalBill.setGlobalAmount(globalAmount.add(totalAmount));
+		saveGlobalBill(globalBill);
+
+		log.info("Created ambulance bill consommationId=" + consommation.getConsommationId()
+				+ " policyNumber=" + policyNumber + " km=" + kilometers + " total=" + totalAmount);
+
+		return consommation;
+	}
+
+	private Department resolveAmbulanceDepartment() {
+		String departmentIdValue = Context.getAdministrationService()
+				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_AMBULANCE_DEPARTMENT_ID);
+		if (departmentIdValue == null || departmentIdValue.trim().isEmpty()) {
+			throw new APIException("Global property " + BillingConstants.GLOBAL_PROPERTY_AMBULANCE_DEPARTMENT_ID
+					+ " is not configured");
+		}
+		try {
+			Integer departmentId = Integer.valueOf(departmentIdValue.trim());
+			Department department = getDepartement(departmentId);
+			if (department == null) {
+				throw new APIException("Ambulance billing department not found for id: " + departmentId);
+			}
+			return department;
+		}
+		catch (NumberFormatException e) {
+			throw new APIException("Invalid ambulance department id in global property: " + departmentIdValue);
+		}
+	}
+
+	private BillableService resolveAmbulanceBillableService(Insurance insurance) {
+		ServiceCategory ambulanceCategory = getServiceCategoryByName(Category.AMBULANCE.getDescription(), insurance);
+		if (ambulanceCategory == null) {
+			throw new APIException("AMBULANCE service category not configured for insurance: " + insurance.getName());
+		}
+
+		List<BillableService> services = getBillableServiceByCategory(ambulanceCategory);
+		if (services == null || services.isEmpty()) {
+			throw new APIException("No ambulance billable service found for insurance: " + insurance.getName());
+		}
+
+		for (BillableService service : services) {
+			if (service.getRetired() == null || !service.getRetired()) {
+				return service;
+			}
+		}
+
+		throw new APIException("No active ambulance billable service found for insurance: " + insurance.getName());
 	}
 
 }
