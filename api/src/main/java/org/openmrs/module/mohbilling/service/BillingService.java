@@ -729,4 +729,15 @@ public interface BillingService {
 	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);
 	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult, Integer maxResults);
 	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria);
+
+	/**
+	 * Creates an ambulance consommation bill for the given insurance policy.
+	 * Kilometers are billed as quantity against the insurance AMBULANCE billable service unit price.
+	 *
+	 * @param insurancePolicyNumber insurance card / policy number
+	 * @param kilometers distance in kilometers (quantity)
+	 * @param description free-text description stored on the bill line (e.g. route details)
+	 * @return the saved consommation with patient, insurance and third-party bills attached
+	 */
+	Consommation createAmbulanceBill(String insurancePolicyNumber, int kilometers, String description);
 }

@@ -157,6 +157,14 @@
         </description>
     </globalProperty>
 
+    <globalProperty>
+        <property>mohbilling.ambulance.departmentId</property>
+        <defaultValue></defaultValue>
+        <description>
+            Department ID (moh_bill_departement) used when creating ambulance bills.
+        </description>
+    </globalProperty>
+
 
     <globalProperty>
         <property>billing.differentialDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill</property>
