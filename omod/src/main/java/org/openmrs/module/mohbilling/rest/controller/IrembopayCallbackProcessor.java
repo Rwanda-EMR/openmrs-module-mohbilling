@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
 import org.openmrs.module.mohbilling.rest.resource.IrembopayCallbackRequest;
 import org.openmrs.module.mohbilling.service.BillingService;
 
@@ -24,10 +25,13 @@ public class IrembopayCallbackProcessor {
      */
     public static void process(IrembopayCallbackRequest delegate) {
         if (delegate == null || delegate.getData() == null || delegate.getData().getInvoiceNumber() == null) {
+            IremboPayLogUtil.logFailure(log, "CALLBACK",
+                    "invalid callback payload: missing data or invoice number");
             throw new IllegalArgumentException("Missing data or invoice number");
         }
         String invoiceNumber = delegate.getData().getInvoiceNumber();
-        log.info("Irembopay callback: invoiceNumber=" + invoiceNumber + ", transactionId=" + delegate.getData().getTransactionId());
+        log.info("Irembopay callback: invoiceNumber=" + invoiceNumber + ", transactionId=" + delegate.getData().getTransactionId()
+                + ", type=" + delegate.getData().getType() + ", success=" + delegate.getSuccess());
 
         BigDecimal callbackAmount = delegate.getData().getAmount() == null
             ? null

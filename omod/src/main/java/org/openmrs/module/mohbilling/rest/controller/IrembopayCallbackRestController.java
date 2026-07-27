@@ -7,6 +7,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.rest.resource.IrembopayCallbackRequest;
 import org.openmrs.module.mohbilling.rest.resource.IrembopayCallbackResource;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.api.RestService;
@@ -47,7 +48,7 @@ public class IrembopayCallbackRestController {
             // A duplicate payment unique-key violation means this callback was already processed
             // (payment already exists). Treat it as idempotent success so Irembo stops retrying.
             if (isDuplicatePaymentViolation(e)) {
-                log.warn("Irembopay callback: duplicate payment detected; treating as already completed");
+                log.info("Irembo Pay callback: duplicate payment detected; treating as already completed");
                 SimpleObject alreadyCompleted = new SimpleObject();
                 alreadyCompleted.put("success", true);
                 alreadyCompleted.put("message", "Transaction already completed");
@@ -56,14 +57,14 @@ public class IrembopayCallbackRestController {
 
             String missingBillMessage = extractMissingPatientBillMessage(e);
             if (missingBillMessage != null) {
-                log.warn("Irembopay callback: " + missingBillMessage);
+                IremboPayLogUtil.logFailure(log, "CALLBACK", missingBillMessage);
                 SimpleObject notFound = new SimpleObject();
                 notFound.put("success", false);
                 notFound.put("message", missingBillMessage);
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body(notFound);
             }
 
-            log.error("Irembopay callback: processing failed", e);
+            IremboPayLogUtil.logFailure(log, "CALLBACK", "processing failed: " + e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(IrembopayCallbackErrorResponse.fromThrowable(e));
         }

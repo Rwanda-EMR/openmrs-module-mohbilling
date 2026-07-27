@@ -2,7 +2,10 @@ package org.openmrs.module.mohbilling.tasks;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.scheduler.tasks.AbstractTask;
@@ -71,7 +74,8 @@ public class IremboReconciliationTask extends AbstractTask {
                         expiredCleared++;
                     }
                 } catch (Exception perBillError) {
-                    log.error("Failed invoice status check for invoice " + bill.getInvoiceNumber(), perBillError);
+                    IremboPayLogUtil.logFailure(log, "RECONCILIATION",
+                            "invoice status check failed for invoice " + bill.getInvoiceNumber(), perBillError);
                 } finally {
                     try {
                         Thread.sleep(REQUEST_DELAY_MS);
@@ -84,7 +88,7 @@ public class IremboReconciliationTask extends AbstractTask {
             log.info("Irembo reconciliation task completed: checked=" + checked + ", paidUpdated=" + updated
                     + ", expiredCleared=" + expiredCleared);
         } catch (Exception e) {
-            log.error("Error while running Irembo reconciliation task", e);
+            IremboPayLogUtil.logFailure(log, "RECONCILIATION", "reconciliation task failed", e);
         }
     }
 

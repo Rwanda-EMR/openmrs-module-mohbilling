@@ -5,12 +5,18 @@ import okhttp3.*;
 import java.io.IOException;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.openmrs.module.mohbilling.irembo.Config;
 import org.openmrs.module.mohbilling.irembo.util.Environment;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayNetworkUtil;
 import org.openmrs.module.mohbilling.irembo.util.IremboPayResponse;
 
 public class MobileMoney extends Config {
+    private static final Log log = LogFactory.getLog(MobileMoney.class);
+
     public MobileMoney(String apiKey, Environment environment) {
         super(apiKey, environment);
     }
@@ -52,7 +58,14 @@ public class MobileMoney extends Config {
             return iremboPayResponse;
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            String host = IremboPayNetworkUtil.hostFromBaseUrl(baseUrl);
+            String details = IremboPayNetworkUtil.describeFailure(e, host);
+            IremboPayLogUtil.logFailure(log, "HTTP_INITIATE_PAYMENT",
+                    "initiate payment I/O error, invoiceNumber=" + invoiceNumber
+                            + ", provider=" + paymentProvider + ", transactionReference=" + transactionReference
+                            + ", " + details,
+                    e);
+            throw new RuntimeException(details, e);
         }
 
 
