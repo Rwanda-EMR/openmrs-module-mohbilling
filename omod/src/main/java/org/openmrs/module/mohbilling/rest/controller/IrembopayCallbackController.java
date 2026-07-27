@@ -10,6 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.mohbilling.rest.resource.IrembopayCallbackRequest;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
@@ -28,6 +29,7 @@ public class IrembopayCallbackController implements Controller {
     @Override
     public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
+            IremboPayLogUtil.logFailure(log, "CALLBACK", "invalid HTTP method: " + request.getMethod());
             writeError(response, IrembopayCallbackErrorResponse.build("INVALID_METHOD", "POST required"));
             return null;
         }
@@ -36,12 +38,13 @@ public class IrembopayCallbackController implements Controller {
         try {
             body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            log.warn("Irembopay callback: failed to read body", e);
+            IremboPayLogUtil.logFailure(log, "CALLBACK", "failed to read callback request body", e);
             writeError(response, IrembopayCallbackErrorResponse.build("INVALID_BODY", "Invalid body"));
             return null;
         }
 
         if (body == null || body.trim().isEmpty()) {
+            IremboPayLogUtil.logFailure(log, "CALLBACK", "empty callback request body");
             writeError(response, IrembopayCallbackErrorResponse.build("EMPTY_BODY", "Empty body"));
             return null;
         }
@@ -53,6 +56,7 @@ public class IrembopayCallbackController implements Controller {
             IrembopayCallbackRequest delegate = mapper.readValue(body, IrembopayCallbackRequest.class);
 
             if (delegate.getData() == null || delegate.getData().getInvoiceNumber() == null) {
+                IremboPayLogUtil.logFailure(log, "CALLBACK", "missing data or invoice number in callback payload");
                 writeError(response, IrembopayCallbackErrorResponse.build(
                     "MISSING_REQUIRED_FIELDS", "Missing data or invoice number"));
                 return null;
@@ -68,7 +72,7 @@ public class IrembopayCallbackController implements Controller {
             ok.put("data", delegate);
             writeJson(response, ok);
         } catch (Exception e) {
-            log.error("Irembopay callback: processing failed", e);
+            IremboPayLogUtil.logFailure(log, "CALLBACK", "processing failed: " + e.getMessage(), e);
             writeError(response, IrembopayCallbackErrorResponse.fromThrowable(e));
         }
         return null;

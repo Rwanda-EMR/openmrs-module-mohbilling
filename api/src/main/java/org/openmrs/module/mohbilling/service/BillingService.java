@@ -8,6 +8,8 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
+import org.openmrs.module.mohbilling.irembo.util.IremboInvoiceResult;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayInitiationResult;
 
 import java.util.Date;
 import java.util.List;
@@ -701,6 +703,9 @@ public interface BillingService {
 
 	public void initIremboPay(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
 
+	IremboPayInitiationResult initIremboPayWithResult(Patient patient, PatientBill patientBill, String phoneNumber)
+			throws DAOException;
+
 	public PatientBill getInvoiceStatus(String invoiceId) throws DAOException;
 
 	/**
@@ -723,7 +728,19 @@ public interface BillingService {
 
 	public String createIremboInvoice(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
 
+	IremboInvoiceResult ensureIremboInvoice(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
+
 	public void initIremboPayBatch(Patient patient,List<String> invoices, String phoneNumber) throws DAOException;
+
+	/**
+	 * Batch initiation with rollback on batch creation failure (clears newly created invoice mappings).
+	 * Payment initiation failure notifies the caller but keeps batch_number mapped for retry.
+	 */
+	IremboPayInitiationResult initIremboPayBatchWithResult(Patient patient, List<String> invoices, String phoneNumber,
+			List<Integer> newlyInvoicedBillIds) throws DAOException;
+
+	IremboPayInitiationResult initIremboPayBatchForBillIds(List<Integer> billIds, String phoneNumber)
+			throws DAOException;
 
 	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog log);
 	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);

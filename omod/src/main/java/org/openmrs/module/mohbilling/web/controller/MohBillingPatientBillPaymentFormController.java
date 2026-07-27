@@ -28,6 +28,8 @@ import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.Transaction;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayInitiationResult;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -208,31 +210,52 @@ public class MohBillingPatientBillPaymentFormController extends
 
 					if(request.getParameter("iremboPayment")!=null){
 						if (!isIremboPayEnabled()) {
+							IremboPayLogUtil.logFailure(log, "UI_INIT",
+									"Irembo Pay is not enabled, patientBillId=" + pb.getPatientBillId());
 							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 									"Irembo Pay is not enabled.");
 							return null;
 						}
 						if (Boolean.TRUE.equals(pb.getIsPaid()) || pb.isPaymentConfirmed()) {
+							IremboPayLogUtil.logFailure(log, "UI_INIT",
+									"bill already paid, patientBillId=" + pb.getPatientBillId());
 							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 									"This bill is already paid.");
 							return null;
 						}
 						if (pb.getInvoiceNumber() != null && !pb.getInvoiceNumber().trim().isEmpty()
 								&& (pb.getTransactionStatus() == null || !"EXPIRED".equalsIgnoreCase(pb.getTransactionStatus()))) {
+							IremboPayLogUtil.logFailure(log, "UI_INIT",
+									"invoice already exists, patientBillId=" + pb.getPatientBillId()
+											+ ", invoiceNumber=" + pb.getInvoiceNumber());
 							request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 									"Irembo Pay invoice already exists: " + pb.getInvoiceNumber());
 							return null;
 						}
 						String phoneNumber = request.getParameter("iremboPhoneNumber");
 						if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+							IremboPayLogUtil.logFailure(log, "UI_INIT",
+									"phone number required, patientBillId=" + pb.getPatientBillId());
 							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 									"Phone number is required for Irembo Pay.");
 							return null;
 						}
-						Context.getService(BillingService.class).initIremboPay(
-								consommation.getBeneficiary().getPatient(), pb, phoneNumber.trim());
+						IremboPayInitiationResult initiationResult = Context.getService(BillingService.class)
+								.initIremboPayWithResult(consommation.getBeneficiary().getPatient(), pb,
+										phoneNumber.trim());
+						if (!initiationResult.isSuccess()) {
+							IremboPayLogUtil.logFailure(log,
+									initiationResult.getFailedStep() != null
+											? initiationResult.getFailedStep().name() : "UI_INIT",
+									"Irembo Pay initiation failed for patientBillId=" + pb.getPatientBillId()
+											+ ", message=" + initiationResult.getUserFacingMessage());
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+									initiationResult.getUserFacingMessage());
+							return null;
+						}
 						request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
-								"Irembo Pay request has been sent to patient on phone number " + phoneNumber.trim() + " !");
+								"Irembo Pay request has been sent to patient on phone number " + phoneNumber.trim()
+										+ " !");
 						return null;
 					}
 
@@ -397,7 +420,7 @@ public class MohBillingPatientBillPaymentFormController extends
 			PersonAttribute attr = consommation.getBeneficiary().getPatient().getPerson().getAttribute(attrType);
 			return attr == null || attr.getValue() == null ? "" : attr.getValue().trim();
 		} catch (Exception e) {
-			log.warn("Unable to resolve Irembo Pay phone number", e);
+			IremboPayLogUtil.logFailure(log, "UI_INIT", "unable to resolve Irembo Pay phone number", e);
 			return "";
 		}
 	}

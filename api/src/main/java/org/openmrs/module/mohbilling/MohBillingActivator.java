@@ -19,6 +19,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.BaseModuleActivator;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.tasks.IremboReconciliationTask;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
 import org.openmrs.scheduler.SchedulerException;
 import org.openmrs.scheduler.SchedulerService;
 import org.openmrs.scheduler.TaskDefinition;
@@ -96,7 +97,8 @@ public class MohBillingActivator extends BaseModuleActivator {
 				log.info("Irembo reconciliation task is registered and visible in scheduler, but not auto-started.");
 			}
 		} catch (SchedulerException e) {
-			log.error("Failed to schedule Irembo reconciliation task", e);
+			IremboPayLogUtil.logFailure(log, "RECONCILIATION",
+					"failed to schedule Irembo reconciliation task", e);
 		}
 	}
 
@@ -109,7 +111,8 @@ public class MohBillingActivator extends BaseModuleActivator {
 				log.info("Stopped Irembo reconciliation task.");
 			}
 		} catch (SchedulerException e) {
-			log.warn("Failed to stop Irembo reconciliation task cleanly", e);
+			IremboPayLogUtil.logFailure(log, "RECONCILIATION",
+					"failed to stop Irembo reconciliation task cleanly", e);
 		}
 	}
 

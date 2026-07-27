@@ -6,7 +6,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class SignatureHelper {
+    private static final Log log = LogFactory.getLog(SignatureHelper.class);
     private final String secretKey;
 
     public SignatureHelper(String apiKey) {
@@ -63,6 +67,8 @@ public class SignatureHelper {
         }
 
         if (timestamp == null || signatureHash == null) {
+            IremboPayLogUtil.logFailure(log, "CALLBACK_VERIFY",
+                    "signature header missing timestamp or signature hash");
             return false;
         }
 
@@ -77,11 +83,16 @@ public class SignatureHelper {
             byte[] bytes = sha256_HMAC.doFinal(signedPayload.getBytes(StandardCharsets.UTF_8));
             expectedSignature = bytesToHex(bytes);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            e.printStackTrace();
+            IremboPayLogUtil.logFailure(log, "CALLBACK_VERIFY",
+                    "failed to compute expected callback signature", e);
             return false;
         }
 
         // Compare signatures using a timing-safe comparison
-        return timingSafeEqual(hexStringToByteArray(expectedSignature), hexStringToByteArray(signatureHash));
+        boolean valid = timingSafeEqual(hexStringToByteArray(expectedSignature), hexStringToByteArray(signatureHash));
+        if (!valid) {
+            IremboPayLogUtil.logFailure(log, "CALLBACK_VERIFY", "callback signature mismatch");
+        }
+        return valid;
     }
 }

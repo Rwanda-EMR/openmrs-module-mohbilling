@@ -1,12 +1,16 @@
 package org.openmrs.module.mohbilling.irembo;
 
 import okhttp3.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.openmrs.module.mohbilling.irembo.models.Customer;
 import org.openmrs.module.mohbilling.irembo.models.PaymentItem;
 import org.openmrs.module.mohbilling.irembo.util.DateToJson;
 import org.openmrs.module.mohbilling.irembo.util.Environment;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayNetworkUtil;
 import org.openmrs.module.mohbilling.irembo.util.IremboPayResponse;
 
 import java.io.IOException;
@@ -15,6 +19,8 @@ import java.util.Date;
 import java.util.List;
 
 public class Invoice extends Config {
+    private static final Log log = LogFactory.getLog(Invoice.class);
+
     private float amount;
     private String invoiceNumber;
     private String transactionId;
@@ -292,10 +298,20 @@ public class Invoice extends Config {
             }
             return iremboPayResponse;
         } catch (IOException e) {
-            // Handle IO exception
-            e.printStackTrace();
-            return null;
+            return ioFailureResponse("HTTP_CREATE_INVOICE",
+                    "createInvoice I/O error, transactionId=" + transactionId, e);
         }
+    }
+
+    private IremboPayResponse<Invoice> ioFailureResponse(String step, String operationDetail, IOException e) {
+        String host = IremboPayNetworkUtil.hostFromBaseUrl(baseUrl);
+        String details = IremboPayNetworkUtil.describeFailure(e, host);
+        IremboPayLogUtil.logFailure(log, step, operationDetail + ", " + details, e);
+        IremboPayResponse<Invoice> failed = new IremboPayResponse<>();
+        failed.setSuccess(false);
+        failed.setMessage(details);
+        failed.addError(new IremboPayResponse.Error("NETWORK_ERROR", details));
+        return failed;
     }
 
     public IremboPayResponse<Invoice> createBatchInvoice(List<String> invoiceNumbers, String transactionId, String description) {
@@ -337,9 +353,10 @@ public class Invoice extends Config {
             }
             return iremboPayResponse;
         } catch (IOException e) {
-            // Handle IO exception
-            e.printStackTrace();
-            return null;
+            return ioFailureResponse("HTTP_CREATE_BATCH_INVOICE",
+                    "createBatchInvoice I/O error, transactionId=" + transactionId
+                            + ", invoiceCount=" + (invoiceNumbers == null ? 0 : invoiceNumbers.size()),
+                    e);
         }
 
 
@@ -372,8 +389,8 @@ public class Invoice extends Config {
             }
             return iremboPayResponse;
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            return ioFailureResponse("HTTP_GET_INVOICE",
+                    "getInvoice I/O error, invoiceReference=" + invoiceReference, e);
         }
     }
 
@@ -422,8 +439,8 @@ public class Invoice extends Config {
             }
             return iremboPayResponse;
         } catch (IOException e) {
-            // Handle IO exception
-            throw new IOException(e);
+            return ioFailureResponse("HTTP_UPDATE_INVOICE",
+                    "updateInvoice I/O error, invoiceNumber=" + invoiceNumber, e);
         }
     }
 
