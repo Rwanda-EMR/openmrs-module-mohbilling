@@ -1414,7 +1414,7 @@ public class BillingServiceImpl implements BillingService {
                     + ", iremboAmount=" + invoiceAmount
                     + ", billAmount=" + billAmount);
 
-            if (iremboAmountsMatch(invoiceAmount, billAmount)) {
+            if (iremboPaidAmountCoversBill(invoiceAmount, billAmount)) {
                 String resolvedPaymentReference = resolveIremboPaymentReference(invoice.getPaymentReference(),
                         billToConfirm.getPaymentReference(), invoiceId);
                 if (resolvedPaymentReference == null) {
@@ -1515,6 +1515,7 @@ public class BillingServiceImpl implements BillingService {
                         "PAID invoice amount mismatch, invoiceId=" + invoiceId
                                 + ", patientBillId=" + billToConfirm.getPatientBillId()
                                 + ", iremboAmount=" + invoiceAmount + ", billAmount=" + billAmount
+                                + " (paid amount must be >= bill amount)"
                                 + ", iremboPaymentReference=" + invoice.getPaymentReference()
                                 + ", billPaymentReference=" + billToConfirm.getPaymentReference());
             }
@@ -1548,13 +1549,14 @@ public class BillingServiceImpl implements BillingService {
                             + ", patientBillId=" + billToConfirm.getPatientBillId());
             throw new IllegalArgumentException("Callback amount is missing for invoice " + invoiceNumber);
         }
-        if (!iremboAmountsMatch(callbackAmount, billToConfirm.getAmount())) {
+        if (!iremboPaidAmountCoversBill(callbackAmount, billToConfirm.getAmount())) {
             IremboPayLogUtil.logFailure(log, "CALLBACK",
                     "callback amount mismatch, invoiceNumber=" + invoiceNumber
                             + ", patientBillId=" + billToConfirm.getPatientBillId()
-                            + ", callbackAmount=" + callbackAmount + ", billAmount=" + billToConfirm.getAmount());
+                            + ", callbackAmount=" + callbackAmount + ", billAmount=" + billToConfirm.getAmount()
+                            + " (paid amount must be >= bill amount)");
             throw new IllegalArgumentException(String.format(
-                "Amount mismatch: callback amount=%s, bill amount=%s for invoice %s",
+                "Amount mismatch: callback amount=%s is less than bill amount=%s for invoice %s",
                 callbackAmount, billToConfirm.getAmount(), invoiceNumber));
         }
         String resolvedPaymentReference = resolveIremboPaymentReference(paymentReference,
@@ -1884,11 +1886,17 @@ public class BillingServiceImpl implements BillingService {
         return BigDecimal.valueOf(amount);
     }
 
-    private static boolean iremboAmountsMatch(BigDecimal iremboAmount, BigDecimal billAmount) {
-        if (iremboAmount == null || billAmount == null) {
+    /**
+     * Accepts Irembo paid amount when it is greater than or equal to the local bill amount.
+     * Exact equality still passes; amounts that were previously ceiling-rounded on Irembo
+     * (paid slightly more than the decimal bill) also pass so old invoices can confirm.
+     */
+    private static boolean iremboPaidAmountCoversBill(BigDecimal paidAmount, BigDecimal billAmount) {
+        if (paidAmount == null || billAmount == null) {
             return false;
         }
-        return iremboAmount.compareTo(billAmount) == 0;
+        return toIremboPayComparableAmount(paidAmount)
+                .compareTo(toIremboPayComparableAmount(billAmount)) >= 0;
     }
 
     /**
