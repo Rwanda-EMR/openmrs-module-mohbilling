@@ -265,7 +265,6 @@ public class Invoice extends Config {
 
         payload.put("description", description);
         payload.put("language", language);
-        OkHttpClient client = new OkHttpClient();
         // Create request body
         RequestBody body = RequestBody.create(MediaType.get("application/json; charset=utf-8"), payload.toString());
 
@@ -280,7 +279,7 @@ public class Invoice extends Config {
                 .build();
         // Send request
         try {
-            Response response = client.newCall(request).execute();
+            Response response = httpClient().newCall(request).execute();
             IremboPayResponse<Invoice> iremboPayResponse = new IremboPayResponse<>();
             assert response.body() != null;
             JSONObject responseJsonObject = new JSONObject(response.body().string());
@@ -325,7 +324,6 @@ public class Invoice extends Config {
         payload.put("transactionId", transactionId);
         payload.put("description", description);
 
-        OkHttpClient client = new OkHttpClient();
         RequestBody body = RequestBody.create(MediaType.get("application/json; charset=utf-8"), payload.toString());
         Request request = new Request.Builder()
                 .url(url)
@@ -337,7 +335,7 @@ public class Invoice extends Config {
                 .build();
         // Send request
         try {
-            Response response = client.newCall(request).execute();
+            Response response = httpClient().newCall(request).execute();
             IremboPayResponse<Invoice> iremboPayResponse = new IremboPayResponse<>();
             JSONObject responseJsonObject = new JSONObject(response.body().string());
             iremboPayResponse.setMessage(responseJsonObject.getString("message"));
@@ -363,7 +361,6 @@ public class Invoice extends Config {
     }
 
     public IremboPayResponse<Invoice> getInvoice(String invoiceReference) {
-        OkHttpClient client = new OkHttpClient();
         String url = baseUrl + "/invoices/" + invoiceReference;
         Request request = new Request.Builder()
                 .url(url)
@@ -374,7 +371,7 @@ public class Invoice extends Config {
                 .build();
 
         try {
-            Response response = client.newCall(request).execute();
+            Response response = httpClient().newCall(request).execute();
             IremboPayResponse<Invoice> iremboPayResponse = new IremboPayResponse<>();
             JSONObject responseJsonObject = new JSONObject(response.body().string());
             iremboPayResponse.setMessage(responseJsonObject.getString("message"));
@@ -410,8 +407,6 @@ public class Invoice extends Config {
 
         payload.put("paymentItems", paymentItemsArray);
 
-        OkHttpClient client = new OkHttpClient();
-
         RequestBody body = RequestBody.create(MediaType.get("application/json; charset=utf-8"), payload.toString());
 
         Request request = new Request.Builder()
@@ -423,7 +418,7 @@ public class Invoice extends Config {
                 .addHeader("irembopay-secretKey", apiKey)
                 .build();
         try {
-            Response response = client.newCall(request).execute();
+            Response response = httpClient().newCall(request).execute();
             IremboPayResponse<Invoice> iremboPayResponse = new IremboPayResponse<>();
             JSONObject responseJsonObject = new JSONObject(response.body().string());
             iremboPayResponse.setMessage(responseJsonObject.getString("message"));

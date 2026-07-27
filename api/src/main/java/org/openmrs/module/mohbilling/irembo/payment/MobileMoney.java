@@ -29,8 +29,6 @@ public class MobileMoney extends Config {
         payload.put("invoiceNumber", invoiceNumber);
         payload.put("transactionReference", transactionReference);
 
-        OkHttpClient client = new OkHttpClient();
-
         RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), payload.toString());
 
 
@@ -43,7 +41,7 @@ public class MobileMoney extends Config {
                 .addHeader("irembopay-secretKey", apiKey)
                 .build();
         try {
-            Response response = client.newCall(request).execute();
+            Response response = httpClient().newCall(request).execute();
             IremboPayResponse<Object> iremboPayResponse = new IremboPayResponse<>();
             assert response.body() != null;
             JSONObject responseJsonObject = new JSONObject(response.body().string());
