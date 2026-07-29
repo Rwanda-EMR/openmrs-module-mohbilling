@@ -1489,10 +1489,12 @@ public class BillingServiceImpl implements BillingService {
                                 paidSb.setVoided(false);
                                 BillPaymentUtil.createPaidServiceBill(paidSb);
 
-                                psb.setPaid(true);
-                                psb.setPaidQuantity(psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO);
-                                ConsommationUtil.createPatientServiceBill(psb);
-                                paidItemsCreated++;
+                                if (!Boolean.TRUE.equals(psb.getVoided())) {
+                                    psb.setPaid(true);
+                                    psb.setPaidQuantity(psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO);
+                                    ConsommationUtil.createPatientServiceBill(psb);
+                                    paidItemsCreated++;
+                                }
                             }
                             log.info("Irembo PAID invoice paid item updates complete: invoiceId=" + invoiceId
                                     + ", patientBillId=" + billToConfirm.getPatientBillId()
@@ -1715,6 +1717,9 @@ public class BillingServiceImpl implements BillingService {
             if (affectedConsommation != null && affectedConsommation.getBillItems() != null) {
                 Set<PatientServiceBill> billItems = affectedConsommation.getBillItems();
                 for (PatientServiceBill psb : billItems) {
+                    if (Boolean.TRUE.equals(psb.getVoided())) {
+                        continue;
+                    }
                     PaidServiceBill paidSb = new PaidServiceBill();
                     paidSb.setBillItem(psb);
                     BigDecimal paidQuantity = psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO;
@@ -1725,9 +1730,11 @@ public class BillingServiceImpl implements BillingService {
                     paidSb.setVoided(false);
                     billingDAO.savePaidServiceBill(paidSb);
 
-                    psb.setPaid(true);
-                    psb.setPaidQuantity(psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO);
-                    ConsommationUtil.createPatientServiceBill(psb);
+                    if (!Boolean.TRUE.equals(psb.getVoided())) {
+                        psb.setPaid(true);
+                        psb.setPaidQuantity(psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO);
+                        ConsommationUtil.createPatientServiceBill(psb);
+                    }
                 }
             }
             return true;
