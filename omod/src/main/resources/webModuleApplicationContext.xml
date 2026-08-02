@@ -267,6 +267,7 @@
 	<bean id="mohBillingViewGlobalBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingViewGlobalBillController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingViewGlobalBill</value></property>
+		<property name="voucherService" ref="rhipVoucherService" />
 	</bean>
 	<bean id="mohBillingCohortBuilderFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCohortBuilderFormController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />

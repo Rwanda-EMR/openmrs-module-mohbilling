@@ -1075,7 +1075,6 @@ public class FileExporter {
 			e.printStackTrace();
 		}
 	}
-
     public void displayServiceRevenues(Document document, GlobalBill gb,String differentialDiagnosis,String finalDiagnosis, List<ServiceRevenue> sr, FontSelector fontSelector) throws DocumentException {
 		float[] colsWidt = {5f,20f,55f,25f,15f,25f,25f,25f,25f};
 		PdfPTable table = new PdfPTable(colsWidt);
