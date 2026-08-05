@@ -37,6 +37,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.utils.Utils;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -2251,6 +2252,203 @@ public class HibernateBillingDAO implements BillingDAO {
 				.setProjection(Projections.rowCount())
 				.uniqueResult();
 		return count == null ? 0 : count.intValue();
+	}
+
+	@Override
+	public RhipVoucherItemRecord saveRhipVoucherItemRecord(RhipVoucherItemRecord record) {
+		sessionFactory.getCurrentSession().saveOrUpdate(record);
+		return record;
+	}
+
+	@Override
+	public List<RhipVoucherItemRecord> getRhipVoucherItemRecordsByGlobalBill(GlobalBill globalBill) {
+		if (globalBill == null) {
+			return Collections.emptyList();
+		}
+		return sessionFactory.getCurrentSession()
+				.createCriteria(RhipVoucherItemRecord.class)
+				.add(Restrictions.eq("globalBill", globalBill))
+				.addOrder(Order.desc("dateCreated"))
+				.addOrder(Order.desc("rhipVoucherItemRecordId"))
+				.list();
+	}
+
+	@Override
+	public RhipVoucherItemRecord getLatestRhipVoucherItemRecord(PatientServiceBill patientServiceBill) {
+		if (patientServiceBill == null) {
+			return null;
+		}
+		return (RhipVoucherItemRecord) sessionFactory.getCurrentSession()
+				.createCriteria(RhipVoucherItemRecord.class)
+				.add(Restrictions.eq("patientServiceBill", patientServiceBill))
+				.addOrder(Order.desc("dateCreated"))
+				.addOrder(Order.desc("rhipVoucherItemRecordId"))
+				.setMaxResults(1)
+				.uniqueResult();
+	}
+
+	@Override
+	public RhipVoucherSubmission saveRhipVoucherSubmission(RhipVoucherSubmission submission) {
+		sessionFactory.getCurrentSession().saveOrUpdate(submission);
+		return submission;
+	}
+
+	@Override
+	public List<RhipVoucherSubmission> getRhipVoucherSubmissionsByGlobalBill(GlobalBill globalBill) {
+		if (globalBill == null) {
+			return Collections.emptyList();
+		}
+		return sessionFactory.getCurrentSession()
+				.createCriteria(RhipVoucherSubmission.class)
+				.add(Restrictions.eq("globalBill", globalBill))
+				.addOrder(Order.desc("attemptNumber"))
+				.addOrder(Order.desc("dateSubmitted"))
+				.list();
+	}
+
+	@Override
+	public RhipVoucherSubmission getLatestRhipVoucherSubmission(GlobalBill globalBill) {
+		if (globalBill == null) {
+			return null;
+		}
+		return (RhipVoucherSubmission) sessionFactory.getCurrentSession()
+				.createCriteria(RhipVoucherSubmission.class)
+				.add(Restrictions.eq("globalBill", globalBill))
+				.addOrder(Order.desc("attemptNumber"))
+				.addOrder(Order.desc("dateSubmitted"))
+				.setMaxResults(1)
+				.uniqueResult();
+	}
+
+	@Override
+	public RhipVoucherSubmission getSuccessfulRhipVoucherSubmission(GlobalBill globalBill) {
+		if (globalBill == null) {
+			return null;
+		}
+		return (RhipVoucherSubmission) sessionFactory.getCurrentSession()
+				.createCriteria(RhipVoucherSubmission.class)
+				.add(Restrictions.eq("globalBill", globalBill))
+				.add(Restrictions.eq("status", RhipVoucherSubmission.STATUS_SENT))
+				.addOrder(Order.desc("attemptNumber"))
+				.addOrder(Order.desc("dateSubmitted"))
+				.setMaxResults(1)
+				.uniqueResult();
+	}
+
+	@Override
+	public List<GlobalBill> getRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria,
+			Integer firstResult, Integer maxResults) {
+		SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(buildRhipVoucherSubmissionSql(criteria, false));
+		bindRhipVoucherSubmissionParameters(query, criteria);
+		if (firstResult != null && firstResult > 0) {
+			query.setFirstResult(firstResult);
+		}
+		if (maxResults != null && maxResults > 0) {
+			query.setMaxResults(maxResults);
+		}
+		query.addEntity("gb", GlobalBill.class);
+		return query.list();
+	}
+
+	@Override
+	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria) {
+		SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(buildRhipVoucherSubmissionSql(criteria, true));
+		bindRhipVoucherSubmissionParameters(query, criteria);
+		Object value = query.uniqueResult();
+		if (value instanceof BigInteger) {
+			return ((BigInteger) value).intValue();
+		}
+		if (value instanceof Number) {
+			return ((Number) value).intValue();
+		}
+		return 0;
+	}
+
+	private String buildRhipVoucherSubmissionSql(RhipVoucherSubmissionSearchCriteria criteria, boolean countOnly) {
+		StringBuilder sql = new StringBuilder();
+		if (countOnly) {
+			sql.append("select count(distinct gb.global_bill_id) ");
+		} else {
+			sql.append("select distinct {gb.*} ");
+		}
+		sql.append("from moh_bill_global_bill gb ");
+		sql.append("join moh_bill_admission admission on gb.admission_id = admission.admission_id ");
+		sql.append("join moh_bill_insurance_policy policy on admission.insurance_policy_id = policy.insurance_policy_id ");
+		sql.append("join patient patient on policy.owner = patient.patient_id ");
+		sql.append("left join person_name person_name on patient.patient_id = person_name.person_id and person_name.voided = 0 ");
+		sql.append("left join patient_identifier patient_identifier on patient.patient_id = patient_identifier.patient_id and patient_identifier.voided = 0 ");
+		sql.append("left join moh_bill_insurance insurance on gb.insurance_id = insurance.insurance_id ");
+		sql.append("left join moh_bill_rhip_voucher_submission latest on latest.rhip_voucher_submission_id = ");
+		sql.append("(select latest_inner.rhip_voucher_submission_id from moh_bill_rhip_voucher_submission latest_inner ");
+		sql.append("where latest_inner.global_bill_id = gb.global_bill_id ");
+		sql.append("order by latest_inner.attempt_number desc, latest_inner.date_submitted desc, latest_inner.rhip_voucher_submission_id desc limit 1) ");
+		sql.append("where gb.closed = 1 ");
+		sql.append("and (gb.voided = 0 or gb.voided is null) ");
+		sql.append("and gb.closing_date between :dischargeStartDate and :dischargeEndDate ");
+		String status = criteria == null ? null : criteria.getStatus();
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(status)
+				&& !"ALL".equalsIgnoreCase(status.trim())) {
+			sql.append("and ");
+			sql.append(buildEffectiveSubmissionStatusSql());
+			sql.append(" = :status ");
+		}
+		if (criteria != null && org.apache.commons.lang3.StringUtils.isNotBlank(criteria.getQuery())) {
+			sql.append("and (lower(gb.bill_identifier) like :query ");
+			sql.append("or lower(policy.insurance_card_no) like :query ");
+			sql.append("or lower(patient_identifier.identifier) like :query ");
+			sql.append("or lower(concat(coalesce(person_name.given_name, ''), ' ', coalesce(person_name.family_name, ''))) like :query) ");
+		}
+		if (!countOnly) {
+			sql.append("order by ").append(resolveRhipVoucherSubmissionSort(criteria)).append(" ")
+					.append(resolveSortDirection(criteria)).append(", gb.global_bill_id desc");
+		}
+		return sql.toString();
+	}
+
+	private String buildEffectiveSubmissionStatusSql() {
+		return "(case when (gb.rhip_voucher_code is not null and gb.rhip_voucher_code <> '') "
+				+ "or (gb.rhip_voucher_reference_number is not null and gb.rhip_voucher_reference_number <> '') "
+				+ "or exists (select 1 from moh_bill_rhip_voucher_submission sent_sub "
+				+ "where sent_sub.global_bill_id = gb.global_bill_id and sent_sub.status = '"
+				+ RhipVoucherSubmission.STATUS_SENT + "') "
+				+ "then '" + RhipVoucherSubmission.STATUS_SENT + "' "
+				+ "when latest.status is null then '" + RhipVoucherSubmission.STATUS_NOT_SENT + "' "
+				+ "else latest.status end)";
+	}
+
+	private void bindRhipVoucherSubmissionParameters(SQLQuery query, RhipVoucherSubmissionSearchCriteria criteria) {
+		query.setTimestamp("dischargeStartDate", criteria == null ? null : criteria.getDischargeStartDate());
+		query.setTimestamp("dischargeEndDate", criteria == null ? null : criteria.getDischargeEndDate());
+		String status = criteria == null ? null : criteria.getStatus();
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(status)
+				&& !"ALL".equalsIgnoreCase(status.trim())) {
+			query.setString("status", status.trim().toUpperCase());
+		}
+		if (criteria != null && org.apache.commons.lang3.StringUtils.isNotBlank(criteria.getQuery())) {
+			query.setString("query", "%" + criteria.getQuery().trim().toLowerCase() + "%");
+		}
+	}
+
+	private String resolveRhipVoucherSubmissionSort(RhipVoucherSubmissionSearchCriteria criteria) {
+		String sort = criteria == null ? null : criteria.getSortBy();
+		if ("patientName".equalsIgnoreCase(sort)) {
+			return "person_name.given_name";
+		}
+		if ("globalBillNumber".equalsIgnoreCase(sort)) {
+			return "gb.bill_identifier";
+		}
+		if ("totalAmount".equalsIgnoreCase(sort)) {
+			return "gb.global_amount";
+		}
+		if ("status".equalsIgnoreCase(sort)) {
+			return buildEffectiveSubmissionStatusSql();
+		}
+		return "gb.closing_date";
+	}
+
+	private String resolveSortDirection(RhipVoucherSubmissionSearchCriteria criteria) {
+		String direction = criteria == null ? null : criteria.getSortDirection();
+		return "asc".equalsIgnoreCase(direction) ? "asc" : "desc";
 	}
 
 	private Criteria buildRhipIntegrationLogCriteria(RhipIntegrationLogSearchCriteria searchCriteria) {

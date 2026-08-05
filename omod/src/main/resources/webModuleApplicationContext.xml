@@ -53,6 +53,7 @@
 				<prop key="module/@MODULE_ID@/refundBillReport.form">mohBillingRefundReportController</prop>
 				<prop key="module/@MODULE_ID@/billingAdmin.form">mohBillingAdminFormController</prop>
 				<prop key="module/@MODULE_ID@/rhipIntegrationLogs.form">mohBillingRhipIntegrationLogListController</prop>
+				<prop key="module/@MODULE_ID@/rhipVoucherSubmissions.form">mohBillingRhipVoucherSubmissionController</prop>
 				<prop key="module/@MODULE_ID@/department.form">mohBillingDepartmentFormController</prop>
 				<prop key="module/@MODULE_ID@/admission.form">mohBillingAdmissionFormController</prop>
 				<prop key="module/@MODULE_ID@/departments.list">mohBillingDepartmentListController</prop>
@@ -186,6 +187,12 @@
 		<property name="supportedMethods" value="GET,POST" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingRhipIntegrationLogList</value></property>
 		<property name="billingService" ref="mohBillingService" />
+	</bean>
+	<bean id="mohBillingRhipVoucherSubmissionController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRhipVoucherSubmissionController">
+		<property name="supportedMethods" value="GET,POST" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingRhipVoucherSubmission</value></property>
+		<property name="billingService" ref="mohBillingService" />
+		<property name="voucherService" ref="rhipVoucherService" />
 	</bean>
 
 	<bean id="mohBillingDepartmentFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentFormController">

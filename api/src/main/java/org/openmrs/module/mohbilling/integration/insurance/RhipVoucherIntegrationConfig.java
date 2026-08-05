@@ -9,7 +9,7 @@ import java.util.Set;
 public class RhipVoucherIntegrationConfig {
 
 	private static final String VOUCHER_PREFIX = "mohbilling.rhipVoucher.";
-	private static final String DEFAULT_ENABLED_VOUCHER_INSURANCE_KEYS = "MUTUELLE,RAMA,RSSB,MMI";
+	private static final String DEFAULT_ENABLED_VOUCHER_INSURANCE_KEYS = "MUTUELLE,RAMA,RSSB,SPECIAL_CASE,MMI";
 	private static final String SHARED_API_PREFIX = "/insurance_integration/api/v2";
 	public static final String SHARED_BASE_URL = "mohbilling.rhip.baseUrl";
 	public static final String VOUCHER_URL = VOUCHER_PREFIX + "url";

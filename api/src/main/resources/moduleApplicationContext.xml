@@ -68,6 +68,7 @@
 		<bean id="rhipVoucherProvider" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherProvider">
 			<property name="config" ref="rhipVoucherIntegrationConfig"/>
 		</bean>
+		<bean id="rpmVoucherItemResolver" class="org.openmrs.module.mohbilling.integration.insurance.RpmVoucherItemResolver"/>
 		<bean id="rhipVoucherService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
 			<property name="transactionManager" ref="transactionManager"/>
 			<property name="target">
@@ -78,6 +79,7 @@
 					<property name="personService" ref="personService"/>
 					<property name="providerService" ref="providerService"/>
 					<property name="billingService" ref="mohBillingService"/>
+					<property name="rpmVoucherItemResolver" ref="rpmVoucherItemResolver"/>
 				</bean>
 			</property>
 			<property name="preInterceptors" ref="serviceInterceptors"/>

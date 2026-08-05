@@ -20,6 +20,9 @@
 	<li class="<c:if test='<%= request.getRequestURI().contains("billingConfig")%>'> active</c:if>">
 	<a href="billingConfig.form">Billing Configuration</a>
 	</li>
+	<li class="<c:if test='<%= request.getRequestURI().contains("rhipVoucherSubmissions")%>'> active</c:if>">
+	<a href="rhipVoucherSubmissions.form" style="white-space: nowrap;">RHIP Voucher Submission</a>
+	</li>
 	<li class="<c:if test='<%= request.getRequestURI().contains("rhipIntegrationLogs")%>'> active</c:if>">
 	<a href="rhipIntegrationLogs.form" style="white-space: nowrap;">RHIP Integration Logs</a>
 	</li>

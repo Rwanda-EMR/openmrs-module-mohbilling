@@ -26,9 +26,11 @@ import org.openmrs.module.mohbilling.service.BillingService;
 import javax.net.ssl.SSLException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -38,6 +40,7 @@ public class RhipVoucherProvider {
 
 	private static final String MMI_INSURANCE_TYPE = "MMI";
 	private static final String RAMA_INSURANCE_TYPE = "rama";
+	private static final String SPECIAL_CASE_INSURANCE_TYPE = "special_case";
 	private static final String DEFAULT_RAMA_PRESCRIPTION_DESTINATION = "FACILITY_DISPENSE";
 	private static final String PRACTITIONER_TYPE_FOREIGN = "FOREIGN";
 
@@ -74,13 +77,13 @@ public class RhipVoucherProvider {
 	}
 
 	private String buildVoucherJson(RhipVoucherRequest request) {
+		if (isRamaInsuranceType(request.getInsuranceType())) {
+			return buildRamaVoucherJson(request);
+		}
 		Map<String, Object> payload = new LinkedHashMap<>();
 		payload.put("insuranceType", normalizeInsuranceTypeForRhip(request.getInsuranceType()));
 		payload.put("facilityFosaId", request.getFacilityFosaId());
 		payload.put("patientIdentifier", request.getPatientIdentifier());
-		if (isMmiInsuranceType(request.getInsuranceType())) {
-			payload.put("receptionNumber", request.getReceptionNumber());
-		}
 		payload.put("procedures", request.getProcedures());
 		payload.put("userAccountCode", request.getUserAccountCode());
 		payload.put("processedBy", request.getProcessedBy());
@@ -88,7 +91,9 @@ public class RhipVoucherProvider {
 			payload.put("notes", request.getNotes());
 		}
 		payload.put("practitionerLicenseNumber", request.getPractitionerLicenseNumber());
-		payload.put("patientType", request.getPatientType());
+		if (!isRamaInsuranceType(request.getInsuranceType())) {
+			payload.put("patientType", request.getPatientType());
+		}
 		payload.put("healthCareStayType", request.getHealthCareStayType());
 		payload.put("admissionDate", request.getAdmissionDate());
 		payload.put("dischargeDate", request.getDischargeDate());
@@ -96,8 +101,51 @@ public class RhipVoucherProvider {
 		payload.put("diagnosisIds", request.getDiagnosisIds());
 		payload.put("patientPhoneNumber", request.getPatientPhoneNumber());
 		payload.put("prescriptionDestination", resolvePrescriptionDestination(request));
+		payload.put("visitReferenceNumber", resolveVisitReferenceNumber(request));
+		return toJson(payload);
+	}
+
+	private String buildRamaVoucherJson(RhipVoucherRequest request) {
+		Map<String, Object> payload = new LinkedHashMap<>();
+		payload.put("insuranceType", normalizeInsuranceTypeForRhip(request.getInsuranceType()));
+		payload.put("facilityFosaId", request.getFacilityFosaId());
+		payload.put("patientIdentifier", request.getPatientIdentifier());
+		payload.put("procedures", buildRamaProcedures(request.getProcedures()));
+		payload.put("practitionerLicenseNumber", request.getPractitionerLicenseNumber());
+		payload.put("healthCareStayType", request.getHealthCareStayType());
+		payload.put("admissionDate", request.getAdmissionDate());
+		payload.put("diagnosisIds", request.getDiagnosisIds());
+		payload.put("patientPhoneNumber", request.getPatientPhoneNumber());
+		payload.put("prescriptionDestination", resolvePrescriptionDestination(request));
 		payload.put("visitReferenceNumber", request.getVisitReferenceNumber());
 		return toJson(payload);
+	}
+
+	private List<Map<String, Object>> buildRamaProcedures(List<RhipVoucherProcedure> procedures) {
+		List<Map<String, Object>> ramaProcedures = new ArrayList<>();
+		if (procedures == null) {
+			return ramaProcedures;
+		}
+		for (RhipVoucherProcedure procedure : procedures) {
+			if (procedure == null) {
+				continue;
+			}
+			Map<String, Object> ramaProcedure = new LinkedHashMap<>();
+			ramaProcedure.put("code", procedure.getCode());
+			ramaProcedure.put("quantity", procedure.getQuantity());
+			ramaProcedure.put("prescribedAt", procedure.getPrescribedAt());
+			if (StringUtils.isNotBlank(procedure.getPosology())) {
+				ramaProcedure.put("posology", procedure.getPosology().trim());
+			}
+			if (StringUtils.isNotBlank(procedure.getFrequency())) {
+				ramaProcedure.put("frequency", procedure.getFrequency().trim());
+			}
+			if (procedure.getDurationDays() != null) {
+				ramaProcedure.put("durationDays", procedure.getDurationDays());
+			}
+			ramaProcedures.add(ramaProcedure);
+		}
+		return ramaProcedures;
 	}
 
 	private String resolvePrescriptionDestination(RhipVoucherRequest request) {
@@ -109,6 +157,23 @@ public class RhipVoucherProvider {
 		}
 		if (RAMA_INSURANCE_TYPE.equals(normalizeInsuranceTypeForRhip(request.getInsuranceType()))) {
 			return DEFAULT_RAMA_PRESCRIPTION_DESTINATION;
+		}
+		return null;
+	}
+
+	private boolean isRamaInsuranceType(String insuranceType) {
+		return RAMA_INSURANCE_TYPE.equals(normalizeInsuranceTypeForRhip(insuranceType));
+	}
+
+	private String resolveVisitReferenceNumber(RhipVoucherRequest request) {
+		if (request == null) {
+			return null;
+		}
+		if (StringUtils.isNotBlank(request.getVisitReferenceNumber())) {
+			return request.getVisitReferenceNumber().trim();
+		}
+		if (isMmiInsuranceType(request.getInsuranceType())) {
+			return StringUtils.trimToNull(request.getReceptionNumber());
 		}
 		return null;
 	}
@@ -422,6 +487,9 @@ public class RhipVoucherProvider {
 		String normalized = insuranceType.trim();
 		if ("MUTUELLE".equalsIgnoreCase(normalized)) {
 			return "cbhi";
+		}
+		if ("SPECIAL CASE".equalsIgnoreCase(normalized) || "SPECIAL_CASE".equalsIgnoreCase(normalized)) {
+			return SPECIAL_CASE_INSURANCE_TYPE;
 		}
 		return normalized.toLowerCase();
 	}

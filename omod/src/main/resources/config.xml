@@ -488,6 +488,26 @@
         <description>Allows user to configure billing module</description>
     </privilege>
 
+    <privilege>
+        <name>Billing RHIP Voucher - View Submission Page</name>
+        <description>Allows user to view RHIP voucher submission page</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - Send</name>
+        <description>Allows user to send RHIP vouchers</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - Retry</name>
+        <description>Allows user to retry failed RHIP voucher submissions</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - View History</name>
+        <description>Allows user to view RHIP voucher submission history</description>
+    </privilege>
+
     <!-- Manage billing admission -->
     <privilege>
         <name>Manage Admission</name>
@@ -598,6 +618,8 @@
         PaymentRefund.hbm.xml
         RhipPractitionerType.hbm.xml
         RhipIntegrationLog.hbm.xml
+        RhipVoucherSubmission.hbm.xml
+        RhipVoucherItemRecord.hbm.xml
     </mappingFiles>
 
 </module>

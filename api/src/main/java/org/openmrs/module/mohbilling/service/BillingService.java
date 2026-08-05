@@ -757,4 +757,15 @@ public interface BillingService {
 	 * @return the saved consommation with patient, insurance and third-party bills attached
 	 */
 	Consommation createAmbulanceBill(String insurancePolicyNumber, int kilometers, String description);
+
+	public RhipVoucherItemRecord saveRhipVoucherItemRecord(RhipVoucherItemRecord record);
+	public List<RhipVoucherItemRecord> getRhipVoucherItemRecordsByGlobalBill(GlobalBill globalBill);
+	public RhipVoucherItemRecord getLatestRhipVoucherItemRecord(PatientServiceBill patientServiceBill);
+	public RhipVoucherSubmission saveRhipVoucherSubmission(RhipVoucherSubmission submission);
+	public List<RhipVoucherSubmission> getRhipVoucherSubmissionsByGlobalBill(GlobalBill globalBill);
+	public RhipVoucherSubmission getLatestRhipVoucherSubmission(GlobalBill globalBill);
+	public RhipVoucherSubmission getSuccessfulRhipVoucherSubmission(GlobalBill globalBill);
+	public List<GlobalBill> getRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria,
+			Integer firstResult, Integer maxResults);
+	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria);
 }

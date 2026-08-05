@@ -2602,4 +2602,57 @@ public class BillingServiceImpl implements BillingService {
 		throw new APIException("No active ambulance billable service found for insurance: " + insurance.getName());
 	}
 
+	@Override
+	public RhipVoucherItemRecord saveRhipVoucherItemRecord(RhipVoucherItemRecord record) {
+		return billingDAO.saveRhipVoucherItemRecord(record);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<RhipVoucherItemRecord> getRhipVoucherItemRecordsByGlobalBill(GlobalBill globalBill) {
+		return billingDAO.getRhipVoucherItemRecordsByGlobalBill(globalBill);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public RhipVoucherItemRecord getLatestRhipVoucherItemRecord(PatientServiceBill patientServiceBill) {
+		return billingDAO.getLatestRhipVoucherItemRecord(patientServiceBill);
+	}
+
+	@Override
+	public RhipVoucherSubmission saveRhipVoucherSubmission(RhipVoucherSubmission submission) {
+		return billingDAO.saveRhipVoucherSubmission(submission);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<RhipVoucherSubmission> getRhipVoucherSubmissionsByGlobalBill(GlobalBill globalBill) {
+		return billingDAO.getRhipVoucherSubmissionsByGlobalBill(globalBill);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public RhipVoucherSubmission getLatestRhipVoucherSubmission(GlobalBill globalBill) {
+		return billingDAO.getLatestRhipVoucherSubmission(globalBill);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public RhipVoucherSubmission getSuccessfulRhipVoucherSubmission(GlobalBill globalBill) {
+		return billingDAO.getSuccessfulRhipVoucherSubmission(globalBill);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<GlobalBill> getRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria,
+			Integer firstResult, Integer maxResults) {
+		return billingDAO.getRhipVoucherSubmissionGlobalBills(criteria, firstResult, maxResults);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria) {
+		return billingDAO.countRhipVoucherSubmissionGlobalBills(criteria);
+	}
+
 }
