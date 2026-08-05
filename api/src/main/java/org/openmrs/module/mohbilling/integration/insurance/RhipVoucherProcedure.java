@@ -1,5 +1,7 @@
 package org.openmrs.module.mohbilling.integration.insurance;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 
 public class RhipVoucherProcedure {
@@ -7,6 +9,11 @@ public class RhipVoucherProcedure {
 	private BigDecimal quantity;
 	private String prescribedAt;
 	private BigDecimal price;
+	private String posology;
+	private String frequency;
+	private Integer durationDays;
+	private String instructions;
+	private Integer patientServiceBillId;
 
 	public String getCode() {
 		return code;
@@ -38,5 +45,46 @@ public class RhipVoucherProcedure {
 
 	public void setPrice(BigDecimal price) {
 		this.price = price;
+	}
+
+	public String getPosology() {
+		return posology;
+	}
+
+	public void setPosology(String posology) {
+		this.posology = posology;
+	}
+
+	public String getFrequency() {
+		return frequency;
+	}
+
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
+	}
+
+	public Integer getDurationDays() {
+		return durationDays;
+	}
+
+	public void setDurationDays(Integer durationDays) {
+		this.durationDays = durationDays;
+	}
+
+	public String getInstructions() {
+		return instructions;
+	}
+
+	public void setInstructions(String instructions) {
+		this.instructions = instructions;
+	}
+
+	@JsonIgnore
+	public Integer getPatientServiceBillId() {
+		return patientServiceBillId;
+	}
+
+	public void setPatientServiceBillId(Integer patientServiceBillId) {
+		this.patientServiceBillId = patientServiceBillId;
 	}
 }

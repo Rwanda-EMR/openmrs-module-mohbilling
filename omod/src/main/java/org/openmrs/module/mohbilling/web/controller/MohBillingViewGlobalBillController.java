@@ -11,6 +11,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.integration.IntegrationResponse;
 import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherIntegrationConfig;
 import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
@@ -28,7 +29,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MohBillingViewGlobalBillController extends
 			ParameterizableViewController {
@@ -88,6 +91,7 @@ public class MohBillingViewGlobalBillController extends
 			mav.addObject("globalBill", globalBill);
 			mav.addObject("patientIdentifier",patientIdentifier);
 			mav.addObject("showRhipVoucherButton", shouldShowRhipVoucherButton(globalBill));
+			mav.addObject("rhipVoucherItemRecordsByItemId", getLatestRhipVoucherItemRecordsByItemId(globalBill));
 			request.getSession().setAttribute("globalBill" , globalBill);
 
 		}
@@ -197,6 +201,33 @@ public class MohBillingViewGlobalBillController extends
 
 	public void setVoucherIntegrationConfig(RhipVoucherIntegrationConfig voucherIntegrationConfig) {
 		this.voucherIntegrationConfig = voucherIntegrationConfig;
+	}
+
+	private Map<Integer, RhipVoucherItemRecord> getLatestRhipVoucherItemRecordsByItemId(GlobalBill globalBill) {
+		Map<Integer, RhipVoucherItemRecord> recordsByItemId = new HashMap<Integer, RhipVoucherItemRecord>();
+		if (globalBill == null) {
+			return recordsByItemId;
+		}
+		try {
+			BillingService billingService = Context.getService(BillingService.class);
+			List<RhipVoucherItemRecord> records = billingService.getRhipVoucherItemRecordsByGlobalBill(globalBill);
+			if (records == null) {
+				return recordsByItemId;
+			}
+			for (RhipVoucherItemRecord record : records) {
+				if (record == null || record.getPatientServiceBill() == null
+						|| record.getPatientServiceBill().getPatientServiceBillId() == null) {
+					continue;
+				}
+				Integer itemId = record.getPatientServiceBill().getPatientServiceBillId();
+				if (!recordsByItemId.containsKey(itemId)) {
+					recordsByItemId.put(itemId, record);
+				}
+			}
+		} catch (Exception e) {
+			log.warn("Unable to load RHIP voucher item records for global bill " + globalBill.getGlobalBillId(), e);
+		}
+		return recordsByItemId;
 	}
 
 	private boolean shouldShowRhipVoucherButton(GlobalBill globalBill) {

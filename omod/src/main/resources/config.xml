@@ -190,8 +190,19 @@
         </description>
     </globalProperty>
     <globalProperty>
+        <property>mohbilling.rhip.baseUrl</property>
+        <defaultValue></defaultValue>
+        <description>
+            Base URL for RHIP shared insurance integration API. Example:
+            https://rhip-stag.moh.gov.rw/backend. When configured, mohbilling derives
+            /insurance_integration/api/v2/voucher and practitioner endpoint URLs from this value
+            unless the older full endpoint URL properties are configured.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>mohbilling.rhipVoucher.enabledInsuranceKeys</property>
-        <defaultValue>MUTUELLE,MMI</defaultValue>
+        <defaultValue>MUTUELLE,RAMA,RSSB,MMI</defaultValue>
         <description>
             Comma-separated insurance keys that can show Send RHIP Voucher button.
             Each key matches either insurance category exactly or insurance name containing the key (case-insensitive).
@@ -477,6 +488,26 @@
         <description>Allows user to configure billing module</description>
     </privilege>
 
+    <privilege>
+        <name>Billing RHIP Voucher - View Submission Page</name>
+        <description>Allows user to view RHIP voucher submission page</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - Send</name>
+        <description>Allows user to send RHIP vouchers</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - Retry</name>
+        <description>Allows user to retry failed RHIP voucher submissions</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - View History</name>
+        <description>Allows user to view RHIP voucher submission history</description>
+    </privilege>
+
     <!-- Manage billing admission -->
     <privilege>
         <name>Manage Admission</name>
@@ -587,6 +618,8 @@
         PaymentRefund.hbm.xml
         RhipPractitionerType.hbm.xml
         RhipIntegrationLog.hbm.xml
+        RhipVoucherSubmission.hbm.xml
+        RhipVoucherItemRecord.hbm.xml
     </mappingFiles>
 
 </module>

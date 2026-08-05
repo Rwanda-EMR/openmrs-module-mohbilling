@@ -737,6 +737,16 @@ public interface BillingDAO {
 	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);
 	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult, Integer maxResults);
 	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria);
+	public RhipVoucherItemRecord saveRhipVoucherItemRecord(RhipVoucherItemRecord record);
+	public List<RhipVoucherItemRecord> getRhipVoucherItemRecordsByGlobalBill(GlobalBill globalBill);
+	public RhipVoucherItemRecord getLatestRhipVoucherItemRecord(PatientServiceBill patientServiceBill);
+	public RhipVoucherSubmission saveRhipVoucherSubmission(RhipVoucherSubmission submission);
+	public List<RhipVoucherSubmission> getRhipVoucherSubmissionsByGlobalBill(GlobalBill globalBill);
+	public RhipVoucherSubmission getLatestRhipVoucherSubmission(GlobalBill globalBill);
+	public RhipVoucherSubmission getSuccessfulRhipVoucherSubmission(GlobalBill globalBill);
+	public List<GlobalBill> getRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria,
+			Integer firstResult, Integer maxResults);
+	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria);
 
 	/*public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
 														User collector);

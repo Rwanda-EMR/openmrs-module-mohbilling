@@ -9,7 +9,9 @@ import java.util.Set;
 public class RhipVoucherIntegrationConfig {
 
 	private static final String VOUCHER_PREFIX = "mohbilling.rhipVoucher.";
-	private static final String DEFAULT_ENABLED_VOUCHER_INSURANCE_KEYS = "MUTUELLE,MMI";
+	private static final String DEFAULT_ENABLED_VOUCHER_INSURANCE_KEYS = "MUTUELLE,RAMA,RSSB,SPECIAL_CASE,MMI";
+	private static final String SHARED_API_PREFIX = "/insurance_integration/api/v2";
+	public static final String SHARED_BASE_URL = "mohbilling.rhip.baseUrl";
 	public static final String VOUCHER_URL = VOUCHER_PREFIX + "url";
 	public static final String VOUCHER_API_KEY = VOUCHER_PREFIX + "apiKey";
 	public static final String VOUCHER_API_ORIGIN = VOUCHER_PREFIX + "apiOrigin";
@@ -40,7 +42,7 @@ public class RhipVoucherIntegrationConfig {
 			VOUCHER_PREFIX + "practitionerPhoneProviderAttributeTypeUuid";
 
 	public String getVoucherUrl() {
-		return Context.getAdministrationService().getGlobalProperty(VOUCHER_URL);
+		return configuredUrlOrSharedPath(VOUCHER_URL, "/voucher");
 	}
 
 	public String getVoucherApiKey() {
@@ -117,15 +119,15 @@ public class RhipVoucherIntegrationConfig {
 	}
 
 	public String getPractitionerDetailsUrl() {
-		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_DETAILS_URL);
+		return configuredUrlOrSharedPath(PRACTITIONER_DETAILS_URL, "/practitioner/details");
 	}
 
 	public String getPractitionerCreateUrl() {
-		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_CREATE_URL);
+		return configuredUrlOrSharedPath(PRACTITIONER_CREATE_URL, "/practitioner/create");
 	}
 
 	public String getPractitionerTypesUrl() {
-		return Context.getAdministrationService().getGlobalProperty(PRACTITIONER_TYPES_URL);
+		return configuredUrlOrSharedPath(PRACTITIONER_TYPES_URL, "/practitioner/types");
 	}
 
 	public String getPractitionerTypeProviderAttributeTypeUuid() {
@@ -171,5 +173,36 @@ public class RhipVoucherIntegrationConfig {
 
 	public boolean isVoucherEnabled() {
 		return StringUtils.isNotBlank(getVoucherUrl());
+	}
+
+	public String getSharedBaseUrl() {
+		return Context.getAdministrationService().getGlobalProperty(SHARED_BASE_URL);
+	}
+
+	private String configuredUrlOrSharedPath(String property, String endpointPath) {
+		String configured = Context.getAdministrationService().getGlobalProperty(property);
+		if (StringUtils.isNotBlank(configured)) {
+			return configured;
+		}
+		String baseUrl = getSharedBaseUrl();
+		if (StringUtils.isBlank(baseUrl)) {
+			return null;
+		}
+		return joinUrl(baseUrl, endpointPath);
+	}
+
+	private String joinUrl(String baseUrl, String endpointPath) {
+		String normalizedBase = baseUrl.trim();
+		if (normalizedBase.endsWith("/")) {
+			normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
+		}
+		if (!normalizedBase.endsWith(SHARED_API_PREFIX)) {
+			normalizedBase = normalizedBase + SHARED_API_PREFIX;
+		}
+		String normalizedPath = endpointPath == null ? "" : endpointPath.trim();
+		if (!normalizedPath.startsWith("/")) {
+			normalizedPath = "/" + normalizedPath;
+		}
+		return normalizedBase + normalizedPath;
 	}
 }

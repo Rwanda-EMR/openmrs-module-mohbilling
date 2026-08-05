@@ -250,6 +250,7 @@
 			<th>100%</th>
 			<th><b>Insurance rate: ${insuranceRate}</b>%</th>
 			<th><b>Patient rate: ${patientRate}</b> %</th>
+			<th>RHIP Status</th>
 		</tr>
 		<c:set var="total100" value="0"/>
 		<c:set var="totalInsurance" value="0"/>
@@ -260,6 +261,7 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b>${sr.service }</b></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
@@ -283,6 +285,15 @@
 						<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${itemCost}" type="number" pattern="#.##"/></td>
 						<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${(itemCost*insuranceRate)/100 }" type="number" pattern="#.##"/></td>
 						<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${(itemCost*patientRate)/100 }" type="number" pattern="#.##"/></td>
+						<td class="rowValue ${(status.count%2!=0)?'even':''}">
+							<c:set var="rhipItemRecord" value="${rhipVoucherItemRecordsByItemId[item.patientServiceBillId]}" />
+							<c:if test="${not empty rhipItemRecord}">
+								<b>${rhipItemRecord.status}</b>
+								<c:if test="${not empty rhipItemRecord.rejectionReason}">
+									<br/>${rhipItemRecord.rejectionReason}
+								</c:if>
+							</c:if>
+						</td>
 					</tr>
 					<!-- total by service category -->
 					<c:set var="totalByCategory100" value="${totalByCategory100+itemCost}"/>
@@ -304,6 +315,7 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategory100}" type="number" pattern="#.##"/></b></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategoryInsurance}" type="number" pattern="#.##"/></b></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategoryTM}" type="number" pattern="#.##"/></b></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 				</tr>
 			</c:if>
 		</c:forEach>
@@ -317,6 +329,7 @@
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${total100}" type="number" pattern="#.##"/></b></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${totalInsurance}" type="number" pattern="#.##"/></b></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${totalTM}" type="number" pattern="#.##"/></b></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 		</tr>
 	</table>
 </div>

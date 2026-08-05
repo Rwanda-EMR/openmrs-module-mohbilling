@@ -19,6 +19,8 @@ public class RhipVoucherRequest {
 	private Boolean treatmentForNewBorn;
 	private List<String> diagnosisIds;
 	private String patientPhoneNumber;
+	private String prescriptionDestination;
+	private String visitReferenceNumber;
 
 	public String getInsuranceType() {
 		return insuranceType;
@@ -146,5 +148,21 @@ public class RhipVoucherRequest {
 
 	public void setPatientPhoneNumber(String patientPhoneNumber) {
 		this.patientPhoneNumber = patientPhoneNumber;
+	}
+
+	public String getPrescriptionDestination() {
+		return prescriptionDestination;
+	}
+
+	public void setPrescriptionDestination(String prescriptionDestination) {
+		this.prescriptionDestination = prescriptionDestination;
+	}
+
+	public String getVisitReferenceNumber() {
+		return visitReferenceNumber;
+	}
+
+	public void setVisitReferenceNumber(String visitReferenceNumber) {
+		this.visitReferenceNumber = visitReferenceNumber;
 	}
 }

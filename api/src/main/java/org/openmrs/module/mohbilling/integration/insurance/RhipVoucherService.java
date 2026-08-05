@@ -30,6 +30,8 @@ import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.RhipIntegrationLog;
+import org.openmrs.module.mohbilling.model.RhipVoucherItemRecord;
+import org.openmrs.module.mohbilling.model.RhipVoucherSubmission;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.service.RhipPractitionerTypeService;
 import org.openmrs.module.mohbilling.utils.Utils;
@@ -43,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +59,11 @@ public class RhipVoucherService {
 
 	private static final Log log = LogFactory.getLog(RhipVoucherService.class);
 	private static final String CBHI_INSURANCE_TYPE = "CBHI";
+	private static final String RAMA_INSURANCE_TYPE = "RAMA";
 	private static final String MMI_INSURANCE_TYPE = "MMI";
+	private static final String SPECIAL_CASE_INSURANCE_TYPE = "SPECIAL_CASE";
+	private static final String DEFAULT_RAMA_PRESCRIPTION_DESTINATION = "FACILITY_DISPENSE";
+	private static final String MEDICAMENTS_SERVICE_CATEGORY = "MEDICAMENTS";
 	private static final String DATE_FORMAT = "yyyy-MM-dd";
 	private static final String PRACTITIONER_TYPE_LOCAL = "LOCAL";
 	private static final String PRACTITIONER_TYPE_FOREIGN = "FOREIGN";
@@ -70,6 +77,8 @@ public class RhipVoucherService {
 	private static final Pattern ICD_CODE_PATTERN = Pattern.compile("^(?=.*\\d)[A-Za-z0-9.]+$");
 	private static final Pattern ICD_CODE_WITH_NAME_PATTERN =
 			Pattern.compile("([A-Za-z0-9.]+)\\s*-");
+	private static final Pattern DASH_SEPARATED_PROCEDURE_CODE =
+			Pattern.compile(".*?-([A-Z]{4}(?:-[A-Z0-9]+)+-[0-9]+)$");
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	private RhipVoucherProvider voucherProvider;
@@ -80,12 +89,13 @@ public class RhipVoucherService {
 	private ConceptService conceptService;
 	private final Map<String, String> practitionerSubCategoryNameToIdCache = new ConcurrentHashMap<>();
 	private RhipPractitionerTypeService rhipPractitionerTypeService;
+	private RpmVoucherItemResolver rpmVoucherItemResolver;
 
 	public IntegrationResponse submitVoucher(RhipVoucherRequest request) {
 		if (request != null && !isSupportedVoucherInsuranceType(request.getInsuranceType())) {
 			IntegrationResponse ret = new IntegrationResponse();
 			ret.setEnabled(config != null && config.isVoucherEnabled());
-			ret.setErrorMessage("insuranceType must be CBHI, MUTUELLE, or MMI");
+			ret.setErrorMessage("insuranceType must be CBHI, MUTUELLE, SPECIAL_CASE, RAMA, RSSB, or MMI");
 			return ret;
 		}
 		IntegrationResponse validation = validateVoucherRequest(request);
@@ -113,11 +123,28 @@ public class RhipVoucherService {
 			ret.setErrorMessage("RHIP voucher already exists for this global bill");
 			return ret;
 		}
-		RhipVoucherRequest request = buildVoucherRequestFromGlobalBill(globalBill, eligibilityIdentifier);
+		RhipVoucherRequest request;
+		try {
+			request = buildVoucherRequestFromGlobalBill(globalBill, eligibilityIdentifier);
+		}
+		catch (IllegalStateException e) {
+			IntegrationResponse ret = new IntegrationResponse();
+			ret.setEnabled(config != null && config.isVoucherEnabled());
+			ret.setErrorMessage("Invalid RHIP voucher request: " + e.getMessage());
+			return ret;
+		}
 		if (request == null) {
 			IntegrationResponse ret = new IntegrationResponse();
 			ret.setEnabled(config != null && config.isVoucherEnabled());
 			ret.setErrorMessage("Unable to build voucher request from global bill");
+			return ret;
+		}
+		rejectNonPositivePriceProcedures(globalBill, request);
+		if (!isRamaInsuranceType(request.getInsuranceType())
+				&& (request.getProcedures() == null || request.getProcedures().isEmpty())) {
+			IntegrationResponse ret = new IntegrationResponse();
+			ret.setEnabled(config != null && config.isVoucherEnabled());
+			ret.setErrorMessage("Unable to submit RHIP voucher: all voucher items have zero or missing prices");
 			return ret;
 		}
 		IntegrationResponse validation = validateVoucherRequest(request);
@@ -125,13 +152,110 @@ public class RhipVoucherService {
 			persistLocalVoucherValidationLog(request, validation);
 			return validation;
 		}
-		if (!isMmiInsuranceType(request.getInsuranceType())) {
+		if (requiresPractitionerRegistration(request.getInsuranceType())) {
 			IntegrationResponse practitionerCheck = ensurePractitionerRegistered(request, resolveProcessedBy(globalBill));
 			if (practitionerCheck != null && practitionerCheck.getErrorMessage() != null) {
 				return practitionerCheck;
 			}
 		}
-		return submitVoucher(request);
+		IntegrationResponse response = submitVoucher(request);
+		return handlePartialVoucherSubmission(globalBill, request, response);
+	}
+
+	public RhipVoucherSubmission submitVoucherForGlobalBillWithAudit(GlobalBill globalBill) {
+		return submitVoucherForGlobalBillWithAudit(globalBill, null);
+	}
+
+	public RhipVoucherSubmission submitVoucherForGlobalBillWithAudit(GlobalBill globalBill, String eligibilityIdentifier) {
+		User currentUser = getAuthenticatedUserSafely();
+		RhipVoucherSubmission submission = newVoucherSubmission(globalBill, currentUser);
+		if (billingService == null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Billing service is not configured");
+			return submission;
+		}
+		if (globalBill == null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Global bill is required");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		if (hasExistingVoucherIdentifiers(globalBill)
+				|| billingService.getSuccessfulRhipVoucherSubmission(globalBill) != null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("RHIP voucher already exists for this global bill");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		if (!Boolean.TRUE.equals(globalBill.getClosed())) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Global Bill must be discharged before sending a voucher");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+
+		RhipVoucherRequest request;
+		try {
+			request = buildVoucherRequestFromGlobalBill(globalBill, eligibilityIdentifier);
+		}
+		catch (IllegalStateException e) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Invalid RHIP voucher request: " + e.getMessage());
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		submission.setRequestPayload(toJson(request));
+		if (request == null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Unable to build voucher request from global bill");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		rejectNonPositivePriceProcedures(globalBill, request);
+		submission.setRequestPayload(toJson(request));
+		if (!isRamaInsuranceType(request.getInsuranceType())
+				&& (request.getProcedures() == null || request.getProcedures().isEmpty())) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Unable to submit RHIP voucher: all voucher items have zero or missing prices");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		IntegrationResponse validation = validateVoucherRequest(request);
+		if (validation != null) {
+			persistLocalVoucherValidationLog(request, validation);
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setResponseCode(validation.getResponseCode());
+			submission.setResponsePayload(toJson(validation.getResponseEntity()));
+			submission.setErrorMessage(validation.getErrorMessage());
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		if (requiresPractitionerRegistration(request.getInsuranceType())) {
+			IntegrationResponse practitionerCheck = ensurePractitionerRegistered(request, resolveProcessedBy(globalBill));
+			if (practitionerCheck != null && practitionerCheck.getErrorMessage() != null) {
+				submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+				submission.setResponseCode(practitionerCheck.getResponseCode());
+				submission.setResponsePayload(toJson(practitionerCheck.getResponseEntity()));
+				submission.setErrorMessage(practitionerCheck.getErrorMessage());
+				return billingService.saveRhipVoucherSubmission(submission);
+			}
+		}
+
+		IntegrationResponse response = submitVoucher(request);
+		response = handlePartialVoucherSubmission(globalBill, request, response);
+		submission.setResponseCode(response == null ? null : response.getResponseCode());
+		submission.setResponsePayload(toJson(response == null ? null : response.getResponseEntity()));
+		boolean success = Boolean.TRUE.equals(isSuccessResponse(response));
+		if (success) {
+			VoucherIdentifiers identifiers = extractVoucherIdentifiers(response);
+			submission.setStatus(RhipVoucherSubmission.STATUS_SENT);
+			submission.setVoucherCode(identifiers.voucherCode);
+			submission.setVoucherReferenceNumber(identifiers.voucherReferenceNumber);
+			if (StringUtils.isNotBlank(identifiers.voucherCode)) {
+				globalBill.setRhipVoucherCode(identifiers.voucherCode);
+			}
+			if (StringUtils.isNotBlank(identifiers.voucherReferenceNumber)) {
+				globalBill.setRhipVoucherReferenceNumber(identifiers.voucherReferenceNumber);
+			}
+			billingService.saveGlobalBill(globalBill);
+		} else {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage(resolveVoucherSubmissionError(response));
+		}
+		return billingService.saveRhipVoucherSubmission(submission);
 	}
 
 	public RhipVoucherRequest buildVoucherRequestFromGlobalBill(GlobalBill globalBill) {
@@ -163,9 +287,11 @@ public class RhipVoucherService {
 		request.setFacilityFosaId(fosaId);
 		request.setPatientIdentifier(resolvePatientIdentifier(policy, patient, insurance, fosaId, eligibilityIdentifier));
 		if (isMmiInsuranceType(normalizedInsuranceType)) {
-			request.setReceptionNumber(resolveMmiReceptionNumber(request.getPatientIdentifier(), patient, admission));
+			String receptionNumber = resolveMmiReceptionNumber(request.getPatientIdentifier(), patient, admission);
+			request.setReceptionNumber(receptionNumber);
+			request.setVisitReferenceNumber(receptionNumber);
 		}
-		request.setProcedures(buildProcedures(globalBill, admission));
+		request.setProcedures(buildProcedures(globalBill, admission, normalizedInsuranceType));
 
 		User processedBy = resolveProcessedBy(globalBill);
 		String providerLicenseNumber = resolveProviderLicense(processedBy);
@@ -180,7 +306,9 @@ public class RhipVoucherService {
 			log.warn("No ICD-11 diagnosis codes resolved for RHIP voucher request; globalBillId="
 					+ (globalBill == null ? null : globalBill.getGlobalBillId()));
 		}
-		request.setPatientType(resolvePatientType(admission));
+		if (!isRamaInsuranceType(normalizedInsuranceType)) {
+			request.setPatientType(resolvePatientType(admission));
+		}
 		request.setHealthCareStayType(resolveHealthCareStayType(admission));
 		request.setAdmissionDate(formatDate(admission == null ? null : admission.getAdmissionDate()));
 		request.setDischargeDate(formatDate(resolveDischargeDate(globalBill, admission)));
@@ -188,6 +316,10 @@ public class RhipVoucherService {
 			request.setTreatmentForNewBorn(resolveTreatmentForNewBorn());
 		}
 		request.setPatientPhoneNumber(resolvePatientPhoneNumber(patient, globalBill));
+		if (isRamaInsuranceType(normalizedInsuranceType)) {
+			request.setPrescriptionDestination(DEFAULT_RAMA_PRESCRIPTION_DESTINATION);
+			request.setVisitReferenceNumber(resolveRamaVisitReferenceNumber(globalBill, fosaId));
+		}
 
 		return request;
 	}
@@ -196,10 +328,17 @@ public class RhipVoucherService {
 		if (insurance == null) {
 			return false;
 		}
-		if (isCbhiInsuranceType(insurance.getCategory())) {
+		if (isCbhiInsuranceType(insurance.getCategory()) || isSpecialCaseInsuranceType(insurance.getCategory())) {
 			return true;
 		}
-		return isCbhiInsuranceType(insurance.getName());
+		return isCbhiInsuranceType(insurance.getName()) || isSpecialCaseInsuranceType(insurance.getName());
+	}
+
+	private boolean isRamaInsurance(Insurance insurance) {
+		if (insurance == null) {
+			return false;
+		}
+		return isRamaInsuranceType(insurance.getCategory()) || isRamaInsuranceType(insurance.getName());
 	}
 
 	private boolean isCbhiInsuranceType(String type) {
@@ -214,16 +353,49 @@ public class RhipVoucherService {
 		return StringUtils.isNotBlank(type) && MMI_INSURANCE_TYPE.equalsIgnoreCase(type.trim());
 	}
 
+	private boolean isSpecialCaseInsuranceType(String type) {
+		if (StringUtils.isBlank(type)) {
+			return false;
+		}
+		String normalized = type.trim().replace(' ', '_');
+		return SPECIAL_CASE_INSURANCE_TYPE.equalsIgnoreCase(normalized);
+	}
+
+	private boolean isRamaInsuranceType(String type) {
+		if (StringUtils.isBlank(type)) {
+			return false;
+		}
+		String normalized = type.trim();
+		return RAMA_INSURANCE_TYPE.equalsIgnoreCase(normalized)
+		        || "RSSB".equalsIgnoreCase(normalized)
+		        || normalized.toUpperCase().contains("RAMA");
+	}
+
 	private boolean isSupportedVoucherInsuranceType(String type) {
-		return isCbhiInsuranceType(type) || isMmiInsuranceType(type);
+		return isCbhiInsuranceType(type) || isSpecialCaseInsuranceType(type)
+		        || isRamaInsuranceType(type) || isMmiInsuranceType(type);
 	}
 
 	private boolean isSupportedVoucherInsurance(Insurance insurance) {
-		return isCbhiInsurance(insurance) || isMmiInsurance(insurance);
+		return isCbhiInsurance(insurance) || isRamaInsurance(insurance) || isMmiInsurance(insurance);
+	}
+
+	private boolean requiresPractitionerRegistration(String insuranceType) {
+		return !isMmiInsuranceType(insuranceType) && !isRamaInsuranceType(insuranceType);
 	}
 
 	private String normalizeVoucherInsuranceType(Insurance insurance) {
-		return isMmiInsurance(insurance) ? MMI_INSURANCE_TYPE : CBHI_INSURANCE_TYPE;
+		if (isMmiInsurance(insurance)) {
+			return MMI_INSURANCE_TYPE;
+		}
+		if (isRamaInsurance(insurance)) {
+			return RAMA_INSURANCE_TYPE;
+		}
+		if (isSpecialCaseInsuranceType(insurance == null ? null : insurance.getCategory())
+				|| isSpecialCaseInsuranceType(insurance == null ? null : insurance.getName())) {
+			return SPECIAL_CASE_INSURANCE_TYPE;
+		}
+		return CBHI_INSURANCE_TYPE;
 	}
 
 	private boolean hasExistingVoucherIdentifiers(GlobalBill globalBill) {
@@ -243,7 +415,7 @@ public class RhipVoucherService {
 		}
 		List<String> errors = new ArrayList<>();
 		if (!isSupportedVoucherInsuranceType(request.getInsuranceType())) {
-			errors.add("insuranceType must be CBHI, MUTUELLE, or MMI");
+			errors.add("insuranceType must be CBHI, MUTUELLE, SPECIAL_CASE, RAMA, RSSB, or MMI");
 		}
 		if (StringUtils.isBlank(request.getFacilityFosaId())) {
 			errors.add("facilityFosaId is required");
@@ -251,18 +423,21 @@ public class RhipVoucherService {
 		if (StringUtils.isBlank(request.getPatientIdentifier())) {
 			errors.add("patientIdentifier is required");
 		}
-		if (!isMmiInsuranceType(request.getInsuranceType()) && StringUtils.isBlank(request.getPractitionerLicenseNumber())) {
+		if (requiresPatientType(request.getInsuranceType()) && StringUtils.isBlank(request.getPatientType())) {
+			errors.add("patientType is required for CBHI and SPECIAL_CASE vouchers");
+		}
+		if (StringUtils.isBlank(request.getPractitionerLicenseNumber())) {
 			errors.add("practitionerLicenseNumber is required");
 		}
-		if (!isMmiInsuranceType(request.getInsuranceType()) && request.getTreatmentForNewBorn() == null) {
+		if (requiresTreatmentForNewBorn(request.getInsuranceType()) && request.getTreatmentForNewBorn() == null) {
 			errors.add("treatmentForNewBorn must be explicitly true or false");
 		}
-		if (!isMmiInsuranceType(request.getInsuranceType())
+		if (requiresDiagnosisIds(request.getInsuranceType())
 				&& (request.getDiagnosisIds() == null || request.getDiagnosisIds().isEmpty())) {
 			errors.add("diagnosisIds is required and must contain at least one ICD-11 code");
 		}
-		if (isMmiInsuranceType(request.getInsuranceType()) && StringUtils.isBlank(request.getReceptionNumber())) {
-			errors.add("receptionNumber is required for MMI voucher");
+		if (isMmiInsuranceType(request.getInsuranceType()) && StringUtils.isBlank(resolveMmiVoucherVisitReferenceNumber(request))) {
+			errors.add("visitReferenceNumber is required for MMI voucher");
 		}
 		List<RhipVoucherProcedure> procedures = request.getProcedures();
 		if (procedures == null || procedures.isEmpty()) {
@@ -281,8 +456,17 @@ public class RhipVoucherService {
 				if (procedure.getQuantity() == null || procedure.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
 					errors.add("procedure #" + oneBased + " quantity must be greater than 0");
 				}
-				if (procedure.getPrice() == null || procedure.getPrice().compareTo(BigDecimal.ZERO) < 0) {
-					errors.add("procedure #" + oneBased + " price must be 0 or greater");
+				if (requiresProcedurePrice(request.getInsuranceType())
+						&& (procedure.getPrice() == null || procedure.getPrice().compareTo(BigDecimal.ZERO) <= 0)) {
+					errors.add("procedure #" + oneBased + " price must be greater than 0");
+				}
+				if (isMmiInsuranceType(request.getInsuranceType()) && isMmiMedicineProcedure(procedure)) {
+					if (StringUtils.isBlank(procedure.getInstructions())) {
+						errors.add("procedure #" + oneBased + " instructions is required for MMI medicine lines");
+					}
+					if (procedure.getDurationDays() == null) {
+						errors.add("procedure #" + oneBased + " durationDays is required for MMI medicine lines");
+					}
 				}
 			}
 		}
@@ -291,6 +475,39 @@ public class RhipVoucherService {
 		}
 		ret.setErrorMessage("Invalid RHIP voucher request: " + StringUtils.join(errors, "; "));
 		return ret;
+	}
+
+	private boolean requiresTreatmentForNewBorn(String insuranceType) {
+		return isCbhiInsuranceType(insuranceType) || isSpecialCaseInsuranceType(insuranceType);
+	}
+
+	private boolean requiresPatientType(String insuranceType) {
+		return isCbhiInsuranceType(insuranceType) || isSpecialCaseInsuranceType(insuranceType);
+	}
+
+	private boolean requiresProcedurePrice(String insuranceType) {
+		return isCbhiInsuranceType(insuranceType) || isSpecialCaseInsuranceType(insuranceType);
+	}
+
+	private boolean requiresDiagnosisIds(String insuranceType) {
+		return isCbhiInsuranceType(insuranceType) || isSpecialCaseInsuranceType(insuranceType);
+	}
+
+	private boolean isMmiMedicineProcedure(RhipVoucherProcedure procedure) {
+		if (procedure == null || StringUtils.isBlank(procedure.getCode())) {
+			return false;
+		}
+		return !procedure.getCode().trim().toUpperCase().startsWith("RHIC-");
+	}
+
+	private String resolveMmiVoucherVisitReferenceNumber(RhipVoucherRequest request) {
+		if (request == null) {
+			return null;
+		}
+		if (StringUtils.isNotBlank(request.getVisitReferenceNumber())) {
+			return request.getVisitReferenceNumber();
+		}
+		return request.getReceptionNumber();
 	}
 
 	private void persistLocalVoucherValidationLog(RhipVoucherRequest request, IntegrationResponse validation) {
@@ -333,6 +550,86 @@ public class RhipVoucherService {
 			log.warn("Unable to serialize RHIP voucher validation payload", e);
 			return null;
 		}
+	}
+
+	private RhipVoucherSubmission newVoucherSubmission(GlobalBill globalBill, User currentUser) {
+		RhipVoucherSubmission submission = new RhipVoucherSubmission();
+		submission.setGlobalBill(globalBill);
+		submission.setStatus(RhipVoucherSubmission.STATUS_PROCESSING);
+		submission.setSubmittedBy(currentUser);
+		submission.setDateSubmitted(new Date());
+		submission.setAttemptNumber(resolveNextVoucherSubmissionAttemptNumber(globalBill));
+		submission.setUuid(UUID.randomUUID().toString());
+		return submission;
+	}
+
+	private Integer resolveNextVoucherSubmissionAttemptNumber(GlobalBill globalBill) {
+		if (billingService == null || globalBill == null) {
+			return 1;
+		}
+		RhipVoucherSubmission latest = billingService.getLatestRhipVoucherSubmission(globalBill);
+		if (latest == null || latest.getAttemptNumber() == null) {
+			return 1;
+		}
+		return latest.getAttemptNumber() + 1;
+	}
+
+	private User getAuthenticatedUserSafely() {
+		try {
+			return Context.getAuthenticatedUser();
+		}
+		catch (Exception ignored) {
+			return null;
+		}
+	}
+
+	private String resolveVoucherSubmissionError(IntegrationResponse response) {
+		if (response == null) {
+			return "RHIP voucher submission failed: no response received";
+		}
+		if (!response.isEnabled()) {
+			return "RHIP voucher submission failed: integration is disabled";
+		}
+		if (StringUtils.isNotBlank(response.getErrorMessage())) {
+			return response.getErrorMessage();
+		}
+		String rhipMessage = extractRhipMessage(response.getResponseEntity());
+		if (StringUtils.isNotBlank(rhipMessage)) {
+			return rhipMessage;
+		}
+		if (response.getResponseCode() == null && response.getResponseEntity() == null) {
+			return "RHIP voucher submission failed: empty response from RHIP";
+		}
+		return "RHIP did not return a successful voucher response";
+	}
+
+	private String extractRhipMessage(Object responseEntity) {
+		JsonNode root = toJsonNode(responseEntity);
+		if (root == null) {
+			return null;
+		}
+		String message = jsonText(root.get("message"));
+		if (StringUtils.isNotBlank(message)) {
+			return message;
+		}
+		JsonNode error = root.get("error");
+		if (error != null && !error.isNull()) {
+			return jsonText(error);
+		}
+		JsonNode errors = root.get("errors");
+		if (errors != null && errors.isArray() && errors.size() > 0) {
+			List<String> messages = new ArrayList<String>();
+			for (JsonNode item : errors) {
+				String itemMessage = jsonText(item == null ? null : item.get("message"));
+				if (StringUtils.isNotBlank(itemMessage)) {
+					messages.add(itemMessage);
+				}
+			}
+			if (!messages.isEmpty()) {
+				return StringUtils.join(messages, "; ");
+			}
+		}
+		return null;
 	}
 
 	private User resolveProcessedBy(GlobalBill globalBill) {
@@ -955,7 +1252,7 @@ public class RhipVoucherService {
 		}
 	}
 
-	private List<RhipVoucherProcedure> buildProcedures(GlobalBill globalBill, Admission admission) {
+	private List<RhipVoucherProcedure> buildProcedures(GlobalBill globalBill, Admission admission, String insuranceType) {
 		if (billingService == null) {
 			return Collections.emptyList();
 		}
@@ -972,13 +1269,27 @@ public class RhipVoucherService {
 				if (billItem == null || Boolean.TRUE.equals(billItem.getVoided())) {
 					continue;
 				}
-				RhipVoucherProcedure procedure = toProcedure(billItem, admission);
+				RhipVoucherProcedure procedure = resolveProcedure(globalBill, consommation, billItem, admission, insuranceType);
 				if (procedure != null) {
+					procedure.setPatientServiceBillId(billItem.getPatientServiceBillId());
 					procedures.add(procedure);
 				}
 			}
 		}
 		return procedures;
+	}
+
+	private RhipVoucherProcedure resolveProcedure(GlobalBill globalBill, Consommation consommation,
+	                                             PatientServiceBill billItem, Admission admission,
+	                                             String insuranceType) {
+		if (rpmVoucherItemResolver != null && rpmVoucherItemResolver.supports(billItem)) {
+			RhipVoucherProcedure rpmProcedure = rpmVoucherItemResolver.resolve(globalBill, consommation, billItem,
+					admission, insuranceType);
+			if (rpmProcedure != null) {
+				return rpmProcedure;
+			}
+		}
+		return toProcedure(billItem, admission);
 	}
 
 	private RhipVoucherProcedure toProcedure(PatientServiceBill billItem, Admission admission) {
@@ -1000,7 +1311,232 @@ public class RhipVoucherService {
 			serviceDate = admission.getAdmissionDate();
 		}
 		procedure.setPrescribedAt(formatDate(serviceDate));
+		if (isMedicamentService(service)) {
+			String instructions = resolveBillingItemInstructions(billItem);
+			procedure.setFrequency(StringUtils.trimToNull(billItem.getDrugFrequency()));
+			procedure.setInstructions(instructions);
+		}
 		return procedure;
+	}
+
+	private String resolveBillingItemInstructions(PatientServiceBill billItem) {
+		if (billItem == null) {
+			return null;
+		}
+		String description = StringUtils.trimToNull(billItem.getServiceOtherDescription());
+		if (description != null) {
+			return description;
+		}
+		return StringUtils.trimToNull(billItem.getDrugFrequency());
+	}
+
+	private List<RhipVoucherProcedure> rejectNonPositivePriceProcedures(GlobalBill globalBill, RhipVoucherRequest request) {
+		if (request == null || !requiresProcedurePrice(request.getInsuranceType()) || request.getProcedures() == null) {
+			return Collections.emptyList();
+		}
+		List<RhipVoucherProcedure> acceptedProcedures = new ArrayList<RhipVoucherProcedure>();
+		List<RhipVoucherProcedure> rejectedProcedures = new ArrayList<RhipVoucherProcedure>();
+		for (RhipVoucherProcedure procedure : request.getProcedures()) {
+			if (procedure == null) {
+				continue;
+			}
+			if (procedure.getPrice() == null || procedure.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+				rejectedProcedures.add(procedure);
+			} else {
+				acceptedProcedures.add(procedure);
+			}
+		}
+		if (!rejectedProcedures.isEmpty()) {
+			request.setProcedures(acceptedProcedures);
+			Map<String, String> rejectionReasonsByCode = new HashMap<String, String>();
+			for (RhipVoucherProcedure procedure : rejectedProcedures) {
+				if (procedure != null && StringUtils.isNotBlank(procedure.getCode())) {
+					rejectionReasonsByCode.put(procedure.getCode().trim(), "Price must be a positive number");
+				}
+			}
+			persistVoucherItemRecords(globalBill, rejectedProcedures, RhipVoucherItemRecord.STATUS_REJECTED,
+					null, null, rejectionReasonsByCode);
+		}
+		return rejectedProcedures;
+	}
+
+	private IntegrationResponse handlePartialVoucherSubmission(GlobalBill globalBill, RhipVoucherRequest originalRequest,
+	                                                          IntegrationResponse firstResponse) {
+		if (globalBill == null || originalRequest == null || firstResponse == null
+				|| Boolean.TRUE.equals(isSuccessResponse(firstResponse))) {
+			return firstResponse;
+		}
+		VoucherValidationResult validationResult = extractVoucherValidationResult(firstResponse);
+		if (validationResult == null || validationResult.validByCode.isEmpty() || validationResult.invalidByCode.isEmpty()) {
+			return firstResponse;
+		}
+		List<RhipVoucherProcedure> validProcedures = new ArrayList<RhipVoucherProcedure>();
+		List<RhipVoucherProcedure> invalidProcedures = new ArrayList<RhipVoucherProcedure>();
+		List<RhipVoucherProcedure> procedures = originalRequest.getProcedures();
+		if (procedures != null) {
+			for (RhipVoucherProcedure procedure : procedures) {
+				if (procedure == null || StringUtils.isBlank(procedure.getCode())) {
+					continue;
+				}
+				String code = procedure.getCode().trim();
+				if (validationResult.invalidByCode.containsKey(code)) {
+					invalidProcedures.add(procedure);
+				} else if (validationResult.validByCode.containsKey(code)) {
+					validProcedures.add(procedure);
+				}
+			}
+		}
+		if (validProcedures.isEmpty()) {
+			persistVoucherItemRecords(globalBill, invalidProcedures, RhipVoucherItemRecord.STATUS_REJECTED,
+					null, null, validationResult.invalidByCode);
+			return firstResponse;
+		}
+
+		RhipVoucherRequest retryRequest = copyVoucherRequest(originalRequest);
+		retryRequest.setProcedures(validProcedures);
+		IntegrationResponse retryResponse = submitVoucher(retryRequest);
+		if (Boolean.TRUE.equals(isSuccessResponse(retryResponse))) {
+			VoucherIdentifiers identifiers = extractVoucherIdentifiers(retryResponse);
+			persistVoucherItemRecords(globalBill, validProcedures, RhipVoucherItemRecord.STATUS_SENT,
+					identifiers.voucherCode, identifiers.voucherReferenceNumber, null);
+			persistVoucherItemRecords(globalBill, invalidProcedures, RhipVoucherItemRecord.STATUS_REJECTED,
+					null, null, validationResult.invalidByCode);
+			log.info("RHIP voucher submitted partially for global bill " + globalBill.getGlobalBillId()
+					+ ": sent=" + validProcedures.size() + ", rejected=" + invalidProcedures.size());
+			return retryResponse;
+		}
+		persistVoucherItemRecords(globalBill, invalidProcedures, RhipVoucherItemRecord.STATUS_REJECTED,
+				null, null, validationResult.invalidByCode);
+		return retryResponse;
+	}
+
+	private VoucherValidationResult extractVoucherValidationResult(IntegrationResponse response) {
+		JsonNode root = toJsonNode(response == null ? null : response.getResponseEntity());
+		JsonNode errors = root == null ? null : root.get("errors");
+		if (errors == null || !errors.isArray()) {
+			return null;
+		}
+		VoucherValidationResult result = new VoucherValidationResult();
+		for (JsonNode error : errors) {
+			if (error == null || error.isNull()) {
+				continue;
+			}
+			String productId = jsonText(error.get("productId"));
+			if (StringUtils.isBlank(productId)) {
+				continue;
+			}
+			String code = productId.trim();
+			String message = jsonText(error.get("message"));
+			boolean isValid = error.has("isValid") && error.get("isValid").asBoolean(false);
+			if (isValid) {
+				result.validByCode.put(code, StringUtils.defaultIfBlank(message, "Prescription is valid"));
+			} else {
+				result.invalidByCode.put(code, StringUtils.defaultIfBlank(message, "Rejected by RHIP"));
+			}
+		}
+		return result.validByCode.isEmpty() && result.invalidByCode.isEmpty() ? null : result;
+	}
+
+	private JsonNode toJsonNode(Object entity) {
+		if (entity == null) {
+			return null;
+		}
+		try {
+			return OBJECT_MAPPER.readTree(entity.toString());
+		} catch (Exception ignored) {
+			return null;
+		}
+	}
+
+	private RhipVoucherRequest copyVoucherRequest(RhipVoucherRequest source) {
+		RhipVoucherRequest copy = new RhipVoucherRequest();
+		copy.setInsuranceType(source.getInsuranceType());
+		copy.setFacilityFosaId(source.getFacilityFosaId());
+		copy.setPatientIdentifier(source.getPatientIdentifier());
+		copy.setReceptionNumber(source.getReceptionNumber());
+		copy.setProcedures(source.getProcedures());
+		copy.setUserAccountCode(source.getUserAccountCode());
+		copy.setProcessedBy(source.getProcessedBy());
+		copy.setNotes(source.getNotes());
+		copy.setPractitionerLicenseNumber(source.getPractitionerLicenseNumber());
+		copy.setPatientType(source.getPatientType());
+		copy.setHealthCareStayType(source.getHealthCareStayType());
+		copy.setAdmissionDate(source.getAdmissionDate());
+		copy.setDischargeDate(source.getDischargeDate());
+		copy.setTreatmentForNewBorn(source.getTreatmentForNewBorn());
+		copy.setDiagnosisIds(source.getDiagnosisIds());
+		copy.setPatientPhoneNumber(source.getPatientPhoneNumber());
+		copy.setPrescriptionDestination(source.getPrescriptionDestination());
+		copy.setVisitReferenceNumber(source.getVisitReferenceNumber());
+		return copy;
+	}
+
+	private VoucherIdentifiers extractVoucherIdentifiers(IntegrationResponse response) {
+		VoucherIdentifiers identifiers = new VoucherIdentifiers();
+		JsonNode root = toJsonNode(response == null ? null : response.getResponseEntity());
+		JsonNode data = root == null ? null : root.get("data");
+		identifiers.voucherCode = jsonText(data == null ? null : data.get("voucherCode"));
+		identifiers.voucherReferenceNumber = jsonText(data == null ? null : data.get("voucherReferenceNumber"));
+		return identifiers;
+	}
+
+	private void persistVoucherItemRecords(GlobalBill globalBill, List<RhipVoucherProcedure> procedures, String status,
+	                                       String voucherCode, String voucherReferenceNumber,
+	                                       Map<String, String> rejectionReasonsByCode) {
+		if (billingService == null || globalBill == null || procedures == null || procedures.isEmpty()) {
+			return;
+		}
+		User currentUser = null;
+		try {
+			currentUser = Context.getAuthenticatedUser();
+		} catch (Exception ignored) {
+		}
+		for (RhipVoucherProcedure procedure : procedures) {
+			if (procedure == null || procedure.getPatientServiceBillId() == null || StringUtils.isBlank(procedure.getCode())) {
+				continue;
+			}
+			try {
+				RhipVoucherItemRecord record = new RhipVoucherItemRecord();
+				record.setGlobalBill(globalBill);
+				PatientServiceBill item = new PatientServiceBill();
+				item.setPatientServiceBillId(procedure.getPatientServiceBillId());
+				record.setPatientServiceBill(item);
+				record.setProductCode(procedure.getCode().trim());
+				record.setQuantity(procedure.getQuantity());
+				record.setPrice(procedure.getPrice());
+				record.setStatus(status);
+				record.setVoucherCode(voucherCode);
+				record.setVoucherReferenceNumber(voucherReferenceNumber);
+				if (rejectionReasonsByCode != null) {
+					record.setRejectionReason(rejectionReasonsByCode.get(procedure.getCode().trim()));
+				}
+				record.setDateCreated(new Date());
+				record.setCreator(currentUser);
+				record.setUuid(UUID.randomUUID().toString());
+				billingService.saveRhipVoucherItemRecord(record);
+			} catch (Exception e) {
+				log.warn("Unable to persist RHIP voucher item record for product " + procedure.getCode(), e);
+			}
+		}
+	}
+
+	private static class VoucherValidationResult {
+		private final Map<String, String> validByCode = new HashMap<String, String>();
+		private final Map<String, String> invalidByCode = new HashMap<String, String>();
+	}
+
+	private static class VoucherIdentifiers {
+		private String voucherCode;
+		private String voucherReferenceNumber;
+	}
+
+	private boolean isMedicamentService(BillableService service) {
+		if (service == null || service.getServiceCategory() == null) {
+			return false;
+		}
+		String categoryName = service.getServiceCategory().getName();
+		return StringUtils.isNotBlank(categoryName)
+		        && MEDICAMENTS_SERVICE_CATEGORY.equalsIgnoreCase(categoryName.trim());
 	}
 
 	private BigDecimal resolvePrice(PatientServiceBill billItem, FacilityServicePrice facilityServicePrice) {
@@ -1026,7 +1562,12 @@ public class RhipVoucherService {
 		if (parts.length == 2) {
 			return parts[1].trim();
 		}
-		return name.trim();
+		String trimmedName = name.trim();
+		Matcher matcher = DASH_SEPARATED_PROCEDURE_CODE.matcher(trimmedName);
+		if (matcher.matches()) {
+			return matcher.group(1).trim();
+		}
+		return trimmedName;
 	}
 
 	private String resolveDiagnosisNotes(Patient patient, Admission admission, GlobalBill globalBill) {
@@ -1192,6 +1733,13 @@ public class RhipVoucherService {
 		return fosaId;
 	}
 
+	private String resolveRamaVisitReferenceNumber(GlobalBill globalBill, String fosaId) {
+		if (globalBill == null || StringUtils.isBlank(globalBill.getBillIdentifier()) || StringUtils.isBlank(fosaId)) {
+			return null;
+		}
+		return globalBill.getBillIdentifier().trim() + fosaId.trim();
+	}
+
 	private Date resolveDischargeDate(GlobalBill globalBill, Admission admission) {
 		if (admission != null && admission.getDischargingDate() != null) {
 			return admission.getDischargingDate();
@@ -1271,6 +1819,14 @@ public class RhipVoucherService {
 
 	public void setRhipPractitionerTypeService(RhipPractitionerTypeService rhipPractitionerTypeService) {
 		this.rhipPractitionerTypeService = rhipPractitionerTypeService;
+	}
+
+	public RpmVoucherItemResolver getRpmVoucherItemResolver() {
+		return rpmVoucherItemResolver;
+	}
+
+	public void setRpmVoucherItemResolver(RpmVoucherItemResolver rpmVoucherItemResolver) {
+		this.rpmVoucherItemResolver = rpmVoucherItemResolver;
 	}
 
 	private void upsertLocalPractitionerTypeFromJson(JsonNode item) {
