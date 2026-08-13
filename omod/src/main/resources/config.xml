@@ -283,7 +283,7 @@
 
     <globalProperty>
         <property>mohbilling.irembopay.minimumpayment</property>
-        <defaultValue>20</defaultValue>
+        <defaultValue>5</defaultValue>
         <description>
             Minimum payment accepted by irembo pay api
         </description>
@@ -294,6 +294,14 @@
         <defaultValue>11</defaultValue>
         <description>
             Personal Attribute for phone number identification
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.auto_phone_number</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Automaticaly load patient phone number to payment interface
         </description>
     </globalProperty>
 

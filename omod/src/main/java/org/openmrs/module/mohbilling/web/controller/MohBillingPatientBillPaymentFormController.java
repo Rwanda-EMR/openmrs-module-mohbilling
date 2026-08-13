@@ -28,6 +28,7 @@ import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.Transaction;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.irembo.util.IremboPayInitiationResult;
 import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -396,6 +397,9 @@ public class MohBillingPatientBillPaymentFormController extends
 	}
 
 	private String resolveIremboPhoneNumber(Consommation consommation) {
+		if (!GlobalPropertyConfig.isIremboAutoPhoneNumberEnabled()) {
+			return "";
+		}
 		if (consommation == null || consommation.getPatientBill() == null) {
 			return "";
 		}

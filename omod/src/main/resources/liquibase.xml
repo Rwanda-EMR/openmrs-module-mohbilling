@@ -1936,4 +1936,14 @@
 		</createIndex>
 	</changeSet>
 
+	<changeSet id="moh_bill_patient_bill_adding_payment_link_url" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="payment_link_url"/></not>
+		</preConditions>
+		<comment>Store Irembo Pay checkout paymentLinkUrl for single and batch invoices</comment>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="payment_link_url" type="varchar(512)"/>
+		</addColumn>
+	</changeSet>
+
 </databaseChangeLog>

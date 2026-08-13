@@ -9,6 +9,7 @@ import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -19,34 +20,32 @@ import java.util.Set;
  */
 public class MohBillingTagUtil {
 
+    private static final int AMOUNT_SCALE = 2;
+
     public static String getTotalAmountPaidByPatientBill(Integer consommationId) {
-        Long amountPaid = 0l;
-        if (null == consommationId)
+        if (null == consommationId) {
             return "0";
-        else {
-            try {
-                Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
-
-                PatientBill pb = consomm.getPatientBill();
-                Set<BillPayment> allPayments = pb.getPayments();
-                if (allPayments != null) {
-                    for (BillPayment billPayment : allPayments) {
-
-                        // amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
-                        if (billPayment.getVoidReason() == null)
-                            amountPaid = amountPaid + billPayment.getAmountPaid().longValue();
-                    }
-
-                }
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
+        }
+        try {
+            Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
+            if (consomm == null || consomm.getPatientBill() == null) {
                 return "0";
             }
-        }
 
-        return "" + amountPaid;
+            BigDecimal amountPaid = BigDecimal.ZERO;
+            Set<BillPayment> allPayments = consomm.getPatientBill().getPayments();
+            if (allPayments != null) {
+                for (BillPayment billPayment : allPayments) {
+                    if (billPayment.getVoidReason() == null && billPayment.getAmountPaid() != null) {
+                        amountPaid = amountPaid.add(billPayment.getAmountPaid());
+                    }
+                }
+            }
+            return formatAmount(amountPaid);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "0";
+        }
     }
 
     /**
@@ -58,7 +57,6 @@ public class MohBillingTagUtil {
     public static String getTotalAmountNotPaidByPatientBill(Integer consommationId) {
 
         double amountNotPaid = 0d;
-//		MathContext mc = new MathContext(BigDecimal.ROUND_HALF_DOWN);
 
         if (null == consommationId)
             return "";
@@ -128,8 +126,6 @@ public class MohBillingTagUtil {
     }
 
     public static String getGlobalPaidAmountFromGlobalBill(Integer globalBillId) {
-
-        double allPaidAmount = 0d;
         GlobalBill globalBill = Context.getService(BillingService.class).GetGlobalBill(globalBillId);
         if (globalBill == null) {
             return "0";
@@ -141,13 +137,21 @@ public class MohBillingTagUtil {
             return "0";
         }
 
+        BigDecimal allPaidAmount = BigDecimal.ZERO;
         for (Consommation consommation : consommations) {
+            if (consommation == null || consommation.getConsommationId() == null) {
+                continue;
+            }
             String paidAmount = getTotalAmountPaidByPatientBill(consommation.getConsommationId());
             if (paidAmount != null && paidAmount.trim().length() > 0) {
-                allPaidAmount = allPaidAmount + Double.valueOf(paidAmount);
+                try {
+                    allPaidAmount = allPaidAmount.add(new BigDecimal(paidAmount.trim()));
+                } catch (NumberFormatException ignored) {
+                    // skip malformed tag output
+                }
             }
         }
-        return "" + allPaidAmount;
+        return formatAmount(allPaidAmount);
     }
 
     public static String getServicesByDepartment(Integer departmentId) {
@@ -169,15 +173,21 @@ public class MohBillingTagUtil {
         return ConsommationUtil.getConsommationStatus(id);
     }
 
-    public static Long getTotalPaidByConsommation(Integer consommationId) {
-        Consommation c = ConsommationUtil.getConsommation(consommationId);
-        BigDecimal totalPaid = new BigDecimal(0);
-        for (BillPayment pay : c.getPatientBill().getPayments()) {
-            //if(!pay.isVoided())
-            if (pay.getVoidReason() == null)
-                totalPaid = totalPaid.add(pay.getAmountPaid());
+    public static String getTotalPaidByConsommation(Integer consommationId) {
+        if (consommationId == null) {
+            return "0";
         }
-        return totalPaid.longValue();
+        Consommation c = ConsommationUtil.getConsommation(consommationId);
+        if (c == null || c.getPatientBill() == null || c.getPatientBill().getPayments() == null) {
+            return "0";
+        }
+        BigDecimal totalPaid = BigDecimal.ZERO;
+        for (BillPayment pay : c.getPatientBill().getPayments()) {
+            if (pay.getVoidReason() == null && pay.getAmountPaid() != null) {
+                totalPaid = totalPaid.add(pay.getAmountPaid());
+            }
+        }
+        return formatAmount(totalPaid);
     }
 
     public static String getBillStatus(Long totalPaid, Long dueToPatient) {
@@ -195,6 +205,31 @@ public class MohBillingTagUtil {
         }
 
         return "FULLY PAID";
+    }
+
+    /**
+     * Status helper that preserves cents (preferred over Long-based comparison).
+     */
+    public static String getBillStatus(Double totalPaid, Double dueToPatient) {
+        if (totalPaid == null || dueToPatient == null) {
+            return "N/A";
+        }
+        if (dueToPatient <= 0) {
+            return "FULLY PAID";
+        }
+        if (totalPaid <= 0) {
+            return "UNPAID";
+        } else if (totalPaid < dueToPatient) {
+            return "PARTLY PAID";
+        }
+        return "FULLY PAID";
+    }
+
+    private static String formatAmount(BigDecimal amount) {
+        if (amount == null) {
+            return "0";
+        }
+        return amount.setScale(AMOUNT_SCALE, RoundingMode.HALF_UP).toPlainString();
     }
 
 }

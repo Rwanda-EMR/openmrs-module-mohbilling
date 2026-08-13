@@ -39,6 +39,7 @@ public class PatientBill {
 	private Date paidAt;
 	private String paymentReference;
 	private String batchNumber;
+	private String paymentLinkUrl;
 	private Integer retryCount;
 	private Date initiatedAt;
 
@@ -394,6 +395,14 @@ public class PatientBill {
 
 	public void setBatchNumber(String batchNumber) {
 		this.batchNumber = batchNumber;
+	}
+
+	public String getPaymentLinkUrl() {
+		return paymentLinkUrl;
+	}
+
+	public void setPaymentLinkUrl(String paymentLinkUrl) {
+		this.paymentLinkUrl = paymentLinkUrl;
 	}
 
 	public Integer getRetryCount() {

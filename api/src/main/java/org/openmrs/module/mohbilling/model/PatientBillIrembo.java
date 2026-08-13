@@ -9,6 +9,7 @@ public class PatientBillIrembo {
     private BigDecimal amount = new BigDecimal(0);
     private String phoneNumber;
     private String invoiceNumber;
+    private String paymentLinkUrl;
     private Integer retryCount;
     private Date initiatedAt;
 
@@ -44,6 +45,14 @@ public class PatientBillIrembo {
 
     public void setInvoiceNumber(String invoiceNumber) {
         this.invoiceNumber = invoiceNumber;
+    }
+
+    public String getPaymentLinkUrl() {
+        return paymentLinkUrl;
+    }
+
+    public void setPaymentLinkUrl(String paymentLinkUrl) {
+        this.paymentLinkUrl = paymentLinkUrl;
     }
 
     public String getDepartment() {

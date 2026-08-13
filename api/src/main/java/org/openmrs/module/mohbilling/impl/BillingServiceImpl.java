@@ -1272,6 +1272,7 @@ public class BillingServiceImpl implements BillingService {
             invoice = iremboPayResponse.getData();
             patientBill.setReferenceId(transactionId);
             patientBill.setInvoiceNumber(invoice.getInvoiceNumber());
+            patientBill.setPaymentLinkUrl(invoice.getPaymentLinkUrl());
             patientBill.setInitiatedAt(new Date());
             patientBill.setPhoneNumber(phoneNumber);
             patientBill.setTransactionStatus("Pending");
@@ -1279,6 +1280,7 @@ public class BillingServiceImpl implements BillingService {
             billingDAO.savePatientBill(patientBill);
             log.info("Irembo single init createInvoice saved: patientBillId=" + patientBill.getPatientBillId()
                     + ", invoiceNumber=" + invoice.getInvoiceNumber()
+                    + ", paymentLinkUrl=" + invoice.getPaymentLinkUrl()
                     + ", paymentStatus=" + invoice.getPaymentStatus());
         } else {
             log.info("Irembo init skipped createInvoice: PatientBill id=" + patientBill.getPatientBillId()
@@ -1863,6 +1865,7 @@ public class BillingServiceImpl implements BillingService {
         Invoice invoice = iremboPayResponse.getData();
         patientBill.setReferenceId(transactionId);
         patientBill.setInvoiceNumber(invoice.getInvoiceNumber());
+        patientBill.setPaymentLinkUrl(invoice.getPaymentLinkUrl());
         patientBill.setInitiatedAt(new Date());
         patientBill.setPhoneNumber(phoneNumber);
         patientBill.setTransactionStatus("Pending");
@@ -1870,6 +1873,7 @@ public class BillingServiceImpl implements BillingService {
         billingDAO.savePatientBill(patientBill);
         log.info("Irembo createInvoice saved: patientBillId=" + patientBill.getPatientBillId()
                 + ", invoiceNumber=" + invoice.getInvoiceNumber()
+                + ", paymentLinkUrl=" + invoice.getPaymentLinkUrl()
                 + ", paymentStatus=" + invoice.getPaymentStatus());
         return IremboInvoiceResult.success(invoice.getInvoiceNumber(), true, patientBill.getPatientBillId());
     }
@@ -1971,14 +1975,17 @@ public class BillingServiceImpl implements BillingService {
 
     /**
      * Sets the given batchNumber on every PatientBill found for the supplied invoice numbers,
-     * skipping bills that are missing or already mapped to this batch. Returns the number of
-     * bills that were updated (newly mapped).
+     * skipping bills that are missing. When paymentLinkUrl is provided, it overwrites any
+     * existing individual invoice payment link with the batch checkout link.
+     * Returns the number of bills that were updated.
      */
-    private int applyBatchNumberToBills(String batchNumber, List<String> invoiceNumbers) throws DAOException {
+    private int applyBatchNumberToBills(String batchNumber, List<String> invoiceNumbers, String paymentLinkUrl)
+            throws DAOException {
         if (!hasText(batchNumber) || invoiceNumbers == null || invoiceNumbers.isEmpty()) {
             return 0;
         }
         String trimmedBatch = batchNumber.trim();
+        String trimmedPaymentLink = hasText(paymentLinkUrl) ? paymentLinkUrl.trim() : null;
         int updated = 0;
         Set<String> processed = new LinkedHashSet<>();
         for (String invoiceNumber : invoiceNumbers) {
@@ -1996,14 +2003,27 @@ public class BillingServiceImpl implements BillingService {
                                 + ", batchNumber=" + trimmedBatch);
                 continue;
             }
-            if (trimmedBatch.equals(patientBill.getBatchNumber())) {
+            boolean needsSave = false;
+            if (!trimmedBatch.equals(patientBill.getBatchNumber())) {
+                patientBill.setBatchNumber(trimmedBatch);
+                needsSave = true;
+            }
+            if (trimmedPaymentLink != null && !trimmedPaymentLink.equals(patientBill.getPaymentLinkUrl())) {
+                // Batch payment link replaces any individual invoice payment link.
+                patientBill.setPaymentLinkUrl(trimmedPaymentLink);
+                needsSave = true;
+            }
+            if (!needsSave) {
                 continue;
             }
-            patientBill.setBatchNumber(trimmedBatch);
             billingDAO.savePatientBill(patientBill);
             updated++;
         }
         return updated;
+    }
+
+    private int applyBatchNumberToBills(String batchNumber, List<String> invoiceNumbers) throws DAOException {
+        return applyBatchNumberToBills(batchNumber, invoiceNumbers, null);
     }
 
     public boolean canWeInitiateBatch(List<String> invoices) throws DAOException {
@@ -2109,9 +2129,10 @@ public class BillingServiceImpl implements BillingService {
                 invoicesToMap.addAll(childInvoices);
             }
             invoicesMappedToBatch.addAll(invoicesToMap);
-            int updatedBills = applyBatchNumberToBills(batchNumber, invoicesToMap);
+            int updatedBills = applyBatchNumberToBills(batchNumber, invoicesToMap, batchInvoice.getPaymentLinkUrl());
             log.info("Irembo batch mapping complete: transactionId=" + transactionId
                     + ", batchNumber=" + batchNumber
+                    + ", paymentLinkUrl=" + batchInvoice.getPaymentLinkUrl()
                     + ", type=" + batchInvoice.getType()
                     + ", paymentStatus=" + batchInvoice.getPaymentStatus()
                     + ", amount=" + batchInvoice.getAmount()
@@ -2463,6 +2484,7 @@ public class BillingServiceImpl implements BillingService {
         bill.setTransactionStatus(null);
         bill.setRetryCount(null);
         bill.setBatchNumber(null);
+        bill.setPaymentLinkUrl(null);
     }
 
 	@Override

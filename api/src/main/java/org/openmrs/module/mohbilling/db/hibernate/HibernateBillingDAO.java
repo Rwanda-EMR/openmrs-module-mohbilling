@@ -29,6 +29,7 @@ import org.openmrs.User;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
 import org.openmrs.module.mohbilling.businesslogic.*;
 import org.openmrs.module.mohbilling.db.BillingDAO;
 import org.openmrs.module.mohbilling.model.Transaction;
@@ -2075,9 +2076,13 @@ public class HibernateBillingDAO implements BillingDAO {
                         + ": " + minimumPaymentGp + ". Defaulting to 0.");
             }
         }
-        Integer attributeTypeId = Integer.parseInt(Context.getAdministrationService()
-                .getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE));
-        PersonAttributeType phoneNumberType = Context.getPersonService().getPersonAttributeType(attributeTypeId);
+        Integer attributeTypeId = null;
+        PersonAttributeType phoneNumberType = null;
+        if (GlobalPropertyConfig.isIremboAutoPhoneNumberEnabled()) {
+            attributeTypeId = Integer.parseInt(Context.getAdministrationService()
+                    .getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE));
+            phoneNumberType = Context.getPersonService().getPersonAttributeType(attributeTypeId);
+        }
         if (ids != null) {
             for (Object id : ids) {
                 PatientBill patientBill = getPatientBill((Integer) id);
@@ -2099,15 +2104,22 @@ public class HibernateBillingDAO implements BillingDAO {
                 }
                 patientBillIrembo.setRetryCount(patientBill.getRetryCount());
                 patientBillIrembo.setInitiatedAt(patientBill.getInitiatedAt());
+                String paymentLinkUrl = patientBill.getPaymentLinkUrl();
+                patientBillIrembo.setPaymentLinkUrl(
+                        paymentLinkUrl != null && !paymentLinkUrl.trim().isEmpty() ? paymentLinkUrl.trim() : "");
 
-                //Get the Phone number in person attribute type if ready
-                if (patientBill.getPhoneNumber() == null && patient.getPerson() != null && phoneNumberType != null) {
-                    PersonAttribute attr = patient.getPerson().getAttribute(phoneNumberType);
-                    if (attr != null) {
-                        patientBillIrembo.setPhoneNumber(attr.getValue());
+                if (GlobalPropertyConfig.isIremboAutoPhoneNumberEnabled()) {
+                    // Get the phone number from bill or person attribute when auto-load is enabled.
+                    if (patientBill.getPhoneNumber() == null && patient.getPerson() != null && phoneNumberType != null) {
+                        PersonAttribute attr = patient.getPerson().getAttribute(phoneNumberType);
+                        if (attr != null) {
+                            patientBillIrembo.setPhoneNumber(attr.getValue());
+                        }
+                    } else if (patientBill.getPhoneNumber() != null) {
+                        patientBillIrembo.setPhoneNumber(patientBill.getPhoneNumber());
                     }
-                } else if (patientBill.getPhoneNumber() != null) {
-                    patientBillIrembo.setPhoneNumber(patientBill.getPhoneNumber());
+                } else {
+                    patientBillIrembo.setPhoneNumber("");
                 }
 
                 Consommation consommation = getConsommationByPatientBill(patientBill);
