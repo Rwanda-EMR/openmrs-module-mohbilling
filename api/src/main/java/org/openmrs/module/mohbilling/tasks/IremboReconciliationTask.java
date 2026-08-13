@@ -65,6 +65,7 @@ public class IremboReconciliationTask extends AbstractTask {
                         latest.setInitiatedAt(null);
                         latest.setRetryCount(0);
                         latest.setReferenceId(null);
+                        latest.setPaymentLinkUrl(null);
                         latest.setTransactionStatus("EXPIRED");
                         billingService.savePatientBill(latest);
                         log.info("Cleared expired Irembo invoice from PatientBill id=" + latest.getPatientBillId()

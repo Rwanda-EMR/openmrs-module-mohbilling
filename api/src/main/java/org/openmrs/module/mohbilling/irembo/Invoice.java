@@ -457,6 +457,12 @@ public class Invoice extends Config {
             this.setPaidAt(null);
         }
         this.setDescription(data.getString("description"));
+        if (data.has("paymentLinkUrl") && !data.isNull("paymentLinkUrl")) {
+            String link = data.getString("paymentLinkUrl");
+            this.setPaymentLinkUrl(link != null && !link.trim().isEmpty() ? link.trim() : null);
+        } else {
+            this.setPaymentLinkUrl(null);
+        }
         this.setType(data.getString("type"));
         this.setPaymentStatus(data.getString("paymentStatus"));
         this.setCurrency(data.getString("currency"));

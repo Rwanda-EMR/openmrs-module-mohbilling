@@ -4,6 +4,7 @@
 package org.openmrs.module.mohbilling;
 
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.model.Department;
 import org.openmrs.module.mohbilling.model.HopService;
@@ -69,4 +70,13 @@ public class GlobalPropertyConfig {
 		public static String getHospitalServiceByCateg(String categ){
 			return Context.getAdministrationService().getGlobalProperty(categ);
 		}
+
+	/**
+	 * When true, pending Irembo bills expose the patient/bill phone number on payment UIs.
+	 * When false (default), phone is left blank so the user must enter it manually.
+	 */
+	public static boolean isIremboAutoPhoneNumberEnabled() {
+		return "true".equalsIgnoreCase(Context.getAdministrationService()
+				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_IREMBO_AUTO_PHONE_NUMBER));
+	}
 }
