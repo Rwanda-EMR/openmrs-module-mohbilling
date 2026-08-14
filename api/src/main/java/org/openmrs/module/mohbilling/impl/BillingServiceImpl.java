@@ -1278,6 +1278,11 @@ public class BillingServiceImpl implements BillingService {
             patientBill.setTransactionStatus("Pending");
             patientBill.setRetryCount(0);
             billingDAO.savePatientBill(patientBill);
+            if (!hasText(invoice.getPaymentLinkUrl())) {
+                IremboPayLogUtil.logFailure(log, "CREATE_INVOICE",
+                        "Irembo createInvoice succeeded but paymentLinkUrl is missing/empty, patientBillId="
+                                + patientBill.getPatientBillId() + ", invoiceNumber=" + invoice.getInvoiceNumber());
+            }
             log.info("Irembo single init createInvoice saved: patientBillId=" + patientBill.getPatientBillId()
                     + ", invoiceNumber=" + invoice.getInvoiceNumber()
                     + ", paymentLinkUrl=" + invoice.getPaymentLinkUrl()
@@ -1871,6 +1876,11 @@ public class BillingServiceImpl implements BillingService {
         patientBill.setTransactionStatus("Pending");
         patientBill.setRetryCount(0);
         billingDAO.savePatientBill(patientBill);
+        if (!hasText(invoice.getPaymentLinkUrl())) {
+            IremboPayLogUtil.logFailure(log, "CREATE_INVOICE",
+                    "Irembo createInvoice(child) succeeded but paymentLinkUrl is missing/empty, patientBillId="
+                            + patientBill.getPatientBillId() + ", invoiceNumber=" + invoice.getInvoiceNumber());
+        }
         log.info("Irembo createInvoice saved: patientBillId=" + patientBill.getPatientBillId()
                 + ", invoiceNumber=" + invoice.getInvoiceNumber()
                 + ", paymentLinkUrl=" + invoice.getPaymentLinkUrl()
@@ -2129,6 +2139,11 @@ public class BillingServiceImpl implements BillingService {
                 invoicesToMap.addAll(childInvoices);
             }
             invoicesMappedToBatch.addAll(invoicesToMap);
+            if (!hasText(batchInvoice.getPaymentLinkUrl())) {
+                IremboPayLogUtil.logFailure(log, "CREATE_BATCH",
+                        "Irembo createBatchInvoice succeeded but paymentLinkUrl is missing/empty, batchNumber="
+                                + batchNumber + ", transactionId=" + transactionId);
+            }
             int updatedBills = applyBatchNumberToBills(batchNumber, invoicesToMap, batchInvoice.getPaymentLinkUrl());
             log.info("Irembo batch mapping complete: transactionId=" + transactionId
                     + ", batchNumber=" + batchNumber
