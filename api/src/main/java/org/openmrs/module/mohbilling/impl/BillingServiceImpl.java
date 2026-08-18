@@ -1393,10 +1393,33 @@ public class BillingServiceImpl implements BillingService {
         }
         log.info("Irembo status check response: invoiceId=" + invoiceId
                 + ", status=" + invoice.getPaymentStatus()
+                + ", type=" + invoice.getType()
+                + ", invoiceNumber=" + invoice.getInvoiceNumber()
+                + ", batchNumber=" + invoice.getBatchNumber()
                 + ", amount=" + invoice.getAmount()
-                + ", paymentReference=" + invoice.getPaymentReference());
+                + ", paymentReference=" + invoice.getPaymentReference()
+                + ", childInvoices=" + (invoice.getChildInvoices() == null ? 0 : invoice.getChildInvoices().size()));
         BillingService billingService = Context.getService(BillingService.class);
         if (invoice.getPaymentStatus() != null && invoice.getPaymentStatus().equalsIgnoreCase("PAID")) {
+            if (isIremboBatchInvoice(invoice)) {
+                String batchNumber = resolveStatusCheckBatchNumber(invoice, invoiceId);
+                log.info("Irembo status check treating invoice as BATCH: invoiceId=" + invoiceId
+                        + ", batchNumber=" + batchNumber
+                        + ", childInvoices=" + invoice.getChildInvoices());
+                processIrembopayBatchCallback(
+                        batchNumber,
+                        invoice.getChildInvoices(),
+                        true,
+                        invoice.getPaymentReference(),
+                        formatPaidAt(invoice.getPaidAt()),
+                        invoice.getPaymentStatus());
+                List<PatientBill> paidBatchBills = billingDAO.getPatientBillsByBatchNumber(batchNumber);
+                if (paidBatchBills != null && !paidBatchBills.isEmpty()) {
+                    return paidBatchBills.get(0);
+                }
+                return billingDAO.getPatientBillStatus(invoiceId);
+            }
+
             //Here we need to make sure update the patient bill if it was not yet marked as paid
 
             User iremboUser = Context.getService(UserService.class).getUserByUsername(ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_USER));
@@ -1746,6 +1769,33 @@ public class BillingServiceImpl implements BillingService {
             }
             return true;
         }
+    }
+
+    private static boolean isIremboBatchInvoice(Invoice invoice) {
+        if (invoice == null) {
+            return false;
+        }
+        if ("BATCH".equalsIgnoreCase(invoice.getType())) {
+            return true;
+        }
+        return invoice.getChildInvoices() != null && !invoice.getChildInvoices().isEmpty();
+    }
+
+    private static String resolveStatusCheckBatchNumber(Invoice invoice, String invoiceId) {
+        if (hasText(invoice.getBatchNumber())) {
+            return invoice.getBatchNumber().trim();
+        }
+        if (hasText(invoice.getInvoiceNumber()) && "BATCH".equalsIgnoreCase(invoice.getType())) {
+            return invoice.getInvoiceNumber().trim();
+        }
+        return invoiceId;
+    }
+
+    private static String formatPaidAt(Date paidAt) {
+        if (paidAt == null) {
+            return null;
+        }
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(paidAt);
     }
 
     private static Date parsePaidAt(String paidAtStr) {
