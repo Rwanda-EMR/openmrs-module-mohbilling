@@ -210,6 +210,15 @@
     </globalProperty>
 
     <globalProperty>
+        <property>mohbilling.rhipVoucher.closureUrl</property>
+        <defaultValue></defaultValue>
+        <description>
+            Optional full RHIP voucher closure endpoint URL. When blank and mohbilling.rhip.baseUrl is configured,
+            mohbilling derives /insurance_integration/api/v2/voucher-closure from the base URL.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>mohbilling.rhipVoucher.defaultReferralFacilityId</property>
         <defaultValue></defaultValue>
         <description>

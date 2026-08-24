@@ -179,6 +179,71 @@ public class RhipVoucherService {
 		return submitVoucherForGlobalBillWithAudit(globalBill, null);
 	}
 
+	public RhipVoucherSubmission submitMmiVoucherForGlobalBillOnDischarge(GlobalBill globalBill) {
+		if (globalBill == null) {
+			return submitVoucherForGlobalBillWithAudit(null);
+		}
+		Insurance insurance = globalBill.getInsurance();
+		if (insurance == null && globalBill.getAdmission() != null
+				&& globalBill.getAdmission().getInsurancePolicy() != null) {
+			insurance = globalBill.getAdmission().getInsurancePolicy().getInsurance();
+			globalBill.setInsurance(insurance);
+		}
+		if (!isMmiInsurance(insurance)) {
+			return null;
+		}
+		return submitVoucherForGlobalBillWithAudit(globalBill);
+	}
+
+	public RhipVoucherSubmission closeVoucherForGlobalBillWithAudit(GlobalBill globalBill) {
+		User currentUser = getAuthenticatedUserSafely();
+		RhipVoucherSubmission submission = newVoucherSubmission(globalBill, currentUser);
+		if (billingService == null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Billing service is not configured");
+			return submission;
+		}
+		if (globalBill == null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Global bill is required");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		if (!isMmiInsurance(resolveInsurance(globalBill))) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("RHIP voucher closure is currently enabled for MMI only");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		if (getConfirmedVoucherSubmission(globalBill) != null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("RHIP voucher already confirmed for this global bill");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		String voucherCode = resolveVoucherCode(globalBill);
+		if (StringUtils.isBlank(voucherCode)) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("RHIP voucher must be created before confirmation");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		String insuranceType = normalizeVoucherInsuranceType(resolveInsurance(globalBill));
+		String facilityFosaId = resolveFosaId(globalBill);
+		String verifiedBy = resolveVerifiedBy(globalBill, currentUser, facilityFosaId);
+		submission.setRequestPayload(toJson(newVoucherClosurePayload(insuranceType, facilityFosaId, voucherCode, verifiedBy)));
+		IntegrationResponse response = voucherProvider == null ? null
+				: voucherProvider.closeVoucher(insuranceType, facilityFosaId, voucherCode, verifiedBy,
+						currentUser == null ? null : currentUser.getUsername());
+		submission.setResponseCode(response == null ? null : response.getResponseCode());
+		submission.setResponsePayload(toJson(response == null ? null : response.getResponseEntity()));
+		if (Boolean.TRUE.equals(isSuccessResponse(response))) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_CONFIRMED);
+			submission.setVoucherCode(globalBill.getRhipVoucherCode());
+			submission.setVoucherReferenceNumber(globalBill.getRhipVoucherReferenceNumber());
+		} else {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage(resolveVoucherSubmissionError(response));
+		}
+		return billingService.saveRhipVoucherSubmission(submission);
+	}
+
 	public RhipVoucherSubmission submitVoucherForGlobalBillWithAudit(GlobalBill globalBill, String eligibilityIdentifier) {
 		User currentUser = getAuthenticatedUserSafely();
 		RhipVoucherSubmission submission = newVoucherSubmission(globalBill, currentUser);
@@ -576,6 +641,54 @@ public class RhipVoucherService {
 		submission.setAttemptNumber(resolveNextVoucherSubmissionAttemptNumber(globalBill));
 		submission.setUuid(UUID.randomUUID().toString());
 		return submission;
+	}
+
+	private RhipVoucherSubmission getConfirmedVoucherSubmission(GlobalBill globalBill) {
+		if (billingService == null || globalBill == null) {
+			return null;
+		}
+		List<RhipVoucherSubmission> submissions = billingService.getRhipVoucherSubmissionsByGlobalBill(globalBill);
+		for (RhipVoucherSubmission submission : submissions) {
+			if (submission != null && RhipVoucherSubmission.STATUS_CONFIRMED.equals(submission.getStatus())) {
+				return submission;
+			}
+		}
+		return null;
+	}
+
+	private Insurance resolveInsurance(GlobalBill globalBill) {
+		Insurance insurance = globalBill == null ? null : globalBill.getInsurance();
+		if (insurance == null && globalBill != null && globalBill.getAdmission() != null
+				&& globalBill.getAdmission().getInsurancePolicy() != null) {
+			insurance = globalBill.getAdmission().getInsurancePolicy().getInsurance();
+			globalBill.setInsurance(insurance);
+		}
+		return insurance;
+	}
+
+	private String resolveVoucherCode(GlobalBill globalBill) {
+		if (globalBill == null) {
+			return null;
+		}
+		if (StringUtils.isNotBlank(globalBill.getRhipVoucherReferenceNumber())) {
+			return globalBill.getRhipVoucherReferenceNumber();
+		}
+		if (StringUtils.isNotBlank(globalBill.getRhipVoucherCode())) {
+			return globalBill.getRhipVoucherCode();
+		}
+		RhipVoucherSubmission successful = billingService == null ? null : billingService.getSuccessfulRhipVoucherSubmission(globalBill);
+		return successful == null ? null
+				: StringUtils.defaultIfBlank(successful.getVoucherReferenceNumber(), successful.getVoucherCode());
+	}
+
+	private Map<String, Object> newVoucherClosurePayload(String insuranceType, String facilityFosaId, String voucherCode,
+			String verifiedBy) {
+		Map<String, Object> payload = new HashMap<String, Object>();
+		payload.put("insuranceType", insuranceType);
+		payload.put("facilityFosaId", facilityFosaId);
+		payload.put("voucherCode", voucherCode);
+		payload.put("verifiedBy", verifiedBy);
+		return payload;
 	}
 
 	private Integer resolveNextVoucherSubmissionAttemptNumber(GlobalBill globalBill) {
@@ -1887,6 +2000,10 @@ public class RhipVoucherService {
 
 	private String resolveReferralFacilityId(GlobalBill globalBill) {
 		return config == null ? null : StringUtils.trimToNull(config.getDefaultReferralFacilityId());
+	}
+
+	private String resolveVerifiedBy(GlobalBill globalBill, User currentUser, String facilityFosaId) {
+		return StringUtils.defaultIfBlank(facilityFosaId, currentUser == null ? null : currentUser.getUsername());
 	}
 
 	private String resolveRamaVisitReferenceNumber(GlobalBill globalBill, String fosaId) {

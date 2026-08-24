@@ -76,6 +76,28 @@ public class RhipVoucherProvider {
 		return executePost(config.getVoucherUrl(), payload, "VOUCHER_SUBMIT", request.getProcessedBy());
 	}
 
+	public IntegrationResponse closeVoucher(String insuranceType, String facilityFosaId, String voucherCode,
+			String verifiedBy, String processedBy) {
+		IntegrationResponse ret = new IntegrationResponse();
+		ret.setEnabled(config != null && StringUtils.isNotBlank(config.getVoucherClosureUrl()));
+		if (!ret.isEnabled()) {
+			ret.setErrorMessage("RHIP voucher closure endpoint is not configured");
+			return ret;
+		}
+		Map<String, Object> payload = new LinkedHashMap<>();
+		payload.put("insuranceType", normalizeInsuranceTypeForRhip(insuranceType));
+		payload.put("facilityFosaId", facilityFosaId);
+		payload.put("voucherCode", voucherCode);
+		payload.put("verifiedBy", verifiedBy);
+		String json = toJson(payload);
+		if (json == null) {
+			ret.setErrorMessage("Unable to serialize RHIP voucher closure request to JSON");
+			return ret;
+		}
+		log.info("RHIP voucher closure payload: " + redactSensitivePayload(json));
+		return executePost(config.getVoucherClosureUrl(), json, "VOUCHER_CLOSURE", processedBy);
+	}
+
 	private String buildVoucherJson(RhipVoucherRequest request) {
 		if (isRamaInsuranceType(request.getInsuranceType())) {
 			return buildRamaVoucherJson(request);

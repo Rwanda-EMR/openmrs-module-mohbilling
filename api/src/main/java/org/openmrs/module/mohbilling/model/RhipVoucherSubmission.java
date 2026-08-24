@@ -9,6 +9,7 @@ public class RhipVoucherSubmission {
 	public static final String STATUS_NOT_SENT = "NOT_SENT";
 	public static final String STATUS_PROCESSING = "PROCESSING";
 	public static final String STATUS_SENT = "SENT";
+	public static final String STATUS_CONFIRMED = "CONFIRMED";
 	public static final String STATUS_FAILED = "FAILED";
 
 	private Integer rhipVoucherSubmissionId;

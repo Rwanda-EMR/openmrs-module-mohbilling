@@ -13,6 +13,7 @@ public class RhipVoucherIntegrationConfig {
 	private static final String SHARED_API_PREFIX = "/insurance_integration/api/v2";
 	public static final String SHARED_BASE_URL = "mohbilling.rhip.baseUrl";
 	public static final String VOUCHER_URL = VOUCHER_PREFIX + "url";
+	public static final String VOUCHER_CLOSURE_URL = VOUCHER_PREFIX + "closureUrl";
 	public static final String VOUCHER_API_KEY = VOUCHER_PREFIX + "apiKey";
 	public static final String VOUCHER_API_ORIGIN = VOUCHER_PREFIX + "apiOrigin";
 	public static final String VOUCHER_ENABLED_INSURANCE_KEYS = VOUCHER_PREFIX + "enabledInsuranceKeys";
@@ -44,6 +45,10 @@ public class RhipVoucherIntegrationConfig {
 
 	public String getVoucherUrl() {
 		return configuredUrlOrSharedPath(VOUCHER_URL, "/voucher");
+	}
+
+	public String getVoucherClosureUrl() {
+		return configuredUrlOrSharedPath(VOUCHER_CLOSURE_URL, "/voucher-closure");
 	}
 
 	public String getVoucherApiKey() {

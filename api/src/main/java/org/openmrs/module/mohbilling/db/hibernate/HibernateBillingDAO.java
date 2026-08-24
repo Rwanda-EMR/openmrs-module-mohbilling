@@ -2436,7 +2436,13 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	private String buildEffectiveSubmissionStatusSql() {
-		return "(case when (gb.rhip_voucher_code is not null and gb.rhip_voucher_code <> '') "
+		return "(case when ((gb.rhip_voucher_code is not null and gb.rhip_voucher_code <> '') "
+				+ "or (gb.rhip_voucher_reference_number is not null and gb.rhip_voucher_reference_number <> '')) "
+				+ "and exists (select 1 from moh_bill_rhip_voucher_submission confirmed_sub "
+				+ "where confirmed_sub.global_bill_id = gb.global_bill_id and confirmed_sub.status = '"
+				+ RhipVoucherSubmission.STATUS_CONFIRMED + "') "
+				+ "then '" + RhipVoucherSubmission.STATUS_CONFIRMED + "' "
+				+ "when (gb.rhip_voucher_code is not null and gb.rhip_voucher_code <> '') "
 				+ "or (gb.rhip_voucher_reference_number is not null and gb.rhip_voucher_reference_number <> '') "
 				+ "or exists (select 1 from moh_bill_rhip_voucher_submission sent_sub "
 				+ "where sent_sub.global_bill_id = gb.global_bill_id and sent_sub.status = '"

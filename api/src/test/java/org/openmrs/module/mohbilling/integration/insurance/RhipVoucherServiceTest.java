@@ -61,6 +61,66 @@ public class RhipVoucherServiceTest {
 	}
 
 	@Test
+	public void submitMmiVoucherForGlobalBillOnDischarge_shouldSubmitVoucherImmediately() {
+		TestableRhipVoucherService service = new TestableRhipVoucherService();
+		CountingProvider provider = new CountingProvider();
+		TestBillingServiceHandler billingServiceHandler = new TestBillingServiceHandler();
+		service.setConfig(new TestConfig(true));
+		service.setVoucherProvider(provider);
+		service.setBillingService((BillingService) Proxy.newProxyInstance(
+				BillingService.class.getClassLoader(),
+				new Class[] { BillingService.class },
+				billingServiceHandler));
+
+		Insurance insurance = new Insurance();
+		insurance.setName("MMI");
+		insurance.setCategory("MMI");
+		GlobalBill globalBill = new GlobalBill();
+		globalBill.setGlobalBillId(10);
+		globalBill.setInsurance(insurance);
+		globalBill.setClosed(true);
+
+		RhipVoucherSubmission submission = service.submitMmiVoucherForGlobalBillOnDischarge(globalBill);
+
+		Assert.assertNotNull(submission);
+		Assert.assertEquals(RhipVoucherSubmission.STATUS_SENT, submission.getStatus());
+		Assert.assertNotNull(submission.getRequestPayload());
+		Assert.assertEquals(1, billingServiceHandler.saveCalls);
+		Assert.assertEquals(1, provider.submitVoucherCalls);
+	}
+
+	@Test
+	public void closeVoucherForGlobalBillWithAudit_shouldCallVoucherClosureProvider() {
+		TestableRhipVoucherService service = new TestableRhipVoucherService();
+		CountingProvider provider = new CountingProvider();
+		TestBillingServiceHandler billingServiceHandler = new TestBillingServiceHandler();
+		service.setConfig(new TestConfig(true));
+		service.setVoucherProvider(provider);
+		service.setBillingService((BillingService) Proxy.newProxyInstance(
+				BillingService.class.getClassLoader(),
+				new Class[] { BillingService.class },
+				billingServiceHandler));
+
+		Insurance insurance = new Insurance();
+		insurance.setName("MMI");
+		insurance.setCategory("MMI");
+		GlobalBill globalBill = new GlobalBill();
+		globalBill.setGlobalBillId(10);
+		globalBill.setInsurance(insurance);
+		globalBill.setClosed(true);
+		globalBill.setRhipVoucherCode("HF-1212222-22-20260727-1-87");
+		globalBill.setRhipVoucherReferenceNumber("HF-1212222-22-20260727-1-87");
+
+		RhipVoucherSubmission submission = service.closeVoucherForGlobalBillWithAudit(globalBill);
+
+		Assert.assertNotNull(submission);
+		Assert.assertEquals(RhipVoucherSubmission.STATUS_CONFIRMED, submission.getStatus());
+		Assert.assertNotNull(submission.getRequestPayload());
+		Assert.assertEquals(1, provider.closeVoucherCalls);
+		Assert.assertEquals("HF-1212222-22-20260727-1-87", provider.lastClosedVoucherCode);
+	}
+
+	@Test
 	public void submitVoucher_shouldCallProviderWhenRequestIsValid() {
 		RhipVoucherService service = new RhipVoucherService();
 		CountingProvider provider = new CountingProvider();
@@ -557,15 +617,80 @@ public class RhipVoucherServiceTest {
 		return procedure;
 	}
 
+	private static class TestableRhipVoucherService extends RhipVoucherService {
+
+		@Override
+		public RhipVoucherRequest buildVoucherRequestFromGlobalBill(GlobalBill globalBill, String eligibilityIdentifier) {
+			RhipVoucherRequest request = new RhipVoucherRequest();
+			request.setInsuranceType("MMI");
+			request.setFacilityFosaId("FOSA-001");
+			request.setPatientIdentifier("P-001");
+			request.setPractitionerLicenseNumber("LIC-01");
+			request.setVisitReferenceNumber("VISIT-001");
+			request.setProcedures(Collections.singletonList(voucherProcedureForSubmit()));
+			return request;
+		}
+
+		private RhipVoucherProcedure voucherProcedureForSubmit() {
+			RhipVoucherProcedure procedure = new RhipVoucherProcedure();
+			procedure.setCode("RHIC-001");
+			procedure.setQuantity(BigDecimal.ONE);
+			procedure.setPrice(BigDecimal.TEN);
+			return procedure;
+		}
+	}
+
+	private static class TestBillingServiceHandler implements java.lang.reflect.InvocationHandler {
+
+		private int saveCalls = 0;
+
+		@Override
+		public Object invoke(Object proxy, Method method, Object[] args) {
+			if ("getLatestRhipVoucherSubmission".equals(method.getName())
+					|| "getSuccessfulRhipVoucherSubmission".equals(method.getName())) {
+				return null;
+			}
+			if ("getRhipVoucherSubmissionsByGlobalBill".equals(method.getName())) {
+				return Collections.emptyList();
+			}
+			if ("saveRhipVoucherSubmission".equals(method.getName())) {
+				saveCalls++;
+				return args[0];
+			}
+			if (method.getReturnType().equals(Boolean.TYPE)) {
+				return false;
+			}
+			if (method.getReturnType().equals(Integer.TYPE)) {
+				return 0;
+			}
+			return null;
+		}
+	}
+
 	private static class CountingProvider extends RhipVoucherProvider {
 
 		private int submitVoucherCalls = 0;
+		private int closeVoucherCalls = 0;
 		private RhipVoucherRequest lastRequest;
+		private String lastClosedVoucherCode;
 
 		@Override
 		public IntegrationResponse submitVoucher(RhipVoucherRequest request) {
 			submitVoucherCalls++;
 			lastRequest = request;
+			IntegrationResponse response = new IntegrationResponse();
+			response.setEnabled(true);
+			response.setEndpointAccessible(true);
+			response.setResponseCode(200);
+			response.setResponseEntity("{\"success\":true}");
+			return response;
+		}
+
+		@Override
+		public IntegrationResponse closeVoucher(String insuranceType, String facilityFosaId, String voucherCode,
+				String verifiedBy, String processedBy) {
+			closeVoucherCalls++;
+			lastClosedVoucherCode = voucherCode;
 			IntegrationResponse response = new IntegrationResponse();
 			response.setEnabled(true);
 			response.setEndpointAccessible(true);
@@ -620,6 +745,16 @@ public class RhipVoucherServiceTest {
 		@Override
 		public boolean isVoucherEnabled() {
 			return voucherEnabled;
+		}
+
+		@Override
+		public String getVoucherClosureUrl() {
+			return "http://rhip.example/insurance_integration/api/v2/voucher-closure";
+		}
+
+		@Override
+		public String getDefaultFosaId() {
+			return "10023";
 		}
 	}
 }
