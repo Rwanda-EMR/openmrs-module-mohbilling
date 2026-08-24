@@ -99,6 +99,7 @@ public class RhipVoucherProvider {
 		payload.put("dischargeDate", request.getDischargeDate());
 		payload.put("treatmentForNewBorn", request.getTreatmentForNewBorn());
 		payload.put("diagnosisIds", request.getDiagnosisIds());
+		payload.put("referralFacilityId", request.getReferralFacilityId());
 		payload.put("patientPhoneNumber", request.getPatientPhoneNumber());
 		payload.put("prescriptionDestination", resolvePrescriptionDestination(request));
 		payload.put("visitReferenceNumber", resolveVisitReferenceNumber(request));
@@ -115,6 +116,7 @@ public class RhipVoucherProvider {
 		payload.put("healthCareStayType", request.getHealthCareStayType());
 		payload.put("admissionDate", request.getAdmissionDate());
 		payload.put("diagnosisIds", request.getDiagnosisIds());
+		payload.put("referralFacilityId", request.getReferralFacilityId());
 		payload.put("patientPhoneNumber", request.getPatientPhoneNumber());
 		payload.put("prescriptionDestination", resolvePrescriptionDestination(request));
 		payload.put("visitReferenceNumber", request.getVisitReferenceNumber());
@@ -142,6 +144,9 @@ public class RhipVoucherProvider {
 			}
 			if (procedure.getDurationDays() != null) {
 				ramaProcedure.put("durationDays", procedure.getDurationDays());
+			}
+			if (StringUtils.isNotBlank(procedure.getDispensingDate())) {
+				ramaProcedure.put("dispensingDate", procedure.getDispensingDate().trim());
 			}
 			ramaProcedures.add(ramaProcedure);
 		}

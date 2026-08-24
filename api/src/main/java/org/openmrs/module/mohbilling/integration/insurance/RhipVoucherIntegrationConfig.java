@@ -20,6 +20,7 @@ public class RhipVoucherIntegrationConfig {
 	public static final String PATIENT_IDENTIFIER_ATTRIBUTE_TYPE_UUID = VOUCHER_PREFIX + "patientIdentifierAttributeTypeUuid";
 	public static final String DIAGNOSIS_CONCEPT_IDS = VOUCHER_PREFIX + "diagnosisConceptIds";
 	public static final String DEFAULT_FOSA_ID = VOUCHER_PREFIX + "defaultFosaId";
+	public static final String DEFAULT_REFERRAL_FACILITY_ID = VOUCHER_PREFIX + "defaultReferralFacilityId";
 	public static final String DEFAULT_PATIENT_TYPE = VOUCHER_PREFIX + "defaultPatientType";
 	public static final String DEFAULT_HEALTHCARE_STAY_TYPE = VOUCHER_PREFIX + "defaultHealthCareStayType";
 	public static final String DEFAULT_TREATMENT_FOR_NEW_BORN = VOUCHER_PREFIX + "defaultTreatmentForNewBorn";
@@ -108,6 +109,10 @@ public class RhipVoucherIntegrationConfig {
 
 	public String getDefaultFosaId() {
 		return Context.getAdministrationService().getGlobalProperty(DEFAULT_FOSA_ID);
+	}
+
+	public String getDefaultReferralFacilityId() {
+		return Context.getAdministrationService().getGlobalProperty(DEFAULT_REFERRAL_FACILITY_ID);
 	}
 
 	public String getFosaIdAttributeTypeUuid() {

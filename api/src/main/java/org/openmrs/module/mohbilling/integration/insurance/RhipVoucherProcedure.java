@@ -12,6 +12,7 @@ public class RhipVoucherProcedure {
 	private String posology;
 	private String frequency;
 	private Integer durationDays;
+	private String dispensingDate;
 	private String instructions;
 	private Integer patientServiceBillId;
 
@@ -69,6 +70,14 @@ public class RhipVoucherProcedure {
 
 	public void setDurationDays(Integer durationDays) {
 		this.durationDays = durationDays;
+	}
+
+	public String getDispensingDate() {
+		return dispensingDate;
+	}
+
+	public void setDispensingDate(String dispensingDate) {
+		this.dispensingDate = dispensingDate;
 	}
 
 	public String getInstructions() {

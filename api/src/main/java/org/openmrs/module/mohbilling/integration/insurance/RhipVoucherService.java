@@ -302,6 +302,7 @@ public class RhipVoucherService {
 		String diagnosisNotes = resolveDiagnosisNotes(patient, admission, globalBill);
 		request.setNotes(diagnosisNotes);
 		request.setDiagnosisIds(resolveDiagnosisIds(diagnosisNotes));
+		request.setReferralFacilityId(resolveReferralFacilityId(globalBill));
 		if (request.getDiagnosisIds() == null || request.getDiagnosisIds().isEmpty()) {
 			log.warn("No ICD-11 diagnosis codes resolved for RHIP voucher request; globalBillId="
 					+ (globalBill == null ? null : globalBill.getGlobalBillId()));
@@ -1465,6 +1466,7 @@ public class RhipVoucherService {
 		copy.setDischargeDate(source.getDischargeDate());
 		copy.setTreatmentForNewBorn(source.getTreatmentForNewBorn());
 		copy.setDiagnosisIds(source.getDiagnosisIds());
+		copy.setReferralFacilityId(source.getReferralFacilityId());
 		copy.setPatientPhoneNumber(source.getPatientPhoneNumber());
 		copy.setPrescriptionDestination(source.getPrescriptionDestination());
 		copy.setVisitReferenceNumber(source.getVisitReferenceNumber());
@@ -1731,6 +1733,10 @@ public class RhipVoucherService {
 			log.warn("No FOSA ID configured for RHIP voucher submission");
 		}
 		return fosaId;
+	}
+
+	private String resolveReferralFacilityId(GlobalBill globalBill) {
+		return config == null ? null : StringUtils.trimToNull(config.getDefaultReferralFacilityId());
 	}
 
 	private String resolveRamaVisitReferenceNumber(GlobalBill globalBill, String fosaId) {

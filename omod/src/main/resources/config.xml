@@ -210,6 +210,15 @@
     </globalProperty>
 
     <globalProperty>
+        <property>mohbilling.rhipVoucher.defaultReferralFacilityId</property>
+        <defaultValue></defaultValue>
+        <description>
+            Optional referral facility FOSA ID to include as referralFacilityId in RHIP voucher creation requests.
+            Leave blank for normal, non-referred visits.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>mohbilling.irembopay_enabled</property>
         <defaultValue>false</defaultValue>
         <description>

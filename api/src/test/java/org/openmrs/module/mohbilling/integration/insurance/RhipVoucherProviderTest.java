@@ -48,6 +48,7 @@ public class RhipVoucherProviderTest {
 		request.setHealthCareStayType("IN_PATIENT");
 		request.setAdmissionDate("2026-07-12");
 		request.setDiagnosisIds(Collections.singletonList("1F4Z"));
+		request.setReferralFacilityId("FOSA-REF");
 		request.setPatientPhoneNumber("0788967651");
 
 		RhipVoucherProcedure procedure = new RhipVoucherProcedure();
@@ -56,6 +57,7 @@ public class RhipVoucherProviderTest {
 		procedure.setPrice(BigDecimal.ONE);
 		procedure.setPrescribedAt("2026-07-12");
 		procedure.setFrequency("BID");
+		procedure.setDispensingDate("2026-07-13");
 		request.setProcedures(Collections.singletonList(procedure));
 
 		Method method = RhipVoucherProvider.class.getDeclaredMethod("buildVoucherJson", RhipVoucherRequest.class);
@@ -68,6 +70,8 @@ public class RhipVoucherProviderTest {
 		Assert.assertTrue(json.contains("\"procedures\""));
 		Assert.assertTrue(json.contains("\"prescribedAt\":\"2026-07-12\""));
 		Assert.assertTrue(json.contains("\"frequency\":\"BID\""));
+		Assert.assertTrue(json.contains("\"dispensingDate\":\"2026-07-13\""));
+		Assert.assertTrue(json.contains("\"referralFacilityId\":\"FOSA-REF\""));
 		Assert.assertTrue(json.contains("\"prescriptionDestination\":\"FACILITY_DISPENSE\""));
 		Assert.assertTrue(json.contains("\"visitReferenceNumber\":\"VR-2026-000123\""));
 		Assert.assertFalse(json.contains("\"patientType\""));

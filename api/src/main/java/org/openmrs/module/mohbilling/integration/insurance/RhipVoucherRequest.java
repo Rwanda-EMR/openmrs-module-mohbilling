@@ -18,6 +18,7 @@ public class RhipVoucherRequest {
 	private String dischargeDate;
 	private Boolean treatmentForNewBorn;
 	private List<String> diagnosisIds;
+	private String referralFacilityId;
 	private String patientPhoneNumber;
 	private String prescriptionDestination;
 	private String visitReferenceNumber;
@@ -140,6 +141,14 @@ public class RhipVoucherRequest {
 
 	public void setDiagnosisIds(List<String> diagnosisIds) {
 		this.diagnosisIds = diagnosisIds;
+	}
+
+	public String getReferralFacilityId() {
+		return referralFacilityId;
+	}
+
+	public void setReferralFacilityId(String referralFacilityId) {
+		this.referralFacilityId = referralFacilityId;
 	}
 
 	public String getPatientPhoneNumber() {
