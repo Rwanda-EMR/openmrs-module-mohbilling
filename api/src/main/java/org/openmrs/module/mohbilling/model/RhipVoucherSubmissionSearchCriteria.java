@@ -7,6 +7,7 @@ public class RhipVoucherSubmissionSearchCriteria {
 	private Date dischargeStartDate;
 	private Date dischargeEndDate;
 	private String status;
+	private Integer insuranceId;
 	private String query;
 	private String sortBy;
 	private String sortDirection;
@@ -33,6 +34,14 @@ public class RhipVoucherSubmissionSearchCriteria {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public Integer getInsuranceId() {
+		return insuranceId;
+	}
+
+	public void setInsuranceId(Integer insuranceId) {
+		this.insuranceId = insuranceId;
 	}
 
 	public String getQuery() {

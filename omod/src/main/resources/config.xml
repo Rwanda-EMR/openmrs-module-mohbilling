@@ -525,6 +525,11 @@
     </privilege>
 
     <privilege>
+        <name>Billing RHIP Voucher - Confirm</name>
+        <description>Allows user to confirm RHIP voucher closure submissions</description>
+    </privilege>
+
+    <privilege>
         <name>Billing RHIP Voucher - Retry</name>
         <description>Allows user to retry failed RHIP voucher submissions</description>
     </privilege>

@@ -8,6 +8,7 @@ import org.openmrs.PatientIdentifier;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Consommation;
@@ -42,8 +43,10 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 	protected final Log log = LogFactory.getLog(getClass());
 	public static final String PRIVILEGE_VIEW = "Billing RHIP Voucher - View Submission Page";
 	public static final String PRIVILEGE_SEND = "Billing RHIP Voucher - Send";
+	public static final String PRIVILEGE_CONFIRM = "Billing RHIP Voucher - Confirm";
 	public static final String PRIVILEGE_RETRY = "Billing RHIP Voucher - Retry";
 	public static final String PRIVILEGE_VIEW_HISTORY = "Billing RHIP Voucher - View History";
+	private static final String PRIVILEGE_BILLING_ADMIN = "Billing Configuration - View Billing Admin";
 	private static final String DATE_PATTERN = "yyyy-MM-dd";
 	private static final int DEFAULT_PAGE_SIZE = 25;
 	private static final int MAX_PAGE_SIZE = 100;
@@ -56,7 +59,7 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		if (!Context.isAuthenticated()) {
 			return new ModelAndView(new RedirectView("/login.htm"));
 		}
-		if (!Context.hasPrivilege(PRIVILEGE_VIEW) && !Context.hasPrivilege("Billing Configuration - View Billing Admin")) {
+		if (!Context.hasPrivilege(PRIVILEGE_VIEW) && !Context.hasPrivilege(PRIVILEGE_BILLING_ADMIN)) {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					"You do not have permission to view RHIP voucher submissions.");
 			return new ModelAndView(new RedirectView("billingAdmin.form"));
@@ -74,11 +77,15 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Global bill is required.");
 			return redirectToList(request);
 		}
+		if ("confirm".equalsIgnoreCase(action) && !canConfirmVoucher()) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "You do not have permission to confirm RHIP vouchers.");
+			return redirectToList(request);
+		}
 		if ("retry".equalsIgnoreCase(action) && !Context.hasPrivilege(PRIVILEGE_RETRY)) {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "You do not have permission to retry RHIP vouchers.");
 			return redirectToList(request);
 		}
-		if (!"retry".equalsIgnoreCase(action) && !Context.hasPrivilege(PRIVILEGE_SEND)) {
+		if (!"retry".equalsIgnoreCase(action) && !"confirm".equalsIgnoreCase(action) && !Context.hasPrivilege(PRIVILEGE_SEND)) {
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "You do not have permission to send RHIP vouchers.");
 			return redirectToList(request);
 		}
@@ -87,17 +94,27 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "RHIP voucher service is not configured.");
 			return redirectToList(request);
 		}
-		RhipVoucherSubmission submission = voucherService.submitVoucherForGlobalBillWithAudit(globalBill);
-		if (submission != null && RhipVoucherSubmission.STATUS_SENT.equals(submission.getStatus())) {
+		RhipVoucherSubmission submission = "confirm".equalsIgnoreCase(action)
+				? voucherService.closeVoucherForGlobalBillWithAudit(globalBill)
+				: voucherService.submitVoucherForGlobalBillWithAudit(globalBill);
+		if (submission != null && (RhipVoucherSubmission.STATUS_SENT.equals(submission.getStatus())
+				|| RhipVoucherSubmission.STATUS_CONFIRMED.equals(submission.getStatus()))) {
 			String reference = StringUtils.defaultIfBlank(submission.getVoucherReferenceNumber(), submission.getVoucherCode());
 			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
-					"RHIP voucher submitted successfully" + (StringUtils.isBlank(reference) ? "." : ". Reference: " + reference));
+					resolveSuccessMessage(submission.getStatus()) + (StringUtils.isBlank(reference) ? "." : ". Reference: " + reference));
 		} else {
 			String error = submission == null ? "RHIP voucher submission failed." : submission.getErrorMessage();
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 					StringUtils.defaultIfBlank(error, "RHIP voucher submission failed."));
 		}
 		return redirectToList(request);
+	}
+
+	private String resolveSuccessMessage(String status) {
+		if (RhipVoucherSubmission.STATUS_CONFIRMED.equals(status)) {
+			return "RHIP voucher confirmed successfully";
+		}
+		return "RHIP voucher submitted successfully";
 	}
 
 	private ModelAndView buildListModel(HttpServletRequest request) {
@@ -107,7 +124,8 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 			dischargeDate = new Date();
 			dischargeDateText = new SimpleDateFormat(DATE_PATTERN).format(dischargeDate);
 		}
-		String status = defaultIfBlank(request.getParameter("status"), RhipVoucherSubmission.STATUS_NOT_SENT).toUpperCase();
+		String status = defaultIfBlank(request.getParameter("status"), "ALL").toUpperCase();
+		Integer insuranceId = parseInteger(request.getParameter("insuranceId"));
 		String query = trimToNull(request.getParameter("query"));
 		String sortBy = defaultIfBlank(request.getParameter("sortBy"), "dischargeDate");
 		String sortDirection = defaultIfBlank(request.getParameter("sortDirection"), "desc");
@@ -121,6 +139,7 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		criteria.setDischargeStartDate(getStartOfDay(dischargeDate));
 		criteria.setDischargeEndDate(getEndOfDay(dischargeDate));
 		criteria.setStatus(status);
+		criteria.setInsuranceId(insuranceId);
 		criteria.setQuery(query);
 		criteria.setSortBy(sortBy);
 		criteria.setSortDirection(sortDirection);
@@ -143,6 +162,8 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		mav.addObject("consommationsByGlobalBillId", buildConsommationsByGlobalBillId(globalBills));
 		mav.addObject("dischargeDate", dischargeDateText);
 		mav.addObject("status", status);
+		mav.addObject("selectedInsuranceId", insuranceId);
+		mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 		mav.addObject("query", query == null ? "" : query);
 		mav.addObject("sortBy", sortBy);
 		mav.addObject("sortDirection", sortDirection);
@@ -154,11 +175,18 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		mav.addObject("hasNextPage", page < totalPages);
 		mav.addObject("previousPage", page - 1);
 		mav.addObject("nextPage", page + 1);
-		mav.addObject("filterQueryString", buildFilterQueryString(request, dischargeDateText, status, query, sortBy, sortDirection, pageSize));
+		mav.addObject("filterQueryString", buildFilterQueryString(request, dischargeDateText, status, insuranceId, query, sortBy, sortDirection, pageSize));
 		mav.addObject("canSend", Context.hasPrivilege(PRIVILEGE_SEND));
+		mav.addObject("canConfirm", canConfirmVoucher());
 		mav.addObject("canRetry", Context.hasPrivilege(PRIVILEGE_RETRY));
 		mav.addObject("canViewHistory", Context.hasPrivilege(PRIVILEGE_VIEW_HISTORY));
 		return mav;
+	}
+
+	private boolean canConfirmVoucher() {
+		return Context.hasPrivilege(PRIVILEGE_CONFIRM)
+				|| Context.hasPrivilege(PRIVILEGE_SEND)
+				|| Context.hasPrivilege(PRIVILEGE_BILLING_ADMIN);
 	}
 
 	private List<RhipVoucherSubmissionRow> buildRows(List<GlobalBill> globalBills) {
@@ -209,6 +237,7 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		StringBuilder ret = new StringBuilder();
 		appendQueryParam(ret, "dischargeDate", request.getParameter("dischargeDate"));
 		appendQueryParam(ret, "status", request.getParameter("status"));
+		appendQueryParam(ret, "insuranceId", request.getParameter("insuranceId"));
 		appendQueryParam(ret, "query", request.getParameter("query"));
 		appendQueryParam(ret, "sortBy", request.getParameter("sortBy"));
 		appendQueryParam(ret, "sortDirection", request.getParameter("sortDirection"));
@@ -217,11 +246,12 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		return ret.toString();
 	}
 
-	private String buildFilterQueryString(HttpServletRequest request, String dischargeDate, String status, String query,
+	private String buildFilterQueryString(HttpServletRequest request, String dischargeDate, String status, Integer insuranceId, String query,
 			String sortBy, String sortDirection, int pageSize) {
 		StringBuilder ret = new StringBuilder();
 		appendQueryParam(ret, "dischargeDate", dischargeDate);
 		appendQueryParam(ret, "status", status);
+		appendQueryParam(ret, "insuranceId", insuranceId == null ? null : String.valueOf(insuranceId));
 		appendQueryParam(ret, "query", query);
 		appendQueryParam(ret, "sortBy", sortBy);
 		appendQueryParam(ret, "sortDirection", sortDirection);
@@ -332,6 +362,9 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		}
 
 		public String getEffectiveStatus() {
+			if (latestSubmission != null && RhipVoucherSubmission.STATUS_CONFIRMED.equals(latestSubmission.getStatus())) {
+				return RhipVoucherSubmission.STATUS_CONFIRMED;
+			}
 			if (successfulSubmission != null || StringUtils.isNotBlank(globalBill.getRhipVoucherCode())
 					|| StringUtils.isNotBlank(globalBill.getRhipVoucherReferenceNumber())) {
 				return RhipVoucherSubmission.STATUS_SENT;
@@ -342,7 +375,10 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		public String getDisplayStatus() {
 			String status = getEffectiveStatus();
 			if (RhipVoucherSubmission.STATUS_SENT.equals(status)) {
-				return "Sent";
+				return isMmiInsurance() ? "Created" : "Sent";
+			}
+			if (RhipVoucherSubmission.STATUS_CONFIRMED.equals(status)) {
+				return "Confirmed";
 			}
 			if (RhipVoucherSubmission.STATUS_FAILED.equals(status)) {
 				return "Failed";
@@ -418,6 +454,19 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		private InsurancePolicy getInsurancePolicy() {
 			Admission admission = globalBill == null ? null : globalBill.getAdmission();
 			return admission == null ? null : admission.getInsurancePolicy();
+		}
+
+		public boolean isMmiInsurance() {
+			Insurance insurance = globalBill == null ? null : globalBill.getInsurance();
+			if (insurance == null) {
+				InsurancePolicy policy = getInsurancePolicy();
+				insurance = policy == null ? null : policy.getInsurance();
+			}
+			if (insurance == null) {
+				return false;
+			}
+			return "MMI".equalsIgnoreCase(StringUtils.trimToEmpty(insurance.getCategory()))
+					|| StringUtils.containsIgnoreCase(StringUtils.trimToEmpty(insurance.getName()), "MMI");
 		}
 	}
 }

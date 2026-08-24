@@ -2422,6 +2422,9 @@ public class HibernateBillingDAO implements BillingDAO {
 			sql.append(buildEffectiveSubmissionStatusSql());
 			sql.append(" = :status ");
 		}
+		if (criteria != null && criteria.getInsuranceId() != null) {
+			sql.append("and insurance.insurance_id = :insuranceId ");
+		}
 		if (criteria != null && org.apache.commons.lang3.StringUtils.isNotBlank(criteria.getQuery())) {
 			sql.append("and (lower(gb.bill_identifier) like :query ");
 			sql.append("or lower(policy.insurance_card_no) like :query ");
@@ -2459,6 +2462,9 @@ public class HibernateBillingDAO implements BillingDAO {
 		if (org.apache.commons.lang3.StringUtils.isNotBlank(status)
 				&& !"ALL".equalsIgnoreCase(status.trim())) {
 			query.setString("status", status.trim().toUpperCase());
+		}
+		if (criteria != null && criteria.getInsuranceId() != null) {
+			query.setInteger("insuranceId", criteria.getInsuranceId());
 		}
 		if (criteria != null && org.apache.commons.lang3.StringUtils.isNotBlank(criteria.getQuery())) {
 			query.setString("query", "%" + criteria.getQuery().trim().toLowerCase() + "%");

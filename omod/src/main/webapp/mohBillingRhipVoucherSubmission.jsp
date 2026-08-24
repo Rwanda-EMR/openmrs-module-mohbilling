@@ -23,12 +23,36 @@
 		width: 280px;
 	}
 	.rhip-voucher-actions form {
-		display: inline;
-		margin-right: 4px;
+		margin: 0;
 	}
-	.rhip-voucher-actions input,
-	.rhip-voucher-actions a {
+	.rhip-voucher-action-group {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+	.rhip-voucher-actions input[type=submit],
+	.rhip-voucher-open-link {
+		box-sizing: border-box;
+		min-height: 30px;
+		padding: 5px 9px;
+		border-radius: 3px;
+		font-size: 12px;
+		line-height: 18px;
 		white-space: nowrap;
+	}
+	.rhip-voucher-open-link {
+		display: inline-block;
+		border: 1px solid #1565c0;
+		background: #1976d2;
+		color: #ffffff;
+		text-decoration: none;
+	}
+	.rhip-voucher-open-link:hover,
+	.rhip-voucher-open-link:focus {
+		border-color: #0d47a1;
+		background: #1565c0;
+		color: #ffffff;
+		text-decoration: none;
 	}
 	.rhip-voucher-details {
 		display: none;
@@ -45,6 +69,10 @@
 	}
 	.rhip-voucher-status-FAILED {
 		color: #b30000;
+		font-weight: bold;
+	}
+	.rhip-voucher-status-CONFIRMED {
+		color: #005eb8;
 		font-weight: bold;
 	}
 	.rhip-voucher-status-PROCESSING {
@@ -101,6 +129,7 @@
 					<option value="NOT_SENT" <c:if test="${status eq 'NOT_SENT'}">selected="selected"</c:if>>Not Sent</option>
 					<option value="FAILED" <c:if test="${status eq 'FAILED'}">selected="selected"</c:if>>Failed</option>
 					<option value="SENT" <c:if test="${status eq 'SENT'}">selected="selected"</c:if>>Sent</option>
+					<option value="CONFIRMED" <c:if test="${status eq 'CONFIRMED'}">selected="selected"</c:if>>Confirmed</option>
 					<option value="ALL" <c:if test="${status eq 'ALL'}">selected="selected"</c:if>>All</option>
 				</select>
 			</td>
@@ -108,6 +137,15 @@
 			<td><input class="wide" type="text" name="query" value="${query}" /></td>
 		</tr>
 		<tr>
+			<td>Insurance</td>
+			<td>
+				<select name="insuranceId">
+					<option value="">All</option>
+					<c:forEach items="${insurances}" var="insurance">
+						<option value="${insurance.insuranceId}" <c:if test="${selectedInsuranceId eq insurance.insuranceId}">selected="selected"</c:if>>${insurance.name}</option>
+					</c:forEach>
+				</select>
+			</td>
 			<td>Sort By</td>
 			<td>
 				<select name="sortBy">
@@ -135,7 +173,7 @@
 			</td>
 		</tr>
 		<tr>
-			<td colspan="6">
+			<td colspan="8">
 				<input type="submit" value="Filter" />
 				<a href="rhipVoucherSubmissions.form">Reset</a>
 				<span id="rhip-voucher-loading" style="display: none;">Loading...</span>
@@ -182,7 +220,6 @@
 				<th class="columnHeader">Total bill amount</th>
 				<th class="columnHeader">RHIP submission status</th>
 				<th class="columnHeader">Last submission date</th>
-				<th class="columnHeader">Submission message</th>
 				<th class="columnHeader">Actions</th>
 			</tr>
 			</thead>
@@ -214,14 +251,15 @@
 					<td class="rowValue ${(rowStatus.count%2!=0)?'even':''}">
 						<fmt:formatDate value="${row.lastSubmissionDate}" pattern="yyyy-MM-dd HH:mm:ss"/>
 					</td>
-					<td class="rowValue ${(rowStatus.count%2!=0)?'even':''}" style="max-width: 240px;">${row.submissionMessage}</td>
 					<td class="rowValue rhip-voucher-actions ${(rowStatus.count%2!=0)?'even':''}" onclick="event.cancelBubble=true;">
+						<div class="rhip-voucher-action-group">
 						<c:if test="${row.effectiveStatus eq 'NOT_SENT' && canSend}">
 							<form method="post" action="rhipVoucherSubmissions.form" onsubmit="return confirmRhipVoucherSubmission(this);">
 								<input type="hidden" name="action" value="send" />
 								<input type="hidden" name="globalBillId" value="${globalBillId}" />
 								<input type="hidden" name="dischargeDate" value="${dischargeDate}" />
 								<input type="hidden" name="status" value="${status}" />
+								<input type="hidden" name="insuranceId" value="${selectedInsuranceId}" />
 								<input type="hidden" name="query" value="${query}" />
 								<input type="hidden" name="sortBy" value="${sortBy}" />
 								<input type="hidden" name="sortDirection" value="${sortDirection}" />
@@ -230,12 +268,28 @@
 								<input type="submit" value="Send RHIP Voucher" />
 							</form>
 						</c:if>
+						<c:if test="${row.effectiveStatus eq 'SENT' && row.mmiInsurance && canConfirm}">
+							<form method="post" action="rhipVoucherSubmissions.form" onsubmit="return confirmRhipVoucherSubmission(this);">
+								<input type="hidden" name="action" value="confirm" />
+								<input type="hidden" name="globalBillId" value="${globalBillId}" />
+								<input type="hidden" name="dischargeDate" value="${dischargeDate}" />
+								<input type="hidden" name="status" value="${status}" />
+								<input type="hidden" name="insuranceId" value="${selectedInsuranceId}" />
+								<input type="hidden" name="query" value="${query}" />
+								<input type="hidden" name="sortBy" value="${sortBy}" />
+								<input type="hidden" name="sortDirection" value="${sortDirection}" />
+								<input type="hidden" name="page" value="${page}" />
+								<input type="hidden" name="pageSize" value="${pageSize}" />
+								<input type="submit" value="Confirm RHIP Voucher" />
+							</form>
+						</c:if>
 						<c:if test="${row.effectiveStatus eq 'FAILED' && canRetry}">
 							<form method="post" action="rhipVoucherSubmissions.form" onsubmit="return confirmRhipVoucherSubmission(this);">
 								<input type="hidden" name="action" value="retry" />
 								<input type="hidden" name="globalBillId" value="${globalBillId}" />
 								<input type="hidden" name="dischargeDate" value="${dischargeDate}" />
 								<input type="hidden" name="status" value="${status}" />
+								<input type="hidden" name="insuranceId" value="${selectedInsuranceId}" />
 								<input type="hidden" name="query" value="${query}" />
 								<input type="hidden" name="sortBy" value="${sortBy}" />
 								<input type="hidden" name="sortDirection" value="${sortDirection}" />
@@ -244,11 +298,12 @@
 								<input type="submit" value="Retry RHIP Voucher" />
 							</form>
 						</c:if>
-						<a href="viewGlobalBill.form?globalBillId=${globalBillId}">Open Global Bill</a>
+						<a class="rhip-voucher-open-link" href="viewGlobalBill.form?globalBillId=${globalBillId}">Open Global Bill</a>
+						</div>
 					</td>
 				</tr>
 				<tr id="rhip-voucher-detail-${globalBillId}" class="rhip-voucher-details">
-					<td colspan="12">
+					<td colspan="11">
 						<table cellpadding="3" cellspacing="0" width="100%">
 							<tr>
 								<th class="columnHeader" colspan="4">Global bill summary</th>
@@ -293,7 +348,7 @@
 										<tr>
 											<td class="rowValue">
 												<c:choose>
-													<c:when test="${not empty item.service.name}">${item.service.name}</c:when>
+									<c:when test="${not empty item.service.facilityServicePrice.name}">${item.service.facilityServicePrice.name}</c:when>
 													<c:when test="${not empty item.serviceOther}">${item.serviceOther}</c:when>
 													<c:otherwise>${item.hopService.name}</c:otherwise>
 												</c:choose>
