@@ -40,6 +40,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -48,6 +49,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -79,6 +81,15 @@ public class RhipVoucherService {
 			Pattern.compile("([A-Za-z0-9.]+)\\s*-");
 	private static final Pattern DASH_SEPARATED_PROCEDURE_CODE =
 			Pattern.compile(".*?-([A-Z]{4}(?:-[A-Z0-9]+)+-[0-9]+)$");
+	private static final Pattern PRESCRIPTION_DOSE_PATTERN =
+			Pattern.compile("(?:^|;)\\s*Dose\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern PRESCRIPTION_ROUTE_PATTERN =
+			Pattern.compile("(?:^|;)\\s*Route\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern PRESCRIPTION_FREQUENCY_PATTERN =
+			Pattern.compile("(?:^|;)\\s*Frequency\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern PRESCRIPTION_DURATION_PATTERN = Pattern.compile(
+			"(?:^|;)\\s*Duration\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)\\s*([A-Za-z]+)",
+			Pattern.CASE_INSENSITIVE);
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	private RhipVoucherProvider voucherProvider;
@@ -98,6 +109,7 @@ public class RhipVoucherService {
 			ret.setErrorMessage("insuranceType must be CBHI, MUTUELLE, SPECIAL_CASE, RAMA, RSSB, or MMI");
 			return ret;
 		}
+		normalizeMmiMedicineDetails(request);
 		IntegrationResponse validation = validateVoucherRequest(request);
 		if (validation != null) {
 			persistLocalVoucherValidationLog(request, validation);
@@ -139,6 +151,7 @@ public class RhipVoucherService {
 			ret.setErrorMessage("Unable to build voucher request from global bill");
 			return ret;
 		}
+		normalizeMmiMedicineDetails(request);
 		rejectNonPositivePriceProcedures(globalBill, request);
 		if (!isRamaInsuranceType(request.getInsuranceType())
 				&& (request.getProcedures() == null || request.getProcedures().isEmpty())) {
@@ -206,6 +219,7 @@ public class RhipVoucherService {
 			submission.setErrorMessage("Unable to build voucher request from global bill");
 			return billingService.saveRhipVoucherSubmission(submission);
 		}
+		normalizeMmiMedicineDetails(request);
 		rejectNonPositivePriceProcedures(globalBill, request);
 		submission.setRequestPayload(toJson(request));
 		if (!isRamaInsuranceType(request.getInsuranceType())
@@ -1287,6 +1301,11 @@ public class RhipVoucherService {
 			RhipVoucherProcedure rpmProcedure = rpmVoucherItemResolver.resolve(globalBill, consommation, billItem,
 					admission, insuranceType);
 			if (rpmProcedure != null) {
+				if (isMedicamentService(billItem.getService())) {
+					String instructions = resolveBillingItemInstructions(billItem);
+					rpmProcedure.setInstructions(StringUtils.defaultIfBlank(rpmProcedure.getInstructions(), instructions));
+					applyCombinedPrescriptionDetails(rpmProcedure, billItem.getDrugFrequency(), instructions);
+				}
 				return rpmProcedure;
 			}
 		}
@@ -1316,8 +1335,139 @@ public class RhipVoucherService {
 			String instructions = resolveBillingItemInstructions(billItem);
 			procedure.setFrequency(StringUtils.trimToNull(billItem.getDrugFrequency()));
 			procedure.setInstructions(instructions);
+			applyCombinedPrescriptionDetails(procedure, billItem.getDrugFrequency(), instructions);
 		}
 		return procedure;
+	}
+
+	private void normalizeMmiMedicineDetails(RhipVoucherRequest request) {
+		if (request == null || !isMmiInsuranceType(request.getInsuranceType()) || request.getProcedures() == null) {
+			return;
+		}
+		for (RhipVoucherProcedure procedure : request.getProcedures()) {
+			if (isMmiMedicineProcedure(procedure)) {
+				applyCombinedPrescriptionDetails(procedure, procedure.getFrequency(), procedure.getInstructions(),
+						procedure.getPosology());
+				procedure.setFrequency(normalizeRhipFrequency(procedure.getFrequency()));
+			}
+		}
+	}
+
+	private void applyCombinedPrescriptionDetails(RhipVoucherProcedure procedure, String... prescriptionTexts) {
+		if (procedure == null) {
+			return;
+		}
+		String dose = extractPrescriptionValue(PRESCRIPTION_DOSE_PATTERN, prescriptionTexts);
+		String route = extractPrescriptionValue(PRESCRIPTION_ROUTE_PATTERN, prescriptionTexts);
+		if (StringUtils.isBlank(procedure.getPosology()) && StringUtils.isNotBlank(dose)) {
+			procedure.setPosology(StringUtils.trimToNull(dose + (StringUtils.isBlank(route) ? "" : " " + route)));
+		}
+
+		String frequency = extractPrescriptionValue(PRESCRIPTION_FREQUENCY_PATTERN, prescriptionTexts);
+		if (StringUtils.isNotBlank(frequency)) {
+			procedure.setFrequency(normalizeRhipFrequency(frequency));
+		}
+		if (procedure.getDurationDays() == null) {
+			procedure.setDurationDays(extractDurationDays(prescriptionTexts));
+		}
+	}
+
+	private String normalizeRhipFrequency(String frequency) {
+		String value = StringUtils.trimToNull(frequency);
+		if (value == null) {
+			return null;
+		}
+		String normalized = value.toUpperCase(Locale.ENGLISH).replaceAll("[^A-Z0-9]+", "_")
+				.replaceAll("^_+|_+$", "");
+		if ("QD".equals(normalized) || "ONCE_A_DAY".equals(normalized) || "ONCE_DAILY".equals(normalized)
+				|| "DAILY".equals(normalized) || "EVERY_DAY".equals(normalized) || "OD".equals(normalized)) {
+			return "QD";
+		}
+		if ("BID".equals(normalized) || "TWICE_A_DAY".equals(normalized)
+				|| "TWO_TIMES_A_DAY".equals(normalized) || "TWICE_DAILY".equals(normalized)) {
+			return "BID";
+		}
+		if ("TID".equals(normalized) || "THREE_A_DAY".equals(normalized)
+				|| "THREE_TIMES_A_DAY".equals(normalized) || "THRICE_A_DAY".equals(normalized)
+				|| "EVERY_8_HOURS".equals(normalized) || "Q8H".equals(normalized)) {
+			return "TID";
+		}
+		if ("QID".equals(normalized) || "FOUR_TIMES_A_DAY".equals(normalized)
+				|| "FOUR_A_DAY".equals(normalized)) {
+			return "QID";
+		}
+		if ("FIVE_TIMES_A_DAY".equals(normalized) || "FIVE_A_DAY".equals(normalized)) {
+			return "FIVE_TIMES_A_DAY";
+		}
+		if ("Q4H".equals(normalized) || "EVERY_4_HOURS".equals(normalized)) {
+			return "Q4H";
+		}
+		if ("Q6H".equals(normalized) || "EVERY_6_HOURS".equals(normalized)) {
+			return "Q6H";
+		}
+		if ("QOD".equals(normalized) || "EVERY_OTHER_DAY".equals(normalized)
+				|| "ALTERNATE_DAYS".equals(normalized)) {
+			return "QOD";
+		}
+		if ("QHS".equals(normalized) || "AT_BEDTIME".equals(normalized)
+				|| "EVERY_NIGHT".equals(normalized)) {
+			return "QHS";
+		}
+		if ("PRN".equals(normalized) || "AS_NEEDED".equals(normalized)
+				|| "WHEN_NEEDED".equals(normalized)) {
+			return "PRN";
+		}
+		if ("ONCE_A_WEEK".equals(normalized) || "WEEKLY".equals(normalized)) {
+			return "ONCE_A_WEEK";
+		}
+		if ("CUSTOM_HOURS".equals(normalized)) {
+			return "CUSTOM_HOURS";
+		}
+		return null;
+	}
+
+	private String extractPrescriptionValue(Pattern pattern, String... prescriptionTexts) {
+		if (pattern == null || prescriptionTexts == null) {
+			return null;
+		}
+		for (String text : prescriptionTexts) {
+			if (StringUtils.isBlank(text)) {
+				continue;
+			}
+			Matcher matcher = pattern.matcher(text);
+			if (matcher.find()) {
+				return StringUtils.trimToNull(matcher.group(1));
+			}
+		}
+		return null;
+	}
+
+	private Integer extractDurationDays(String... prescriptionTexts) {
+		if (prescriptionTexts == null) {
+			return null;
+		}
+		for (String text : prescriptionTexts) {
+			if (StringUtils.isBlank(text)) {
+				continue;
+			}
+			Matcher matcher = PRESCRIPTION_DURATION_PATTERN.matcher(text);
+			if (!matcher.find()) {
+				continue;
+			}
+			BigDecimal duration = new BigDecimal(matcher.group(1));
+			String units = matcher.group(2).toLowerCase();
+			if (units.startsWith("week") || units.equals("wk") || units.equals("wks")) {
+				duration = duration.multiply(BigDecimal.valueOf(7));
+			} else if (units.startsWith("month") || units.equals("mo") || units.equals("mos")) {
+				duration = duration.multiply(BigDecimal.valueOf(30));
+			} else if (units.startsWith("hour") || units.equals("h") || units.equals("hr") || units.equals("hrs")) {
+				duration = duration.divide(BigDecimal.valueOf(24), 10, RoundingMode.CEILING);
+			} else if (!units.startsWith("day") && !units.equals("d")) {
+				return null;
+			}
+			return duration.setScale(0, RoundingMode.CEILING).intValue();
+		}
+		return null;
 	}
 
 	private String resolveBillingItemInstructions(PatientServiceBill billItem) {

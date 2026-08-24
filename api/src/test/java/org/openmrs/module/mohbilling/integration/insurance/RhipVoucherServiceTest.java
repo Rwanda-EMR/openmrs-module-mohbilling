@@ -4,14 +4,19 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openmrs.module.mohbilling.integration.IntegrationResponse;
 import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.FacilityServicePrice;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
+import org.openmrs.module.mohbilling.model.RhipVoucherSubmission;
 import org.openmrs.module.mohbilling.model.ServiceCategory;
+import org.openmrs.module.mohbilling.service.BillingService;
 
 import java.math.BigDecimal;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -276,6 +281,37 @@ public class RhipVoucherServiceTest {
 	}
 
 	@Test
+	public void submitVoucher_shouldSplitCombinedMmiMedicineInstructions() {
+		RhipVoucherService service = new RhipVoucherService();
+		CountingProvider provider = new CountingProvider();
+		service.setConfig(new TestConfig(true));
+		service.setVoucherProvider(provider);
+
+		RhipVoucherRequest request = new RhipVoucherRequest();
+		request.setInsuranceType("MMI");
+		request.setFacilityFosaId("FOSA-001");
+		request.setPatientIdentifier("MMI-001");
+		request.setPractitionerLicenseNumber("LIC-01");
+		request.setVisitReferenceNumber("REC-001");
+
+		RhipVoucherProcedure procedure = new RhipVoucherProcedure();
+		procedure.setCode("G03HA01001");
+		procedure.setQuantity(BigDecimal.ONE);
+		procedure.setInstructions("Dose: 1; Route: Intrathecal; Frequency: ONCE A DAY; "
+				+ "Duration: 5 DAYS; Anytime you feel pain");
+		procedure.setFrequency(procedure.getInstructions());
+		request.setProcedures(Collections.singletonList(procedure));
+
+		IntegrationResponse response = service.submitVoucher(request);
+
+		Assert.assertNull(response.getErrorMessage());
+		Assert.assertEquals(1, provider.submitVoucherCalls);
+		Assert.assertEquals("1 Intrathecal", provider.lastRequest.getProcedures().get(0).getPosology());
+		Assert.assertEquals("QD", provider.lastRequest.getProcedures().get(0).getFrequency());
+		Assert.assertEquals(Integer.valueOf(5), provider.lastRequest.getProcedures().get(0).getDurationDays());
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	public void resolveDiagnosisIds_shouldExtractCodesFromLabeledDiagnosisText() throws Exception {
 		RhipVoucherService service = new RhipVoucherService();
@@ -354,6 +390,49 @@ public class RhipVoucherServiceTest {
 	}
 
 	@Test
+	public void toProcedure_shouldSplitCombinedPrescriptionForMedicamentCategory() throws Exception {
+		RhipVoucherService service = new RhipVoucherService();
+		ServiceCategory category = new ServiceCategory();
+		category.setName("MEDICAMENTS");
+		FacilityServicePrice facilityServicePrice = new FacilityServicePrice();
+		facilityServicePrice.setName("Medication|G03HA01001");
+		facilityServicePrice.setFullPrice(BigDecimal.ONE);
+		BillableService billableService = new BillableService();
+		billableService.setServiceCategory(category);
+		billableService.setFacilityServicePrice(facilityServicePrice);
+		PatientServiceBill billItem = new PatientServiceBill();
+		billItem.setService(billableService);
+		billItem.setQuantity(BigDecimal.ONE);
+		billItem.setDrugFrequency("Dose: 1; Route: Intrathecal; Frequency: ONCE A DAY; "
+				+ "Duration: 5 DAYS; Anytime you feel pain");
+
+		Method method = RhipVoucherService.class.getDeclaredMethod("toProcedure", PatientServiceBill.class,
+				org.openmrs.module.mohbilling.model.Admission.class);
+		method.setAccessible(true);
+
+		RhipVoucherProcedure procedure = (RhipVoucherProcedure) method.invoke(service, billItem, null);
+
+		Assert.assertNotNull(procedure);
+		Assert.assertEquals("1 Intrathecal", procedure.getPosology());
+		Assert.assertEquals("QD", procedure.getFrequency());
+		Assert.assertEquals(Integer.valueOf(5), procedure.getDurationDays());
+		Assert.assertTrue(procedure.getInstructions().contains("Anytime you feel pain"));
+	}
+
+	@Test
+	public void normalizeRhipFrequency_shouldMapHumanLabelsToRhipEnumValues() throws Exception {
+		RhipVoucherService service = new RhipVoucherService();
+		Method method = RhipVoucherService.class.getDeclaredMethod("normalizeRhipFrequency", String.class);
+		method.setAccessible(true);
+
+		Assert.assertEquals("QD", method.invoke(service, "ONCE A DAY"));
+		Assert.assertEquals("TID", method.invoke(service, "THREE A DAY"));
+		Assert.assertEquals("BID", method.invoke(service, "twice daily"));
+		Assert.assertEquals("Q6H", method.invoke(service, "Every 6 hours"));
+		Assert.assertNull(method.invoke(service, "an unsupported frequency"));
+	}
+
+	@Test
 	public void extractProcedureCode_shouldKeepPipeSeparatedCodeAsPreferredFormat() throws Exception {
 		FacilityServicePrice facilityServicePrice = new FacilityServicePrice();
 		facilityServicePrice.setName("Medication|A07DA03001");
@@ -379,6 +458,30 @@ public class RhipVoucherServiceTest {
 		Assert.assertTrue(resolver.supports(billItemWithCategory("MEDICAMENTS")));
 		Assert.assertTrue(resolver.supports(billItemWithCategory("CONSOMMABLES")));
 		Assert.assertFalse(resolver.supports(billItemWithCategory("LABORATOIRE")));
+	}
+
+	@Test
+	public void rpmVoucherItemResolver_shouldResolveNpcCodeByExactBillingItemName() {
+		TestRpmVoucherItemResolver resolver = new TestRpmVoucherItemResolver();
+		PatientServiceBill billItem = billItemWithCategory("MEDICAMENTS");
+		FacilityServicePrice facilityServicePrice = new FacilityServicePrice();
+		facilityServicePrice.setName("PARACETAMOL 250MG SUPPOSITORY");
+		billItem.getService().setFacilityServicePrice(facilityServicePrice);
+		billItem.setQuantity(new BigDecimal("5"));
+		PatientBill patientBill = new PatientBill();
+		patientBill.setPatientBillId(42);
+		Consommation consommation = new Consommation();
+		consommation.setPatientBill(patientBill);
+
+		RhipVoucherProcedure procedure = resolver.resolve(null, consommation, billItem, null, "MMI");
+
+		Assert.assertEquals("NPC-PARA-250-SUP", procedure.getCode());
+		Assert.assertEquals(new BigDecimal("5"), procedure.getQuantity());
+		Assert.assertEquals("2026-08-18", procedure.getDispensingDate());
+		Assert.assertTrue(resolver.itemLookupSql.contains("lower(trim(`name`))"));
+		Assert.assertTrue(resolver.itemLookupSql.contains("PARACETAMOL 250MG SUPPOSITORY"));
+		Assert.assertTrue(resolver.dispensingLookupSql.contains("r.patient_bill_id = 42"));
+		Assert.assertTrue(resolver.dispensingLookupSql.contains("drl.item_id = 1"));
 	}
 
 	@Test
@@ -469,6 +572,40 @@ public class RhipVoucherServiceTest {
 			response.setResponseCode(200);
 			response.setResponseEntity("{\"success\":true}");
 			return response;
+		}
+	}
+
+	private static class TestRpmVoucherItemResolver extends RpmVoucherItemResolver {
+
+		private String itemLookupSql;
+		private String dispensingLookupSql;
+
+		@Override
+		protected List<List<Object>> executeSql(String sql) {
+			if (sql.contains("information_schema.tables") && sql.contains("table_name = 'rpm_item'")) {
+				return Collections.<List<Object>>singletonList(Collections.<Object>singletonList("rpm_item"));
+			}
+			if (sql.contains("information_schema.tables")) {
+				return Collections.<List<Object>>singletonList(Collections.<Object>singletonList("rpm_item"));
+			}
+			if (sql.contains("information_schema.columns")) {
+				return Arrays.<List<Object>>asList(
+						Collections.<Object>singletonList("item_id"),
+						Collections.<Object>singletonList("name"),
+						Collections.<Object>singletonList("code"),
+						Collections.<Object>singletonList("voided"));
+			}
+			if (sql.contains(" from `rpm_item` ")) {
+				itemLookupSql = sql;
+				return Collections.<List<Object>>singletonList(Arrays.<Object>asList(
+						1, "NPC-PARA-250-SUP", "PARACETAMOL 250MG SUPPOSITORY"));
+			}
+			if (sql.contains("from rpm_dispense_record dr")) {
+				dispensingLookupSql = sql;
+				return Collections.<List<Object>>singletonList(
+						Collections.<Object>singletonList("2026-08-18 14:35:00"));
+			}
+			return Collections.emptyList();
 		}
 	}
 

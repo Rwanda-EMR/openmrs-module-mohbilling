@@ -16,8 +16,10 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class RpmVoucherItemResolver {
 	
@@ -41,6 +43,7 @@ public class RpmVoucherItemResolver {
 	private static final String LINE_ITEM_ID_COLUMN_GP = "mohbilling.rpm.line.itemIdColumn";
 	private static final String LINE_PATIENT_SERVICE_BILL_ID_COLUMN_GP = "mohbilling.rpm.line.patientServiceBillIdColumn";
 	private static final String LINE_FACILITY_SERVICE_PRICE_ID_COLUMN_GP = "mohbilling.rpm.line.facilityServicePriceIdColumn";
+	private static final String LINE_DISPENSING_DATE_COLUMN_GP = "mohbilling.rpm.line.dispensingDateColumn";
 	private static final String ITEM_ID_COLUMN_GP = "mohbilling.rpm.item.idColumn";
 	private static final String ITEM_CODE_COLUMN_GP = "mohbilling.rpm.item.codeColumn";
 	private static final String ITEM_TYPE_COLUMN_GP = "mohbilling.rpm.item.typeColumn";
@@ -58,20 +61,18 @@ public class RpmVoucherItemResolver {
 		}
 		RpmSchema schema = resolveSchema();
 		if (schema == null || !schema.isUsable()) {
-			log.debug("Rwanda Pharma schema could not be resolved; using billing item code fallback");
-			return null;
+			return resolveByItemName(consommation, billItem, admission);
 		}
 		List<RpmRequest> requests = findRequests(schema, globalBill, consommation);
 		if (requests == null || requests.isEmpty()) {
 			log.debug("No Rwanda Pharma dispensing request found for bill; globalBillId="
 					+ id(globalBill == null ? null : globalBill.getGlobalBillId()) + ", patientBillId="
 					+ id(resolvePatientBillId(consommation)));
-			return null;
+			return resolveByItemName(consommation, billItem, admission);
 		}
 		List<RpmLine> matchingLines = findMatchingLines(schema, requests, billItem);
 		if (matchingLines.isEmpty()) {
-			throw new IllegalStateException("Unable to match RPM dispensing line for PatientServiceBill "
-					+ id(billItem == null ? null : billItem.getPatientServiceBillId()));
+			return resolveByItemName(consommation, billItem, admission);
 		}
 		if (matchingLines.size() > 1) {
 			throw new IllegalStateException("More than one RPM dispensing line matches PatientServiceBill "
@@ -80,22 +81,156 @@ public class RpmVoucherItemResolver {
 		RpmLine line = matchingLines.get(0);
 		RpmItem item = findItem(schema, line.itemId);
 		if (item == null) {
-			throw new IllegalStateException("RPM item not found for dispensingLineId=" + id(line.lineId)
-					+ ", itemId=" + id(line.itemId));
+			return resolveByItemName(consommation, billItem, admission);
 		}
 		if (StringUtils.isBlank(item.code)) {
-			throw new IllegalStateException("RPM item code is missing for dispensingLineId=" + id(line.lineId)
-					+ ", itemId=" + id(line.itemId));
+			return resolveByItemName(consommation, billItem, admission);
 		}
 		RhipVoucherProcedure procedure = new RhipVoucherProcedure();
 		procedure.setCode(item.code.trim());
 		procedure.setQuantity(defaultIfNull(billItem.getQuantity()));
 		procedure.setPrice(resolvePrice(billItem));
 		procedure.setPrescribedAt(resolvePrescribedAt(billItem, admission));
+		Date dispensingDate = resolveDispensingDate(requests, consommation, item.itemId);
+		procedure.setDispensingDate(formatDate(dispensingDate == null ? line.dispensingDate : dispensingDate));
 		if ((isRamaInsuranceType(insuranceType) || isMmiInsuranceType(insuranceType)) && isDrugItem(item, line)) {
 			applyDrugOrderDetails(procedure, line.orderId);
 		}
 		return procedure;
+	}
+
+	private RhipVoucherProcedure resolveByItemName(Consommation consommation, PatientServiceBill billItem,
+	                                             Admission admission) {
+		RpmItem item = findItemByBillingName(billItem);
+		if (item == null) {
+			throw new IllegalStateException("Unable to find an active RPM item with NPC code matching billing item name '"
+					+ defaultIfBlank(resolveBillingItemName(billItem), "<missing>") + "'");
+		}
+		RhipVoucherProcedure procedure = new RhipVoucherProcedure();
+		procedure.setCode(item.code.trim());
+		procedure.setQuantity(defaultIfNull(billItem == null ? null : billItem.getQuantity()));
+		procedure.setPrice(resolvePrice(billItem));
+		procedure.setPrescribedAt(resolvePrescribedAt(billItem, admission));
+		procedure.setDispensingDate(formatDate(resolveDispensingDate(null, consommation, item.itemId)));
+		return procedure;
+	}
+
+	private Date resolveDispensingDate(List<RpmRequest> requests, Consommation consommation, Integer itemId) {
+		if (itemId == null) {
+			return null;
+		}
+		List<String> requestIds = new ArrayList<>();
+		if (requests != null) {
+			for (RpmRequest request : requests) {
+				if (request != null && request.requestId != null) {
+					requestIds.add(request.requestId.toString());
+				}
+			}
+		}
+		Integer patientBillId = resolvePatientBillId(consommation);
+		if (requestIds.isEmpty() && patientBillId == null) {
+			return null;
+		}
+		if (!tableExists("rpm_dispense_record") || !tableExists("rpm_dispense_record_line")) {
+			return null;
+		}
+
+		StringBuilder sql = new StringBuilder("select coalesce(dr.date_created, drl.date_created) "
+				+ "from rpm_dispense_record dr "
+				+ "join rpm_dispense_record_line drl on drl.dispense_record_id = dr.dispense_record_id ");
+		if (requestIds.isEmpty()) {
+			if (!tableExists("rpm_patient_dispensing_request")) {
+				return null;
+			}
+			sql.append("join rpm_patient_dispensing_request r on r.patient_dispensing_request_id = "
+					+ "dr.patient_dispensing_request_id ");
+		}
+		sql.append("where drl.item_id = ").append(itemId)
+				.append(" and coalesce(dr.voided, 0) = 0 and coalesce(drl.voided, 0) = 0 ");
+		if (requestIds.isEmpty()) {
+			sql.append("and r.patient_bill_id = ").append(patientBillId)
+					.append(" and coalesce(r.voided, 0) = 0 ");
+		} else {
+			sql.append("and dr.patient_dispensing_request_id in (")
+					.append(StringUtils.join(requestIds, ",")).append(") ");
+		}
+		sql.append("order by coalesce(dr.date_created, drl.date_created) desc limit 1");
+		List<List<Object>> rows = executeSql(sql.toString());
+		return rows.isEmpty() ? null : dateValue(value(rows.get(0), 0));
+	}
+
+	private RpmItem findItemByBillingName(PatientServiceBill billItem) {
+		String itemTable = "rpm_item";
+		if (!tableExists(itemTable)) {
+			return null;
+		}
+		Map<String, String> columns = columnsByLowerName(itemTable);
+		String itemIdColumn = firstColumn(columns, "item_id", "id", "rpm_item_id");
+		String itemNameColumn = firstColumn(columns, "name", "item_name");
+		String itemCodeColumn = firstColumn(columns, "code", "npc_code", "insurance_code", "rhip_code");
+		String voidedColumn = firstColumn(columns, "voided");
+		if (StringUtils.isBlank(itemIdColumn) || StringUtils.isBlank(itemNameColumn)
+				|| StringUtils.isBlank(itemCodeColumn)) {
+			return null;
+		}
+
+		Set<String> candidateNames = resolveBillingItemNames(billItem);
+		if (candidateNames.isEmpty()) {
+			return null;
+		}
+		List<String> nameConditions = new ArrayList<>();
+		for (String candidateName : candidateNames) {
+			nameConditions.add("lower(trim(" + q(itemNameColumn) + ")) = lower('"
+					+ escapeSql(candidateName.trim()) + "')");
+		}
+		String sql = "select " + q(itemIdColumn) + ", " + q(itemCodeColumn) + ", " + q(itemNameColumn)
+				+ " from " + q(itemTable) + " where " + joinOr(nameConditions)
+				+ (StringUtils.isBlank(voidedColumn) ? "" : " and coalesce(" + q(voidedColumn) + ", 0) = 0")
+				+ " order by " + q(itemIdColumn);
+		List<List<Object>> rows = executeSql(sql);
+		if (rows.isEmpty()) {
+			return null;
+		}
+
+		Set<String> npcCodes = new LinkedHashSet<>();
+		for (List<Object> row : rows) {
+			String code = stringValue(value(row, 1));
+			if (StringUtils.isNotBlank(code)) {
+				npcCodes.add(code.trim());
+			}
+		}
+		if (npcCodes.isEmpty()) {
+			throw new IllegalStateException("RPM item matching billing item name '" + resolveBillingItemName(billItem)
+					+ "' has no NPC code");
+		}
+		if (npcCodes.size() > 1) {
+			throw new IllegalStateException("More than one RPM NPC code matches billing item name '"
+					+ resolveBillingItemName(billItem) + "': " + StringUtils.join(npcCodes, ", "));
+		}
+		RpmItem item = new RpmItem();
+		item.itemId = integerValue(value(rows.get(0), 0));
+		item.code = npcCodes.iterator().next();
+		item.name = stringValue(value(rows.get(0), 2));
+		return item;
+	}
+
+	private Set<String> resolveBillingItemNames(PatientServiceBill billItem) {
+		Set<String> names = new LinkedHashSet<>();
+		FacilityServicePrice price = resolveFacilityServicePrice(billItem);
+		if (price != null) {
+			if (StringUtils.isNotBlank(price.getName())) {
+				names.add(price.getName().trim());
+			}
+			if (StringUtils.isNotBlank(price.getShortName())) {
+				names.add(price.getShortName().trim());
+			}
+		}
+		return names;
+	}
+
+	private String resolveBillingItemName(PatientServiceBill billItem) {
+		Set<String> names = resolveBillingItemNames(billItem);
+		return names.isEmpty() ? null : names.iterator().next();
 	}
 	
 	private RpmSchema resolveSchema() {
@@ -120,6 +255,7 @@ public class RpmVoucherItemResolver {
 		schema.lineItemIdColumn = gp(LINE_ITEM_ID_COLUMN_GP);
 		schema.linePatientServiceBillIdColumn = gp(LINE_PATIENT_SERVICE_BILL_ID_COLUMN_GP);
 		schema.lineFacilityServicePriceIdColumn = gp(LINE_FACILITY_SERVICE_PRICE_ID_COLUMN_GP);
+		schema.lineDispensingDateColumn = gp(LINE_DISPENSING_DATE_COLUMN_GP);
 		schema.itemIdColumn = defaultIfBlank(gp(ITEM_ID_COLUMN_GP), "id");
 		schema.itemCodeColumn = gp(ITEM_CODE_COLUMN_GP);
 		schema.itemTypeColumn = gp(ITEM_TYPE_COLUMN_GP);
@@ -157,6 +293,8 @@ public class RpmVoucherItemResolver {
 							"bill_item_id", "billing_item_id");
 					schema.lineFacilityServicePriceIdColumn = firstColumn(lineColumns, "facility_service_price_id",
 							"service_price_id");
+					schema.lineDispensingDateColumn = firstColumn(lineColumns, "dispensing_date", "dispensed_at",
+							"date_dispensed", "dispensed_date");
 					schema.itemIdColumn = firstColumn(itemColumns, "id", "item_id", "rpm_item_id");
 					schema.itemCodeColumn = firstColumn(itemColumns, "code", "insurance_code", "rhip_code");
 					schema.itemTypeColumn = firstColumn(itemColumns, "type", "item_type", "category");
@@ -224,6 +362,7 @@ public class RpmVoucherItemResolver {
 		String sql = "select " + q(schema.lineIdColumn) + ", " + q(schema.lineItemIdColumn)
 				+ ", " + selectNullableColumn(schema.linePatientServiceBillIdColumn)
 				+ ", " + selectNullableColumn(schema.lineFacilityServicePriceIdColumn)
+				+ ", " + selectNullableColumn(schema.lineDispensingDateColumn)
 				+ " from " + q(schema.lineTable)
 				+ " where " + q(schema.lineRequestIdColumn) + " = " + request.requestId;
 		for (List<Object> row : executeSql(sql)) {
@@ -232,6 +371,7 @@ public class RpmVoucherItemResolver {
 			line.itemId = integerValue(value(row, 1));
 			line.patientServiceBillId = integerValue(value(row, 2));
 			line.facilityServicePriceId = integerValue(value(row, 3));
+			line.dispensingDate = dateValue(value(row, 4));
 			line.orderId = request.orderId;
 			lines.add(line);
 		}
@@ -414,7 +554,7 @@ public class RpmVoucherItemResolver {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private List<List<Object>> executeSql(String sql) {
+	protected List<List<Object>> executeSql(String sql) {
 		if (StringUtils.isBlank(sql)) {
 			return new ArrayList<>();
 		}
@@ -468,6 +608,10 @@ public class RpmVoucherItemResolver {
 		if (date == null && admission != null) {
 			date = admission.getAdmissionDate();
 		}
+		return date == null ? null : new java.text.SimpleDateFormat(DATE_FORMAT).format(date);
+	}
+
+	private String formatDate(Date date) {
 		return date == null ? null : new java.text.SimpleDateFormat(DATE_FORMAT).format(date);
 	}
 	
@@ -539,6 +683,25 @@ public class RpmVoucherItemResolver {
 	private String stringValue(Object value) {
 		return value == null ? null : StringUtils.trimToNull(value.toString());
 	}
+
+	private Date dateValue(Object value) {
+		if (value == null) {
+			return null;
+		}
+		if (value instanceof Date) {
+			return (Date) value;
+		}
+		String text = stringValue(value);
+		if (StringUtils.isBlank(text)) {
+			return null;
+		}
+		try {
+			return new java.text.SimpleDateFormat(DATE_FORMAT).parse(text.length() > 10 ? text.substring(0, 10) : text);
+		}
+		catch (Exception ignored) {
+			return null;
+		}
+	}
 	
 	private String gp(String key) {
 		try {
@@ -585,6 +748,7 @@ public class RpmVoucherItemResolver {
 		private String lineItemIdColumn;
 		private String linePatientServiceBillIdColumn;
 		private String lineFacilityServicePriceIdColumn;
+		private String lineDispensingDateColumn;
 		private String itemIdColumn;
 		private String itemCodeColumn;
 		private String itemTypeColumn;
@@ -619,11 +783,13 @@ public class RpmVoucherItemResolver {
 		private Integer itemId;
 		private Integer patientServiceBillId;
 		private Integer facilityServicePriceId;
+		private Date dispensingDate;
 		private Integer orderId;
 	}
 	
 	private static class RpmItem {
 		private Integer itemId;
+		private String name;
 		private String code;
 		private String type;
 	}
