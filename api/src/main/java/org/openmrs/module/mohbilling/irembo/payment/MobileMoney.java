@@ -31,15 +31,7 @@ public class MobileMoney extends Config {
 
         RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), payload.toString());
 
-
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/json")
-                .addHeader("User-Agent", "OpenMRS2.6.15")
-                .addHeader("irembopay-secretKey", apiKey)
-                .build();
+        Request request = newAuthenticatedRequest(url).post(body).build();
         try {
             Response response = httpClient().newCall(request).execute();
             IremboPayResponse<Object> iremboPayResponse = new IremboPayResponse<>();

@@ -40,8 +40,10 @@ public class MohBillingBillingFormController extends
 
 		System.out.println("Consomation id: " + request.getParameter("consommationId"));
 		try {
-			if((ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId"))).getPatientBill().getPayments().size()<=0)
-					|| (!ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId"))).getGlobalBill().isClosed())){
+			if (request.getParameter("consommationId") != null
+					&& !request.getParameter("consommationId").trim().isEmpty()
+					&& ((ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId"))).getPatientBill().getPayments().size()<=0)
+					|| (!ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId"))).getGlobalBill().isClosed()))) {
 
 
 				if(request.getParameter("edit")!=null){
@@ -51,7 +53,8 @@ public class MohBillingBillingFormController extends
 				}
 
 			}
-			else{
+			else if (request.getParameter("consommationId") != null
+					&& !request.getParameter("consommationId").trim().isEmpty()){
 				request.getSession().setAttribute(
 						WebConstants.OPENMRS_ERROR_ATTR,"Impossible to edit this 'FICHE DE CONSOMMATION'. It has a payment or the global bill has been closed..");
 			}

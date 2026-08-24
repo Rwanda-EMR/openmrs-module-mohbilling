@@ -1278,6 +1278,11 @@ public class BillingServiceImpl implements BillingService {
             patientBill.setTransactionStatus("Pending");
             patientBill.setRetryCount(0);
             billingDAO.savePatientBill(patientBill);
+            if (!hasText(invoice.getPaymentLinkUrl())) {
+                IremboPayLogUtil.logFailure(log, "CREATE_INVOICE",
+                        "Irembo createInvoice succeeded but paymentLinkUrl is missing/empty, patientBillId="
+                                + patientBill.getPatientBillId() + ", invoiceNumber=" + invoice.getInvoiceNumber());
+            }
             log.info("Irembo single init createInvoice saved: patientBillId=" + patientBill.getPatientBillId()
                     + ", invoiceNumber=" + invoice.getInvoiceNumber()
                     + ", paymentLinkUrl=" + invoice.getPaymentLinkUrl()
@@ -1388,13 +1393,36 @@ public class BillingServiceImpl implements BillingService {
         }
         log.info("Irembo status check response: invoiceId=" + invoiceId
                 + ", status=" + invoice.getPaymentStatus()
+                + ", type=" + invoice.getType()
+                + ", invoiceNumber=" + invoice.getInvoiceNumber()
+                + ", batchNumber=" + invoice.getBatchNumber()
                 + ", amount=" + invoice.getAmount()
-                + ", paymentReference=" + invoice.getPaymentReference());
+                + ", paymentReference=" + invoice.getPaymentReference()
+                + ", childInvoices=" + (invoice.getChildInvoices() == null ? 0 : invoice.getChildInvoices().size()));
         BillingService billingService = Context.getService(BillingService.class);
         if (invoice.getPaymentStatus() != null && invoice.getPaymentStatus().equalsIgnoreCase("PAID")) {
+            if (isIremboBatchInvoice(invoice)) {
+                String batchNumber = resolveStatusCheckBatchNumber(invoice, invoiceId);
+                log.info("Irembo status check treating invoice as BATCH: invoiceId=" + invoiceId
+                        + ", batchNumber=" + batchNumber
+                        + ", childInvoices=" + invoice.getChildInvoices());
+                processIrembopayBatchCallback(
+                        batchNumber,
+                        invoice.getChildInvoices(),
+                        true,
+                        invoice.getPaymentReference(),
+                        formatPaidAt(invoice.getPaidAt()),
+                        invoice.getPaymentStatus());
+                List<PatientBill> paidBatchBills = billingDAO.getPatientBillsByBatchNumber(batchNumber);
+                if (paidBatchBills != null && !paidBatchBills.isEmpty()) {
+                    return paidBatchBills.get(0);
+                }
+                return billingDAO.getPatientBillStatus(invoiceId);
+            }
+
             //Here we need to make sure update the patient bill if it was not yet marked as paid
 
-            User iremboUser = Context.getService(UserService.class).getUserByUsername(ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_USER));
+            User iremboUser = resolveConfiguredIremboUser();
 
             PatientBill billToConfirm = billingDAO.getPatientBillStatusForUpdate(invoiceId);
             if (billToConfirm == null) {
@@ -1691,11 +1719,13 @@ public class BillingServiceImpl implements BillingService {
                 return false;
             }
 
-            User currentUser = Context.getAuthenticatedUser();
+            // Always attribute Irembo Pay confirmations to the configured Irembo user,
+            // not the authenticated session user (callback/daemon/cashier context).
+            User iremboUser = resolveConfiguredIremboUser();
             billToConfirm.setIsPaid(true);
             billToConfirm.setPaymentReference(resolvedPaymentReference);
             billToConfirm.setPaymentConfirmed(true);
-            billToConfirm.setPaymentConfirmedBy(currentUser);
+            billToConfirm.setPaymentConfirmedBy(iremboUser);
             billToConfirm.setPaymentConfirmedDate(new Date());
             billToConfirm.setTransactionStatus(paymentStatus);
             Date paidAt = parsePaidAt(paidAtStr);
@@ -1707,8 +1737,8 @@ public class BillingServiceImpl implements BillingService {
             billPayment.setAmountPaid(amountPaid);
             billPayment.setDateReceived(paymentDate);
             billPayment.setPatientBill(billToConfirm);
-            billPayment.setCollector(currentUser);
-            billPayment.setCreator(currentUser);
+            billPayment.setCollector(iremboUser);
+            billPayment.setCreator(iremboUser);
             billPayment.setCreatedDate(new Date());
             billPayment.setVoided(false);
             billPayment.setPaymentReference(resolvedPaymentReference);
@@ -1727,7 +1757,7 @@ public class BillingServiceImpl implements BillingService {
                     BigDecimal paidQuantity = psb.getQuantity() != null ? psb.getQuantity() : BigDecimal.ZERO;
                     paidSb.setPaidQty(paidQuantity);
                     paidSb.setBillPayment(billPayment);
-                    paidSb.setCreator(currentUser);
+                    paidSb.setCreator(iremboUser);
                     paidSb.setCreatedDate(new Date());
                     paidSb.setVoided(false);
                     billingDAO.savePaidServiceBill(paidSb);
@@ -1741,6 +1771,53 @@ public class BillingServiceImpl implements BillingService {
             }
             return true;
         }
+    }
+
+    private static boolean isIremboBatchInvoice(Invoice invoice) {
+        if (invoice == null) {
+            return false;
+        }
+        if ("BATCH".equalsIgnoreCase(invoice.getType())) {
+            return true;
+        }
+        return invoice.getChildInvoices() != null && !invoice.getChildInvoices().isEmpty();
+    }
+
+    private static String resolveStatusCheckBatchNumber(Invoice invoice, String invoiceId) {
+        if (hasText(invoice.getBatchNumber())) {
+            return invoice.getBatchNumber().trim();
+        }
+        if (hasText(invoice.getInvoiceNumber()) && "BATCH".equalsIgnoreCase(invoice.getType())) {
+            return invoice.getInvoiceNumber().trim();
+        }
+        return invoiceId;
+    }
+
+    private static String formatPaidAt(Date paidAt) {
+        if (paidAt == null) {
+            return null;
+        }
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(paidAt);
+    }
+
+    /**
+     * Resolves the OpenMRS user configured for Irembo Pay attribution
+     * ({@link BillingConstants#BLOBAL_PROPERTY_IREMBO_USER}).
+     */
+    private User resolveConfiguredIremboUser() {
+        String username = ConfigUtil.getGlobalProperty(BillingConstants.BLOBAL_PROPERTY_IREMBO_USER);
+        if (!hasText(username)) {
+            IremboPayLogUtil.logFailure(log, "IREMBO_USER",
+                    "global property " + BillingConstants.BLOBAL_PROPERTY_IREMBO_USER
+                            + " is missing/empty; Irembo confirmation may not attribute payments correctly");
+            return null;
+        }
+        User iremboUser = Context.getService(UserService.class).getUserByUsername(username.trim());
+        if (iremboUser == null) {
+            IremboPayLogUtil.logFailure(log, "IREMBO_USER",
+                    "configured Irembo user not found: username=" + username.trim());
+        }
+        return iremboUser;
     }
 
     private static Date parsePaidAt(String paidAtStr) {
@@ -1871,6 +1948,11 @@ public class BillingServiceImpl implements BillingService {
         patientBill.setTransactionStatus("Pending");
         patientBill.setRetryCount(0);
         billingDAO.savePatientBill(patientBill);
+        if (!hasText(invoice.getPaymentLinkUrl())) {
+            IremboPayLogUtil.logFailure(log, "CREATE_INVOICE",
+                    "Irembo createInvoice(child) succeeded but paymentLinkUrl is missing/empty, patientBillId="
+                            + patientBill.getPatientBillId() + ", invoiceNumber=" + invoice.getInvoiceNumber());
+        }
         log.info("Irembo createInvoice saved: patientBillId=" + patientBill.getPatientBillId()
                 + ", invoiceNumber=" + invoice.getInvoiceNumber()
                 + ", paymentLinkUrl=" + invoice.getPaymentLinkUrl()
@@ -2129,6 +2211,11 @@ public class BillingServiceImpl implements BillingService {
                 invoicesToMap.addAll(childInvoices);
             }
             invoicesMappedToBatch.addAll(invoicesToMap);
+            if (!hasText(batchInvoice.getPaymentLinkUrl())) {
+                IremboPayLogUtil.logFailure(log, "CREATE_BATCH",
+                        "Irembo createBatchInvoice succeeded but paymentLinkUrl is missing/empty, batchNumber="
+                                + batchNumber + ", transactionId=" + transactionId);
+            }
             int updatedBills = applyBatchNumberToBills(batchNumber, invoicesToMap, batchInvoice.getPaymentLinkUrl());
             log.info("Irembo batch mapping complete: transactionId=" + transactionId
                     + ", batchNumber=" + batchNumber
@@ -2589,6 +2676,273 @@ public class BillingServiceImpl implements BillingService {
 				+ " policyNumber=" + policyNumber + " km=" + kilometers + " total=" + totalAmount);
 
 		return consommation;
+	}
+
+	@Override
+	@Transactional
+	public Consommation deleteAmbulanceBill(Integer consommationId, String voidReason) {
+		if (consommationId == null) {
+			throw new APIException("Ambulance consommation id is required");
+		}
+		Consommation existing = getConsommation(consommationId);
+		if (existing != null && Boolean.TRUE.equals(existing.getVoided())) {
+			log.info("Ambulance bill already voided: consommationId=" + consommationId);
+			return existing;
+		}
+
+		Consommation consommation = loadEditableAmbulanceConsommation(consommationId, "delete");
+
+		User voidedBy = Context.getAuthenticatedUser();
+		Date now = new Date();
+		String reason = hasText(voidReason) ? voidReason.trim() : "Ambulance bill deleted";
+
+		if (consommation.getBillItems() != null) {
+			for (PatientServiceBill item : consommation.getBillItems()) {
+				if (item == null || Boolean.TRUE.equals(item.getVoided())) {
+					continue;
+				}
+				item.setVoided(true);
+				item.setVoidedBy(voidedBy);
+				item.setVoidedDate(now);
+				item.setVoidReason(reason);
+				saveBilledItem(item);
+			}
+		}
+
+		voidBillEntity(consommation.getPatientBill(), voidedBy, now, reason);
+		voidBillEntity(consommation.getInsuranceBill(), voidedBy, now, reason);
+		voidBillEntity(consommation.getThirdPartyBill(), voidedBy, now, reason);
+
+		consommation.setVoided(true);
+		consommation.setVoidedBy(voidedBy);
+		consommation.setVoidedDate(now);
+		consommation.setVoidReason(reason);
+		saveConsommation(consommation);
+
+		refreshAmbulanceRelatedAmounts(consommation);
+
+		log.info("Deleted (voided) ambulance bill consommationId=" + consommationId
+				+ ", voidedBy=" + (voidedBy != null ? voidedBy.getUsername() : null)
+				+ ", reason=" + reason);
+		return consommation;
+	}
+
+	@Override
+	@Transactional
+	public Consommation updateAmbulanceBill(Integer consommationId, int kilometers, String description) {
+		if (kilometers <= 0) {
+			throw new APIException("Number of kilometers must be greater than zero");
+		}
+		if (description == null || description.trim().isEmpty()) {
+			throw new APIException("Ambulance bill description is required");
+		}
+
+		Consommation consommation = loadEditableAmbulanceConsommation(consommationId, "update");
+		String billDescription = description.trim();
+		BigDecimal quantity = BigDecimal.valueOf(kilometers);
+
+		InsurancePolicy insurancePolicy = consommation.getBeneficiary() != null
+				? consommation.getBeneficiary().getInsurancePolicy() : null;
+		if (insurancePolicy == null || insurancePolicy.getInsurance() == null) {
+			throw new APIException("Ambulance bill " + consommationId
+					+ " has no insurance policy linked for recalculation");
+		}
+
+		BillableService billableService = resolveAmbulanceBillableService(insurancePolicy.getInsurance());
+		BigDecimal unitPrice = billableService.getMaximaToPay();
+		if (unitPrice == null) {
+			throw new APIException("Ambulance billable service has no unit price configured for insurance: "
+					+ insurancePolicy.getInsurance().getName());
+		}
+
+		int updatedItems = 0;
+		if (consommation.getBillItems() != null) {
+			for (PatientServiceBill item : consommation.getBillItems()) {
+				if (item == null || Boolean.TRUE.equals(item.getVoided())) {
+					continue;
+				}
+				if (!isAmbulanceBillItem(item)) {
+					throw new APIException("Ambulance bill " + consommationId
+							+ " contains non-ambulance items and cannot be updated via updateAmbulanceBill");
+				}
+				item.setQuantity(quantity);
+				item.setUnitPrice(unitPrice);
+				item.setServiceOtherDescription(billDescription);
+				if (item.getService() == null) {
+					item.setService(billableService);
+				}
+				saveBilledItem(item);
+				updatedItems++;
+			}
+		}
+		if (updatedItems == 0) {
+			throw new APIException("Ambulance bill " + consommationId
+					+ " has no active ambulance items to update");
+		}
+
+		refreshAmbulanceRelatedAmounts(consommation);
+
+		log.info("Updated ambulance bill consommationId=" + consommationId
+				+ ", km=" + kilometers
+				+ ", description=" + billDescription
+				+ ", unitPrice=" + unitPrice
+				+ ", updatedItems=" + updatedItems);
+		return getConsommation(consommationId);
+	}
+
+	private Consommation loadEditableAmbulanceConsommation(Integer consommationId, String operation) {
+		if (consommationId == null) {
+			throw new APIException("Ambulance consommation id is required");
+		}
+
+		Consommation consommation = getConsommation(consommationId);
+		if (consommation == null) {
+			throw new APIException("Ambulance consommation not found for id: " + consommationId);
+		}
+		if (Boolean.TRUE.equals(consommation.getVoided())) {
+			throw new APIException("Cannot " + operation + " ambulance bill " + consommationId
+					+ ": consommation is already voided");
+		}
+		if (!isAmbulanceConsommation(consommation)) {
+			throw new APIException("Consommation " + consommationId + " is not an ambulance bill");
+		}
+
+		PatientBill patientBill = consommation.getPatientBill();
+		if (patientBill != null) {
+			if (Boolean.TRUE.equals(patientBill.getIsPaid()) || patientBill.isPaymentConfirmed()) {
+				throw new APIException("Cannot " + operation + " ambulance bill " + consommationId
+						+ ": patient bill is already paid/confirmed");
+			}
+			if (hasText(patientBill.getInvoiceNumber()) || hasText(patientBill.getBatchNumber())) {
+				throw new APIException("Cannot " + operation + " ambulance bill " + consommationId
+						+ ": Irembo invoice/batch is already linked (invoiceNumber="
+						+ patientBill.getInvoiceNumber() + ", batchNumber=" + patientBill.getBatchNumber() + ")");
+			}
+			List<BillPayment> payments = billingDAO.getBillPaymentsByPatientBill(patientBill);
+			boolean hasNonVoidedPayment = payments != null && payments.stream()
+					.anyMatch(p -> p != null && (p.getVoided() == null || !Boolean.TRUE.equals(p.getVoided())));
+			if (hasNonVoidedPayment) {
+				throw new APIException("Cannot " + operation + " ambulance bill " + consommationId
+						+ ": payment records already exist");
+			}
+		}
+		return consommation;
+	}
+
+	private void refreshAmbulanceRelatedAmounts(Consommation consommation) {
+		if (consommation.getBeneficiary() != null
+				&& consommation.getBeneficiary().getInsurancePolicy() != null) {
+			ConsommationUtil.refreshBillAmountsFromNonVoidedItems(consommation,
+					consommation.getBeneficiary().getInsurancePolicy());
+			return;
+		}
+		if (consommation.getGlobalBill() == null) {
+			return;
+		}
+		GlobalBill globalBill = consommation.getGlobalBill();
+		BigDecimal remaining = BigDecimal.ZERO;
+		List<Consommation> siblings = ConsommationUtil.getConsommationsByGlobalBill(globalBill);
+		if (siblings != null) {
+			for (Consommation sibling : siblings) {
+				if (sibling == null || Boolean.TRUE.equals(sibling.getVoided())) {
+					continue;
+				}
+				if (sibling.getBillItems() == null) {
+					continue;
+				}
+				for (PatientServiceBill item : sibling.getBillItems()) {
+					if (item == null || Boolean.TRUE.equals(item.getVoided())) {
+						continue;
+					}
+					BigDecimal qty = item.getQuantity() != null ? item.getQuantity() : BigDecimal.ZERO;
+					BigDecimal price = item.getUnitPrice() != null ? item.getUnitPrice() : BigDecimal.ZERO;
+					remaining = remaining.add(qty.multiply(price));
+				}
+			}
+		}
+		globalBill.setGlobalAmount(remaining);
+		saveGlobalBill(globalBill);
+	}
+
+	private boolean isAmbulanceConsommation(Consommation consommation) {
+		if (consommation == null) {
+			return false;
+		}
+		Department ambulanceDepartment = null;
+		try {
+			ambulanceDepartment = resolveAmbulanceDepartment();
+		} catch (APIException ignored) {
+			// Fall back to item-category checks when department GP is missing.
+		}
+		if (ambulanceDepartment != null && consommation.getDepartment() != null
+				&& ambulanceDepartment.getDepartmentId() != null
+				&& ambulanceDepartment.getDepartmentId().equals(consommation.getDepartment().getDepartmentId())) {
+			return true;
+		}
+		if (consommation.getBillItems() == null || consommation.getBillItems().isEmpty()) {
+			return false;
+		}
+		boolean hasActiveAmbulanceItem = false;
+		for (PatientServiceBill item : consommation.getBillItems()) {
+			if (item == null || Boolean.TRUE.equals(item.getVoided())) {
+				continue;
+			}
+			if (!isAmbulanceBillItem(item)) {
+				return false;
+			}
+			hasActiveAmbulanceItem = true;
+		}
+		return hasActiveAmbulanceItem;
+	}
+
+	private boolean isAmbulanceBillItem(PatientServiceBill item) {
+		if (item == null || item.getService() == null || item.getService().getServiceCategory() == null
+				|| item.getService().getServiceCategory().getName() == null) {
+			return false;
+		}
+		return Category.AMBULANCE.getDescription()
+				.equalsIgnoreCase(item.getService().getServiceCategory().getName().trim());
+	}
+
+	private void voidBillEntity(Object billEntity, User voidedBy, Date voidedDate, String voidReason) {
+		if (billEntity instanceof PatientBill) {
+			PatientBill bill = (PatientBill) billEntity;
+			if (Boolean.TRUE.equals(bill.getVoided())) {
+				return;
+			}
+			bill.setVoided(true);
+			bill.setVoidedBy(voidedBy);
+			bill.setVoidedDate(voidedDate);
+			bill.setVoidReason(voidReason);
+			bill.setAmount(BigDecimal.ZERO);
+			PatientBillUtil.savePatientBill(bill);
+			return;
+		}
+		if (billEntity instanceof InsuranceBill) {
+			InsuranceBill bill = (InsuranceBill) billEntity;
+			if (bill.isVoided()) {
+				return;
+			}
+			bill.setVoided(true);
+			bill.setVoidedBy(voidedBy);
+			bill.setVoidedDate(voidedDate);
+			bill.setVoidReason(voidReason);
+			bill.setAmount(BigDecimal.ZERO);
+			InsuranceBillUtil.saveInsuranceBill(bill);
+			return;
+		}
+		if (billEntity instanceof ThirdPartyBill) {
+			ThirdPartyBill bill = (ThirdPartyBill) billEntity;
+			if (bill.isVoided()) {
+				return;
+			}
+			bill.setVoided(true);
+			bill.setVoidedBy(voidedBy);
+			bill.setVoidedDate(voidedDate);
+			bill.setVoidReason(voidReason);
+			bill.setAmount(BigDecimal.ZERO);
+			ThirdPartyBillUtil.saveThirdPartyBill(bill);
+		}
 	}
 
 	private Department resolveAmbulanceDepartment() {

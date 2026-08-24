@@ -1567,6 +1567,8 @@ public class HibernateBillingDAO implements BillingDAO {
         InsuranceRate insuranceRate = insurance.getCurrentRate();
         Float insuranceFirmRate = insuranceRate.getRate();
         Float insurancePatientRate = 100 - insuranceRate.getRate();
+        BigDecimal flatFee = insuranceRate.getFlatFee() != null ? insuranceRate.getFlatFee() : BigDecimal.ZERO;
+        boolean hasFlatFee = flatFee.compareTo(BigDecimal.ZERO) > 0;
 
         //Double totalInsuranceFirm = 0.9 * total;
         Integer id=1;
@@ -1633,11 +1635,20 @@ public class HibernateBillingDAO implements BillingDAO {
 
             Double total =
                     medicament + consultation + hospitalisation + laboratoire + formaliteAdministratives + ambulance + consommables + oxygenotherapie + imaging + proced;
-            Double totalInsuranceFirm = (insuranceFirmRate / 100) * total;
+            Double totalInsuranceFirm;
+            Double totalPatient;
+            if (hasFlatFee) {
+                totalPatient = flatFee.doubleValue();
+                totalInsuranceFirm = total - totalPatient;
+            } else {
+                totalInsuranceFirm = (insuranceFirmRate / 100) * total;
+                totalPatient = total - totalInsuranceFirm;
+            }
 
             reportItem.setTotal100(total);
             reportItem.setTotalInsurance(totalInsuranceFirm);
-            reportItem.setTotalPatient(total - totalInsuranceFirm);
+            reportItem.setTotalPatient(totalPatient);
+            reportItem.setCurrentInsuranceRateFlatFee(hasFlatFee ? flatFee.doubleValue() : 0.0);
 
             report.addReportItem(reportItem);
 
@@ -1654,10 +1665,17 @@ public class HibernateBillingDAO implements BillingDAO {
             report.addServiceRevenue("PROCED.", BigDecimal.valueOf(proced));
 
             report.addServiceRevenue("100%", BigDecimal.valueOf(reportItem.getTotal100()));
-            report.addServiceRevenue("Insurance (" + insuranceFirmRate + "%)",
-                    BigDecimal.valueOf(reportItem.getTotalInsurance()));
-            report.addServiceRevenue("Patient (" + insurancePatientRate + "%)",
-                    BigDecimal.valueOf(reportItem.getTotalPatient()));
+            if (hasFlatFee) {
+                report.addServiceRevenue("Insurance (100% - flat fee)",
+                        BigDecimal.valueOf(reportItem.getTotalInsurance()));
+                report.addServiceRevenue("Patient (Flat fee)",
+                        BigDecimal.valueOf(reportItem.getTotalPatient()));
+            } else {
+                report.addServiceRevenue("Insurance (" + insuranceFirmRate + "%)",
+                        BigDecimal.valueOf(reportItem.getTotalInsurance()));
+                report.addServiceRevenue("Patient (" + insurancePatientRate + "%)",
+                        BigDecimal.valueOf(reportItem.getTotalPatient()));
+            }
         }
         System.out.println("Done Fetching Insurance Report of size: " + report.getReportItems().size() + ", from " +
                 "MambaETL tables");

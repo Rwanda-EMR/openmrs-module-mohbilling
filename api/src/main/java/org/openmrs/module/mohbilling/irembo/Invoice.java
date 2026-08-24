@@ -268,16 +268,7 @@ public class Invoice extends Config {
         // Create request body
         RequestBody body = RequestBody.create(MediaType.get("application/json; charset=utf-8"), payload.toString());
 
-        // Create request
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/json")
-                .addHeader("irembopay-secretKey", apiKey)
-                .addHeader("User-Agent", "IremboPaySDK")
-                .build();
-        // Send request
+        Request request = newAuthenticatedRequest(url).post(body).build();
         try {
             Response response = httpClient().newCall(request).execute();
             IremboPayResponse<Invoice> iremboPayResponse = new IremboPayResponse<>();
@@ -325,15 +316,7 @@ public class Invoice extends Config {
         payload.put("description", description);
 
         RequestBody body = RequestBody.create(MediaType.get("application/json; charset=utf-8"), payload.toString());
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/json")
-                .addHeader("User-Agent", "IremboPaySDK")
-                .addHeader("irembopay-secretKey", apiKey)
-                .build();
-        // Send request
+        Request request = newAuthenticatedRequest(url).post(body).build();
         try {
             Response response = httpClient().newCall(request).execute();
             IremboPayResponse<Invoice> iremboPayResponse = new IremboPayResponse<>();
@@ -362,13 +345,7 @@ public class Invoice extends Config {
 
     public IremboPayResponse<Invoice> getInvoice(String invoiceReference) {
         String url = baseUrl + "/invoices/" + invoiceReference;
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/json")
-                .addHeader("irembopay-secretKey", apiKey)
-                .addHeader("User-Agent", "IremboPaySDK")
-                .build();
+        Request request = newAuthenticatedRequest(url).get().build();
 
         try {
             Response response = httpClient().newCall(request).execute();
@@ -409,14 +386,7 @@ public class Invoice extends Config {
 
         RequestBody body = RequestBody.create(MediaType.get("application/json; charset=utf-8"), payload.toString());
 
-        Request request = new Request.Builder()
-                .url(url)
-                .put(body)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/json")
-                .addHeader("User-Agent", "IremboPaySDK")
-                .addHeader("irembopay-secretKey", apiKey)
-                .build();
+        Request request = newAuthenticatedRequest(url).put(body).build();
         try {
             Response response = httpClient().newCall(request).execute();
             IremboPayResponse<Invoice> iremboPayResponse = new IremboPayResponse<>();
@@ -441,11 +411,38 @@ public class Invoice extends Config {
 
     private Invoice getInstanceFromJson(JSONObject jsonObject) {
         JSONObject data = jsonObject.getJSONObject("data");
-        this.setAmount(data.getFloat("amount"));
-        this.setInvoiceNumber(data.getString("invoiceNumber"));
-        this.setTransactionId(data.getString("transactionId"));
-        this.setCreatedAt(DateToJson.deserialize(data.getString("createdAt")));
-        this.setUpdatedAt(DateToJson.deserialize(data.getString("updatedAt")));
+
+        // Parse critical batch/payment fields first so they are never lost
+        // even if a less important field is missing from the response.
+        if (data.has("batchNumber") && !data.isNull("batchNumber")) {
+            this.setBatchNumber(data.getString("batchNumber"));
+        } else {
+            this.setBatchNumber(null);
+        }
+        this.setPaymentLinkUrl(extractPaymentLinkUrl(jsonObject, data));
+        if (data.has("childInvoices") && !data.isNull("childInvoices")) {
+            List<String> responseChildInvoices = new ArrayList<>();
+            JSONArray childInvoiceArray = data.getJSONArray("childInvoices");
+            for (int i = 0; i < childInvoiceArray.length(); i++) {
+                responseChildInvoices.add(childInvoiceArray.getString(i));
+            }
+            this.setChildInvoices(responseChildInvoices);
+        } else {
+            this.setChildInvoices(null);
+        }
+
+        // Core invoice fields — use safe accessors for fields that may be absent
+        // in certain response types (e.g. batch vs single).
+        this.setAmount(data.has("amount") ? data.getFloat("amount") : 0f);
+        this.setInvoiceNumber(data.optString("invoiceNumber", null));
+        this.setTransactionId(data.optString("transactionId", null));
+
+        if (data.has("createdAt") && !data.isNull("createdAt")) {
+            this.setCreatedAt(DateToJson.deserialize(data.getString("createdAt")));
+        }
+        if (data.has("updatedAt") && !data.isNull("updatedAt")) {
+            this.setUpdatedAt(DateToJson.deserialize(data.getString("updatedAt")));
+        }
         if (data.has("expiryAt") && !data.isNull("expiryAt")) {
             this.setExpiryAt(DateToJson.deserialize(data.getString("expiryAt")));
         } else {
@@ -456,19 +453,13 @@ public class Invoice extends Config {
         } else {
             this.setPaidAt(null);
         }
-        this.setDescription(data.getString("description"));
-        if (data.has("paymentLinkUrl") && !data.isNull("paymentLinkUrl")) {
-            String link = data.getString("paymentLinkUrl");
-            this.setPaymentLinkUrl(link != null && !link.trim().isEmpty() ? link.trim() : null);
-        } else {
-            this.setPaymentLinkUrl(null);
-        }
-        this.setType(data.getString("type"));
-        this.setPaymentStatus(data.getString("paymentStatus"));
-        this.setCurrency(data.getString("currency"));
+        this.setDescription(data.optString("description", null));
+        this.setType(data.optString("type", null));
+        this.setPaymentStatus(data.optString("paymentStatus", null));
+        this.setCurrency(data.optString("currency", null));
+
         if (data.has("customer")) {
             Customer responseCustomer = new Customer();
-
             JSONObject customerObject = data.getJSONObject("customer");
             if (customerObject.has("email"))
                 responseCustomer.setEmail(customerObject.getString("email"));
@@ -478,7 +469,7 @@ public class Invoice extends Config {
                 responseCustomer.setFullName(customerObject.getString("fullName"));
             this.setCustomer(responseCustomer);
         }
-        if(data.has("paymentAccountIdentifier"))
+        if (data.has("paymentAccountIdentifier"))
             this.setPaymentAccountIdentifier(data.getString("paymentAccountIdentifier"));
         if (data.has("paymentReference") && !data.isNull("paymentReference")) {
             String paymentReference = data.getString("paymentReference");
@@ -503,22 +494,51 @@ public class Invoice extends Config {
             }
         }
         this.setPaymentItems(items);
-        if (data.has("batchNumber") && !data.isNull("batchNumber")) {
-            this.setBatchNumber(data.getString("batchNumber"));
-        } else {
-            this.setBatchNumber(null);
-        }
-        if (data.has("childInvoices") && !data.isNull("childInvoices")) {
-            List<String> responseChildInvoices = new ArrayList<>();
-            JSONArray childInvoiceArray = data.getJSONArray("childInvoices");
-            for (int i = 0; i < childInvoiceArray.length(); i++) {
-                responseChildInvoices.add(childInvoiceArray.getString(i));
-            }
-            this.setChildInvoices(responseChildInvoices);
-        } else {
-            this.setChildInvoices(null);
-        }
+
+        log.info("Parsed Irembo response: invoiceNumber=" + this.getInvoiceNumber()
+                + ", batchNumber=" + this.getBatchNumber()
+                + ", paymentLinkUrl=" + this.getPaymentLinkUrl()
+                + ", type=" + this.getType()
+                + ", paymentStatus=" + this.getPaymentStatus());
+
         return this;
+    }
+
+    private String extractPaymentLinkUrl(JSONObject responseObject, JSONObject dataObject) {
+        String link = readTextField(dataObject, "paymentLinkUrl", "payment_link_url", "paymentLink", "checkoutUrl");
+        if (link == null) {
+            link = readTextField(responseObject, "paymentLinkUrl", "payment_link_url", "paymentLink", "checkoutUrl");
+        }
+        if (link != null) {
+            return link;
+        }
+
+        String checkoutReference = readTextField(dataObject, "batchNumber");
+        if (checkoutReference == null) {
+            checkoutReference = readTextField(dataObject, "invoiceNumber");
+        }
+        if (checkoutReference != null) {
+            String fallback = checkoutBaseUrl() + checkoutReference;
+            log.warn("Irembo response missing paymentLinkUrl; using checkout fallback " + fallback);
+            return fallback;
+        }
+        return null;
+    }
+
+    private static String readTextField(JSONObject object, String... fieldNames) {
+        if (object == null || fieldNames == null) {
+            return null;
+        }
+        for (String fieldName : fieldNames) {
+            if (!object.has(fieldName) || object.isNull(fieldName)) {
+                continue;
+            }
+            String value = object.optString(fieldName, null);
+            if (value != null && !value.trim().isEmpty() && !"null".equalsIgnoreCase(value.trim())) {
+                return value.trim();
+            }
+        }
+        return null;
     }
 
 }

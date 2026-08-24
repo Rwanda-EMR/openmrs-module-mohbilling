@@ -7,6 +7,11 @@ import org.openmrs.module.mohbilling.irembo.util.Environment;
 
 abstract public class Config {
     /**
+     * Irembo Pay v2 responses include paymentLinkUrl on invoice and batch invoice payloads.
+     */
+    protected static final String API_VERSION = "2";
+
+    /**
      * Time allowed to establish a TCP connection (and complete TLS handshake) to Irembo Pay.
      * OkHttp default is 10s; hospital networks often need longer.
      */
@@ -58,5 +63,29 @@ abstract public class Config {
      */
     protected OkHttpClient httpClient() {
         return SHARED_HTTP_CLIENT;
+    }
+
+    protected void applyStandardHeaders(okhttp3.Request.Builder builder) {
+        builder.addHeader("Content-Type", "application/json")
+                .addHeader("Accept", "application/json")
+                .addHeader("irembopay-secretKey", apiKey)
+                .addHeader("X-API-Version", API_VERSION)
+                .addHeader("User-Agent", "IremboPaySDK");
+    }
+
+    protected okhttp3.Request.Builder newAuthenticatedRequest(String url) {
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
+        applyStandardHeaders(builder);
+        return builder;
+    }
+
+    protected String checkoutBaseUrl() {
+        if (environment == Environment.PRODUCTION) {
+            return "https://checkout.irembopay.com/";
+        }
+        if (environment == Environment.CHECKOUT) {
+            return "https://checkout.uat.irembopay.com/";
+        }
+        return "https://checkout.sandbox.irembopay.com/";
     }
 }
