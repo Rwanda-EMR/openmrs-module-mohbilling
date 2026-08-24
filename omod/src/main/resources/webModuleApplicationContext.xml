@@ -203,6 +203,7 @@
 	<bean id="mohBillingAdmissionFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdmissionFormController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingAdmissionForm</value></property>
+		<property name="voucherService" ref="rhipVoucherService" />
 	</bean>
 	<bean id="mohBillingDepartmentListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentListController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
@@ -228,6 +229,7 @@
 	<bean id="mohBillingConsommationListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingConsommationListController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingConsommationList</value></property>
+		<property name="voucherService" ref="rhipVoucherService" />
 	</bean>
 	<bean id="mohBillingSearchPatientAccountFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingSearchPatientAccountFormController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />

@@ -9,6 +9,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
+import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -28,6 +29,7 @@ import java.util.List;
  */
 public class MohBillingConsommationListController extends ParameterizableViewController {
 	protected final Log log = LogFactory.getLog(getClass());
+	private RhipVoucherService voucherService;
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
@@ -57,7 +59,7 @@ public class MohBillingConsommationListController extends ParameterizableViewCon
 			discharge = request.getParameter("discharge");
 			globalBill = GlobalBillUtil.getGlobalBill(Integer.valueOf(request.getParameter("globalBillId")));
 			if(request.getParameter("edit")!=null){
-				if(globalBill.getAdmission().getInsurancePolicy().getInsurance()==null) {
+				if(globalBill.getInsurance()==null) {
 					globalBill.setInsurance(globalBill.getAdmission().getInsurancePolicy().getInsurance());
 				}
 				globalBill.setAdmission(globalBill.getAdmission());
@@ -70,6 +72,7 @@ public class MohBillingConsommationListController extends ParameterizableViewCon
 				globalBill.setClosed(true);
 				globalBill.setClosingReason(request.getParameter("closeGBReason"));
 				GlobalBillUtil.saveGlobalBill(globalBill);
+				submitMmiRhipVoucher(globalBill);
 				return new ModelAndView(new RedirectView("viewGlobalBill.form?globalBillId="+globalBillId));
 			}
 			mav.addObject("globalBill", globalBill);
@@ -77,5 +80,21 @@ public class MohBillingConsommationListController extends ParameterizableViewCon
 		mav.addObject("discharge",discharge);
 		mav.setViewName(getViewName());
 		return mav;
+	}
+
+	private void submitMmiRhipVoucher(GlobalBill globalBill) {
+		if (voucherService == null || globalBill == null) {
+			return;
+		}
+		try {
+			voucherService.submitMmiVoucherForGlobalBillOnDischarge(globalBill);
+		}
+		catch (Exception e) {
+			log.warn("Unable to submit MMI RHIP voucher for global bill " + globalBill.getGlobalBillId(), e);
+		}
+	}
+
+	public void setVoucherService(RhipVoucherService voucherService) {
+		this.voucherService = voucherService;
 	}
 }
