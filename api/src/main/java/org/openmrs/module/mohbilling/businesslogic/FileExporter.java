@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -34,6 +35,30 @@ import java.util.List;
 public class FileExporter {
 
     protected static final Log log = LogFactory.getLog(FileExporter.class);
+
+    /**
+     * Grand-total split for insurance vs patient.
+     * When a flat fee is configured (&gt; 0), the patient pays only that fee and insurance
+     * covers {@code total - flatFee}. Otherwise the split follows the percentage rate.
+     * Line items still use percentage; flat fee is applied only at this total level.
+     *
+     * @return [insuranceDue, patientDue]
+     */
+    private static BigDecimal[] calculateGrandTotalDues(BigDecimal totalAmount, Float insuranceRate,
+            BigDecimal flatFee) {
+        BigDecimal total = totalAmount != null ? totalAmount : BigDecimal.ZERO;
+        BigDecimal flatFeeBD = flatFee != null ? flatFee : BigDecimal.ZERO;
+        if (flatFeeBD.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal patientDue = flatFeeBD.setScale(2, RoundingMode.HALF_UP);
+            BigDecimal insuranceDue = total.subtract(patientDue).setScale(2, RoundingMode.HALF_UP);
+            return new BigDecimal[] { insuranceDue, patientDue };
+        }
+        float rate = insuranceRate != null ? insuranceRate : 0f;
+        BigDecimal insuranceDue = total.multiply(BigDecimal.valueOf(rate))
+                .divide(new BigDecimal(100), 2, RoundingMode.HALF_UP);
+        BigDecimal patientDue = total.subtract(insuranceDue).setScale(2, RoundingMode.HALF_UP);
+        return new BigDecimal[] { insuranceDue, patientDue };
+    }
     private static final String WHITESPACE = " ";
     private PatientIdentifierType patientID = Context.getPatientService()
             .getPatientIdentifierType(Integer.valueOf(Context.getAdministrationService().getGlobalProperty(
@@ -80,6 +105,8 @@ public class FileExporter {
                     + "," + asr.getConsommation().getCreator().getPersonName()
             );
             float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+            BigDecimal flatFeeBD = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee() != null
+                    ? asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee() : BigDecimal.ZERO;
             pRate = 100 - insuranceRate;
             for (ServiceRevenue serviceRevenue : asr.getRevenues()) {
                 List<PatientServiceBill> billItems = new ArrayList<PatientServiceBill>();
@@ -103,10 +130,9 @@ public class FileExporter {
                 BigDecimal unitPrice = psb.getUnitPrice();
                 totalConsAmount = totalConsAmount.add(reqQty.multiply(unitPrice));
             }
-            BigDecimal totalASR = new BigDecimal(0);
-            BigDecimal totalPatientASR = new BigDecimal(0);
-            totalASR = totalConsAmount.multiply(BigDecimal.valueOf(insuranceRate)).divide(new BigDecimal(100));
-            totalPatientASR = totalConsAmount.multiply(BigDecimal.valueOf(pRate)).divide(new BigDecimal(100));
+            BigDecimal[] dueAmounts = calculateGrandTotalDues(totalConsAmount, insuranceRate, flatFeeBD);
+            BigDecimal totalASR = dueAmounts[0];
+            BigDecimal totalPatientASR = dueAmounts[1];
 
             dcp.print("," + ReportsUtil.roundTwoDecimals(totalConsAmount.doubleValue()));
             dcp.print("," + ReportsUtil.roundTwoDecimals(totalASR.doubleValue()));
@@ -1372,6 +1398,8 @@ public class FileExporter {
 
 		Float insuranceRate = gb.getAdmission().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
 		Float patientRate = 100-insuranceRate;
+		BigDecimal flatFeeBD = gb.getAdmission().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee() != null
+				? gb.getAdmission().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee() : BigDecimal.ZERO;
 
 		cell = new PdfPCell(boldFont.process(insuranceRate+"%"));
 		table.addCell(cell);
@@ -1469,9 +1497,10 @@ public class FileExporter {
 		table.addCell(c);
 		c = new PdfPCell(boldFont.process(""+formatter.format(totalBill)));
 		table.addCell(c);
-		c = new PdfPCell(boldFont.process(""+formatter.format(totalBill.multiply(new BigDecimal(insuranceRate).divide(new BigDecimal(100))))));
+		BigDecimal[] grandDues = calculateGrandTotalDues(totalBill, insuranceRate, flatFeeBD);
+		c = new PdfPCell(boldFont.process(""+formatter.format(grandDues[0])));
 		table.addCell(c);
-		c = new PdfPCell(boldFont.process(""+formatter.format(totalBill.multiply(new BigDecimal(patientRate).divide(new BigDecimal(100))))));
+		c = new PdfPCell(boldFont.process(""+formatter.format(grandDues[1])));
 		table.addCell(c);
 		document.add(table);
 	}

@@ -758,6 +758,29 @@ public interface BillingService {
 	 */
 	Consommation createAmbulanceBill(String insurancePolicyNumber, int kilometers, String description);
 
+	/**
+	 * Soft-deletes (voids) an ambulance consommation created by {@link #createAmbulanceBill}.
+	 * Refuses deletion when the bill is already paid, has payment records, or has an active
+	 * Irembo invoice. Recalculates related bill amounts and the parent GlobalBill total.
+	 *
+	 * @param consommationId id of the ambulance consommation to void
+	 * @param voidReason reason stored on voided records (defaults when blank)
+	 * @return the voided consommation
+	 */
+	Consommation deleteAmbulanceBill(Integer consommationId, String voidReason);
+
+	/**
+	 * Updates an unpaid ambulance consommation created by {@link #createAmbulanceBill}.
+	 * Can change kilometers (quantity) and/or description. Recalculates patient/insurance/
+	 * third-party amounts and the parent GlobalBill total.
+	 *
+	 * @param consommationId id of the ambulance consommation to update
+	 * @param kilometers new distance in kilometers (quantity); must be &gt; 0
+	 * @param description new free-text description for the bill line
+	 * @return the updated consommation
+	 */
+	Consommation updateAmbulanceBill(Integer consommationId, int kilometers, String description);
+
 	public RhipVoucherItemRecord saveRhipVoucherItemRecord(RhipVoucherItemRecord record);
 	public List<RhipVoucherItemRecord> getRhipVoucherItemRecordsByGlobalBill(GlobalBill globalBill);
 	public RhipVoucherItemRecord getLatestRhipVoucherItemRecord(PatientServiceBill patientServiceBill);
