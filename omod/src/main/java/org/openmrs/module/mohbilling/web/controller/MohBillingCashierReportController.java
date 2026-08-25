@@ -96,13 +96,14 @@ public class MohBillingCashierReportController extends
 					 
 					 List<BillPayment> cashPayments = new ArrayList<BillPayment>();
 					 List<BillPayment> depositPayments= new ArrayList<BillPayment>();
-					 List<PaidServiceBill> paidItems = null;
+					 // Payments that drive both rows and footer totals (must stay in sync).
+					 List<BillPayment> reportPayments;
 					 if(request.getParameter("paymentType").equals("cashPayment")){
 					 for (BillPayment bp : payments) {
 						if(bp instanceof CashPayment)
 							cashPayments.add(bp);
 					 }
-					 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(cashPayments);
+					 reportPayments = cashPayments;
 						mav.addObject("reportMsg", "Cash Payments From "+startDateStr+" To "+endDateStr);
 						
 					 }
@@ -111,11 +112,11 @@ public class MohBillingCashierReportController extends
 								if(bp instanceof DepositPayment)
 									depositPayments.add(bp);
 							 }
-					  paidItems = BillPaymentUtil.getPaidItemsByBillPayments(depositPayments);
+					  reportPayments = depositPayments;
 					  mav.addObject("reportMsg", "Deposit Payments From "+startDateStr+" To "+endDateStr);
 					 }
 					 else{
-						 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments);
+						 reportPayments = payments;
 						 mav.addObject("reportMsg", "Total Received Amount From "+startDateStr+" To "+endDateStr);
 					 }
 				 mav.addObject("reportMsg1", "Total Received Amount From "+startDateStr+" To "+endDateStr);
@@ -136,19 +137,13 @@ public class MohBillingCashierReportController extends
 					 return new ModelAndView(new RedirectView("cashierReport.form"));
 				 }
 			
-	
-					 Consommation c = ConsommationUtil.getConsommationByPatientBill(payments.get(0).getPatientBill());
-			      		if(c!=null && c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
-			      			paidItems = BillPaymentUtil.getOldPaidItems(payments);
-			      		}
-					 
 					 List<String> columns = new ArrayList<String>();
 					 for (HopService hopService : reportColumns) {
 						 columns.add(hopService.getName());
 					}
 					 
 					 List<PaymentRevenue> paymentRevenues =  new ArrayList<PaymentRevenue>();
-					 for (BillPayment pay : payments) {
+					 for (BillPayment pay : reportPayments) {
 						PaymentRevenue br =null;
 						if(request.getParameter("reportType")!=null && request.getParameter("reportType").equals("NO_DCP_Report")) {
 							br = ReportsUtil.getRevenuesByPayment(pay, columns);
@@ -171,17 +166,31 @@ public class MohBillingCashierReportController extends
 					else{
 						services = paymentRevenues.get(0).getPaidServiceRevenues();
 					}
+					 // Footer TOT(Due) must equal the sum of row TOTAL Due values.
+					 // Previously bigTotal used getTotalByCategorizedPaidItems (full qty, no third-party,
+					 // no void/DCP filters), which did not match per-row paidQty-based amounts.
 					 List<BigDecimal> subTotals = new ArrayList<BigDecimal>();
 					 BigDecimal bigTotal = new BigDecimal(0);
-					 for (String s : columns) {
-							 subTotals.add(ReportsUtil.getTotalByCategorizedPaidItems(paidItems, s));
-							 bigTotal=bigTotal.add(ReportsUtil.getTotalByCategorizedPaidItems(paidItems, s));
-					}
+					 if (services != null && !services.isEmpty()) {
+						 for (int colIdx = 0; colIdx < services.size(); colIdx++) {
+							 BigDecimal columnTotal = new BigDecimal(0);
+							 for (PaymentRevenue pr : paymentRevenues) {
+								 List<PaidServiceRevenue> rowServices = pr.getPaidServiceRevenues();
+								 if (rowServices != null && colIdx < rowServices.size()
+										 && rowServices.get(colIdx).getPaidAmount() != null) {
+									 columnTotal = columnTotal.add(rowServices.get(colIdx).getPaidAmount());
+								 }
+							 }
+							 subTotals.add(columnTotal);
+							 bigTotal = bigTotal.add(columnTotal);
+						 }
+					 }
+					 BigDecimal totalPaid = BillPaymentUtil.getTotalPaid(reportPayments);
 						
 					 mav.addObject("paymentRevenues", paymentRevenues);	 
 
 					 mav.addObject("services", services);
-					 mav.addObject("totalRevenueAmount", BillPaymentUtil.getTotalPaid(payments));
+					 mav.addObject("totalRevenueAmount", totalPaid);
 					 mav.addObject("resultMsg", "Revenue Amount From "+startDateStr+" To "+ endDateStr);
 					 mav.addObject("subTotals", subTotals);
 					 mav.addObject("bigTotal", bigTotal);
@@ -191,7 +200,7 @@ public class MohBillingCashierReportController extends
 					 request.getSession().setAttribute("services" , services);
 					 request.getSession().setAttribute("subTotals" , subTotals); 
 					 request.getSession().setAttribute("bigTotal" , bigTotal); 
-					 request.getSession().setAttribute("totalRevenueAmount" , BillPaymentUtil.getTotalPaid(payments));
+					 request.getSession().setAttribute("totalRevenueAmount" , totalPaid);
 			         request.getSession().setAttribute("collector" , cashier);
 
 		/*	} catch (Exception e) {
