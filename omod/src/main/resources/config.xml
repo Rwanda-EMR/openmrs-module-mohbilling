@@ -6,7 +6,7 @@
     <!-- Base Module Properties -->
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
-    <version>2.2.1-SNAPSHOT</version>
+    <version>2.2.2-SNAPSHOT</version>
     <package>org.openmrs.module.@MODULE_ID@</package>
     <author>MoH Rwanda</author>
     <description>
@@ -162,6 +162,17 @@
         <defaultValue></defaultValue>
         <description>
             Department ID (moh_bill_departement) used when creating ambulance bills.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.ambulance.facilityServicePriceName</property>
+        <defaultValue>Ambulance per 1km-RHIC-ADMN-002</defaultValue>
+        <description>
+            Exact facility service price name (moh_bill_facility_service_price.name) used for
+            ambulance KM billing. The module resolves the matching non-retired billable service
+            for the patient's insurance from this facility service, avoiding ambiguous selection
+            when multiple AMBULANCE billable services exist.
         </description>
     </globalProperty>
 

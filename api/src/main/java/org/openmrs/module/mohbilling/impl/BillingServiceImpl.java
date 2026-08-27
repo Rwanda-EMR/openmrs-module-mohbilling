@@ -2896,7 +2896,19 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	private boolean isAmbulanceBillItem(PatientServiceBill item) {
-		if (item == null || item.getService() == null || item.getService().getServiceCategory() == null
+		if (item == null || item.getService() == null) {
+			return false;
+		}
+		String configuredFacilityServiceName = resolveConfiguredAmbulanceFacilityServicePriceNameOrNull();
+		if (configuredFacilityServiceName != null
+				&& item.getService().getFacilityServicePrice() != null
+				&& item.getService().getFacilityServicePrice().getName() != null
+				&& configuredFacilityServiceName.equalsIgnoreCase(
+						item.getService().getFacilityServicePrice().getName().trim())) {
+			return true;
+		}
+		// Fallback for historical ambulance bills created before the facility-service GP existed.
+		if (item.getService().getServiceCategory() == null
 				|| item.getService().getServiceCategory().getName() == null) {
 			return false;
 		}
@@ -2966,23 +2978,48 @@ public class BillingServiceImpl implements BillingService {
 	}
 
 	private BillableService resolveAmbulanceBillableService(Insurance insurance) {
-		ServiceCategory ambulanceCategory = getServiceCategoryByName(Category.AMBULANCE.getDescription(), insurance);
-		if (ambulanceCategory == null) {
-			throw new APIException("AMBULANCE service category not configured for insurance: " + insurance.getName());
+		if (insurance == null) {
+			throw new APIException("Insurance is required to resolve the ambulance billable service");
+		}
+		String facilityServicePriceName = resolveConfiguredAmbulanceFacilityServicePriceName();
+		FacilityServicePrice facilityServicePrice = getFacilityServiceByName(facilityServicePriceName);
+		if (facilityServicePrice == null) {
+			throw new APIException("Ambulance facility service price not found for name: \""
+					+ facilityServicePriceName + "\" (global property "
+					+ BillingConstants.GLOBAL_PROPERTY_AMBULANCE_FACILITY_SERVICE_PRICE_NAME + ")");
+		}
+		if (Boolean.TRUE.equals(facilityServicePrice.isRetired())) {
+			throw new APIException("Configured ambulance facility service price is retired: name=\""
+					+ facilityServicePriceName + "\"");
 		}
 
-		List<BillableService> services = getBillableServiceByCategory(ambulanceCategory);
-		if (services == null || services.isEmpty()) {
-			throw new APIException("No ambulance billable service found for insurance: " + insurance.getName());
+		BillableService billableService = getBillableServiceByConcept(facilityServicePrice, insurance);
+		if (billableService == null || Boolean.TRUE.equals(billableService.getRetired())) {
+			throw new APIException("No active billable service found for facility service name=\""
+					+ facilityServicePriceName + "\" and insurance: " + insurance.getName()
+					+ ". Configure the insurance billable service for that facility service.");
 		}
+		return billableService;
+	}
 
-		for (BillableService service : services) {
-			if (service.getRetired() == null || !service.getRetired()) {
-				return service;
-			}
+	private String resolveConfiguredAmbulanceFacilityServicePriceName() {
+		String facilityServicePriceName = resolveConfiguredAmbulanceFacilityServicePriceNameOrNull();
+		if (facilityServicePriceName == null) {
+			throw new APIException("Global property "
+					+ BillingConstants.GLOBAL_PROPERTY_AMBULANCE_FACILITY_SERVICE_PRICE_NAME
+					+ " is not configured");
 		}
+		return facilityServicePriceName;
+	}
 
-		throw new APIException("No active ambulance billable service found for insurance: " + insurance.getName());
+	private String resolveConfiguredAmbulanceFacilityServicePriceNameOrNull() {
+		String facilityServicePriceName = Context.getAdministrationService().getGlobalProperty(
+				BillingConstants.GLOBAL_PROPERTY_AMBULANCE_FACILITY_SERVICE_PRICE_NAME,
+				BillingConstants.DEFAULT_AMBULANCE_FACILITY_SERVICE_PRICE_NAME);
+		if (facilityServicePriceName == null || facilityServicePriceName.trim().isEmpty()) {
+			return null;
+		}
+		return facilityServicePriceName.trim();
 	}
 
 	@Override
