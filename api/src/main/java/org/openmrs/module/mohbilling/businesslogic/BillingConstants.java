@@ -91,5 +91,12 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE = "mohbilling.irembopay.phone_attribute";
 	public static final String GLOBAL_PROPERTY_IREMBO_AUTO_PHONE_NUMBER = "mohbilling.irembopay.auto_phone_number";
 	public static final String GLOBAL_PROPERTY_AMBULANCE_DEPARTMENT_ID = "mohbilling.ambulance.departmentId";
+	/**
+	 * Exact facility service price name ({@code moh_bill_facility_service_price.name})
+	 * used for ambulance KM billing. The insurance-specific BillableService is resolved
+	 * from this facility service for each policy.
+	 */
+	public static final String GLOBAL_PROPERTY_AMBULANCE_FACILITY_SERVICE_PRICE_NAME = "mohbilling.ambulance.facilityServicePriceName";
+	public static final String DEFAULT_AMBULANCE_FACILITY_SERVICE_PRICE_NAME = "Ambulance per 1km-RHIC-ADMN-002";
 
 }

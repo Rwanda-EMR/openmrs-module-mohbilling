@@ -749,12 +749,16 @@ public interface BillingService {
 
 	/**
 	 * Creates an ambulance consommation bill for the given insurance policy.
-	 * Kilometers are billed as quantity against the insurance AMBULANCE billable service unit price.
+	 * Kilometers are billed as quantity against the insurance billable service that matches
+	 * global property {@code mohbilling.ambulance.facilityServicePriceName}
+	 * (default: {@code Ambulance per 1km-RHIC-ADMN-002}).
+	 * The resulting consommation is attached to the patient's open GlobalBill and uses the
+	 * department from {@code mohbilling.ambulance.departmentId}.
 	 *
 	 * @param insurancePolicyNumber insurance card / policy number
-	 * @param kilometers distance in kilometers (quantity)
-	 * @param description free-text description stored on the bill line (e.g. route details)
-	 * @return the saved consommation with patient, insurance and third-party bills attached
+	 * @param kilometers number of kilometers (must be &gt; 0); used as bill item quantity
+	 * @param description free-text description stored on the bill item
+	 * @return the saved Consommation including PatientBill / InsuranceBill / ThirdPartyBill
 	 */
 	Consommation createAmbulanceBill(String insurancePolicyNumber, int kilometers, String description);
 

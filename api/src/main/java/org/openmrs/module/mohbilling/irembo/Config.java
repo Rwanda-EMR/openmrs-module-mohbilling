@@ -15,20 +15,19 @@ abstract public class Config {
      * Time allowed to establish a TCP connection (and complete TLS handshake) to Irembo Pay.
      * OkHttp default is 10s; hospital networks often need longer.
      */
-    protected static final long CONNECT_TIMEOUT_SECONDS = 60L;
+    protected static final long CONNECT_TIMEOUT_SECONDS = 120L;
     /**
      * Time allowed between consecutive bytes while reading the response body.
      */
-    protected static final long READ_TIMEOUT_SECONDS = 90L;
+    protected static final long READ_TIMEOUT_SECONDS = 180L;
     /**
      * Time allowed between consecutive bytes while writing the request body.
      */
-    protected static final long WRITE_TIMEOUT_SECONDS = 60L;
+    protected static final long WRITE_TIMEOUT_SECONDS = 120L;
     /**
-     * Hard ceiling for the entire call (connect + write + read). Slightly above read so
-     * a slow response can still complete after a long connect.
+     * Hard ceiling for the entire call (connect + write + read).
      */
-    protected static final long CALL_TIMEOUT_SECONDS = 120L;
+    protected static final long CALL_TIMEOUT_SECONDS = 240L;
 
     private static final OkHttpClient SHARED_HTTP_CLIENT = new OkHttpClient.Builder()
             .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
