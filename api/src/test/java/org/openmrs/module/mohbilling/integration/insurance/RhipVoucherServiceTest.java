@@ -329,6 +329,7 @@ public class RhipVoucherServiceTest {
 
 		RhipVoucherProcedure procedure = new RhipVoucherProcedure();
 		procedure.setCode("G03HA01001");
+		procedure.setMedicineLine(Boolean.TRUE);
 		procedure.setQuantity(BigDecimal.ONE);
 		request.setProcedures(Collections.singletonList(procedure));
 
@@ -338,6 +339,41 @@ public class RhipVoucherServiceTest {
 		Assert.assertTrue(response.getErrorMessage().contains("instructions is required for MMI medicine lines"));
 		Assert.assertTrue(response.getErrorMessage().contains("durationDays is required for MMI medicine lines"));
 		Assert.assertEquals(0, provider.submitVoucherCalls);
+	}
+
+	@Test
+	public void submitVoucher_shouldNotRequireMedicineDetailsForMmiLabLines() {
+		RhipVoucherService service = new RhipVoucherService();
+		CountingProvider provider = new CountingProvider();
+		service.setConfig(new TestConfig(true));
+		service.setVoucherProvider(provider);
+
+		RhipVoucherRequest request = new RhipVoucherRequest();
+		request.setInsuranceType("MMI");
+		request.setFacilityFosaId("FOSA-001");
+		request.setPatientIdentifier("MMI-001");
+		request.setPractitionerLicenseNumber("LIC-01");
+		request.setVisitReferenceNumber("REC-001");
+
+		RhipVoucherProcedure medicine = new RhipVoucherProcedure();
+		medicine.setCode("N02BE0102E");
+		medicine.setMedicineLine(Boolean.TRUE);
+		medicine.setQuantity(BigDecimal.ONE);
+		medicine.setInstructions("Dose: 1; Route: ORAL; Frequency: THREE A DAY; Duration: 5 DAYS");
+		medicine.setDurationDays(5);
+
+		RhipVoucherProcedure lab = new RhipVoucherProcedure();
+		lab.setCode("RLTC-BACT-008");
+		lab.setMedicineLine(Boolean.FALSE);
+		lab.setQuantity(BigDecimal.ONE);
+
+		request.setProcedures(Arrays.asList(medicine, lab));
+
+		IntegrationResponse response = service.submitVoucher(request);
+
+		Assert.assertNotNull(response);
+		Assert.assertNull(response.getErrorMessage());
+		Assert.assertEquals(1, provider.submitVoucherCalls);
 	}
 
 	@Test
@@ -356,6 +392,7 @@ public class RhipVoucherServiceTest {
 
 		RhipVoucherProcedure procedure = new RhipVoucherProcedure();
 		procedure.setCode("G03HA01001");
+		procedure.setMedicineLine(Boolean.TRUE);
 		procedure.setQuantity(BigDecimal.ONE);
 		procedure.setInstructions("Dose: 1; Route: Intrathecal; Frequency: ONCE A DAY; "
 				+ "Duration: 5 DAYS; Anytime you feel pain");
@@ -446,7 +483,34 @@ public class RhipVoucherServiceTest {
 
 		Assert.assertNotNull(procedure);
 		Assert.assertEquals("A07DA03001", procedure.getCode());
+		Assert.assertEquals(Boolean.TRUE, procedure.getMedicineLine());
 		Assert.assertEquals("BID", procedure.getFrequency());
+	}
+
+	@Test
+	public void toProcedure_shouldSetMedicineLineForConsommablesCategory() throws Exception {
+		RhipVoucherService service = new RhipVoucherService();
+		ServiceCategory category = new ServiceCategory();
+		category.setName("CONSOMMABLES");
+		FacilityServicePrice facilityServicePrice = new FacilityServicePrice();
+		facilityServicePrice.setName("Consumable|RLTC-BACT-008");
+		facilityServicePrice.setFullPrice(BigDecimal.ONE);
+		BillableService billableService = new BillableService();
+		billableService.setServiceCategory(category);
+		billableService.setFacilityServicePrice(facilityServicePrice);
+		PatientServiceBill billItem = new PatientServiceBill();
+		billItem.setService(billableService);
+		billItem.setQuantity(BigDecimal.ONE);
+
+		Method method = RhipVoucherService.class.getDeclaredMethod("toProcedure", PatientServiceBill.class,
+				org.openmrs.module.mohbilling.model.Admission.class);
+		method.setAccessible(true);
+
+		RhipVoucherProcedure procedure = (RhipVoucherProcedure) method.invoke(service, billItem, null);
+
+		Assert.assertNotNull(procedure);
+		Assert.assertEquals("RLTC-BACT-008", procedure.getCode());
+		Assert.assertEquals(Boolean.TRUE, procedure.getMedicineLine());
 	}
 
 	@Test

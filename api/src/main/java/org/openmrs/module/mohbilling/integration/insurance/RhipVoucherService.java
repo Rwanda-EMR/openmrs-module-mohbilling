@@ -66,6 +66,7 @@ public class RhipVoucherService {
 	private static final String SPECIAL_CASE_INSURANCE_TYPE = "SPECIAL_CASE";
 	private static final String DEFAULT_RAMA_PRESCRIPTION_DESTINATION = "FACILITY_DISPENSE";
 	private static final String MEDICAMENTS_SERVICE_CATEGORY = "MEDICAMENTS";
+	private static final String CONSOMMABLES_SERVICE_CATEGORY = "CONSOMMABLES";
 	private static final String DATE_FORMAT = "yyyy-MM-dd";
 	private static final String PRACTITIONER_TYPE_LOCAL = "LOCAL";
 	private static final String PRACTITIONER_TYPE_FOREIGN = "FOREIGN";
@@ -577,7 +578,7 @@ public class RhipVoucherService {
 		if (procedure == null || StringUtils.isBlank(procedure.getCode())) {
 			return false;
 		}
-		return !procedure.getCode().trim().toUpperCase().startsWith("RHIC-");
+		return Boolean.TRUE.equals(procedure.getMedicineLine());
 	}
 
 	private String resolveMmiVoucherVisitReferenceNumber(RhipVoucherRequest request) {
@@ -1414,7 +1415,8 @@ public class RhipVoucherService {
 			RhipVoucherProcedure rpmProcedure = rpmVoucherItemResolver.resolve(globalBill, consommation, billItem,
 					admission, insuranceType);
 			if (rpmProcedure != null) {
-				if (isMedicamentService(billItem.getService())) {
+				rpmProcedure.setMedicineLine(isMedicineService(billItem.getService()));
+				if (isMedicineService(billItem.getService())) {
 					String instructions = resolveBillingItemInstructions(billItem);
 					rpmProcedure.setInstructions(StringUtils.defaultIfBlank(rpmProcedure.getInstructions(), instructions));
 					applyCombinedPrescriptionDetails(rpmProcedure, billItem.getDrugFrequency(), instructions);
@@ -1434,6 +1436,7 @@ public class RhipVoucherService {
 		}
 		RhipVoucherProcedure procedure = new RhipVoucherProcedure();
 		procedure.setCode(code);
+		procedure.setMedicineLine(isMedicineService(service));
 		procedure.setQuantity(defaultIfNull(billItem.getQuantity()));
 		procedure.setPrice(resolvePrice(billItem, facilityServicePrice));
 		Date serviceDate = billItem.getServiceDate();
@@ -1444,7 +1447,7 @@ public class RhipVoucherService {
 			serviceDate = admission.getAdmissionDate();
 		}
 		procedure.setPrescribedAt(formatDate(serviceDate));
-		if (isMedicamentService(service)) {
+		if (isMedicineService(service)) {
 			String instructions = resolveBillingItemInstructions(billItem);
 			procedure.setFrequency(StringUtils.trimToNull(billItem.getDrugFrequency()));
 			procedure.setInstructions(instructions);
@@ -1795,13 +1798,14 @@ public class RhipVoucherService {
 		private String voucherReferenceNumber;
 	}
 
-	private boolean isMedicamentService(BillableService service) {
+	private boolean isMedicineService(BillableService service) {
 		if (service == null || service.getServiceCategory() == null) {
 			return false;
 		}
 		String categoryName = service.getServiceCategory().getName();
 		return StringUtils.isNotBlank(categoryName)
-		        && MEDICAMENTS_SERVICE_CATEGORY.equalsIgnoreCase(categoryName.trim());
+		        && (MEDICAMENTS_SERVICE_CATEGORY.equalsIgnoreCase(categoryName.trim())
+		                || CONSOMMABLES_SERVICE_CATEGORY.equalsIgnoreCase(categoryName.trim()));
 	}
 
 	private BigDecimal resolvePrice(PatientServiceBill billItem, FacilityServicePrice facilityServicePrice) {

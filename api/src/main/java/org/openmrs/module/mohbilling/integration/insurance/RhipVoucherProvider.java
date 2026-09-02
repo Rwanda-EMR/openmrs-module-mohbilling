@@ -99,27 +99,20 @@ public class RhipVoucherProvider {
 	}
 
 	private String buildVoucherJson(RhipVoucherRequest request) {
-		if (isRamaInsuranceType(request.getInsuranceType())) {
-			return buildRamaVoucherJson(request);
-		}
 		Map<String, Object> payload = new LinkedHashMap<>();
 		payload.put("insuranceType", normalizeInsuranceTypeForRhip(request.getInsuranceType()));
 		payload.put("facilityFosaId", request.getFacilityFosaId());
 		payload.put("patientIdentifier", request.getPatientIdentifier());
-		payload.put("procedures", request.getProcedures());
-		payload.put("userAccountCode", request.getUserAccountCode());
-		payload.put("processedBy", request.getProcessedBy());
-		if (isMmiInsuranceType(request.getInsuranceType())) {
-			payload.put("notes", request.getNotes());
-		}
+		payload.put("procedures", buildVoucherProcedures(request));
+		payload.put("userAccountCode", isRamaInsuranceType(request.getInsuranceType()) ? null : request.getUserAccountCode());
+		payload.put("processedBy", isRamaInsuranceType(request.getInsuranceType()) ? null : request.getProcessedBy());
+		payload.put("notes", isMmiInsuranceType(request.getInsuranceType()) ? request.getNotes() : null);
 		payload.put("practitionerLicenseNumber", request.getPractitionerLicenseNumber());
-		if (!isRamaInsuranceType(request.getInsuranceType())) {
-			payload.put("patientType", request.getPatientType());
-		}
+		payload.put("patientType", isRamaInsuranceType(request.getInsuranceType()) ? null : request.getPatientType());
 		payload.put("healthCareStayType", request.getHealthCareStayType());
 		payload.put("admissionDate", request.getAdmissionDate());
-		payload.put("dischargeDate", request.getDischargeDate());
-		payload.put("treatmentForNewBorn", request.getTreatmentForNewBorn());
+		payload.put("dischargeDate", isRamaInsuranceType(request.getInsuranceType()) ? null : request.getDischargeDate());
+		payload.put("treatmentForNewBorn", isRamaInsuranceType(request.getInsuranceType()) ? null : request.getTreatmentForNewBorn());
 		payload.put("diagnosisIds", request.getDiagnosisIds());
 		payload.put("referralFacilityId", request.getReferralFacilityId());
 		payload.put("patientPhoneNumber", request.getPatientPhoneNumber());
@@ -128,51 +121,30 @@ public class RhipVoucherProvider {
 		return toJson(payload);
 	}
 
-	private String buildRamaVoucherJson(RhipVoucherRequest request) {
-		Map<String, Object> payload = new LinkedHashMap<>();
-		payload.put("insuranceType", normalizeInsuranceTypeForRhip(request.getInsuranceType()));
-		payload.put("facilityFosaId", request.getFacilityFosaId());
-		payload.put("patientIdentifier", request.getPatientIdentifier());
-		payload.put("procedures", buildRamaProcedures(request.getProcedures()));
-		payload.put("practitionerLicenseNumber", request.getPractitionerLicenseNumber());
-		payload.put("healthCareStayType", request.getHealthCareStayType());
-		payload.put("admissionDate", request.getAdmissionDate());
-		payload.put("diagnosisIds", request.getDiagnosisIds());
-		payload.put("referralFacilityId", request.getReferralFacilityId());
-		payload.put("patientPhoneNumber", request.getPatientPhoneNumber());
-		payload.put("prescriptionDestination", resolvePrescriptionDestination(request));
-		payload.put("visitReferenceNumber", request.getVisitReferenceNumber());
-		return toJson(payload);
-	}
-
-	private List<Map<String, Object>> buildRamaProcedures(List<RhipVoucherProcedure> procedures) {
-		List<Map<String, Object>> ramaProcedures = new ArrayList<>();
+	private List<Map<String, Object>> buildVoucherProcedures(RhipVoucherRequest request) {
+		List<Map<String, Object>> voucherProcedures = new ArrayList<>();
+		List<RhipVoucherProcedure> procedures = request == null ? null : request.getProcedures();
 		if (procedures == null) {
-			return ramaProcedures;
+			return voucherProcedures;
 		}
+		boolean ramaInsuranceType = isRamaInsuranceType(request.getInsuranceType());
 		for (RhipVoucherProcedure procedure : procedures) {
 			if (procedure == null) {
 				continue;
 			}
-			Map<String, Object> ramaProcedure = new LinkedHashMap<>();
-			ramaProcedure.put("code", procedure.getCode());
-			ramaProcedure.put("quantity", procedure.getQuantity());
-			ramaProcedure.put("prescribedAt", procedure.getPrescribedAt());
-			if (StringUtils.isNotBlank(procedure.getPosology())) {
-				ramaProcedure.put("posology", procedure.getPosology().trim());
-			}
-			if (StringUtils.isNotBlank(procedure.getFrequency())) {
-				ramaProcedure.put("frequency", procedure.getFrequency().trim());
-			}
-			if (procedure.getDurationDays() != null) {
-				ramaProcedure.put("durationDays", procedure.getDurationDays());
-			}
-			if (StringUtils.isNotBlank(procedure.getDispensingDate())) {
-				ramaProcedure.put("dispensingDate", procedure.getDispensingDate().trim());
-			}
-			ramaProcedures.add(ramaProcedure);
+			Map<String, Object> voucherProcedure = new LinkedHashMap<>();
+			voucherProcedure.put("code", procedure.getCode());
+			voucherProcedure.put("quantity", procedure.getQuantity());
+			voucherProcedure.put("prescribedAt", procedure.getPrescribedAt());
+			voucherProcedure.put("price", ramaInsuranceType ? null : procedure.getPrice());
+			voucherProcedure.put("posology", StringUtils.trimToNull(procedure.getPosology()));
+			voucherProcedure.put("frequency", StringUtils.trimToNull(procedure.getFrequency()));
+			voucherProcedure.put("durationDays", procedure.getDurationDays());
+			voucherProcedure.put("dispensingDate", StringUtils.trimToNull(procedure.getDispensingDate()));
+			voucherProcedure.put("instructions", ramaInsuranceType ? null : procedure.getInstructions());
+			voucherProcedures.add(voucherProcedure);
 		}
-		return ramaProcedures;
+		return voucherProcedures;
 	}
 
 	private String resolvePrescriptionDestination(RhipVoucherRequest request) {

@@ -15,6 +15,7 @@ public class RhipVoucherProcedure {
 	private String dispensingDate;
 	private String instructions;
 	private Integer patientServiceBillId;
+	private Boolean medicineLine;
 
 	public String getCode() {
 		return code;
@@ -95,5 +96,14 @@ public class RhipVoucherProcedure {
 
 	public void setPatientServiceBillId(Integer patientServiceBillId) {
 		this.patientServiceBillId = patientServiceBillId;
+	}
+
+	@JsonIgnore
+	public Boolean getMedicineLine() {
+		return medicineLine;
+	}
+
+	public void setMedicineLine(Boolean medicineLine) {
+		this.medicineLine = medicineLine;
 	}
 }

@@ -1,5 +1,7 @@
 package org.openmrs.module.mohbilling.integration.insurance;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openmrs.module.mohbilling.integration.IntegrationResponse;
@@ -9,6 +11,8 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 
 public class RhipVoucherProviderTest {
+
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	@Test
 	public void submitVoucher_shouldReturnFriendlyErrorOnConnectionFailure() {
@@ -36,7 +40,7 @@ public class RhipVoucherProviderTest {
 	}
 
 	@Test
-	public void buildVoucherJson_shouldUseTopLevelRamaVoucherFieldsAndOmitUnneededFields() throws Exception {
+	public void buildVoucherJson_shouldUseUnifiedStructureWithNullsForRamaFields() throws Exception {
 		RhipVoucherProvider provider = new RhipVoucherProvider();
 		RhipVoucherRequest request = new RhipVoucherRequest();
 		request.setInsuranceType("RAMA");
@@ -64,6 +68,8 @@ public class RhipVoucherProviderTest {
 		method.setAccessible(true);
 
 		String json = (String) method.invoke(provider, request);
+		JsonNode root = OBJECT_MAPPER.readTree(json);
+		JsonNode firstProcedure = root.get("procedures").get(0);
 
 		Assert.assertTrue(json.contains("\"insuranceType\":\"rama\""));
 		Assert.assertTrue(json.contains("\"patientIdentifier\":\"P-001\""));
@@ -74,14 +80,23 @@ public class RhipVoucherProviderTest {
 		Assert.assertTrue(json.contains("\"referralFacilityId\":\"FOSA-REF\""));
 		Assert.assertTrue(json.contains("\"prescriptionDestination\":\"FACILITY_DISPENSE\""));
 		Assert.assertTrue(json.contains("\"visitReferenceNumber\":\"VR-2026-000123\""));
-		Assert.assertFalse(json.contains("\"patientType\""));
 		Assert.assertFalse(json.contains("\"receptionNumber\""));
-		Assert.assertFalse(json.contains("\"userAccountCode\""));
-		Assert.assertFalse(json.contains("\"processedBy\""));
-		Assert.assertFalse(json.contains("\"notes\""));
-		Assert.assertFalse(json.contains("\"dischargeDate\""));
-		Assert.assertFalse(json.contains("\"treatmentForNewBorn\""));
-		Assert.assertFalse(json.contains("\"price\""));
+		Assert.assertTrue(root.has("patientType"));
+		Assert.assertTrue(root.get("patientType").isNull());
+		Assert.assertTrue(root.has("userAccountCode"));
+		Assert.assertTrue(root.get("userAccountCode").isNull());
+		Assert.assertTrue(root.has("processedBy"));
+		Assert.assertTrue(root.get("processedBy").isNull());
+		Assert.assertTrue(root.has("notes"));
+		Assert.assertTrue(root.get("notes").isNull());
+		Assert.assertTrue(root.has("dischargeDate"));
+		Assert.assertTrue(root.get("dischargeDate").isNull());
+		Assert.assertTrue(root.has("treatmentForNewBorn"));
+		Assert.assertTrue(root.get("treatmentForNewBorn").isNull());
+		Assert.assertTrue(firstProcedure.has("price"));
+		Assert.assertTrue(firstProcedure.get("price").isNull());
+		Assert.assertTrue(firstProcedure.has("instructions"));
+		Assert.assertTrue(firstProcedure.get("instructions").isNull());
 	}
 
 	@Test
