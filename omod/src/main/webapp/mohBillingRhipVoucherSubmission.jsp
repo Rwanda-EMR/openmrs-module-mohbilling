@@ -366,30 +366,33 @@
 						<c:if test="${canViewHistory}">
 							<table cellpadding="3" cellspacing="0" width="100%">
 								<tr>
-									<th class="columnHeader">Attempt</th>
-									<th class="columnHeader">Status</th>
-									<th class="columnHeader">Submitted by</th>
-									<th class="columnHeader">Date submitted</th>
-									<th class="columnHeader">HTTP</th>
-									<th class="columnHeader">Voucher reference</th>
-									<th class="columnHeader">Message</th>
+									<th class="columnHeader" colspan="7">Patient journey logs</th>
 								</tr>
-								<c:forEach items="${historyByGlobalBillId[globalBillId]}" var="history">
+								<tr>
+									<th class="columnHeader">Action</th>
+									<th class="columnHeader">Encounter</th>
+									<th class="columnHeader">Form</th>
+									<th class="columnHeader">Location</th>
+									<th class="columnHeader">User</th>
+									<th class="columnHeader">Encounter date</th>
+									<th class="columnHeader">Action date</th>
+								</tr>
+								<c:forEach items="${patientJourneyLogsByGlobalBillId[globalBillId]}" var="journeyLog">
 									<tr>
-										<td class="rowValue">${history.attemptNumber}</td>
-										<td class="rowValue">${history.status}</td>
-										<td class="rowValue">${history.submittedBy.username}</td>
-										<td class="rowValue"><fmt:formatDate value="${history.dateSubmitted}" pattern="yyyy-MM-dd HH:mm:ss"/></td>
-										<td class="rowValue">${history.responseCode}</td>
-										<td class="rowValue">
-											<c:choose>
-												<c:when test="${not empty history.voucherReferenceNumber}">${history.voucherReferenceNumber}</c:when>
-												<c:otherwise>${history.voucherCode}</c:otherwise>
-											</c:choose>
-										</td>
-										<td class="rowValue">${history.errorMessage}</td>
+										<td class="rowValue">${journeyLog.action}</td>
+										<td class="rowValue">${journeyLog.encounterType}</td>
+										<td class="rowValue">${journeyLog.formName}</td>
+										<td class="rowValue">${journeyLog.locationName}</td>
+										<td class="rowValue">${journeyLog.username}</td>
+										<td class="rowValue"><fmt:formatDate value="${journeyLog.encounterDatetime}" pattern="yyyy-MM-dd HH:mm:ss"/></td>
+										<td class="rowValue"><fmt:formatDate value="${journeyLog.actionDatetime}" pattern="yyyy-MM-dd HH:mm:ss"/></td>
 									</tr>
 								</c:forEach>
+								<c:if test="${empty patientJourneyLogsByGlobalBillId[globalBillId]}">
+									<tr>
+										<td class="rowValue center" colspan="7">No patient journey logs found for this visit.</td>
+									</tr>
+								</c:if>
 							</table>
 						</c:if>
 					</td>

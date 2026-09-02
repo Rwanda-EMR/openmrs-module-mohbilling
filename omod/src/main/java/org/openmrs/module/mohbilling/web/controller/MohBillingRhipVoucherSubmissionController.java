@@ -48,8 +48,10 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 	public static final String PRIVILEGE_VIEW_HISTORY = "Billing RHIP Voucher - View History";
 	private static final String PRIVILEGE_BILLING_ADMIN = "Billing Configuration - View Billing Admin";
 	private static final String DATE_PATTERN = "yyyy-MM-dd";
+	private static final String SQL_DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 	private static final int DEFAULT_PAGE_SIZE = 25;
 	private static final int MAX_PAGE_SIZE = 100;
+	private static final int MAX_PATIENT_JOURNEY_LOGS = 50;
 
 	private BillingService billingService;
 	private RhipVoucherService voucherService;
@@ -158,8 +160,8 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 		mav.addObject("rows", rows);
-		mav.addObject("historyByGlobalBillId", buildHistoryByGlobalBillId(globalBills));
 		mav.addObject("consommationsByGlobalBillId", buildConsommationsByGlobalBillId(globalBills));
+		mav.addObject("patientJourneyLogsByGlobalBillId", buildPatientJourneyLogsByGlobalBillId(globalBills));
 		mav.addObject("dischargeDate", dischargeDateText);
 		mav.addObject("status", status);
 		mav.addObject("selectedInsuranceId", insuranceId);
@@ -202,17 +204,6 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 		return rows;
 	}
 
-	private Map<Integer, List<RhipVoucherSubmission>> buildHistoryByGlobalBillId(List<GlobalBill> globalBills) {
-		Map<Integer, List<RhipVoucherSubmission>> ret = new LinkedHashMap<Integer, List<RhipVoucherSubmission>>();
-		if (globalBills == null || billingService == null) {
-			return ret;
-		}
-		for (GlobalBill globalBill : globalBills) {
-			ret.put(globalBill.getGlobalBillId(), billingService.getRhipVoucherSubmissionsByGlobalBill(globalBill));
-		}
-		return ret;
-	}
-
 	private Map<Integer, List<Consommation>> buildConsommationsByGlobalBillId(List<GlobalBill> globalBills) {
 		Map<Integer, List<Consommation>> ret = new HashMap<Integer, List<Consommation>>();
 		if (globalBills == null) {
@@ -227,6 +218,118 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 			}
 		}
 		return ret;
+	}
+
+	private Map<Integer, List<PatientJourneyLogRow>> buildPatientJourneyLogsByGlobalBillId(List<GlobalBill> globalBills) {
+		Map<Integer, List<PatientJourneyLogRow>> ret = new LinkedHashMap<Integer, List<PatientJourneyLogRow>>();
+		if (globalBills == null) {
+			return ret;
+		}
+		for (GlobalBill globalBill : globalBills) {
+			try {
+				ret.put(globalBill.getGlobalBillId(), getPatientJourneyLogs(globalBill));
+			}
+			catch (Exception e) {
+				log.warn("Unable to load patient journey logs for global bill " + globalBill.getGlobalBillId(), e);
+				ret.put(globalBill.getGlobalBillId(), Collections.<PatientJourneyLogRow>emptyList());
+			}
+		}
+		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<PatientJourneyLogRow> getPatientJourneyLogs(GlobalBill globalBill) {
+		List<PatientJourneyLogRow> logs = new ArrayList<PatientJourneyLogRow>();
+		Patient patient = getPatient(globalBill);
+		if (patient == null || patient.getPatientId() == null) {
+			return logs;
+		}
+		String where = buildEncounterWindowWhere(globalBill, patient.getPatientId());
+		String sql = "select * from ("
+				+ patientJourneyLogSelect(where, "Created", "e.creator", "e.date_created")
+				+ " union all "
+				+ patientJourneyLogSelect(where + " and e.date_changed is not null", "Updated", "e.changed_by", "e.date_changed")
+				+ " union all "
+				+ patientJourneyLogSelect(where + " and e.voided = 1 and e.date_voided is not null", "Voided", "e.voided_by", "e.date_voided")
+				+ ") patient_journey_logs order by action_datetime desc limit " + MAX_PATIENT_JOURNEY_LOGS;
+
+		List<List<Object>> rows = Context.getAdministrationService().executeSQL(sql, true);
+		for (List<Object> row : rows) {
+			logs.add(new PatientJourneyLogRow(
+					integerValue(value(row, 0)),
+					stringValue(value(row, 1)),
+					stringValue(value(row, 2)),
+					stringValue(value(row, 3)),
+					stringValue(value(row, 4)),
+					stringValue(value(row, 5)),
+					dateValue(value(row, 6)),
+					dateValue(value(row, 7))));
+		}
+		return logs;
+	}
+
+	private String patientJourneyLogSelect(String where, String action, String userColumn, String dateColumn) {
+		return "select e.encounter_id, coalesce(et.name, ''), coalesce(f.name, ''), coalesce(l.name, ''), '"
+				+ action + "', coalesce(u.username, ''), e.encounter_datetime, " + dateColumn + " as action_datetime"
+				+ " from encounter e"
+				+ " left join encounter_type et on et.encounter_type_id = e.encounter_type"
+				+ " left join form f on f.form_id = e.form_id"
+				+ " left join location l on l.location_id = e.location_id"
+				+ " left join users u on u.user_id = " + userColumn
+				+ " where " + where;
+	}
+
+	private String buildEncounterWindowWhere(GlobalBill globalBill, Integer patientId) {
+		StringBuilder where = new StringBuilder("e.patient_id = ").append(patientId);
+		Admission admission = globalBill == null ? null : globalBill.getAdmission();
+		Date startDate = admission == null ? null : admission.getAdmissionDate();
+		Date endDate = globalBill == null ? null : globalBill.getClosingDate();
+		if (startDate != null) {
+			where.append(" and e.encounter_datetime >= '").append(formatSqlDateTime(startDate)).append("'");
+		}
+		if (endDate != null) {
+			where.append(" and e.encounter_datetime <= '").append(formatSqlDateTime(endDate)).append("'");
+		}
+		return where.toString();
+	}
+
+	private Patient getPatient(GlobalBill globalBill) {
+		if (globalBill == null || globalBill.getAdmission() == null
+				|| globalBill.getAdmission().getInsurancePolicy() == null) {
+			return null;
+		}
+		return globalBill.getAdmission().getInsurancePolicy().getOwner();
+	}
+
+	private String formatSqlDateTime(Date date) {
+		return new SimpleDateFormat(SQL_DATE_TIME_PATTERN).format(date);
+	}
+
+	private Object value(List<Object> row, int index) {
+		return row == null || row.size() <= index ? null : row.get(index);
+	}
+
+	private Integer integerValue(Object value) {
+		if (value instanceof Number) {
+			return ((Number) value).intValue();
+		}
+		if (value == null) {
+			return null;
+		}
+		try {
+			return Integer.valueOf(value.toString());
+		}
+		catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	private String stringValue(Object value) {
+		return value == null ? "" : value.toString();
+	}
+
+	private Date dateValue(Object value) {
+		return value instanceof Date ? (Date) value : null;
 	}
 
 	private ModelAndView redirectToList(HttpServletRequest request) {
@@ -467,6 +570,61 @@ public class MohBillingRhipVoucherSubmissionController extends ParameterizableVi
 			}
 			return "MMI".equalsIgnoreCase(StringUtils.trimToEmpty(insurance.getCategory()))
 					|| StringUtils.containsIgnoreCase(StringUtils.trimToEmpty(insurance.getName()), "MMI");
+		}
+	}
+
+	public static class PatientJourneyLogRow {
+		private final Integer encounterId;
+		private final String encounterType;
+		private final String formName;
+		private final String locationName;
+		private final String action;
+		private final String username;
+		private final Date encounterDatetime;
+		private final Date actionDatetime;
+
+		public PatientJourneyLogRow(Integer encounterId, String encounterType, String formName, String locationName,
+				String action, String username, Date encounterDatetime, Date actionDatetime) {
+			this.encounterId = encounterId;
+			this.encounterType = encounterType;
+			this.formName = formName;
+			this.locationName = locationName;
+			this.action = action;
+			this.username = username;
+			this.encounterDatetime = encounterDatetime;
+			this.actionDatetime = actionDatetime;
+		}
+
+		public Integer getEncounterId() {
+			return encounterId;
+		}
+
+		public String getEncounterType() {
+			return encounterType;
+		}
+
+		public String getFormName() {
+			return formName;
+		}
+
+		public String getLocationName() {
+			return locationName;
+		}
+
+		public String getAction() {
+			return action;
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public Date getEncounterDatetime() {
+			return encounterDatetime;
+		}
+
+		public Date getActionDatetime() {
+			return actionDatetime;
 		}
 	}
 }
