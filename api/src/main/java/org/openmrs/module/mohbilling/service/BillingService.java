@@ -697,6 +697,17 @@ public interface BillingService {
 
 	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
+	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds);
+
+	int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
+			String imagingServiceIds, String procedureServiceIds);
+
+	Date getLatestInsuranceReportEtlClosingDate();
+
+	Integer getMinimumInsuranceReportSourceGlobalBillId();
+
+	Integer getMaximumInsuranceReportSourceGlobalBillId();
+
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid);
 	public List<PatientBillIrembo> getUnpaidBills(Patient patient) throws DAOException;
 	public List<PatientBill> getUnpaidBillsWithInvoiceNumber() throws DAOException;

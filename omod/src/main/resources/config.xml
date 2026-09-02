@@ -303,6 +303,54 @@
     </globalProperty>
 
     <globalProperty>
+        <property>mohbilling.insuranceReportEtl.scheduler.enabled</property>
+        <defaultValue>true</defaultValue>
+        <description>
+            Enable the scheduled local insurance report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.insuranceReportEtl.scheduler.intervalSeconds</property>
+        <defaultValue>86400</defaultValue>
+        <description>
+            Interval in seconds between insurance report ETL refreshes
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.insuranceReportEtl.scheduler.startTime</property>
+        <defaultValue>01:00</defaultValue>
+        <description>
+            Local server time (HH:mm) for the first daily insurance report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.insuranceReportEtl.overlapDays</property>
+        <defaultValue>7</defaultValue>
+        <description>
+            Number of recent report days rebuilt on every ETL refresh to capture corrections
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.IMAGING</property>
+        <defaultValue></defaultValue>
+        <description>
+            Comma-separated moh_bill_hop_service IDs reported under IMAGING
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.PROCEDURES</property>
+        <defaultValue></defaultValue>
+        <description>
+            Comma-separated moh_bill_hop_service IDs reported under PROCED.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>mohbilling.globalbill.pagesize</property>
         <defaultValue>40</defaultValue>
         <description>

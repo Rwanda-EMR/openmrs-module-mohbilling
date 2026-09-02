@@ -17,9 +17,11 @@ public class InsuranceReportItem {
     private Integer beneficiaryLevel;
     private String cardNumber;
     private String companyName;
+    private String insuranceName;
     private Integer age;
     private Date birthDate;
     private String gender;
+    private String patientIdentifier;
     private String doctorName;
     private Integer insuranceId;
     private Integer globalBillId;
@@ -147,6 +149,14 @@ public class InsuranceReportItem {
         this.companyName = companyName;
     }
 
+    public String getInsuranceName() {
+        return valueOrNone(insuranceName);
+    }
+
+    public void setInsuranceName(String insuranceName) {
+        this.insuranceName = insuranceName;
+    }
+
     public Integer getAge() {
         return age;
     }
@@ -175,6 +185,14 @@ public class InsuranceReportItem {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public String getPatientIdentifier() {
+        return valueOrNone(patientIdentifier);
+    }
+
+    public void setPatientIdentifier(String patientIdentifier) {
+        this.patientIdentifier = patientIdentifier;
     }
 
     public String getDoctorName() {
@@ -347,5 +365,9 @@ public class InsuranceReportItem {
 
     public void setTotalInsurance(Double totalInsurance) {
         this.totalInsurance = totalInsurance;
+    }
+
+    private String valueOrNone(String value) {
+        return value == null || value.trim().isEmpty() ? "None" : value;
     }
 }

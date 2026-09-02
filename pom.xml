@@ -38,8 +38,6 @@
 	<properties>
 		<openMRSVersion>2.6.0</openMRSVersion>
 		<htmlformentryVersion>4.4.0</htmlformentryVersion>
-		<apachePoiVersion>5.3.0</apachePoiVersion>
-		<commonsIoVersion>2.15.0</commonsIoVersion>
 		<apache.commons.dbcp>2.11.0</apache.commons.dbcp>
 		<easyexcel.version>4.0.2</easyexcel.version>
 		<webservicesRestVersion>2.32.0</webservicesRestVersion>

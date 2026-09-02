@@ -87,6 +87,18 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_IREMBO_MINIMUM_PAYMENT = "mohbilling.irembopay.minimumpayment";
 	public static final String GLOBAL_PROPERTY_IREMBO_SCHEDULER_ENABLED = "mohbilling.irembopay.scheduler.enabled";
 	public static final String GLOBAL_PROPERTY_IREMBO_SCHEDULER_INTERVAL_SECONDS = "mohbilling.irembopay.scheduler.intervalSeconds";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_SCHEDULER_ENABLED =
+			"mohbilling.insuranceReportEtl.scheduler.enabled";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_SCHEDULER_INTERVAL_SECONDS =
+			"mohbilling.insuranceReportEtl.scheduler.intervalSeconds";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_SCHEDULER_START_TIME =
+			"mohbilling.insuranceReportEtl.scheduler.startTime";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_OVERLAP_DAYS =
+			"mohbilling.insuranceReportEtl.overlapDays";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_IMAGING_SERVICES = "mohbilling.IMAGING";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_PROCEDURE_SERVICES = "mohbilling.PROCEDURES";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_LOADED_SERVICE_CONFIGURATION =
+			"mohbilling.insuranceReportEtl.loadedServiceConfiguration";
 	public static final String GLOBAL_PROPERTY_GLOBAL_BILL_PAGE_SIZE = "mohbilling.globalbill.pagesize";
 	public static final String GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE = "mohbilling.irembopay.phone_attribute";
 	public static final String GLOBAL_PROPERTY_IREMBO_AUTO_PHONE_NUMBER = "mohbilling.irembopay.auto_phone_number";

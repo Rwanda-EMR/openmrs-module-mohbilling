@@ -1494,35 +1494,15 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
-    public InsuranceReport getBillItemsByCategoryFromMamba(Integer insuranceIdentifier, Date startDate, Date endDate) {
-
-        System.out.println("parameters for sp insurance : " + insuranceIdentifier);
-        System.out.println("parameters for sp start_date: " + startDate);
-        System.out.println("parameters for sp end_date  : " + endDate);
-
-        System.out.println("Starting.. to Fetch items from MambaETL tables");
+    public InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceIdentifier, Date startDate, Date endDate) {
 
         InsuranceReport report = new InsuranceReport();
-
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-        // Get ETL database name from runtime properties
-        String etlDatabase = Context.getRuntimeProperties().getProperty("mambaetl.analysis.db.etl_database", "openmrs_etl");
-        if (etlDatabase == null || etlDatabase.trim().isEmpty()) {
-            etlDatabase = "openmrs_etl"; // Default fallback
-        }
-        etlDatabase = etlDatabase.trim();
-        
-        System.out.println("Using ETL database: " + etlDatabase);
-
         long startTime = System.nanoTime();
-        // Use the ETL database for the stored procedure call
-        // Backtick the database name to handle any special characters safely
-        String sqlQuery = String.format("CALL `%s`.sp_mamba_fact_insurance_report_query(:insurance_id, :start_date, :end_date)", etlDatabase);
-        SQLQuery billingReportQuery = sessionFactory.getCurrentSession().createSQLQuery(sqlQuery);
+        SQLQuery billingReportQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.reportSql(insuranceIdentifier != null));
 
-        // Column aliases for name-based access (order must match SP result set)
-        billingReportQuery.addScalar("first_closing_date_id");
+        // Column aliases keep the existing report/export mapping stable.
         billingReportQuery.addScalar("admission_date");
         billingReportQuery.addScalar("closing_date");
         billingReportQuery.addScalar("beneficiary_name");
@@ -1531,13 +1511,17 @@ public class HibernateBillingDAO implements BillingDAO {
         billingReportQuery.addScalar("beneficiary_level");
         billingReportQuery.addScalar("card_number");
         billingReportQuery.addScalar("company_name");
+        billingReportQuery.addScalar("insurance_name");
         billingReportQuery.addScalar("age");
         billingReportQuery.addScalar("birth_date");
         billingReportQuery.addScalar("gender");
+        billingReportQuery.addScalar("primary_identifier");
         billingReportQuery.addScalar("doctor_name");
         billingReportQuery.addScalar("insurance_id");
         billingReportQuery.addScalar("global_bill_id");
         billingReportQuery.addScalar("global_bill_identifier");
+        billingReportQuery.addScalar("insurance_rate");
+        billingReportQuery.addScalar("insurance_flat_fee");
         billingReportQuery.addScalar("MEDICAMENTS");
         billingReportQuery.addScalar("CONSULTATION");
         billingReportQuery.addScalar("HOSPITALISATION");
@@ -1549,28 +1533,21 @@ public class HibernateBillingDAO implements BillingDAO {
         billingReportQuery.addScalar("FORMALITES ADMINISTRATIVES");
         billingReportQuery.addScalar("IMAGING");
         billingReportQuery.addScalar("PROCED.");
+        billingReportQuery.addScalar("total_100");
+        billingReportQuery.addScalar("total_insurance");
+        billingReportQuery.addScalar("total_patient");
         billingReportQuery.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-
-        long endTime = System.nanoTime();
-        double elapsedTimeInSeconds = (endTime - startTime) / 1e9; // Convert nanoseconds to seconds
-
-        billingReportQuery.setParameter("insurance_id", insuranceIdentifier);
-        billingReportQuery.setParameter("start_date", startDate);
-        billingReportQuery.setParameter("end_date", endDate);
+		if (insuranceIdentifier != null) {
+            billingReportQuery.setInteger("insuranceId", insuranceIdentifier);
+        }
+        billingReportQuery.setParameter("startDate", startDate);
+        billingReportQuery.setParameter("endDate", endDate);
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> resultSet = billingReportQuery.list();
+        double elapsedTimeInSeconds = (System.nanoTime() - startTime) / 1e9;
+        log.debug("Loaded " + resultSet.size() + " insurance report rows from the local ETL table in "
+                + elapsedTimeInSeconds + " seconds");
 
-        System.out.println("It took MambaETL: " + elapsedTimeInSeconds + " seconds to retrieve: " + resultSet.size() + " items");
-
-
-        Insurance insurance = InsuranceUtil.getInsurance(insuranceIdentifier);
-        InsuranceRate insuranceRate = insurance.getCurrentRate();
-        Float insuranceFirmRate = insuranceRate.getRate();
-        Float insurancePatientRate = 100 - insuranceRate.getRate();
-        BigDecimal flatFee = insuranceRate.getFlatFee() != null ? insuranceRate.getFlatFee() : BigDecimal.ZERO;
-        boolean hasFlatFee = flatFee.compareTo(BigDecimal.ZERO) > 0;
-
-        //Double totalInsuranceFirm = 0.9 * total;
         Integer id=1;
         for (Map<String, Object> row : resultSet) {
 
@@ -1582,9 +1559,11 @@ public class HibernateBillingDAO implements BillingDAO {
             Integer beneficiaryLevel = getInt(row, "beneficiary_level");
             String cardNumber = getString(row, "card_number");
             String companyName = getString(row, "company_name");
+            String insuranceName = getString(row, "insurance_name");
             Integer age = getInt(row, "age");
             Date birthDate = parseDateSubstring(dateFormat, row.get("birth_date"));
             String gender = getString(row, "gender");
+            String primaryIdentifier = getString(row, "primary_identifier");
             String doctorName = getString(row, "doctor_name");
             Integer insuranceId = getInt(row, "insurance_id");
             Integer globalBillId = getInt(row, "global_bill_id");
@@ -1602,6 +1581,11 @@ public class HibernateBillingDAO implements BillingDAO {
             Double formaliteAdministratives = getDouble(row, "FORMALITES ADMINISTRATIVES");
             Double imaging = getDouble(row, "IMAGING");
             Double proced = getDouble(row, "PROCED.");
+            Double insuranceRate = getDouble(row, "insurance_rate");
+            Double insuranceFlatFee = getDouble(row, "insurance_flat_fee");
+            Double total = getDouble(row, "total_100");
+            Double totalInsuranceFirm = getDouble(row, "total_insurance");
+            Double totalPatient = getDouble(row, "total_patient");
 
             InsuranceReportItem reportItem = new InsuranceReportItem();
             reportItem.setId(id++);
@@ -1613,9 +1597,11 @@ public class HibernateBillingDAO implements BillingDAO {
             reportItem.setBeneficiaryLevel(beneficiaryLevel);
             reportItem.setCardNumber(cardNumber);
             reportItem.setCompanyName(companyName);
+            reportItem.setInsuranceName(insuranceName);
             reportItem.setAge(age);
             reportItem.setBirthDate(birthDate);
             reportItem.setGender(gender);
+            reportItem.setPatientIdentifier(primaryIdentifier);
             reportItem.setDoctorName(doctorName);
             reportItem.setInsuranceId(insuranceId);
             reportItem.setGlobalBillId(globalBillId);
@@ -1632,23 +1618,11 @@ public class HibernateBillingDAO implements BillingDAO {
             reportItem.setAutres(autres);
             reportItem.setImaging(imaging);
             reportItem.setProced(proced);
-
-            Double total =
-                    medicament + consultation + hospitalisation + laboratoire + formaliteAdministratives + ambulance + consommables + oxygenotherapie + imaging + proced;
-            Double totalInsuranceFirm;
-            Double totalPatient;
-            if (hasFlatFee) {
-                totalPatient = flatFee.doubleValue();
-                totalInsuranceFirm = total - totalPatient;
-            } else {
-                totalInsuranceFirm = (insuranceFirmRate / 100) * total;
-                totalPatient = total - totalInsuranceFirm;
-            }
-
             reportItem.setTotal100(total);
             reportItem.setTotalInsurance(totalInsuranceFirm);
             reportItem.setTotalPatient(totalPatient);
-            reportItem.setCurrentInsuranceRateFlatFee(hasFlatFee ? flatFee.doubleValue() : 0.0);
+            reportItem.setCurrentInsuranceRate(insuranceRate.floatValue());
+            reportItem.setCurrentInsuranceRateFlatFee(insuranceFlatFee);
 
             report.addReportItem(reportItem);
 
@@ -1665,22 +1639,85 @@ public class HibernateBillingDAO implements BillingDAO {
             report.addServiceRevenue("PROCED.", BigDecimal.valueOf(proced));
 
             report.addServiceRevenue("100%", BigDecimal.valueOf(reportItem.getTotal100()));
-            if (hasFlatFee) {
-                report.addServiceRevenue("Insurance (100% - flat fee)",
-                        BigDecimal.valueOf(reportItem.getTotalInsurance()));
-                report.addServiceRevenue("Patient (Flat fee)",
-                        BigDecimal.valueOf(reportItem.getTotalPatient()));
-            } else {
-                report.addServiceRevenue("Insurance (" + insuranceFirmRate + "%)",
-                        BigDecimal.valueOf(reportItem.getTotalInsurance()));
-                report.addServiceRevenue("Patient (" + insurancePatientRate + "%)",
-                        BigDecimal.valueOf(reportItem.getTotalPatient()));
-            }
+            report.addServiceRevenue("Insurance", BigDecimal.valueOf(reportItem.getTotalInsurance()));
+            report.addServiceRevenue("Patient", BigDecimal.valueOf(reportItem.getTotalPatient()));
         }
-        System.out.println("Done Fetching Insurance Report of size: " + report.getReportItems().size() + ", from " +
-                "MambaETL tables");
         return report;
     }
+
+    @Override
+    public int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds) {
+        boolean bounded = refreshFrom != null;
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.deleteSql(bounded));
+        SQLQuery insertQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.insertSql(bounded));
+        if (bounded) {
+            deleteQuery.setTimestamp("refreshFrom", refreshFrom);
+            insertQuery.setTimestamp("refreshFrom", refreshFrom);
+        }
+        setInsuranceReportServiceParameters(insertQuery, imagingServiceIds, procedureServiceIds);
+        int deleted = deleteQuery.executeUpdate();
+        int inserted = insertQuery.executeUpdate();
+        log.info("Insurance report ETL refresh completed: refreshFrom=" + refreshFrom
+                + ", deleted=" + deleted + ", loaded=" + inserted);
+        return inserted;
+    }
+
+    @Override
+    public int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
+            String imagingServiceIds, String procedureServiceIds) {
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.deleteByGlobalBillIdRangeSql());
+        SQLQuery insertQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.insertByGlobalBillIdRangeSql());
+        deleteQuery.setInteger("globalBillIdFrom", globalBillIdFrom);
+        deleteQuery.setInteger("globalBillIdTo", globalBillIdTo);
+        insertQuery.setInteger("globalBillIdFrom", globalBillIdFrom);
+        insertQuery.setInteger("globalBillIdTo", globalBillIdTo);
+        setInsuranceReportServiceParameters(insertQuery, imagingServiceIds, procedureServiceIds);
+        int deleted = deleteQuery.executeUpdate();
+        int inserted = insertQuery.executeUpdate();
+        log.info("Insurance report ETL batch completed: globalBillIdFrom=" + globalBillIdFrom
+                + ", globalBillIdTo=" + globalBillIdTo + ", deleted=" + deleted + ", loaded=" + inserted);
+        return inserted;
+    }
+
+    @Override
+    public Date getLatestInsuranceReportEtlClosingDate() {
+        Object value = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.latestClosingDateSql())
+                .uniqueResult();
+        if (value instanceof Date) {
+            return (Date) value;
+        }
+        return parseDateSubstring(new SimpleDateFormat("yyyy-MM-dd"), value);
+    }
+
+    @Override
+    public Integer getMinimumInsuranceReportSourceGlobalBillId() {
+        return getInsuranceReportSourceGlobalBillId(true);
+    }
+
+    @Override
+    public Integer getMaximumInsuranceReportSourceGlobalBillId() {
+        return getInsuranceReportSourceGlobalBillId(false);
+    }
+
+    private Integer getInsuranceReportSourceGlobalBillId(boolean minimum) {
+        Object value = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.sourceGlobalBillIdSql(minimum))
+                .uniqueResult();
+        return value != null ? Integer.valueOf(value.toString()) : null;
+    }
+
+	private static void setInsuranceReportServiceParameters(SQLQuery query, String imagingServiceIds,
+			String procedureServiceIds) {
+		query.setString("imagingServiceIds", imagingServiceIds);
+		query.setString("procedureServiceIds", procedureServiceIds);
+		query.setInteger("primaryIdentifierTypeId", InsurancePolicyUtil
+				.getPrimaryPatientIdentiferType().getPatientIdentifierTypeId());
+	}
 
     private static Integer getInt(Map<String, Object> row, String key) {
         Object v = row.get(key);

@@ -36,6 +36,7 @@ a.print {
 	 Insurance Report
 </h2>
 
+<c:set var="insuranceOptional" value="true" scope="request" />
 <c:import url="mohBillingReportParameters.jsp" />
 
 
@@ -70,12 +71,14 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 		<th class="columnHeader">FAMILY'S CODE </th>
 		<th class="columnHeader">LEVEL </th>
 		<th class="columnHeader" style="width: 6%">GB#</th>
-		<th class="columnHeader" style="width: 6%">Card NUMBER</th>
-		<th class="columnHeader">COMPANY</th>
-		<th class="columnHeader">AGE</th>
-		<th class="columnHeader">BIRTH DATE</th>
-		<th class="columnHeader">Gender</th>
-		<th class="columnHeader">DOCTOR</th>
+			<th class="columnHeader" style="width: 6%">Card NUMBER</th>
+			<th class="columnHeader">COMPANY</th>
+			<th class="columnHeader">INSURANCE NAME</th>
+			<th class="columnHeader">AGE</th>
+			<th class="columnHeader">BIRTH DATE</th>
+			<th class="columnHeader">Gender</th>
+			<th class="columnHeader">IDENTIFIER</th>
+			<th class="columnHeader">DOCTOR</th>
 
 		<th class="columnHeader">CONSULTATION</th>
 		<th class="columnHeader">LABORATOIRE</th>
@@ -113,12 +116,14 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.familyCode}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.beneficiaryLevel}</td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.globalBillIdentifier}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.cardNumber}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.companyName}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.age}</td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.birthDate}" />  </td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.gender}</td>
-            <td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.doctorName}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.cardNumber}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.companyName}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.insuranceName}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.age}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"> <fmt:formatDate pattern="dd/MM/yyyy" value="${asr.birthDate}" />  </td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.gender}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${asr.patientIdentifier}</td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"> ${asr.doctorName}</td>
 
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.consultation}" type="number" pattern="#.##"/></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${asr.laboratoire}" type="number" pattern="#.##"/></td>

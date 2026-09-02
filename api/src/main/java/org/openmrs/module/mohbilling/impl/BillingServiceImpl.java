@@ -1157,7 +1157,37 @@ public class BillingServiceImpl implements BillingService {
     @Override
     @Transactional(readOnly = true)
     public InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate) {
-        return billingDAO.getBillItemsByCategoryFromMamba(insuranceId, startDate, endDate);
+        return billingDAO.getBillItemsByCategoryFromEtl(insuranceId, startDate, endDate);
+    }
+
+    @Override
+    public int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds) {
+        return billingDAO.refreshInsuranceReportEtl(refreshFrom, imagingServiceIds, procedureServiceIds);
+    }
+
+    @Override
+    public int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
+            String imagingServiceIds, String procedureServiceIds) {
+        return billingDAO.refreshInsuranceReportEtlByGlobalBillIdRange(globalBillIdFrom, globalBillIdTo,
+                imagingServiceIds, procedureServiceIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Date getLatestInsuranceReportEtlClosingDate() {
+        return billingDAO.getLatestInsuranceReportEtlClosingDate();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getMinimumInsuranceReportSourceGlobalBillId() {
+        return billingDAO.getMinimumInsuranceReportSourceGlobalBillId();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getMaximumInsuranceReportSourceGlobalBillId() {
+        return billingDAO.getMaximumInsuranceReportSourceGlobalBillId();
     }
 
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid){

@@ -122,11 +122,11 @@
 						<tr class="insurances">
 							<td class="insurances">Insurance: </td>
 							<td class="insurances">
-								<select name="insuranceId" class="insurance">
-									<option value="">--select--</option>
-									<c:forEach items="${insurances }" var="insurance">
-										<option value="${insurance.insuranceId }">${insurance.name }</option>
-									</c:forEach>
+									<select name="insuranceId" class="insurance">
+										<option value=""><c:choose><c:when test="${insuranceOptional}">-- All insurances --</c:when><c:otherwise>--select--</c:otherwise></c:choose></option>
+										<c:forEach items="${insurances }" var="insurance">
+											<option value="${insurance.insuranceId }" ${insurance.insuranceId == selectedInsuranceId ? 'selected="selected"' : ''}>${insurance.name }</option>
+										</c:forEach>
 								</select>
 							</td>
 						</tr>
