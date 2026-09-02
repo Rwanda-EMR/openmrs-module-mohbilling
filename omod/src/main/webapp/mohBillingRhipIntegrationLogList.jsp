@@ -53,6 +53,8 @@
 				<select name="operationType">
 					<option value="" <c:if test="${empty operationType}">selected="selected"</c:if>>All</option>
 					<option value="VOUCHER_SUBMIT" <c:if test="${operationType eq 'VOUCHER_SUBMIT'}">selected="selected"</c:if>>VOUCHER_SUBMIT</option>
+					<option value="INPATIENT_PRESCRIPTION" <c:if test="${operationType eq 'INPATIENT_PRESCRIPTION'}">selected="selected"</c:if>>INPATIENT_PRESCRIPTION</option>
+					<option value="VISIT_DISPENSE" <c:if test="${operationType eq 'VISIT_DISPENSE'}">selected="selected"</c:if>>VISIT_DISPENSE</option>
 					<option value="PRACTITIONER_DETAILS" <c:if test="${operationType eq 'PRACTITIONER_DETAILS'}">selected="selected"</c:if>>PRACTITIONER_DETAILS</option>
 					<option value="PRACTITIONER_CREATE" <c:if test="${operationType eq 'PRACTITIONER_CREATE'}">selected="selected"</c:if>>PRACTITIONER_CREATE</option>
 					<option value="PRACTITIONER_TYPES" <c:if test="${operationType eq 'PRACTITIONER_TYPES'}">selected="selected"</c:if>>PRACTITIONER_TYPES</option>
