@@ -11,6 +11,7 @@ import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.irembo.util.IremboInvoiceResult;
 import org.openmrs.module.mohbilling.irembo.util.IremboPayInitiationResult;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -707,6 +708,22 @@ public interface BillingService {
 	Integer getMinimumInsuranceReportSourceGlobalBillId();
 
 	Integer getMaximumInsuranceReportSourceGlobalBillId();
+
+	List<PaymentRevenue> getCashierReportFromEtl(Date startDate, Date endDate, Integer collectorId,
+			String paymentType, String reportType, List<HopService> reportColumns);
+
+	BigDecimal getCashierReportTotalPaidFromEtl(Date startDate, Date endDate, Integer collectorId,
+			String paymentType);
+
+	int refreshCashierReportEtl(Date refreshFrom);
+
+	int refreshCashierReportEtlByPaymentIdRange(Integer paymentIdFrom, Integer paymentIdTo);
+
+	Date getLatestCashierReportEtlPaymentDate();
+
+	Integer getMinimumCashierReportSourcePaymentId();
+
+	Integer getMaximumCashierReportSourcePaymentId();
 
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid);
 	public List<PatientBillIrembo> getUnpaidBills(Patient patient) throws DAOException;

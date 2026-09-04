@@ -19,6 +19,7 @@ import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -670,6 +671,25 @@ public interface BillingDAO {
 	Integer getMinimumInsuranceReportSourceGlobalBillId();
 
 	Integer getMaximumInsuranceReportSourceGlobalBillId();
+
+	/**
+	 * Reads the materialized cashier report populated by the billing scheduler.
+	 */
+	List<PaymentRevenue> getCashierReportFromEtl(Date startDate, Date endDate, Integer collectorId,
+			String paymentType, String reportType, List<HopService> reportColumns);
+
+	BigDecimal getCashierReportTotalPaidFromEtl(Date startDate, Date endDate, Integer collectorId,
+			String paymentType);
+
+	int refreshCashierReportEtl(Date refreshFrom);
+
+	int refreshCashierReportEtlByPaymentIdRange(Integer paymentIdFrom, Integer paymentIdTo);
+
+	Date getLatestCashierReportEtlPaymentDate();
+
+	Integer getMinimumCashierReportSourcePaymentId();
+
+	Integer getMaximumCashierReportSourcePaymentId();
 
 	public List<GlobalBill> getGlobalBills();
 

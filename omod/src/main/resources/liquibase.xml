@@ -2086,4 +2086,88 @@
 				</createIndex>
 			</changeSet>
 
+			<changeSet id="moh_bill_cashier_report_etl" author="openmrs">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<tableExists tableName="moh_bill_cashier_report_etl" />
+					</not>
+				</preConditions>
+				<comment>Materialized cashier report populated by the MoH Billing scheduler</comment>
+				<createTable tableName="moh_bill_cashier_report_etl">
+					<column name="cashier_report_etl_id" type="bigint" autoIncrement="true">
+						<constraints primaryKey="true" nullable="false" />
+					</column>
+					<column name="bill_payment_id" type="int">
+						<constraints nullable="false" />
+					</column>
+					<column name="patient_bill_id" type="int">
+						<constraints nullable="false" />
+					</column>
+					<column name="collector_id" type="int">
+						<constraints nullable="false" />
+					</column>
+					<column name="payment_type" type="varchar(20)">
+						<constraints nullable="false" />
+					</column>
+					<column name="date_received" type="datetime">
+						<constraints nullable="false" />
+					</column>
+					<column name="amount_paid" type="decimal(20,2)" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="payment_void_reason" type="varchar(250)" />
+					<column name="patient_id" type="int" />
+					<column name="beneficiary_name" type="varchar(255)" />
+					<column name="phone_number" type="varchar(50)" />
+					<column name="transaction_status" type="varchar(50)" />
+					<column name="service_id" type="int" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="service_name" type="varchar(255)" defaultValue="">
+						<constraints nullable="false" />
+					</column>
+					<column name="item_type" type="smallint" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="due_amount" type="decimal(20,2)" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="etl_loaded_at" type="datetime">
+						<constraints nullable="false" />
+					</column>
+				</createTable>
+				<createIndex tableName="moh_bill_cashier_report_etl"
+						indexName="uk_moh_bill_cashier_report_etl_payment_service" unique="true">
+					<column name="bill_payment_id" />
+					<column name="service_id" />
+					<column name="item_type" />
+				</createIndex>
+				<createIndex tableName="moh_bill_cashier_report_etl"
+						indexName="idx_moh_bill_cashier_report_etl_date_collector">
+					<column name="date_received" />
+					<column name="collector_id" />
+					<column name="payment_type" />
+				</createIndex>
+				<createIndex tableName="moh_bill_cashier_report_etl"
+						indexName="idx_moh_bill_cashier_report_etl_loaded_at">
+					<column name="etl_loaded_at" />
+				</createIndex>
+			</changeSet>
+
+			<changeSet id="moh_bill_payment_cashier_report_etl_index" author="openmrs">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<indexExists tableName="moh_bill_payment"
+								indexName="idx_moh_bill_payment_cashier_report_etl" />
+					</not>
+				</preConditions>
+				<comment>Bound incremental cashier ETL refreshes by payment date</comment>
+				<createIndex tableName="moh_bill_payment"
+						indexName="idx_moh_bill_payment_cashier_report_etl">
+					<column name="date_received" />
+					<column name="voided" />
+					<column name="bill_payment_id" />
+				</createIndex>
+			</changeSet>
+
 		</databaseChangeLog>

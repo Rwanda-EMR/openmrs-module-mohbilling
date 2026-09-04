@@ -1180,6 +1180,49 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<PaymentRevenue> getCashierReportFromEtl(Date startDate, Date endDate, Integer collectorId,
+            String paymentType, String reportType, List<HopService> reportColumns) {
+        return billingDAO.getCashierReportFromEtl(startDate, endDate, collectorId, paymentType, reportType,
+                reportColumns);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getCashierReportTotalPaidFromEtl(Date startDate, Date endDate, Integer collectorId,
+            String paymentType) {
+        return billingDAO.getCashierReportTotalPaidFromEtl(startDate, endDate, collectorId, paymentType);
+    }
+
+    @Override
+    public int refreshCashierReportEtl(Date refreshFrom) {
+        return billingDAO.refreshCashierReportEtl(refreshFrom);
+    }
+
+    @Override
+    public int refreshCashierReportEtlByPaymentIdRange(Integer paymentIdFrom, Integer paymentIdTo) {
+        return billingDAO.refreshCashierReportEtlByPaymentIdRange(paymentIdFrom, paymentIdTo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Date getLatestCashierReportEtlPaymentDate() {
+        return billingDAO.getLatestCashierReportEtlPaymentDate();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getMinimumCashierReportSourcePaymentId() {
+        return billingDAO.getMinimumCashierReportSourcePaymentId();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getMaximumCashierReportSourcePaymentId() {
+        return billingDAO.getMaximumCashierReportSourcePaymentId();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Integer getMinimumInsuranceReportSourceGlobalBillId() {
         return billingDAO.getMinimumInsuranceReportSourceGlobalBillId();
     }

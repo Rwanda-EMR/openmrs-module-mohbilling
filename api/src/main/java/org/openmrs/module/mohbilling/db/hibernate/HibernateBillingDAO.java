@@ -25,6 +25,7 @@ import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
+import org.openmrs.PersonName;
 import org.openmrs.User;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
@@ -1710,6 +1711,262 @@ public class HibernateBillingDAO implements BillingDAO {
                 .uniqueResult();
         return value != null ? Integer.valueOf(value.toString()) : null;
     }
+
+    @Override
+    public List<PaymentRevenue> getCashierReportFromEtl(Date startDate, Date endDate, Integer collectorId,
+            String paymentType, String reportType, List<HopService> reportColumns) {
+        String normalizedPaymentType = normalizeCashierPaymentType(paymentType);
+        Set<Integer> serviceIds = new LinkedHashSet<Integer>();
+        if (reportColumns != null) {
+            for (HopService reportColumn : reportColumns) {
+                if (reportColumn != null && reportColumn.getServiceId() != null) {
+                    serviceIds.add(reportColumn.getServiceId());
+                }
+            }
+        }
+        boolean includeAllServices = serviceIds.isEmpty() || "All".equals(reportType);
+        boolean filterByServices = !includeAllServices;
+        SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(CashierReportEtlSql.reportSql(
+                collectorId != null, normalizedPaymentType != null, filterByServices, reportType));
+        query.addScalar("bill_payment_id");
+        query.addScalar("patient_bill_id");
+        query.addScalar("date_received");
+        query.addScalar("amount_paid");
+        query.addScalar("patient_id");
+        query.addScalar("beneficiary_name");
+        query.addScalar("phone_number");
+        query.addScalar("transaction_status");
+        query.addScalar("service_id");
+        query.addScalar("service_name");
+        query.addScalar("due_amount");
+        query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        setCashierReportFilters(query, startDate, endDate, collectorId, normalizedPaymentType);
+
+        if (filterByServices) {
+            query.setParameterList("serviceIds", serviceIds);
+        }
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> rows = query.list();
+        Map<Integer, PaymentRevenue> payments = new LinkedHashMap<Integer, PaymentRevenue>();
+        Map<Integer, Map<Integer, BigDecimal>> serviceAmounts =
+                new HashMap<Integer, Map<Integer, BigDecimal>>();
+        Map<Integer, String> availableServices = new TreeMap<Integer, String>();
+        for (Map<String, Object> row : rows) {
+            Integer paymentId = getInt(row, "bill_payment_id");
+            if (paymentId == null) {
+                continue;
+            }
+            if (!payments.containsKey(paymentId)) {
+                payments.put(paymentId, cashierPaymentRevenue(row));
+                serviceAmounts.put(paymentId, new HashMap<Integer, BigDecimal>());
+            }
+            Integer serviceId = getInt(row, "service_id");
+            if (serviceId != null && serviceId > 0) {
+                availableServices.put(serviceId, getString(row, "service_name"));
+                Map<Integer, BigDecimal> amounts = serviceAmounts.get(paymentId);
+                BigDecimal current = amounts.containsKey(serviceId) ? amounts.get(serviceId) : BigDecimal.ZERO;
+                amounts.put(serviceId, current.add(getBigDecimal(row, "due_amount")));
+            }
+        }
+
+        List<HopService> effectiveReportColumns = cashierReportColumns(
+                reportColumns, availableServices, includeAllServices);
+        List<PaymentRevenue> result = new ArrayList<PaymentRevenue>();
+        for (Map.Entry<Integer, PaymentRevenue> paymentEntry : payments.entrySet()) {
+            List<PaidServiceRevenue> revenues = new ArrayList<PaidServiceRevenue>();
+            BigDecimal totalDue = BigDecimal.ZERO;
+            Map<Integer, BigDecimal> amounts = serviceAmounts.get(paymentEntry.getKey());
+            if (effectiveReportColumns != null) {
+                for (HopService reportColumn : effectiveReportColumns) {
+                    BigDecimal amount = reportColumn != null && reportColumn.getServiceId() != null
+                            && amounts.containsKey(reportColumn.getServiceId())
+                                    ? amounts.get(reportColumn.getServiceId()) : BigDecimal.ZERO;
+                    PaidServiceRevenue revenue = new PaidServiceRevenue();
+                    revenue.setService(reportColumn != null ? reportColumn.getName() : "");
+                    revenue.setPaidAmount(amount);
+                    revenues.add(revenue);
+                    totalDue = totalDue.add(amount);
+                }
+            }
+            if (totalDue.compareTo(BigDecimal.ZERO) > 0) {
+                PaymentRevenue paymentRevenue = paymentEntry.getValue();
+                paymentRevenue.setPaidServiceRevenues(revenues);
+                paymentRevenue.setAmount(totalDue);
+                result.add(paymentRevenue);
+            }
+        }
+        return result;
+    }
+
+    static List<HopService> cashierReportColumns(List<HopService> configuredColumns,
+            Map<Integer, String> availableServices, boolean appendAvailableServices) {
+        List<HopService> columns = new ArrayList<HopService>();
+        Set<Integer> addedServiceIds = new LinkedHashSet<Integer>();
+        if (configuredColumns != null) {
+            for (HopService configuredColumn : configuredColumns) {
+                if (configuredColumn != null && configuredColumn.getServiceId() != null
+                        && addedServiceIds.add(configuredColumn.getServiceId())) {
+                    columns.add(configuredColumn);
+                }
+            }
+        }
+        if (appendAvailableServices && availableServices != null) {
+            for (Map.Entry<Integer, String> availableService : availableServices.entrySet()) {
+                if (addedServiceIds.add(availableService.getKey())) {
+                    HopService column = new HopService();
+                    column.setServiceId(availableService.getKey());
+                    column.setName(availableService.getValue());
+                    columns.add(column);
+                }
+            }
+        }
+        return columns;
+    }
+
+    @Override
+    public BigDecimal getCashierReportTotalPaidFromEtl(Date startDate, Date endDate, Integer collectorId,
+            String paymentType) {
+        String normalizedPaymentType = normalizeCashierPaymentType(paymentType);
+        SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(CashierReportEtlSql.totalPaidSql(
+                collectorId != null, normalizedPaymentType != null));
+        setCashierReportFilters(query, startDate, endDate, collectorId, normalizedPaymentType);
+        Object value = query.uniqueResult();
+        return value != null ? new BigDecimal(value.toString()) : BigDecimal.ZERO;
+    }
+
+    @Override
+    public int refreshCashierReportEtl(Date refreshFrom) {
+        boolean bounded = refreshFrom != null;
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(CashierReportEtlSql.deleteSql(bounded));
+        SQLQuery headerQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(CashierReportEtlSql.headerInsertSql(bounded));
+        SQLQuery serviceQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(CashierReportEtlSql.serviceInsertSql(bounded));
+        if (bounded) {
+            deleteQuery.setTimestamp("refreshFrom", refreshFrom);
+            headerQuery.setTimestamp("refreshFrom", refreshFrom);
+            serviceQuery.setTimestamp("refreshFrom", refreshFrom);
+        }
+        int deleted = deleteQuery.executeUpdate();
+        int headers = headerQuery.executeUpdate();
+        int services = serviceQuery.executeUpdate();
+        log.info("Cashier report ETL refresh completed: refreshFrom=" + refreshFrom + ", deleted=" + deleted
+                + ", paymentRows=" + headers + ", serviceRows=" + services);
+        return headers + services;
+    }
+
+    @Override
+    public int refreshCashierReportEtlByPaymentIdRange(Integer paymentIdFrom, Integer paymentIdTo) {
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(CashierReportEtlSql.deleteByPaymentIdRangeSql());
+        SQLQuery headerQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(CashierReportEtlSql.headerInsertByPaymentIdRangeSql());
+        SQLQuery serviceQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(CashierReportEtlSql.serviceInsertByPaymentIdRangeSql());
+        setCashierPaymentIdRange(deleteQuery, paymentIdFrom, paymentIdTo);
+        setCashierPaymentIdRange(headerQuery, paymentIdFrom, paymentIdTo);
+        setCashierPaymentIdRange(serviceQuery, paymentIdFrom, paymentIdTo);
+        int deleted = deleteQuery.executeUpdate();
+        int headers = headerQuery.executeUpdate();
+        int services = serviceQuery.executeUpdate();
+        log.info("Cashier report ETL batch completed: paymentIdFrom=" + paymentIdFrom + ", paymentIdTo="
+                + paymentIdTo + ", deleted=" + deleted + ", paymentRows=" + headers + ", serviceRows="
+                + services);
+        return headers + services;
+    }
+
+    @Override
+    public Date getLatestCashierReportEtlPaymentDate() {
+        Object value = sessionFactory.getCurrentSession()
+                .createSQLQuery(CashierReportEtlSql.latestPaymentDateSql())
+                .uniqueResult();
+        if (value instanceof Date) {
+            return (Date) value;
+        }
+        return parseDateSubstring(new SimpleDateFormat("yyyy-MM-dd"), value);
+    }
+
+    @Override
+    public Integer getMinimumCashierReportSourcePaymentId() {
+        return getCashierReportSourcePaymentId(true);
+    }
+
+    @Override
+    public Integer getMaximumCashierReportSourcePaymentId() {
+        return getCashierReportSourcePaymentId(false);
+    }
+
+    private Integer getCashierReportSourcePaymentId(boolean minimum) {
+        Object value = sessionFactory.getCurrentSession()
+                .createSQLQuery(CashierReportEtlSql.sourcePaymentIdSql(minimum))
+                .uniqueResult();
+        return value != null ? Integer.valueOf(value.toString()) : null;
+    }
+
+	private static void setCashierReportFilters(SQLQuery query, Date startDate, Date endDate,
+			Integer collectorId, String paymentType) {
+		query.setTimestamp("startDate", startDate);
+		query.setTimestamp("endDate", endDate);
+		if (collectorId != null) {
+			query.setInteger("collectorId", collectorId);
+		}
+		if (paymentType != null) {
+			query.setString("paymentType", paymentType);
+		}
+	}
+
+	private static void setCashierPaymentIdRange(SQLQuery query, Integer paymentIdFrom, Integer paymentIdTo) {
+		query.setInteger("paymentIdFrom", paymentIdFrom);
+		query.setInteger("paymentIdTo", paymentIdTo);
+	}
+
+	private static String normalizeCashierPaymentType(String paymentType) {
+		if ("cashPayment".equals(paymentType) || "CASH".equals(paymentType)) {
+			return "CASH";
+		}
+		if ("depositPayment".equals(paymentType) || "DEPOSIT".equals(paymentType)) {
+			return "DEPOSIT";
+		}
+		return null;
+	}
+
+	private static PaymentRevenue cashierPaymentRevenue(Map<String, Object> row) {
+		BillPayment payment = new BillPayment();
+		payment.setBillPaymentId(getInt(row, "bill_payment_id"));
+		payment.setDateReceived(getDate(row, "date_received"));
+		payment.setAmountPaid(getBigDecimal(row, "amount_paid"));
+
+		PatientBill patientBill = new PatientBill();
+		patientBill.setPatientBillId(getInt(row, "patient_bill_id"));
+		patientBill.setPhoneNumber(getString(row, "phone_number"));
+		patientBill.setTransactionStatus(getString(row, "transaction_status"));
+		payment.setPatientBill(patientBill);
+
+		Patient patient = new Patient(getInt(row, "patient_id"));
+		String beneficiaryName = getString(row, "beneficiary_name");
+		PersonName personName = new PersonName(beneficiaryName != null ? beneficiaryName : "", null, null);
+		personName.setPreferred(true);
+		patient.addName(personName);
+		Beneficiary beneficiary = new Beneficiary();
+		beneficiary.setPatient(patient);
+
+		PaymentRevenue paymentRevenue = new PaymentRevenue();
+		paymentRevenue.setPayment(payment);
+		paymentRevenue.setBeneficiary(beneficiary);
+		return paymentRevenue;
+	}
+
+	private static Date getDate(Map<String, Object> row, String key) {
+		Object value = row.get(key);
+		return value instanceof Date ? (Date) value : null;
+	}
+
+	private static BigDecimal getBigDecimal(Map<String, Object> row, String key) {
+		Object value = row.get(key);
+		return value != null ? new BigDecimal(value.toString()) : BigDecimal.ZERO;
+	}
 
 	private static void setInsuranceReportServiceParameters(SQLQuery query, String imagingServiceIds,
 			String procedureServiceIds) {

@@ -99,6 +99,16 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_PROCEDURE_SERVICES = "mohbilling.PROCEDURES";
 	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_LOADED_SERVICE_CONFIGURATION =
 			"mohbilling.insuranceReportEtl.loadedServiceConfiguration";
+	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_SCHEDULER_ENABLED =
+			"mohbilling.cashierReportEtl.scheduler.enabled";
+	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_SCHEDULER_INTERVAL_SECONDS =
+			"mohbilling.cashierReportEtl.scheduler.intervalSeconds";
+	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_SCHEDULER_START_TIME =
+			"mohbilling.cashierReportEtl.scheduler.startTime";
+	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_OVERLAP_DAYS =
+			"mohbilling.cashierReportEtl.overlapDays";
+	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_LOADED_VERSION =
+			"mohbilling.cashierReportEtl.loadedVersion";
 	public static final String GLOBAL_PROPERTY_GLOBAL_BILL_PAGE_SIZE = "mohbilling.globalbill.pagesize";
 	public static final String GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE = "mohbilling.irembopay.phone_attribute";
 	public static final String GLOBAL_PROPERTY_IREMBO_AUTO_PHONE_NUMBER = "mohbilling.irembopay.auto_phone_number";

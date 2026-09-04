@@ -59,7 +59,9 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-<a href="cashierReport.form?print=true" class="print">PDF</a></b>
+<a href="cashierReport.form?print=true" class="print">PDF</a>
+&nbsp;
+<a href="cashierReport.form?export=true" class="print">Excel</a></b>
 <div class="box">
 <table style="width:70%">
 	<tr>

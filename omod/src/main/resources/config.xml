@@ -335,6 +335,38 @@
     </globalProperty>
 
     <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.enabled</property>
+        <defaultValue>true</defaultValue>
+        <description>
+            Enable the scheduled local cashier report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.intervalSeconds</property>
+        <defaultValue>86400</defaultValue>
+        <description>
+            Interval in seconds between cashier report ETL refreshes
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.startTime</property>
+        <defaultValue>03:00</defaultValue>
+        <description>
+            Local server time (HH:mm) for the first daily cashier report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.overlapDays</property>
+        <defaultValue>7</defaultValue>
+        <description>
+            Number of recent payment days rebuilt on every cashier ETL refresh to capture corrections
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>mohbilling.IMAGING</property>
         <defaultValue></defaultValue>
         <description>
