@@ -7,6 +7,7 @@ public class PaymentRevenue {
 	
 	public BillPayment payment;
 	public Beneficiary beneficiary;
+	public String patientIdentifier;
 	public List<PaidServiceRevenue> paidServiceRevenues;
 	public BigDecimal amount;
 	/**
@@ -33,6 +34,12 @@ public class PaymentRevenue {
 	 */
 	public void setBeneficiary(Beneficiary beneficiary) {
 		this.beneficiary = beneficiary;
+	}
+	public String getPatientIdentifier() {
+		return patientIdentifier;
+	}
+	public void setPatientIdentifier(String patientIdentifier) {
+		this.patientIdentifier = patientIdentifier;
 	}
 	/**
 	 * @return the paidServiceRevenues

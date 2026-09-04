@@ -59,13 +59,16 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-<a href="cashierReport.form?print=true" class="print">PDF</a></b>
+<a href="cashierReport.form?print=true" class="print">PDF</a>
+&nbsp;
+<a href="cashierReport.form?export=true" class="print">Excel</a></b>
 <div class="box">
 <table style="width:70%">
 	<tr>
 		<th class="columnHeader">#.</th>
 		<th class="columnHeader">DATE</th>
 		<th class="columnHeader">Patient Names</th>
+		<th class="columnHeader">Identifier</th>
 		<c:forEach items="${services}" var="s" varStatus="status">
 		<th class="columnHeader">${s.service}</th>	
 		</c:forEach> 
@@ -79,6 +82,7 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 	 <td>${status.count}.</td>
 	 <td>${pr.payment.dateReceived}</td>
 	 <td>${pr.beneficiary.patient.personName }</td>
+	 <td>${pr.patientIdentifier}</td>
 	  <c:forEach items="${pr.paidServiceRevenues}" var="sr" varStatus="status">
 		 <td><fmt:formatNumber value="${sr.paidAmount}" type="number" pattern="#.##"/></td>
 	  </c:forEach>
@@ -92,7 +96,7 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 	</c:forEach> 
 	<tr>
 	<td class="rowValue"><b>TOT(Due)</b></td>
-	<td class="rowValue"></td><td class="rowValue"></td>
+	<td class="rowValue"></td><td class="rowValue"></td><td class="rowValue"></td>
 	<c:forEach items="${subTotals}" var="st" varStatus="status">
 		<td class="rowValue"><b><fmt:formatNumber value="${st}" type="number" pattern="#.##"/></b></td>
 		</c:forEach> 

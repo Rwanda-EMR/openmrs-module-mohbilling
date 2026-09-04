@@ -6,7 +6,7 @@
     <!-- Base Module Properties -->
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
-    <version>2.2.2-SNAPSHOT</version>
+    <version>2.2.3-SNAPSHOT</version>
     <package>org.openmrs.module.@MODULE_ID@</package>
     <author>MoH Rwanda</author>
     <description>
@@ -331,6 +331,30 @@
         <defaultValue>7</defaultValue>
         <description>
             Number of recent report days rebuilt on every ETL refresh to capture corrections
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.enabled</property>
+        <defaultValue>true</defaultValue>
+        <description>
+            Enable the scheduled local cashier report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.intervalSeconds</property>
+        <defaultValue>43200</defaultValue>
+        <description>
+            Twelve-hour interval in seconds between incremental cashier report ETL refreshes
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.startTime</property>
+        <defaultValue>07:00</defaultValue>
+        <description>
+            Local server time (HH:mm) for the first cashier report ETL refresh
         </description>
     </globalProperty>
 

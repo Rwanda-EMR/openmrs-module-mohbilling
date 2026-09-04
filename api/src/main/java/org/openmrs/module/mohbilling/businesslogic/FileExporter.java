@@ -184,6 +184,44 @@ public class FileExporter {
 				facilityEmail);
 	}
 
+	public static void exportCashierReportData(HttpServletResponse response,
+			List<PaymentRevenue> paymentRevenues, List<BigDecimal> subTotals, BigDecimal bigTotal,
+			BigDecimal totalPaid, String reportTitle, User cashier) {
+		if (response == null || paymentRevenues == null || paymentRevenues.isEmpty()) {
+			throw new IllegalArgumentException("Cashier report export requires a response and report data.");
+		}
+		String cashierName = cashier != null && cashier.getPersonName() != null
+				? cashier.getPersonName().toString() : "All collectors";
+		String fileName = "cashier-report-" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + ".xlsx";
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+
+		try (OutputStream outputStream = response.getOutputStream()) {
+			writeCashierReportWorkbook(outputStream, paymentRevenues, subTotals, bigTotal, totalPaid,
+					reportTitle, cashierName, Context.getAdministrationService().getGlobalProperty(
+							BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+			outputStream.flush();
+		} catch (Exception | LinkageError e) {
+			log.error("Failed to write cashier report XLSX", e);
+			if (!response.isCommitted()) {
+				try {
+					response.reset();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Unable to generate the cashier report.");
+				} catch (IOException responseError) {
+					log.error("Failed to send the cashier report export error", responseError);
+				}
+			}
+		}
+	}
+
+	static void writeCashierReportWorkbook(OutputStream outputStream,
+			List<PaymentRevenue> paymentRevenues, List<BigDecimal> subTotals, BigDecimal bigTotal,
+			BigDecimal totalPaid, String reportTitle, String cashierName, String facilityName) throws IOException {
+		CashierReportXlsxWriter.write(outputStream, paymentRevenues, subTotals, bigTotal, totalPaid,
+				reportTitle, cashierName, facilityName);
+	}
+
 	static String formatDate(DateFormat formatter, Date value) {
 		return value != null ? formatter.format(value) : "";
 	}
@@ -1503,7 +1541,7 @@ public class FileExporter {
 
 		document.add(new Paragraph("\n"));
 
-		float[] colsWidt = {20f,110f,150f,80f,80f};
+		float[] colsWidt = {20f,110f,150f,100f,80f,80f};
 		for (PaidServiceRevenue n : paymentRevenue.get(0).getPaidServiceRevenues()) {
 			colsWidt = Arrays.copyOf(colsWidt, colsWidt.length + 1);
 			colsWidt[colsWidt.length - 1] = 80f;
@@ -1528,6 +1566,9 @@ public class FileExporter {
 		table.addCell(cell);
 
 		cell = new PdfPCell(boldFont.process("Patient Names"));
+		table.addCell(cell);
+
+		cell = new PdfPCell(boldFont.process("Identifier"));
 		table.addCell(cell);
 
 		for (PaidServiceRevenue dr : paymentRevenue.get(0).getPaidServiceRevenues()) {
@@ -1562,6 +1603,10 @@ public class FileExporter {
 			cell = new PdfPCell(fontSelector.process(""+dr.getBeneficiary().getPatient().getPersonName()));
 			table.addCell(cell);
 
+			cell = new PdfPCell(fontSelector.process(dr.getPatientIdentifier() != null
+					? dr.getPatientIdentifier() : ""));
+			table.addCell(cell);
+
 			for (PaidServiceRevenue psr : dr.getPaidServiceRevenues()) {
 				cell = new PdfPCell(fontSelector.process(""+formatter.format(psr.getPaidAmount())));
 				table.addCell(cell);
@@ -1580,6 +1625,9 @@ public class FileExporter {
 		table.addCell(cell);
 
 		cell = new PdfPCell(boldFont.process("Tot.(Due)"));
+		table.addCell(cell);
+
+		cell = new PdfPCell(boldFont.process(""));
 		table.addCell(cell);
 
 

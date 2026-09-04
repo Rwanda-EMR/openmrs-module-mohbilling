@@ -42,6 +42,12 @@ public class MohBillingActivatorTest {
 	}
 
 	@Test
+	public void validTimeOrDefault_shouldKeepCashierAtThreeAmWhenConfigurationIsInvalid() {
+		Assert.assertEquals("03:00", MohBillingActivator.validTimeOrDefault("not-a-time", "03:00"));
+		Assert.assertEquals("04:30", MohBillingActivator.validTimeOrDefault("04:30", "03:00"));
+	}
+
+	@Test
 	public void saveAndReloadTaskDefinition_shouldScheduleUsingPersistedTask() throws Exception {
 		TaskDefinition submittedTask = new TaskDefinition();
 		submittedTask.setName("test.task");

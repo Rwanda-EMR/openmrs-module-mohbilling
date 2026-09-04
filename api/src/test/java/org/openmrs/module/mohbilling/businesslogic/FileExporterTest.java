@@ -2,18 +2,75 @@ package org.openmrs.module.mohbilling.businesslogic;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openmrs.Patient;
+import org.openmrs.PersonName;
+import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.InsuranceReportItem;
+import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
+import org.openmrs.module.mohbilling.model.PatientBill;
+import org.openmrs.module.mohbilling.model.PaymentRevenue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+
 public class FileExporterTest {
+
+	@Test
+	public void writeCashierReportWorkbook_shouldCreateXlsxWithDynamicServicesAndTotals() throws Exception {
+		PaidServiceRevenue service = new PaidServiceRevenue();
+		service.setService("Laboratory & Tests");
+		service.setPaidAmount(new BigDecimal("50.25"));
+		BillPayment payment = new BillPayment();
+		payment.setAmountPaid(new BigDecimal("75.50"));
+		PatientBill patientBill = new PatientBill();
+		patientBill.setTransactionStatus("SUCCESSFUL");
+		patientBill.setPhoneNumber("0788000000");
+		payment.setPatientBill(patientBill);
+		Patient patient = new Patient();
+		PersonName patientName = new PersonName("Test", null, "Patient");
+		patientName.setPreferred(true);
+		patient.addName(patientName);
+		Beneficiary beneficiary = new Beneficiary();
+		beneficiary.setPatient(patient);
+		PaymentRevenue paymentRevenue = new PaymentRevenue();
+		paymentRevenue.setPayment(payment);
+		paymentRevenue.setBeneficiary(beneficiary);
+		paymentRevenue.setPatientIdentifier("0000123456789012");
+		paymentRevenue.setPaidServiceRevenues(Collections.singletonList(service));
+		paymentRevenue.setAmount(new BigDecimal("50.25"));
+
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		FileExporter.writeCashierReportWorkbook(outputStream, Collections.singletonList(paymentRevenue),
+				Collections.singletonList(new BigDecimal("50.25")), new BigDecimal("50.25"),
+				new BigDecimal("75.50"), "Revenue Amount From 01/09/2026 To 02/09/2026",
+				"Test Cashier", "Test Facility");
+
+		byte[] xlsx = outputStream.toByteArray();
+		Assert.assertTrue(xlsx.length > 0);
+		Assert.assertEquals('P', xlsx[0]);
+		Assert.assertEquals('K', xlsx[1]);
+		Map<String, String> entries = unzipTextEntries(xlsx);
+		String sheet = entries.get("xl/worksheets/sheet1.xml");
+		Assert.assertTrue(sheet.contains("Laboratory &amp; Tests"));
+		Assert.assertTrue(sheet.contains("<c r=\"D6\" t=\"inlineStr\" s=\"2\"><is><t xml:space=\"preserve\">Identifier"));
+		Assert.assertTrue(sheet.contains("<c r=\"D7\" t=\"inlineStr\" s=\"5\"><is><t xml:space=\"preserve\">0000123456789012"));
+		Assert.assertTrue(sheet.contains("<c r=\"E7\" s=\"3\"><v>50.25</v></c>"));
+		Assert.assertTrue(sheet.contains("<c r=\"H7\" t=\"inlineStr\" s=\"1\"><is><t xml:space=\"preserve\">0788000000"));
+		Assert.assertTrue(sheet.contains("<c r=\"E8\" s=\"4\"><v>50.25</v></c>"));
+		Assert.assertTrue(entries.get("xl/workbook.xml").contains("name=\"Cashier Report\""));
+		assertXmlEntriesAreWellFormed(entries);
+	}
 
 	@Test
 	public void writeInsuranceReportWorkbook_shouldCreateReadableXlsxWithData() throws Exception {
@@ -84,5 +141,15 @@ public class FileExporterTest {
 			}
 		}
 		return entries;
+	}
+
+	private static void assertXmlEntriesAreWellFormed(Map<String, String> entries) throws Exception {
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		for (Map.Entry<String, String> entry : entries.entrySet()) {
+			if (entry.getKey().endsWith(".xml") || entry.getKey().endsWith(".rels")) {
+				factory.newDocumentBuilder().parse(new ByteArrayInputStream(
+						entry.getValue().getBytes(StandardCharsets.UTF_8)));
+			}
+		}
 	}
 }
