@@ -46,7 +46,7 @@ final class InsuranceReportEtlSql {
 					+ "report_etl.imaging AS IMAGING, report_etl.procedures AS `PROCED.`, report_etl.total_100, "
 					+ "report_etl.total_insurance, report_etl.total_patient FROM " + TABLE + " report_etl "
 					+ "WHERE " + (filterByInsurance ? "report_etl.insurance_id = :insuranceId AND " : "")
-					+ "report_etl.closing_date BETWEEN :startDate AND :endDate "
+					+ "report_etl.admission_date BETWEEN :startDate AND :endDate "
 					+ "ORDER BY report_etl.closing_date, report_etl.global_bill_id";
 	}
 

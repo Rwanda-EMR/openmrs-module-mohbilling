@@ -70,11 +70,12 @@ public class InsuranceReportEtlSqlTest {
 	}
 
 	@Test
-	public void reportSql_shouldFilterByInsuranceAndClosingDate() {
+	public void reportSql_shouldFilterByInsuranceAndAdmissionDate() {
 		String sql = InsuranceReportEtlSql.reportSql(true);
 
 		Assert.assertTrue(sql.contains("report_etl.insurance_id = :insuranceId"));
-		Assert.assertTrue(sql.contains("report_etl.closing_date BETWEEN :startDate AND :endDate"));
+		Assert.assertTrue(sql.contains("report_etl.admission_date BETWEEN :startDate AND :endDate"));
+		Assert.assertFalse(sql.contains("report_etl.closing_date BETWEEN :startDate AND :endDate"));
 		Assert.assertTrue(sql.contains("procedures AS `PROCED.`"));
 		Assert.assertTrue(sql.contains("report_etl.insurance_name"));
 		Assert.assertTrue(sql.contains("report_etl.primary_identifier"));
@@ -88,6 +89,7 @@ public class InsuranceReportEtlSqlTest {
 		String sql = InsuranceReportEtlSql.reportSql(false);
 
 		Assert.assertFalse(sql.contains("report_etl.insurance_id = :insuranceId"));
-		Assert.assertTrue(sql.contains("report_etl.closing_date BETWEEN :startDate AND :endDate"));
+		Assert.assertTrue(sql.contains("report_etl.admission_date BETWEEN :startDate AND :endDate"));
+		Assert.assertFalse(sql.contains("report_etl.closing_date BETWEEN :startDate AND :endDate"));
 	}
 }

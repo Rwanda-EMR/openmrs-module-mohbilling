@@ -25,6 +25,14 @@ import java.util.zip.ZipInputStream;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 public class FileExporterTest {
+	@Test
+	public void abbreviateServiceName_shouldHandleShortServiceWords() {
+		Assert.assertEquals("Scan", FileExporter.abbreviateServiceName("Scan"));
+		Assert.assertEquals("Xray", FileExporter.abbreviateServiceName("Xray"));
+		Assert.assertEquals("Eye.CT", FileExporter.abbreviateServiceName("Eye CT"));
+		Assert.assertEquals("Laboratory.Bio", FileExporter.abbreviateServiceName("Laboratory Biology"));
+		Assert.assertEquals("", FileExporter.abbreviateServiceName(null));
+	}
 
 	@Test
 	public void writeCashierReportWorkbook_shouldCreateXlsxWithDynamicServicesAndTotals() throws Exception {

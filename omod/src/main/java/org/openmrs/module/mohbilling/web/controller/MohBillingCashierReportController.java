@@ -33,12 +33,16 @@ public class MohBillingCashierReportController extends
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
-		if (Boolean.parseBoolean(request.getParameter("export"))) {
+		if (Boolean.parseBoolean(request.getParameter("export")) || request.getParameter("print") != null) {
 			if (!Context.hasPrivilege(CASHIER_REPORT_PRIVILEGE)) {
 				response.sendError(HttpServletResponse.SC_FORBIDDEN);
 				return null;
 			}
-			exportCashierReport(request, response);
+			if (Boolean.parseBoolean(request.getParameter("export"))) {
+				exportCashierReport(request, response);
+			} else {
+				printCashierReport(request, response);
+			}
 			return null;
 		}
 		
@@ -199,24 +203,26 @@ public class MohBillingCashierReportController extends
 		mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 		mav.addObject("thirdParties", Context.getService(BillingService.class).getAllThirdParties());
 		
-		if(request.getParameter("print")!=null){
-		//	HttpSession session = request.getSession(true);
-			 List<PaymentRevenue> paymentRevenues  = (List<PaymentRevenue>) request.getSession().getAttribute("paymentRevenues" );
-			 List<BigDecimal> subTotals = (List<BigDecimal>) request.getSession().getAttribute("subTotals");
-			 BigDecimal bigTotal = (BigDecimal) request.getSession().getAttribute("bigTotal");
-			 BigDecimal totalPaid = (BigDecimal) request.getSession().getAttribute("totalRevenueAmount");
-				
-				 BigDecimal amount = (BigDecimal)request.getSession().getAttribute("totalReceivedAmount");
-				 FileExporter fexp = new FileExporter();
-				 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-			User cashierUser=(User) request.getSession().getAttribute("collector");
-					String fileName = "cashierReport-"+df.format(new Date())+".pdf";
-			//System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC:"+cashierUser.getPersonName().getFullName());
-				    fexp.printCashierReport(request, response, amount,paymentRevenues,subTotals,bigTotal,totalPaid,fileName,cashierUser);
-			
-		}
 		return mav;
 }
+
+	@SuppressWarnings("unchecked")
+	private void printCashierReport(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		List<PaymentRevenue> paymentRevenues =
+				(List<PaymentRevenue>) request.getSession().getAttribute("paymentRevenues");
+		List<BigDecimal> subTotals = (List<BigDecimal>) request.getSession().getAttribute("subTotals");
+		BigDecimal bigTotal = (BigDecimal) request.getSession().getAttribute("bigTotal");
+		BigDecimal totalPaid = (BigDecimal) request.getSession().getAttribute("totalRevenueAmount");
+		if (paymentRevenues == null || paymentRevenues.isEmpty() || subTotals == null
+				|| bigTotal == null || totalPaid == null) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing cashier report PDF data. Run the report again.");
+			return;
+		}
+
+		String fileName = "cashierReport-" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + ".pdf";
+		new FileExporter().printCashierReport(request, response, null, paymentRevenues, subTotals,
+				bigTotal, totalPaid, fileName, (User) request.getSession().getAttribute("collector"));
+	}
 
 	@SuppressWarnings("unchecked")
 	private void exportCashierReport(HttpServletRequest request, HttpServletResponse response) throws Exception {

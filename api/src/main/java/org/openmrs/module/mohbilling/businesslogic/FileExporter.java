@@ -1572,13 +1572,7 @@ public class FileExporter {
 		table.addCell(cell);
 
 		for (PaidServiceRevenue dr : paymentRevenue.get(0).getPaidServiceRevenues()) {
-			String s = dr.getService();
-			if(s.length()>3 && s.split(" ").length==1) // if service name is made of letters greater than 3, display the substring from 0 to 4
-				s=s.substring(0, 5);
-			else if(s.split(" ").length==2){ // if service name is made of 2 words, display the first word plus the 3 letters of the second
-				String[] parts = s.split(" ");
-				s=parts[0]+"."+parts[1].substring(0, 3);
-			}
+			String s = abbreviateServiceName(dr.getService());
 			cell = new PdfPCell(boldFont.process(""+s));
 			table.addCell(cell);
 
@@ -1679,13 +1673,7 @@ public class FileExporter {
 		table.addCell(cell);
 
 		for (PaidServiceRevenue dr : departRevenues.get(0).getPaidServiceRevenues()) {
-			String s = dr.getService();
-			if(s.length()>3 && s.split(" ").length==1) // if service name is made of letters greater than 3, display the substring from 0 to 4
-				s=s.substring(0, 5);
-			else if(s.split(" ").length==2){ // if service name is made of 2 words, display the first word plus the 3 letters of the second
-				String[] parts = s.split(" ");
-				s=parts[0]+"."+parts[1].substring(0, 3);
-			}
+			String s = abbreviateServiceName(dr.getService());
 			cell = new PdfPCell(boldFont.process(""+s));
 			table.addCell(cell);
 		}
@@ -2162,7 +2150,8 @@ public class FileExporter {
 
 		PdfPCell cell = new PdfPCell(fontselector.process(""));
 		if(user!=null){
-			cell = new PdfPCell(fontselector.process("Cashier Signature \n"+ cashier.getPersonName()+"\n\n........................."));
+			String cashierName = cashier != null ? cashier.getPersonName().toString() : "";
+			cell = new PdfPCell(fontselector.process("Cashier Signature \n"+ cashierName+"\n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 		}
@@ -2191,6 +2180,24 @@ public class FileExporter {
 		}
 
 		document.add(table1);
+	}
+
+	static String abbreviateServiceName(String serviceName) {
+		if (serviceName == null) {
+			return "";
+		}
+		String trimmedName = serviceName.trim();
+		if (trimmedName.isEmpty()) {
+			return "";
+		}
+		String[] parts = trimmedName.split("\\s+");
+		if (parts.length == 1) {
+			return parts[0].substring(0, Math.min(5, parts[0].length()));
+		}
+		if (parts.length == 2) {
+			return parts[0] + "." + parts[1].substring(0, Math.min(3, parts[1].length()));
+		}
+		return trimmedName;
 	}
 
 	public void displayFooter(Document document,Patient patient,User user,String other,FontSelector fontselector) throws DocumentException {
