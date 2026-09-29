@@ -2475,6 +2475,20 @@ public class HibernateBillingDAO implements BillingDAO {
         return criteria.list();
     }
 
+    @Override
+    public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(Date createdOnOrBefore) {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientBill.class);
+        criteria.add(Restrictions.or(Restrictions.eq("isPaid", false), Restrictions.eq("paymentConfirmed", false)));
+        criteria.add(Restrictions.or(Restrictions.eq("voided", false), Restrictions.isNull("voided")));
+        // Match decimal zero regardless of scale (0 vs 0.00).
+        criteria.add(Restrictions.sqlRestriction("amount = 0"));
+        criteria.add(Restrictions.isNotNull("createdDate"));
+        if (createdOnOrBefore != null) {
+            criteria.add(Restrictions.le("createdDate", createdOnOrBefore));
+        }
+        return criteria.list();
+    }
+
     public PatientBill getPatientBillByInvoiceNumber(String invoiceNumber){
         return (PatientBill) sessionFactory.getCurrentSession()
         .createCriteria(PatientBill.class)

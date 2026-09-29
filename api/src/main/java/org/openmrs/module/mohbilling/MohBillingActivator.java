@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.BaseModuleActivator;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
+import org.openmrs.module.mohbilling.tasks.AutoPayZeroBillTask;
 import org.openmrs.module.mohbilling.tasks.CashierReportEtlTask;
 import org.openmrs.module.mohbilling.tasks.InsuranceReportEtlTask;
 import org.openmrs.module.mohbilling.tasks.IremboReconciliationTask;
@@ -36,6 +37,7 @@ import java.util.Date;
 public class MohBillingActivator extends BaseModuleActivator {
 
 	private static final String IREMBO_TASK_NAME = "mohbilling.irembopay.reconciliation.task";
+	private static final String AUTOPAY_ZERO_BILL_TASK_NAME = "mohbilling.autopay.zerobill.task";
 	private static final String INSURANCE_REPORT_ETL_TASK_NAME = "mohbilling.insurance.report.etl.task";
 	private static final long DEFAULT_INSURANCE_REPORT_ETL_INTERVAL_SECONDS = 86400L;
 	private static final String DEFAULT_INSURANCE_REPORT_ETL_START_TIME = "01:00";
@@ -51,6 +53,7 @@ public class MohBillingActivator extends BaseModuleActivator {
 	public void started() {
 
 		scheduleIremboReconciliationTask();
+		scheduleAutoPayZeroBillTask();
 		scheduleInsuranceReportEtlTask();
 		scheduleCashierReportEtlTask();
 		log.info("MoH-Billing Module started");
@@ -61,6 +64,7 @@ public class MohBillingActivator extends BaseModuleActivator {
 	 */
 	public void stopped() {
 		shutdownIremboReconciliationTask();
+		shutdownAutoPayZeroBillTask();
 		shutdownInsuranceReportEtlTask();
 		shutdownCashierReportEtlTask();
 		log.info("MoH-Billing Module stopped");
@@ -126,6 +130,59 @@ public class MohBillingActivator extends BaseModuleActivator {
 		} catch (SchedulerException e) {
 			IremboPayLogUtil.logFailure(log, "RECONCILIATION",
 					"failed to stop Irembo reconciliation task cleanly", e);
+		}
+	}
+
+	private void scheduleAutoPayZeroBillTask() {
+		try {
+			boolean enabled = Boolean.parseBoolean(Context.getAdministrationService()
+					.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_AUTOPAY_ZERO_BILL, "false"));
+
+			long intervalSeconds = parsePositiveLong(Context.getAdministrationService().getGlobalProperty(
+					BillingConstants.GLOBAL_PROPERTY_AUTOPAY_TIME,
+					String.valueOf(BillingConstants.DEFAULT_AUTOPAY_TIME_SECONDS)),
+					BillingConstants.DEFAULT_AUTOPAY_TIME_SECONDS);
+
+			SchedulerService schedulerService = Context.getSchedulerService();
+			TaskDefinition task = schedulerService.getTaskByName(AUTOPAY_ZERO_BILL_TASK_NAME);
+			if (task == null) {
+				task = new TaskDefinition();
+				task.setName(AUTOPAY_ZERO_BILL_TASK_NAME);
+			}
+			task.setDescription("Auto-pay and confirm patient bills with zero due amount after configured delay.");
+			task.setTaskClass(AutoPayZeroBillTask.class.getName());
+			task.setStartTime(new Date(System.currentTimeMillis() + 15_000L));
+			task.setRepeatInterval(intervalSeconds);
+			task.setStartOnStartup(enabled);
+			task.setStarted(enabled);
+
+			task = saveAndReloadTaskDefinition(schedulerService, task);
+			if (enabled) {
+				schedulerService.scheduleTask(task);
+				log.info("Scheduled auto-pay zero bill task to run every " + intervalSeconds + " seconds.");
+			} else {
+				try {
+					schedulerService.shutdownTask(task);
+				} catch (SchedulerException ignored) {
+					// no-op; task may not be running yet
+				}
+				log.info("Auto-pay zero bill task is registered and visible in scheduler, but not auto-started.");
+			}
+		} catch (SchedulerException e) {
+			log.error("Failed to schedule auto-pay zero bill task", e);
+		}
+	}
+
+	private void shutdownAutoPayZeroBillTask() {
+		try {
+			SchedulerService schedulerService = Context.getSchedulerService();
+			TaskDefinition task = schedulerService.getTaskByName(AUTOPAY_ZERO_BILL_TASK_NAME);
+			if (task != null) {
+				schedulerService.shutdownTask(task);
+				log.info("Stopped auto-pay zero bill task.");
+			}
+		} catch (SchedulerException e) {
+			log.error("Failed to stop auto-pay zero bill task cleanly", e);
 		}
 	}
 
