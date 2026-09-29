@@ -15,6 +15,8 @@ import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.DepositPayment;
@@ -45,6 +47,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -432,69 +435,109 @@ public class MohBillingPatientBillPaymentFormController extends
 
 	private BillPayment handlebillTransfer(HttpServletRequest request) {
 		Consommation consommation = ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
-		PatientBill currentPb =consommation.getPatientBill();
-		InsuranceBill currentIb=consommation.getInsuranceBill();
-		Set<PatientServiceBill> servicesBill=consommation.getBillItems();
+		PatientBill oldPatientBill = consommation.getPatientBill();
+		InsuranceBill oldInsuranceBill = consommation.getInsuranceBill();
+		Set<PatientServiceBill> servicesBill = consommation.getBillItems();
+		String newCardNumber = request.getParameter("newCardNumber");
+		Beneficiary newBeneficiary = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(newCardNumber);
 
-		BigDecimal totalAmount = new BigDecimal(0);
-		BigDecimal totalMaximaTopay=new BigDecimal(0);
+		if (newBeneficiary != null && newBeneficiary.getInsurancePolicy() != null) {
+			InsurancePolicy newInsurancePolicy = newBeneficiary.getInsurancePolicy();
+			BillingService billingService = Context.getService(BillingService.class);
+			GlobalBill gb = billingService.getOpenGlobalBillByInsuranceCardNo(newInsurancePolicy.getInsuranceCardNo());
 
-		for (PatientServiceBill  serviceBill : servicesBill) {
-
-			/*BigDecimal qty = serviceBill.getQuantity();
-			PatientServiceBill cpyPsb = new PatientServiceBill();
-			cpyPsb.setUnitPrice(psb.getUnitPrice());
-			qty = psb.getQuantity();
-			cpyPsb.setQuantity(qty);
-			cpyPsb.setCreator(Context.getAuthenticatedUser());
-			cpyPsb.setCreatedDate(new Date());
-			cpyPsb.setConsommation(cpyConsom);
-			cpyPsb.setServiceDate(psb.getServiceDate());*/
-
-			totalAmount = totalAmount.add(serviceBill.getQuantity().multiply(serviceBill.getUnitPrice()));
-			totalMaximaTopay=totalMaximaTopay.add(serviceBill.getService().getMaximaToPay());
-			//cpyConsom.addBillItem(cpyPsb);
-		}
-		InsurancePolicy newInsurancePolicy=InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")).getInsurancePolicy();
-
-		if (newInsurancePolicy!=null) {
-			PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, newInsurancePolicy);
-			InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(newInsurancePolicy.getInsurance(), totalAmount);
-
-			//ThirdPartyBill thirdPartyBill =	ThirdPartyBillUtil.createThirdPartyBill(existingConsom.getBeneficiary().getInsurancePolicy(), totalAmount);
-
-			GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(newInsurancePolicy.getInsuranceCardNo());
 			if (gb != null) {
+				Map<PatientServiceBill, BillableService> transferredServices = new HashMap<PatientServiceBill, BillableService>();
+				BigDecimal oldTotalAmount = BigDecimal.ZERO;
+				BigDecimal newTotalAmount = BigDecimal.ZERO;
 
+				// Resolve every target price before changing or saving any part of the bill.
+				for (PatientServiceBill serviceBill : servicesBill) {
+					if (Boolean.TRUE.equals(serviceBill.getVoided())) {
+						continue;
+					}
+					BillableService transferredService = billingService.getBillableServiceByConcept(
+							serviceBill.getService().getFacilityServicePrice(), newInsurancePolicy.getInsurance());
+					if (transferredService == null || transferredService.getMaximaToPay() == null) {
+						String serviceName = serviceBill.getService().getFacilityServicePrice().getName();
+						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+								"Bill transfer failed: no Unit Price is configured for " + serviceName
+										+ " under " + newInsurancePolicy.getInsurance().getName() + ".");
+						return null;
+					}
 
-				BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
-				gb.setGlobalAmount(globalAmount);
-				gb = GlobalBillUtil.saveGlobalBill(gb);
+					BigDecimal quantity = serviceBill.getQuantity();
+					oldTotalAmount = oldTotalAmount.add(quantity.multiply(serviceBill.getUnitPrice()));
+					newTotalAmount = newTotalAmount.add(quantity.multiply(transferredService.getMaximaToPay()));
+					transferredServices.put(serviceBill, transferredService);
+				}
+
+				PatientBill pb = PatientBillUtil.createPatientBill(newTotalAmount, newInsurancePolicy);
+				InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(newInsurancePolicy.getInsurance(), newTotalAmount);
 
 				GlobalBill oldGb = consommation.getGlobalBill();
-				BigDecimal oldGlobalAmount = oldGb.getGlobalAmount().subtract(totalMaximaTopay);
-				oldGb = GlobalBillUtil.saveGlobalBill(oldGb);
+				for (Map.Entry<PatientServiceBill, BillableService> entry : transferredServices.entrySet()) {
+					PatientServiceBill serviceBill = entry.getKey();
+					BillableService transferredService = entry.getValue();
+					serviceBill.setService(transferredService);
+					serviceBill.setUnitPrice(transferredService.getMaximaToPay());
+				}
 
-
-				consommation.setBeneficiary(InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")));
+				consommation.setBeneficiary(newBeneficiary);
 				consommation.setGlobalBill(gb);
 				consommation.setPatientBill(pb);
 				consommation.setInsuranceBill(ib);
-				//consommation.setThirdPartyBill(thirdPartyBill);
 
-				Consommation saveConsommation = ConsommationUtil.saveConsommation(consommation);
+				ConsommationUtil.saveConsommation(consommation);
+				voidTransferredBills(oldPatientBill, oldInsuranceBill, newCardNumber);
+
+				if (oldGb.getGlobalBillId().equals(gb.getGlobalBillId())) {
+					gb.setGlobalAmount(gb.getGlobalAmount().subtract(oldTotalAmount).add(newTotalAmount));
+					GlobalBillUtil.saveGlobalBill(gb);
+				} else {
+					gb.setGlobalAmount(gb.getGlobalAmount().add(newTotalAmount));
+					GlobalBillUtil.saveGlobalBill(gb);
+					oldGb.setGlobalAmount(oldGb.getGlobalAmount().subtract(oldTotalAmount));
+					GlobalBillUtil.saveGlobalBill(oldGb);
+				}
+
+				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+						"Bill transfer has been saved with the Unit Prices for "
+								+ newInsurancePolicy.getInsurance().getName() + ".");
 			} else {
 				// alert on no Admission opened
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-						"No admission opened by using "+request.getParameter("newCardNumber"));
+						"No admission opened by using " + newCardNumber);
 			}
-		}else{
+		} else {
 			// alert on ipCardNumber invalid
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-					request.getParameter("newCardNumber")+" is invalid, Please it check again");
+					newCardNumber + " is invalid, Please check it again");
 		}
-		BillPayment payment = null;
-		return payment;
+		return null;
+	}
+
+	private void voidTransferredBills(PatientBill patientBill, InsuranceBill insuranceBill,
+			String newCardNumber) {
+		User voidedBy = Context.getAuthenticatedUser();
+		Date voidedDate = new Date();
+		String voidReason = "Bill transferred to policy number " + newCardNumber;
+
+		if (patientBill != null) {
+			patientBill.setVoided(true);
+			patientBill.setVoidedBy(voidedBy);
+			patientBill.setVoidedDate(voidedDate);
+			patientBill.setVoidReason(voidReason);
+			PatientBillUtil.savePatientBill(patientBill);
+		}
+
+		if (insuranceBill != null) {
+			insuranceBill.setVoided(true);
+			insuranceBill.setVoidedBy(voidedBy);
+			insuranceBill.setVoidedDate(voidedDate);
+			insuranceBill.setVoidReason(voidReason);
+			InsuranceBillUtil.saveInsuranceBill(insuranceBill);
+		}
 	}
 
 	//=====================================================
