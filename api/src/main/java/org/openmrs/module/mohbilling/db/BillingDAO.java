@@ -787,6 +787,12 @@ public interface BillingDAO {
 	public List<PatientBillIrembo> getUnpaidBills(Patient patient);
 	public List<PatientBill> getUnpaidBillsWithInvoiceNumber();
 
+	/**
+	 * Unpaid (or unconfirmed) non-voided patient bills whose due amount is zero
+	 * and whose createdDate is on or before the given cutoff.
+	 */
+	public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(Date createdOnOrBefore);
+
 	public PatientBill getPatientBillByInvoiceNumber(String invoiceNumber);
 
 	public List<PatientServiceBill> getPatientServiceBillByConsomation(Integer consommationId);

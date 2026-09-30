@@ -1255,6 +1255,12 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getUnpaidBillsWithInvoiceNumber();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(Date createdOnOrBefore) throws DAOException {
+        return billingDAO.getUnpaidZeroDueBillsCreatedOnOrBefore(createdOnOrBefore);
+    }
+
     public static String detectTelco(String phoneNumber) {
 
         // Normalize number

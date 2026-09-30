@@ -119,4 +119,11 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_AMBULANCE_FACILITY_SERVICE_PRICE_NAME = "mohbilling.ambulance.facilityServicePriceName";
 	public static final String DEFAULT_AMBULANCE_FACILITY_SERVICE_PRICE_NAME = "Ambulance per 1km-RHIC-ADMN-002";
 
+	public static final String GLOBAL_PROPERTY_AUTOPAY_ZERO_BILL = "mohbilling.autopayzerobill";
+	public static final String GLOBAL_PROPERTY_AUTOPAY_USER = "mohbilling.autopayuser";
+	public static final String GLOBAL_PROPERTY_AUTOPAY_TIME = "mohbilling.autopaytime";
+	public static final String GLOBAL_PROPERTY_AUTOPAY_DELAYS = "mohbilling.autopaydelays";
+	public static final long DEFAULT_AUTOPAY_TIME_SECONDS = 86400L;
+	public static final long DEFAULT_AUTOPAY_DELAYS_SECONDS = 43200L;
+
 }

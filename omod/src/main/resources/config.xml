@@ -438,6 +438,38 @@
         </description>
     </globalProperty>
 
+    <globalProperty>
+        <property>mohbilling.autopayzerobill</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Enable automatic payment confirmation for patient bills with zero due amount
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.autopayuser</property>
+        <defaultValue></defaultValue>
+        <description>
+            OpenMRS username used as collector/creator when auto-paying zero-due patient bills
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.autopaytime</property>
+        <defaultValue>86400</defaultValue>
+        <description>
+            Interval in seconds between auto-pay zero-bill scheduler runs (default 86400 = one day)
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.autopaydelays</property>
+        <defaultValue>43200</defaultValue>
+        <description>
+            Age in seconds a zero-due unpaid bill must exceed before auto-pay (default 43200 = 12 hours)
+        </description>
+    </globalProperty>
+
     <!-- /Required Global Properties -->
 
     <dwr>

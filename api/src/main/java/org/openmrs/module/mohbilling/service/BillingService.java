@@ -731,6 +731,13 @@ public interface BillingService {
 	public List<PatientBillIrembo> getUnpaidBills(Patient patient) throws DAOException;
 	public List<PatientBill> getUnpaidBillsWithInvoiceNumber() throws DAOException;
 
+	/**
+	 * Unpaid (or unconfirmed) non-voided patient bills with zero due amount
+	 * created on or before {@code createdOnOrBefore}.
+	 */
+	public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(java.util.Date createdOnOrBefore)
+			throws DAOException;
+
 	public void initIremboPay(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
 
 	IremboPayInitiationResult initIremboPayWithResult(Patient patient, PatientBill patientBill, String phoneNumber)
