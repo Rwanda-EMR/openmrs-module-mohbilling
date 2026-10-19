@@ -14,7 +14,6 @@
 	}
 
 	var index=0;
-
 	function addServiceToCart(serviceId, serviceName, servicePrice){
       //alert(servicePrice);
 		var isTheServiceExists=checkIfTheServiceAlreadyInTheList(serviceId);
@@ -32,7 +31,7 @@
 	    cell1.innerHTML="<span id='row_"+index+"'>"+(index+1)+".</span>";
 
 	    var cell2 = row.insertCell(1);
-	    cell2.innerHTML=serviceName;
+	    cell2.innerHTML=htmlEscape(serviceName);
 
 	    var cell3 = row.insertCell(2);
 	    cell3.innerHTML="<input type='text' size='3' name='quantity_"+index+"' id='quantity_"+index+"' style='text-align: center;' value='1' onblur='calculateTheBill();'/>";
@@ -64,6 +63,15 @@
 	    recountServiceInTheCart();
 	}
 
+	function htmlEscape(value) {
+		return String(value == null ? "" : value)
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#39;");
+	}
+
 	function recountServiceInTheCart(){
 		var table = document.getElementById("cartOfServices");
 
@@ -91,7 +99,7 @@
 		        var row = table.rows[i];
 
 		        if(null!=row){
-			        var hiddenElmnt=row.cells[5].childNodes[0];
+			        var hiddenElmnt=row.cells[row.cells.length - 1].childNodes[0];
 			        if(null != hiddenElmnt && serviceId == hiddenElmnt.value) {
 				    	return true;
 			        }
@@ -125,7 +133,7 @@
 			    for(var i=1; i<rowCount; i++) {
 			        var row = table.rows[i];
 
-			        var hiddenElmnt=row.cells[6].childNodes[0];
+			        var hiddenElmnt=row.cells[row.cells.length - 1].childNodes[0];
 			        if(null != hiddenElmnt && serviceId == hiddenElmnt.value) {
 				    	table.deleteRow(i);
 			            rowCount--;
@@ -170,7 +178,6 @@
 
 	function  savePatientBill(){
 		if(confirm("Are you sure you want to save?")){
-
 			//set the number of services which has been clicked
 			$j("#numberOfServicesClicked").val(index);
 
