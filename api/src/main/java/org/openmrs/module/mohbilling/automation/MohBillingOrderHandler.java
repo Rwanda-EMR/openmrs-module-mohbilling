@@ -18,6 +18,7 @@ import org.openmrs.Concept;
 import org.openmrs.DrugOrder;
 import org.openmrs.Obs;
 import org.openmrs.Order;
+import org.openmrs.OrderType;
 import org.openmrs.Patient;
 import org.openmrs.TestOrder;
 import org.openmrs.User;
@@ -431,9 +432,20 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
     }
 
     /**
+     * Global property mapping order types to the department their orders are billed on, as pairs of
+     * orderType=Department separated by commas, for example "Radiology Order=RADIOLOGIE".  The order type is given by
+     * uuid, id or name, and the department by name.  Orders of other types are billed on the department found as before.
+     */
+    public static final String GP_ORDER_TYPE_DEPARTMENTS = "billing.orderTypeDepartments";
+
+    /**
      * @return the Department applicable for the given order
      */
     Department getDepartmentForOrder(Order order) {
+        Department configured = getConfiguredDepartmentForOrderType(order);
+        if (configured != null) {
+            return configured;
+        }
         Department department = null;
         for (Department dept : billingService.getAllDepartements()) {
             String deptName = dept.getName().trim().toUpperCase();
@@ -479,6 +491,49 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             }
         }
         return department;
+    }
+
+    /**
+     * @return the department configured for the order's type in {@link #GP_ORDER_TYPE_DEPARTMENTS}, or null if none is
+     */
+    Department getConfiguredDepartmentForOrderType(Order order) {
+        String departmentName = getDepartmentNameForOrderType(order.getOrderType(),
+                ConfigUtil.getGlobalProperty(GP_ORDER_TYPE_DEPARTMENTS));
+        if (departmentName == null) {
+            return null;
+        }
+        for (Department dept : billingService.getAllDepartements()) {
+            if (dept.getName() != null && dept.getName().trim().equalsIgnoreCase(departmentName)) {
+                return dept;
+            }
+        }
+        log.warn("{} maps order type {} to department {}, which does not exist; using the default department",
+                GP_ORDER_TYPE_DEPARTMENTS, order.getOrderType(), departmentName);
+        return null;
+    }
+
+    /**
+     * @return the name of the department the configuration maps the order type to, or null if it maps it to none
+     */
+    static String getDepartmentNameForOrderType(OrderType orderType, String configuration) {
+        if (orderType == null || StringUtils.isBlank(configuration)) {
+            return null;
+        }
+        for (String mapping : configuration.split(",")) {
+            int separator = mapping.indexOf('=');
+            if (separator <= 0) {
+                continue;
+            }
+            String orderTypeRef = mapping.substring(0, separator).trim();
+            String departmentName = mapping.substring(separator + 1).trim();
+            boolean matches = orderTypeRef.equalsIgnoreCase(orderType.getUuid())
+                    || (orderType.getOrderTypeId() != null && orderTypeRef.equals(orderType.getOrderTypeId().toString()))
+                    || orderTypeRef.equalsIgnoreCase(StringUtils.trimToEmpty(orderType.getName()));
+            if (matches && StringUtils.isNotBlank(departmentName)) {
+                return departmentName;
+            }
+        }
+        return null;
     }
 
     /**

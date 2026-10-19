@@ -66,6 +66,16 @@
     <!-- Required Global Properties -->
 
     <globalProperty>
+        <property>billing.orderTypeDepartments</property>
+        <defaultValue></defaultValue>
+        <description>
+            Department that orders of some order types are billed on, as pairs of orderType=Department separated by commas,
+            for example: Radiology Order=RADIOLOGIE. The order type is given by uuid, id or name, the department by name.
+            Orders of other types are billed as before: test orders on the Laboratory department, drug orders on Pharmacy.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>billing.defaultLocation</property>
         <defaultValue>137</defaultValue>
         <description>
