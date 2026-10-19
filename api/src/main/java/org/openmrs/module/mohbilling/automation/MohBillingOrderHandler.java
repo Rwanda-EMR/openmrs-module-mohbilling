@@ -227,6 +227,10 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             HopService hopService = billingService.getHopService(facilityServicePrice.getCategory());
             BigDecimal unitPrice = billableService.getMaximaToPay();
             log.debug("unitPrice: {}", unitPrice);
+            if (unitPrice == null) {
+                log.warn("No price (maxima to pay) configured for {} on {} insurance, not billing order {}", facilityServicePrice.getName(), insurancePolicy.getInsurance().getName(), order);
+                continue;
+            }
             BigDecimal quantity = new BigDecimal(1);
             if (order instanceof DrugOrder) {
                 DrugOrder drugOrder = (DrugOrder) order;
@@ -545,7 +549,14 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         String gpVal = ConfigUtil.getGlobalProperty("laboratorymanagement.conceptSetsToBill");
         if (StringUtils.isNotBlank(gpVal)) {
             for (String conceptSetRef : gpVal.split(",")) {
+                if (StringUtils.isBlank(conceptSetRef)) {
+                    continue;
+                }
                 Concept conceptSet = getConcept(conceptSetRef);
+                if (conceptSet == null) {
+                    log.warn("laboratorymanagement.conceptSetsToBill references a concept that was not found: {}", conceptSetRef);
+                    continue;
+                }
                 List<Concept> conceptSetMembers = conceptService.getConceptsByConceptSet(conceptSet);
                 for (Concept setMember : conceptSetMembers) {
                     ret.put(setMember, conceptSet);
