@@ -150,11 +150,11 @@ public class MohBillingCohortBuilderFormController extends
 
 	/**
 	 * Name of the insurance to hide: the private insurance named in rwandaemr.autoCreateInsuranceType,
-	 * or null when mohbilling.findBills.hidePrivateInsurance is not true or no private insurance is set
+	 * or null when billing.activateNoneFeature is not true or no private insurance is set
 	 */
 	private String getHiddenInsuranceName() {
 		boolean hide = Boolean.parseBoolean(Context.getAdministrationService().getGlobalProperty(
-				BillingConstants.GLOBAL_PROPERTY_FIND_BILLS_HIDE_PRIVATE_INSURANCE, "false").trim());
+				BillingConstants.GLOBAL_PROPERTY_ACTIVATE_NONE_FEATURE, "false").trim());
 		if (!hide)
 			return null;
 		String privateInsuranceName = Context.getAdministrationService().getGlobalProperty(

@@ -488,7 +488,7 @@
     </globalProperty>
 
     <globalProperty>
-        <property>mohbilling.findBills.hidePrivateInsurance</property>
+        <property>billing.activateNoneFeature</property>
         <defaultValue>false</defaultValue>
         <description>
             When true, bills of the private insurance (the insurance named in rwandaemr.autoCreateInsuranceType)
