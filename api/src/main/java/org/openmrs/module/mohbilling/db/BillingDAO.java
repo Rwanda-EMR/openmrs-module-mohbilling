@@ -803,4 +803,10 @@ public interface BillingDAO {
 
 	public List<Consommation> getConsommationsOld(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
 
+
+	public Proforma saveProforma(Proforma proforma);
+	public Proforma getProforma(Integer proformaId);
+	public Proforma getProformaByUuid(String uuid);
+	public List<Proforma> getProformas(Patient patient, Insurance insurance, Date startDate, Date endDate,
+			String status, String identifier, Integer maxResults);
 }

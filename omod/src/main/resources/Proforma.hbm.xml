@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<class name="Proforma" table="moh_bill_proforma">
+
+		<id name="proformaId" type="int" column="proforma_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="identifier" column="identifier" type="string" />
+		<many-to-one name="patient" class="org.openmrs.Patient" column="patient_id" not-null="true" />
+		<many-to-one name="insurance" class="org.openmrs.module.mohbilling.model.Insurance" column="insurance_id" not-null="true" />
+		<many-to-one name="department" class="org.openmrs.module.mohbilling.model.Department" column="department_id" />
+		<property name="insuranceRate" column="insurance_rate" type="float" />
+		<property name="flatFee" column="flat_fee" type="big_decimal" />
+		<property name="totalAmount" column="total_amount" type="big_decimal" not-null="true" />
+		<property name="insuranceAmount" column="insurance_amount" type="big_decimal" not-null="true" />
+		<property name="patientAmount" column="patient_amount" type="big_decimal" not-null="true" />
+		<property name="validUntil" column="valid_until" type="java.util.Date" />
+		<property name="addressee" column="addressee" type="string" />
+		<property name="notes" column="notes" type="text" />
+		<property name="status" column="status" type="string" not-null="true" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" not-null="true" />
+		<property name="createdDate" column="created_date" type="java.util.Date" not-null="true" />
+		<many-to-one name="cancelledBy" class="org.openmrs.User" column="cancelled_by" />
+		<property name="cancelledDate" column="cancelled_date" type="java.util.Date" />
+		<property name="cancelReason" column="cancel_reason" type="string" />
+		<property name="uuid" column="uuid" type="string" not-null="true" />
+
+		<set name="items" inverse="true" cascade="all-delete-orphan" lazy="false" order-by="proforma_item_id">
+			<key column="proforma_id" not-null="true" />
+			<one-to-many class="org.openmrs.module.mohbilling.model.ProformaItem" />
+		</set>
+	</class>
+
+</hibernate-mapping>

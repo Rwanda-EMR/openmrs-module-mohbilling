@@ -3160,4 +3160,28 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.countRhipVoucherSubmissionGlobalBills(criteria);
 	}
 
+
+	@Override
+	public Proforma saveProforma(Proforma proforma) {
+		return billingDAO.saveProforma(proforma);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Proforma getProforma(Integer proformaId) {
+		return billingDAO.getProforma(proformaId);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Proforma getProformaByUuid(String uuid) {
+		return billingDAO.getProformaByUuid(uuid);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<Proforma> getProformas(Patient patient, Insurance insurance, Date startDate, Date endDate,
+			String status, String identifier, Integer maxResults) {
+		return billingDAO.getProformas(patient, insurance, startDate, endDate, status, identifier, maxResults);
+	}
 }

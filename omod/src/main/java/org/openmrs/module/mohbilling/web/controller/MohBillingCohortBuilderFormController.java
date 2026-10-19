@@ -78,6 +78,14 @@ public class MohBillingCohortBuilderFormController extends
 				thirdParty = Context.getService(BillingService.class).getThirdParty(Integer.valueOf(request.getParameter("thirdPartyId")));
 
 			List<Consommation> cons = ConsommationUtil.getConsommationsOld(startDate, endDate, insurance, thirdParty, creator, department);
+			if (hidePrivateInsurance()) {
+				List<Consommation> consWithoutPrivate = new ArrayList<Consommation>();
+				for (Consommation con : cons) {
+					if (!isPrivateInsurance(con.getBeneficiary().getInsurancePolicy().getInsurance()))
+						consWithoutPrivate.add(con);
+				}
+				cons = consWithoutPrivate;
+			}
 			List<Consommation> consFilteredByBillStatus=new ArrayList<Consommation>();
 			if(billStatus!=null){
 				for (Consommation con:cons){
@@ -114,9 +122,27 @@ public class MohBillingCohortBuilderFormController extends
 			}
 
 		}
-		mav.addObject("insurances", InsuranceUtil.getAllInsurances());
+		List<Insurance> insurances = InsuranceUtil.getAllInsurances();
+		if (hidePrivateInsurance()) {
+			List<Insurance> insurancesWithoutPrivate = new ArrayList<Insurance>();
+			for (Insurance ins : insurances) {
+				if (!isPrivateInsurance(ins))
+					insurancesWithoutPrivate.add(ins);
+			}
+			insurances = insurancesWithoutPrivate;
+		}
+		mav.addObject("insurances", insurances);
 		mav.addObject("thirdParties", InsurancePolicyUtil.getAllThirdParties());
 		mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
 		return mav;
+	}
+
+	private boolean hidePrivateInsurance() {
+		return Boolean.parseBoolean(Context.getAdministrationService().getGlobalProperty(
+				BillingConstants.GLOBAL_PROPERTY_FIND_BILLS_HIDE_PRIVATE_INSURANCE, "false").trim());
+	}
+
+	private boolean isPrivateInsurance(Insurance insurance) {
+		return insurance != null && InsuranceCategory.PRIVATE.toString().equalsIgnoreCase(insurance.getCategory());
 	}
 }

@@ -54,6 +54,8 @@
 				<prop key="module/@MODULE_ID@/billingAdmin.form">mohBillingAdminFormController</prop>
 				<prop key="module/@MODULE_ID@/rhipIntegrationLogs.form">mohBillingRhipIntegrationLogListController</prop>
 				<prop key="module/@MODULE_ID@/rhipVoucherSubmissions.form">mohBillingRhipVoucherSubmissionController</prop>
+				<prop key="module/@MODULE_ID@/proforma.form">mohBillingProformaFormController</prop>
+				<prop key="module/@MODULE_ID@/proformas.list">mohBillingProformaListController</prop>
 				<prop key="module/@MODULE_ID@/department.form">mohBillingDepartmentFormController</prop>
 				<prop key="module/@MODULE_ID@/admission.form">mohBillingAdmissionFormController</prop>
 				<prop key="module/@MODULE_ID@/departments.list">mohBillingDepartmentListController</prop>
@@ -193,6 +195,19 @@
 		<property name="viewName"><value>/module/mohbilling/mohBillingRhipVoucherSubmission</value></property>
 		<property name="billingService" ref="mohBillingService" />
 		<property name="voucherService" ref="rhipVoucherService" />
+	</bean>
+
+	<bean id="mohBillingProformaFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProformaFormController">
+		<property name="supportedMethods" value="GET,POST" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingProformaForm</value></property>
+		<property name="billingService" ref="mohBillingService" />
+	</bean>
+
+	<bean id="mohBillingProformaListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProformaListController">
+		<property name="supportedMethods" value="GET,POST" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingProformaList</value></property>
+		<property name="detailViewName"><value>/module/mohbilling/mohBillingProformaView</value></property>
+		<property name="billingService" ref="mohBillingService" />
 	</bean>
 
 	<bean id="mohBillingDepartmentFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentFormController">

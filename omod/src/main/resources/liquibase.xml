@@ -2266,4 +2266,72 @@
 				</createIndex>
 			</changeSet>
 
+	<changeSet id="moh_bill_proforma" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_proforma" /></not>
+		</preConditions>
+		<comment>
+			Proforma invoices (price estimates) issued before treatment. Independent from global bills.
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_proforma (
+			proforma_id int(11) NOT NULL AUTO_INCREMENT,
+			identifier varchar(50) DEFAULT NULL,
+			patient_id int(11) NOT NULL,
+			insurance_id int(11) NOT NULL,
+			department_id int(11) DEFAULT NULL,
+			insurance_rate float DEFAULT NULL,
+			flat_fee decimal(20,2) DEFAULT NULL,
+			total_amount decimal(20,2) NOT NULL DEFAULT '0.00',
+			insurance_amount decimal(20,2) NOT NULL DEFAULT '0.00',
+			patient_amount decimal(20,2) NOT NULL DEFAULT '0.00',
+			valid_until date DEFAULT NULL,
+			addressee varchar(255) DEFAULT NULL,
+			notes text DEFAULT NULL,
+			status varchar(20) NOT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			cancelled_by int(11) DEFAULT NULL,
+			cancelled_date datetime DEFAULT NULL,
+			cancel_reason varchar(255) DEFAULT NULL,
+			uuid char(38) NOT NULL,
+			PRIMARY KEY (proforma_id),
+			UNIQUE KEY moh_bill_proforma_uuid (uuid),
+			UNIQUE KEY moh_bill_proforma_identifier (identifier),
+			KEY moh_bill_proforma_patient (patient_id),
+			KEY moh_bill_proforma_insurance (insurance_id),
+			KEY moh_bill_proforma_created_date (created_date),
+			CONSTRAINT moh_bill_proforma_patient_fk FOREIGN KEY (patient_id) REFERENCES patient (patient_id),
+			CONSTRAINT moh_bill_proforma_insurance_fk FOREIGN KEY (insurance_id) REFERENCES moh_bill_insurance (insurance_id),
+			CONSTRAINT moh_bill_proforma_creator_fk FOREIGN KEY (creator) REFERENCES users (user_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_proforma_item" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_proforma_item" /></not>
+		</preConditions>
+		<comment>
+			Line items of proforma invoices, with price snapshots.
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_proforma_item (
+			proforma_item_id int(11) NOT NULL AUTO_INCREMENT,
+			proforma_id int(11) NOT NULL,
+			billable_service_id int(11) DEFAULT NULL,
+			service_name varchar(255) NOT NULL,
+			category_name varchar(255) DEFAULT NULL,
+			unit_price decimal(20,2) NOT NULL,
+			quantity decimal(20,2) NOT NULL,
+			line_total decimal(20,2) NOT NULL,
+			uuid char(38) NOT NULL,
+			PRIMARY KEY (proforma_item_id),
+			UNIQUE KEY moh_bill_proforma_item_uuid (uuid),
+			KEY moh_bill_proforma_item_proforma (proforma_id),
+			CONSTRAINT moh_bill_proforma_item_proforma_fk FOREIGN KEY (proforma_id) REFERENCES moh_bill_proforma (proforma_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
 		</databaseChangeLog>

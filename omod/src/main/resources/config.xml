@@ -76,6 +76,13 @@
     </globalProperty>
 
     <globalProperty>
+        <property>billing.proformaValidityDays</property>
+        <defaultValue>30</defaultValue>
+        <description>
+            Number of days a proforma invoice remains valid after it is issued
+        </description>
+    </globalProperty>
+    <globalProperty>
         <property>billing.defaultLocation</property>
         <defaultValue>137</defaultValue>
         <description>
@@ -480,6 +487,15 @@
         </description>
     </globalProperty>
 
+    <globalProperty>
+        <property>mohbilling.findBills.hidePrivateInsurance</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            When true, bills of insurances with category PRIVATE are not shown on the Find Bills report.
+            When false (default), bills of all insurances are shown.
+        </description>
+    </globalProperty>
+
     <!-- /Required Global Properties -->
 
     <dwr>
@@ -696,6 +712,20 @@
         <description>Allows user to view RHIP voucher submission history</description>
     </privilege>
 
+    <!-- Proforma invoices -->
+    <privilege>
+        <name>Billing Proforma - View</name>
+        <description>Allows user to search, view and print proforma invoices</description>
+    </privilege>
+    <privilege>
+        <name>Billing Proforma - Create</name>
+        <description>Allows user to create proforma invoices</description>
+    </privilege>
+    <privilege>
+        <name>Billing Proforma - Cancel</name>
+        <description>Allows user to cancel proforma invoices</description>
+    </privilege>
+
     <!-- Manage billing admission -->
     <privilege>
         <name>Manage Admission</name>
@@ -808,6 +838,8 @@
         RhipIntegrationLog.hbm.xml
         RhipVoucherSubmission.hbm.xml
         RhipVoucherItemRecord.hbm.xml
+        Proforma.hbm.xml
+        ProformaItem.hbm.xml
     </mappingFiles>
 
 </module>

@@ -2788,4 +2788,109 @@ public class FileExporter {
 		User user = Context.getAuthenticatedUser();
 		displayFooter(document,consommation.getBeneficiary().getPatient(), user, null, fontSelector);
 	}
+
+	public void printProforma(HttpServletRequest request, HttpServletResponse response, Proforma proforma, String filename) throws Exception {
+		response.setContentType("application/pdf");
+		response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+		Document document = new Document();
+
+		FontSelector fontSelector = new FontSelector();
+		fontSelector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		FontSelector boldFont = new FontSelector();
+		boldFont.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
+		FontSelector titleFont = new FontSelector();
+		titleFont.addFont(new Font(FontFamily.COURIER, 12, Font.BOLD));
+
+		openFile(request, response, document);
+		displayHeader(document, fontSelector);
+
+		SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+		NumberFormat nf = new DecimalFormat("#,##0.00");
+
+		Paragraph title = new Paragraph();
+		title.add(titleFont.process("\nPROFORMA INVOICE N\u00b0 " + proforma.getIdentifier() + "\n"));
+		title.add(boldFont.process("ESTIMATE ONLY - THIS IS NOT A RECEIPT, NOT A BILL AND NOT AN INSURANCE CLAIM"
+				+ (proforma.isCancelled() ? "\n*** CANCELLED ***" : "") + "\n\n"));
+		title.setAlignment(Element.ALIGN_CENTER);
+		document.add(title);
+
+		Patient patient = proforma.getPatient();
+		String identifier = "";
+		if (patient.getPatientIdentifier(patientID) != null) {
+			identifier = patient.getPatientIdentifier(patientID).getIdentifier();
+		} else if (patient.getPatientIdentifier() != null) {
+			identifier = patient.getPatientIdentifier().getIdentifier();
+		}
+
+		PdfPTable info = new PdfPTable(new float[] { 25f, 75f });
+		info.setWidthPercentage(100f);
+		addInfoRow(info, "Patient", patient.getPersonName() + "   (" + identifier + ")", boldFont, fontSelector);
+		addInfoRow(info, "Insurance", proforma.getInsurance().getName()
+				+ (proforma.getInsuranceRate() != null ? "   (rate: " + proforma.getInsuranceRate() + "%)" : ""), boldFont, fontSelector);
+		if (proforma.getDepartment() != null) {
+			addInfoRow(info, "Department", proforma.getDepartment().getName(), boldFont, fontSelector);
+		}
+		if (proforma.getAddressee() != null) {
+			addInfoRow(info, "Addressed to", proforma.getAddressee(), boldFont, fontSelector);
+		}
+		addInfoRow(info, "Date issued", df.format(proforma.getCreatedDate()), boldFont, fontSelector);
+		addInfoRow(info, "Valid until", proforma.getValidUntil() != null ? df.format(proforma.getValidUntil()) : "", boldFont, fontSelector);
+		document.add(info);
+		document.add(new Paragraph("\n"));
+
+		PdfPTable table = new PdfPTable(new float[] { 5f, 25f, 45f, 15f, 10f, 20f });
+		table.setWidthPercentage(100f);
+		for (String h : new String[] { "#", "Category", "Service", "Unit price", "Qty", "Amount" }) {
+			PdfPCell cell = new PdfPCell(boldFont.process(h));
+			cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+			table.addCell(cell);
+		}
+		int i = 1;
+		for (ProformaItem item : proforma.getItems()) {
+			table.addCell(fontSelector.process(String.valueOf(i++)));
+			table.addCell(fontSelector.process(item.getCategoryName() != null ? item.getCategoryName() : ""));
+			table.addCell(fontSelector.process(item.getServiceName()));
+			table.addCell(rightCell(fontSelector, nf.format(item.getUnitPrice())));
+			table.addCell(rightCell(fontSelector, item.getQuantity().stripTrailingZeros().toPlainString()));
+			table.addCell(rightCell(fontSelector, nf.format(item.getLineTotal())));
+		}
+		addTotalRow(table, "TOTAL (100%)", nf.format(proforma.getTotalAmount()), boldFont);
+		addTotalRow(table, "INSURANCE SHARE", nf.format(proforma.getInsuranceAmount()), boldFont);
+		addTotalRow(table, "PATIENT SHARE", nf.format(proforma.getPatientAmount()), boldFont);
+		document.add(table);
+
+		Paragraph footNote = new Paragraph();
+		if (proforma.getNotes() != null) {
+			footNote.add(fontSelector.process("\nNotes: " + proforma.getNotes() + "\n"));
+		}
+		footNote.add(fontSelector.process("\nAmounts are estimates based on tariffs in force on the date of issue. "
+				+ "The final bill depends on the care actually provided.\n\n"));
+		document.add(footNote);
+
+		displayFooter(document, "Issued by: " + proforma.getCreator().getPersonName(), fontSelector);
+		document.close();
+	}
+
+	private void addInfoRow(PdfPTable table, String label, String value, FontSelector labelFont, FontSelector valueFont) {
+		PdfPCell cell = new PdfPCell(labelFont.process(label));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+		cell = new PdfPCell(valueFont.process(value != null ? value : ""));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+	}
+
+	private PdfPCell rightCell(FontSelector font, String text) {
+		PdfPCell cell = new PdfPCell(font.process(text));
+		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+		return cell;
+	}
+
+	private void addTotalRow(PdfPTable table, String label, String value, FontSelector font) {
+		PdfPCell cell = new PdfPCell(font.process(label));
+		cell.setColspan(5);
+		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+		table.addCell(cell);
+		table.addCell(rightCell(font, value));
+	}
 }

@@ -2855,4 +2855,53 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 		return criteria;
 	}
+
+	@Override
+	public Proforma saveProforma(Proforma proforma) {
+		sessionFactory.getCurrentSession().saveOrUpdate(proforma);
+		return proforma;
+	}
+
+	@Override
+	public Proforma getProforma(Integer proformaId) {
+		return (Proforma) sessionFactory.getCurrentSession().get(Proforma.class, proformaId);
+	}
+
+	@Override
+	public Proforma getProformaByUuid(String uuid) {
+		return (Proforma) sessionFactory.getCurrentSession()
+				.createCriteria(Proforma.class)
+				.add(Restrictions.eq("uuid", uuid))
+				.uniqueResult();
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Proforma> getProformas(Patient patient, Insurance insurance, Date startDate, Date endDate,
+			String status, String identifier, Integer maxResults) {
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Proforma.class);
+		if (patient != null) {
+			criteria.add(Restrictions.eq("patient", patient));
+		}
+		if (insurance != null) {
+			criteria.add(Restrictions.eq("insurance", insurance));
+		}
+		if (startDate != null) {
+			criteria.add(Restrictions.ge("createdDate", startDate));
+		}
+		if (endDate != null) {
+			criteria.add(Restrictions.lt("createdDate", endDate));
+		}
+		if (status != null) {
+			criteria.add(Restrictions.eq("status", status));
+		}
+		if (identifier != null) {
+			criteria.add(Restrictions.like("identifier", identifier, org.hibernate.criterion.MatchMode.ANYWHERE));
+		}
+		criteria.addOrder(Order.desc("createdDate"));
+		if (maxResults != null) {
+			criteria.setMaxResults(maxResults);
+		}
+		return criteria.list();
+	}
 }

@@ -832,4 +832,10 @@ public interface BillingService {
 	public List<GlobalBill> getRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria,
 			Integer firstResult, Integer maxResults);
 	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria);
+
+	public Proforma saveProforma(Proforma proforma);
+	public Proforma getProforma(Integer proformaId);
+	public Proforma getProformaByUuid(String uuid);
+	public List<Proforma> getProformas(Patient patient, Insurance insurance, Date startDate, Date endDate,
+			String status, String identifier, Integer maxResults);
 }
