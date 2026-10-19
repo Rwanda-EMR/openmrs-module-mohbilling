@@ -106,6 +106,17 @@
 								</select>
 							</td>
 
+							<c:if test="${showGlobalBillStatusFilter}">
+							<td class="globalBillStatus">Global Bill Status</td>
+							<td class="globalBillStatus">
+								<select name="globalBillStatus">
+									<option value="">---</option>
+									<option value="DISCHARGED" ${globalBillStatus== 'DISCHARGED' ? 'selected' : ''}>DISCHARGED</option>
+									<option value="NOT DISCHARGED" ${globalBillStatus== 'NOT DISCHARGED' ? 'selected' : ''}>NOT DISCHARGED</option>
+								</select>
+							</td>
+							</c:if>
+
 						  	<td class="collector">Collector :</td>
 		    				<td class="collector"><openmrs_tag:userField formFieldName="cashCollector" initialValue="${cashCollector}" roles="Cashier;Chief Cashier" /></td>
 
