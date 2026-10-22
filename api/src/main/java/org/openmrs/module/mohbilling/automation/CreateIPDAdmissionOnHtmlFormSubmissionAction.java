@@ -7,6 +7,7 @@ import java.util.List;
 // <postSubmissionAction class="org.openmrs.module.mohbilling.automation.CreateIPDAdmissionOnHtmlFormSubmissionAction"/>
 
 import org.openmrs.Obs;
+import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.htmlformentry.CustomFormSubmissionAction;
 import org.openmrs.module.htmlformentry.FormEntrySession;
@@ -46,10 +47,13 @@ if(currentInsuranceId.size()>=1)
         GlobalBill openGb=Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(ip.getInsuranceCardNo());
 
             if (openGb == null) {
+                Visit visit = AdmissionUtil.requireVisitForAdmission(session.getPatient(),
+                        session.getEncounter());
                 Admission admission = new Admission();
                 admission.setAdmissionDate(new Date());
                 admission.setInsurancePolicy(ip);
                 admission.setIsAdmitted(true);
+                admission.setVisit(visit);
                 admission.setCreator(Context.getAuthenticatedUser());
                 admission.setCreatedDate(new Date());
 
@@ -79,10 +83,13 @@ if(currentInsuranceId.size()>=1)
             List<InsurancePolicy> insurancePolicies = Context.getService(BillingService.class).getAllInsurancePoliciesByPatient(session.getPatient());
             for (InsurancePolicy insp : insurancePolicies) {
                 if (insp.getInsurance().getCategory().equals("NONE") && (insp.getExpirationDate().after(new Date())) && Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(insp.getInsuranceCardNo()) == null) {
+                    Visit visitNone = AdmissionUtil.requireVisitForAdmission(session.getPatient(),
+                            session.getEncounter());
                     Admission admissionNone = new Admission();
                     admissionNone.setAdmissionDate(new Date());
                     admissionNone.setInsurancePolicy(insp);
                     admissionNone.setIsAdmitted(false);
+                    admissionNone.setVisit(visitNone);
                     admissionNone.setCreator(Context.getAuthenticatedUser());
                     admissionNone.setCreatedDate(new Date());
                     for (Obs o : obs) {

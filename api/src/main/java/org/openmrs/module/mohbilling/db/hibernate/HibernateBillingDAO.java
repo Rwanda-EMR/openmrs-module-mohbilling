@@ -1205,6 +1205,26 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
+    public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance) {
+        Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class, "admission");
+        // voided is NOT NULL boolean in moh_bill_admission
+        crit.add(Restrictions.eq("voided", false));
+        if (startDate != null) {
+            crit.add(Restrictions.ge("admissionDate", startDate));
+        }
+        if (endDate != null) {
+            crit.add(Restrictions.le("admissionDate", endDate));
+        }
+        if (insurance != null) {
+            crit.createAlias("insurancePolicy", "policy");
+            crit.createAlias("policy.insurance", "ins");
+            crit.add(Restrictions.eq("ins.insuranceId", insurance.getInsuranceId()));
+        }
+        crit.addOrder(Order.asc("admissionDate"));
+        return crit.list();
+    }
+
+    @Override
     public void saveConsommation(Consommation consommation) {
         sessionFactory.getCurrentSession().saveOrUpdate(consommation);
     }

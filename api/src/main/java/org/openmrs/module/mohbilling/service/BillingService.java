@@ -482,6 +482,12 @@ public interface BillingService {
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
 
 	/**
+	 * Admissions whose admissionDate is between start and end (inclusive),
+	 * optionally filtered by insurance on the linked policy.
+	 */
+	public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance);
+
+	/**
 	 * Save consommation to the DB
 	 * @param consommation consommat to be saved
 	 */

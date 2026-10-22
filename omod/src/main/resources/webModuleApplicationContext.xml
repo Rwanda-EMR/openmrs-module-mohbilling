@@ -80,6 +80,7 @@
 				<prop key="module/@MODULE_ID@/viewRefundedItems.form">mohBillingViewRefundedItemsController</prop>
 				<prop key="module/@MODULE_ID@/viewGlobalBill.form">mohBillingViewGlobalBillController</prop>
 				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortBuilderFormController</prop>
+				<prop key="module/@MODULE_ID@/billReport.form">mohBillingBillReportController</prop>
 				<prop key="module/@MODULE_ID@/depositReport.form">mohBillingDepositReportController</prop>
 				<prop key="module/@MODULE_ID@/billingsessionControl.form">mohBillingsessionControlFormController</prop>
 				<prop key="module/@MODULE_ID@/beforeMigrationcashierReport.form">beforemigrationmohBillingCashierReportController</prop>
@@ -297,6 +298,11 @@
 	<bean id="mohBillingInsuranceReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingInsuranceReportController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceReport</value></property>
+	</bean>
+
+	<bean id="mohBillingBillReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillReportController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingBillReport</value></property>
 	</bean>
 
 	<bean id="mohBillingThirdPartyReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingThirdPartyReportController">
