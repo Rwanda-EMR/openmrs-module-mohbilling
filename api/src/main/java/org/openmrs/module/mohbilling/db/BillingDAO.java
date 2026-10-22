@@ -516,6 +516,12 @@ public interface BillingDAO {
 	 */
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
 
+	/**
+	 * Admissions whose admissionDate is between start and end (inclusive),
+	 * optionally filtered by insurance on the linked policy.
+	 */
+	public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance);
+
 
 	public void saveConsommation(Consommation consommation);
 

@@ -2,6 +2,8 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.Visit;
+import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.AdmissionUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
@@ -58,9 +60,20 @@ public class MohBillingAdmissionFormController extends
 				ip = Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
 
 
+				Visit visit;
+				try {
+					visit = AdmissionUtil.requireActiveVisit(ip.getOwner());
+				} catch (APIException e) {
+					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, e.getMessage());
+					mav.addObject("insurancePolicy", ip);
+					mav.setViewName(getViewName());
+					return mav;
+				}
+
 				Admission admission = new Admission();
 				admission.setAdmissionDate(new Date());
 				admission.setInsurancePolicy(ip);
+				admission.setVisit(visit);
 				//admission.setDischargingDate(new Date());
 				Boolean isAdmitted = null;
 				if (request.getParameterValues("isAdmitted") != null) {

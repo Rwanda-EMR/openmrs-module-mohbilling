@@ -4,6 +4,7 @@
 package org.openmrs.module.mohbilling.model;
 
 import org.openmrs.User;
+import org.openmrs.Visit;
 
 import java.util.Date;
 
@@ -40,9 +41,19 @@ public class Admission {
 
 	private Integer admissionType;
 
+	/** Linked OpenMRS visit; nullable for legacy admissions created before visit hard-link. */
+	private Visit visit;
 
 	public Integer getAdmissionType() {
 		return admissionType;
+	}
+
+	public Visit getVisit() {
+		return visit;
+	}
+
+	public void setVisit(Visit visit) {
+		this.visit = visit;
 	}
 
 	public void setAdmissionType(Integer admissionType) {

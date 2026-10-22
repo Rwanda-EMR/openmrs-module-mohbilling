@@ -2334,4 +2334,241 @@
 		</sql>
 	</changeSet>
 
-		</databaseChangeLog>
+	<!-- CBHI claim report: location attribute types for facility classification -->
+
+	<changeSet id="mohbilling-20261020-location-attr-facility-type" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = 'dc3f9f53-730a-4fc6-928c-a113e1089e7e'
+				   OR name = 'Facility Type'
+			</sqlCheck>
+		</preConditions>
+		<comment>
+			Create Location Attribute Type: Facility Type (free text) for CBHI claim reporting
+		</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Facility Type',
+			 'Facility type classification for CBHI claim reporting (free text)',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL,
+			 0, 1, 1, NOW(), 0,
+			 'dc3f9f53-730a-4fc6-928c-a113e1089e7e');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261020-location-attr-facility-category" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '23200719-eb8d-4532-854f-75ba9dcf796e'
+				   OR name = 'Facility Category'
+			</sqlCheck>
+		</preConditions>
+		<comment>
+			Create Location Attribute Type: Facility Category (free text) for CBHI claim reporting
+		</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Facility Category',
+			 'Facility category classification for CBHI claim reporting (free text)',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL,
+			 0, 1, 1, NOW(), 0,
+			 '23200719-eb8d-4532-854f-75ba9dcf796e');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261020-location-attr-level-of-care" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '0dfb14f2-9759-4c88-8938-3d9999bc9942'
+				   OR name = 'Level of Care'
+			</sqlCheck>
+		</preConditions>
+		<comment>
+			Create Location Attribute Type: Level of Care (free text) for CBHI claim reporting
+		</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Level of Care',
+			 'Level of care classification for CBHI claim reporting (free text)',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL,
+			 0, 1, 1, NOW(), 0,
+			 '0dfb14f2-9759-4c88-8938-3d9999bc9942');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261020-location-attr-owner-type" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '3acba29f-5aef-4620-a72e-46eb971b4bb1'
+				   OR name = 'Owner Type'
+			</sqlCheck>
+		</preConditions>
+		<comment>
+			Create Location Attribute Type: Owner Type (free text) for CBHI claim reporting
+		</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Owner Type',
+			 'Owner type classification for CBHI claim reporting (free text)',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL,
+			 0, 1, 1, NOW(), 0,
+			 '3acba29f-5aef-4620-a72e-46eb971b4bb1');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261021-location-attr-facility-name" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = 'a3c3be95-d1a6-4fe5-9d88-7555f850416a'
+				   OR name = 'Facility Name'
+			</sqlCheck>
+		</preConditions>
+		<comment>Location Attribute Type: Facility Name (free text) for Bill Report settings</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Facility Name',
+			 'Facility display name for CBHI Bill Report header',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL, 0, 1, 1, NOW(), 0,
+			 'a3c3be95-d1a6-4fe5-9d88-7555f850416a');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261021-location-attr-province-name" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = 'f647cb4d-060c-4159-90df-42658365fa9a'
+				   OR name = 'Province Name'
+			</sqlCheck>
+		</preConditions>
+		<comment>Location Attribute Type: Province Name (free text) for Bill Report settings</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Province Name',
+			 'Province name for CBHI Bill Report header',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL, 0, 1, 1, NOW(), 0,
+			 'f647cb4d-060c-4159-90df-42658365fa9a');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261021-location-attr-district-name" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '7df320d4-b4d7-4add-b3e9-6742e877fb3e'
+				   OR name = 'District Name'
+			</sqlCheck>
+		</preConditions>
+		<comment>Location Attribute Type: District Name (free text) for Bill Report settings</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('District Name',
+			 'District name for CBHI Bill Report header',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL, 0, 1, 1, NOW(), 0,
+			 '7df320d4-b4d7-4add-b3e9-6742e877fb3e');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261021-location-attr-sector-name" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '0699c216-f0f9-4961-bc7b-31f5904a7459'
+				   OR name = 'Sector Name'
+			</sqlCheck>
+		</preConditions>
+		<comment>Location Attribute Type: Sector Name (free text) for Bill Report settings</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Sector Name',
+			 'Sector name for CBHI Bill Report header',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL, 0, 1, 1, NOW(), 0,
+			 '0699c216-f0f9-4961-bc7b-31f5904a7459');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261022-admission-visit-id-column" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_admission" />
+			<tableExists tableName="visit" />
+			<not>
+				<columnExists tableName="moh_bill_admission" columnName="visit_id" />
+			</not>
+		</preConditions>
+		<comment>
+			Add nullable visit_id on moh_bill_admission for hard link to OpenMRS visit.
+			NULL is allowed so existing admissions remain valid.
+		</comment>
+		<addColumn tableName="moh_bill_admission">
+			<column name="visit_id" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261022-admission-visit-id-fk" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_admission" />
+			<tableExists tableName="visit" />
+			<columnExists tableName="moh_bill_admission" columnName="visit_id" />
+			<not>
+				<foreignKeyConstraintExists foreignKeyTableName="moh_bill_admission" foreignKeyName="admission_visit" />
+			</not>
+		</preConditions>
+		<comment>Foreign key moh_bill_admission.visit_id → visit.visit_id</comment>
+		<addForeignKeyConstraint
+			baseTableName="moh_bill_admission"
+			baseColumnNames="visit_id"
+			constraintName="admission_visit"
+			referencedTableName="visit"
+			referencedColumnNames="visit_id"
+			deferrable="false"
+			initiallyDeferred="false" />
+	</changeSet>
+
+</databaseChangeLog>

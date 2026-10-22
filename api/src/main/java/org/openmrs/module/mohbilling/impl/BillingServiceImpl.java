@@ -697,6 +697,12 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getAdmissionsListByInsurancePolicy(ip);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance) {
+        return billingDAO.getAdmissionsByAdmissionDate(startDate, endDate, insurance);
+    }
+
     /*
      * (non-Javadoc)
      *

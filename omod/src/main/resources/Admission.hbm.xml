@@ -21,6 +21,7 @@
 		<property name="voidReason" column="void_reason" type="text" />
 		
 	    <many-to-one name="insurancePolicy" class="org.openmrs.module.mohbilling.model.InsurancePolicy" column="insurance_policy_id" />
+		<many-to-one name="visit" class="org.openmrs.Visit" column="visit_id" not-null="false" />
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
 		<property name="diseaseType" column="disease_type" type="text" />

@@ -20,6 +20,20 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE = "billing.primaryIdentifierType";
 	public static final String GLOBAL_PROPERTY_OTHER_IDENTIFIER_TYPES = "billing.otherIdentifierTypes";
 	public static final String GLOBAL_PROPERTY_DEFAULT_LOCATION = "billing.defaultLocation";
+
+	/** Final / primary diagnosis question concept ids (comma-separated) shown on Global Bill. */
+	public static final String GLOBAL_PROPERTY_FINAL_DIAGNOSIS_CONCEPT_IDS =
+			"billing.finalDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill";
+	/** Bill Report primary diagnosis question concept UUID (obs search around admission date). */
+	public static final String GLOBAL_PROPERTY_PRIMARY_DIAGNOSIS_CONCEPT_UUID =
+			"mohbilling.billReport.primaryDiagnosisConceptUuid";
+	/** Optional Yes/No concept ids for "Confirmed By lab/Imaging" on Bill Report. */
+	public static final String GLOBAL_PROPERTY_CONFIRMED_BY_LAB_IMAGING_CONCEPT_IDS =
+			"mohbilling.billReport.confirmedByLabImagingConceptIds";
+	/** Default Rwanda EMR Primary ICD diagnosis question UUID. */
+	public static final String PRIMARY_ICD_DIAGNOSIS_CONCEPT_UUID = "2dce81f9-3874-4247-b441-6369ca0725c2";
+	/** Days before/after admission_date used when searching diagnosis obs. */
+	public static final int BILL_REPORT_DIAGNOSIS_OBS_DAY_WINDOW = 2;
 	
 	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO = "billing.healthFacilityLogo";
 	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_NAME = "billing.healthFacilityName";
@@ -130,5 +144,17 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_ACTIVATE_NONE_FEATURE = "billing.activateNoneFeature";
 	/** Name of the private insurance, set by the rwandaemr module */
 	public static final String GLOBAL_PROPERTY_PRIVATE_INSURANCE_NAME = "rwandaemr.autoCreateInsuranceType";
+
+	/** Location attribute type UUIDs created by mohbilling liquibase for CBHI Bill Report */
+	public static final String LOCATION_ATTR_FACILITY_TYPE_UUID = "dc3f9f53-730a-4fc6-928c-a113e1089e7e";
+	public static final String LOCATION_ATTR_FACILITY_CATEGORY_UUID = "23200719-eb8d-4532-854f-75ba9dcf796e";
+	public static final String LOCATION_ATTR_LEVEL_OF_CARE_UUID = "0dfb14f2-9759-4c88-8938-3d9999bc9942";
+	public static final String LOCATION_ATTR_OWNER_TYPE_UUID = "3acba29f-5aef-4620-a72e-46eb971b4bb1";
+	public static final String LOCATION_ATTR_FACILITY_NAME_UUID = "a3c3be95-d1a6-4fe5-9d88-7555f850416a";
+	public static final String LOCATION_ATTR_PROVINCE_NAME_UUID = "f647cb4d-060c-4159-90df-42658365fa9a";
+	public static final String LOCATION_ATTR_DISTRICT_NAME_UUID = "7df320d4-b4d7-4add-b3e9-6742e877fb3e";
+	public static final String LOCATION_ATTR_SECTOR_NAME_UUID = "0699c216-f0f9-4961-bc7b-31f5904a7459";
+	/** Common FOSA ID location attribute type name (rwandaemr / initializer) */
+	public static final String LOCATION_ATTR_FOSA_ID_NAME = "FOSA ID";
 
 }

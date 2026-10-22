@@ -184,6 +184,32 @@ public class FileExporter {
 				facilityEmail);
 	}
 
+	public static void exportBillReportData(HttpServletResponse response, Insurance insurance,
+			BillReportFacilityHeader facilityHeader, List<BillReportItem> reportRows, Date startDate, Date endDate) {
+		if (response == null || reportRows == null) {
+			throw new IllegalArgumentException("exportBillReportData expects a response and report rows.");
+		}
+		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition",
+				"attachment; filename=\"bill_report_" + formatter.format(new Date()) + ".xlsx\"");
+		try (OutputStream outputStream = response.getOutputStream()) {
+			BillReportXlsxWriter.write(outputStream, insurance, facilityHeader, reportRows, startDate, endDate);
+			outputStream.flush();
+		} catch (Exception | LinkageError e) {
+			log.error("Failed to write bill report XLSX", e);
+			if (!response.isCommitted()) {
+				try {
+					response.reset();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Unable to generate the bill report.");
+				} catch (IOException responseError) {
+					log.error("Failed to send the bill report export error", responseError);
+				}
+			}
+		}
+	}
+
 	public static void exportCashierReportData(HttpServletResponse response,
 			List<PaymentRevenue> paymentRevenues, List<BigDecimal> subTotals, BigDecimal bigTotal,
 			BigDecimal totalPaid, String reportTitle, User cashier) {
