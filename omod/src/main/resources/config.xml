@@ -229,6 +229,16 @@
     </globalProperty>
 
     <globalProperty>
+        <property>mohbilling.billReport.transferIdConceptUuid</property>
+        <defaultValue>076b04e5-d62d-47da-83e2-0da6e7a119b4</defaultValue>
+        <description>
+            Concept UUID for Bill Report Transfer ID obs (value_text = HIE transfer UUID
+            recorded at reception). If blank, falls back to transferapp.receivedTransferConceptUuid
+            / rwandaemr.hie.transfer_id. Soft-matched to transfers.uuid / hie_transfer_id for validity.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>billing.hideLegacyUiHeaderAndFooter</property>
         <defaultValue>false</defaultValue>
         <description>
@@ -426,6 +436,47 @@
     </globalProperty>
 
     <globalProperty>
+        <property>mohbilling.billReportEtl.scheduler.enabled</property>
+        <defaultValue>true</defaultValue>
+        <description>
+            Enable the scheduled local CBHI Bill Report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.scheduler.intervalSeconds</property>
+        <defaultValue>43200</defaultValue>
+        <description>
+            Interval in seconds between bill report ETL refreshes
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.scheduler.startTime</property>
+        <defaultValue>05:00</defaultValue>
+        <description>
+            Local server time (HH:mm) for the first bill report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.overlapDays</property>
+        <defaultValue>7</defaultValue>
+        <description>
+            Number of recent admission days rebuilt on every bill report ETL refresh to capture late obs/voids
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.startDate</property>
+        <defaultValue>2026-08-01</defaultValue>
+        <description>
+            Inclusive admission date (yyyy-MM-dd) from which the CBHI Bill Report ETL materializes rows.
+            Admissions before this date are skipped. Changing this value triggers a full ETL rebuild.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>mohbilling.IMAGING</property>
         <defaultValue></defaultValue>
         <description>
@@ -502,6 +553,18 @@
         <defaultValue>43200</defaultValue>
         <description>
             Age in seconds a zero-due unpaid bill must exceed before auto-pay (default 43200 = 12 hours)
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.autopayzerobill.processOldRecords</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Controls whether auto-pay processes historical zero-due bills.
+            false (default): only newly eligible bills (created within one scheduler cycle after
+            the configured delay) are auto-paid.
+            true: also continues auto-paying old unpaid zero-due bills in the backlog.
+            Requires mohbilling.autopayzerobill=true.
         </description>
     </globalProperty>
 

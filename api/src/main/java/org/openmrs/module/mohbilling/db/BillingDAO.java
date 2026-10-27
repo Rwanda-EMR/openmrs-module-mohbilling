@@ -518,9 +518,12 @@ public interface BillingDAO {
 
 	/**
 	 * Admissions whose admissionDate is between start and end (inclusive),
-	 * optionally filtered by insurance on the linked policy.
+	 * optionally filtered by a specific insurance or by insurance category
+	 * (e.g. MUTUELLE / RSSB). When {@code insuranceCategory} is set it takes
+	 * precedence over {@code insurance}.
 	 */
-	public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance);
+	public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance,
+			String insuranceCategory);
 
 
 	public void saveConsommation(Consommation consommation);
@@ -699,6 +702,36 @@ public interface BillingDAO {
 
 	Integer getMaximumCashierReportSourcePaymentId();
 
+	/**
+	 * Reads the materialized CBHI Bill Report populated by the billing scheduler.
+	 */
+	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+			String insuranceCategory);
+
+	int refreshBillReportEtl(Date refreshFrom);
+
+	int refreshBillReportEtlByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+			Date admissionDateFrom);
+
+	/**
+	 * Rebuilds ETL rows for one admission (delete + insert). Intended to run in its own
+	 * transaction so progress is visible before the full range finishes.
+	 */
+	int refreshBillReportEtlForAdmission(Integer admissionId);
+
+	int deleteBillReportEtlBeforeAdmissionDate(Date startDate);
+
+	Date getLatestBillReportEtlAdmissionDate();
+
+	Integer getMaximumBillReportEtlAdmissionId();
+
+	Integer getMinimumBillReportSourceAdmissionId(Date admissionDateFrom);
+
+	Integer getMaximumBillReportSourceAdmissionId(Date admissionDateFrom);
+
+	List<Admission> getAdmissionsByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+			Date admissionDateFrom);
+
 	public List<GlobalBill> getGlobalBills();
 
 	public List<GlobalBill> getGlobalBillsWithNullInsurance();
@@ -798,6 +831,15 @@ public interface BillingDAO {
 	 * and whose createdDate is on or before the given cutoff.
 	 */
 	public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(Date createdOnOrBefore);
+
+	/**
+	 * Unpaid (or unconfirmed) non-voided patient bills whose due amount is zero
+	 * and whose createdDate is within the optional inclusive bounds.
+	 *
+	 * @param createdOnOrAfter optional lower bound (inclusive); null = no lower bound
+	 * @param createdOnOrBefore optional upper bound (inclusive); null = no upper bound
+	 */
+	public List<PatientBill> getUnpaidZeroDueBillsCreatedBetween(Date createdOnOrAfter, Date createdOnOrBefore);
 
 	public PatientBill getPatientBillByInvoiceNumber(String invoiceNumber);
 

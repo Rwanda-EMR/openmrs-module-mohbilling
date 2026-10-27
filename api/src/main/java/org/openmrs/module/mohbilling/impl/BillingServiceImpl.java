@@ -699,8 +699,9 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance) {
-        return billingDAO.getAdmissionsByAdmissionDate(startDate, endDate, insurance);
+    public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance,
+            String insuranceCategory) {
+        return billingDAO.getAdmissionsByAdmissionDate(startDate, endDate, insurance, insuranceCategory);
     }
 
     /*
@@ -1235,6 +1236,107 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+            String insuranceCategory) {
+        return billingDAO.getBillReportFromEtl(startDate, endDate, insuranceId, insuranceCategory);
+    }
+
+    @Override
+    public int refreshBillReportEtl(Date refreshFrom) {
+        BillingService self = Context.getService(BillingService.class);
+        // Commit the window clear first so it cannot roll back rows inserted below.
+        self.clearBillReportEtlFromAdmissionDate(refreshFrom);
+        List<Admission> admissions = getAdmissionsByAdmissionDate(refreshFrom, null, null, null);
+        return refreshBillReportEtlAdmissions(admissions);
+    }
+
+    @Override
+    public int refreshBillReportEtlByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+            Date admissionDateFrom) {
+        List<Admission> admissions = billingDAO.getAdmissionsByAdmissionIdRange(admissionIdFrom, admissionIdTo,
+                admissionDateFrom);
+        return refreshBillReportEtlAdmissions(admissions);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int refreshBillReportEtlForAdmission(Integer admissionId) {
+        return billingDAO.refreshBillReportEtlForAdmission(admissionId);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int clearBillReportEtlFromAdmissionDate(Date refreshFrom) {
+        return billingDAO.refreshBillReportEtl(refreshFrom);
+    }
+
+    /**
+     * Calls {@link #refreshBillReportEtlForAdmission(Integer)} through the Spring proxy so each
+     * admission commits independently (REQUIRES_NEW).
+     */
+    private int refreshBillReportEtlAdmissions(List<Admission> admissions) {
+        if (admissions == null || admissions.isEmpty()) {
+            return 0;
+        }
+        BillingService self = Context.getService(BillingService.class);
+        int totalLoaded = 0;
+        int processed = 0;
+        for (Admission admission : admissions) {
+            if (admission == null || admission.getAdmissionId() == null) {
+                continue;
+            }
+            try {
+                totalLoaded += self.refreshBillReportEtlForAdmission(admission.getAdmissionId());
+            } catch (Exception e) {
+                log.error("Bill report ETL failed for admissionId=" + admission.getAdmissionId(), e);
+            }
+            processed++;
+            if (processed % 50 == 0) {
+                log.info("Bill report ETL progress: processed " + processed + "/" + admissions.size()
+                        + " admissions, loaded " + totalLoaded + " rows (committed)");
+            }
+        }
+        return totalLoaded;
+    }
+
+    @Override
+    public int deleteBillReportEtlBeforeAdmissionDate(Date startDate) {
+        return billingDAO.deleteBillReportEtlBeforeAdmissionDate(startDate);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Date getLatestBillReportEtlAdmissionDate() {
+        return billingDAO.getLatestBillReportEtlAdmissionDate();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getMaximumBillReportEtlAdmissionId() {
+        return billingDAO.getMaximumBillReportEtlAdmissionId();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getMinimumBillReportSourceAdmissionId(Date admissionDateFrom) {
+        return billingDAO.getMinimumBillReportSourceAdmissionId(admissionDateFrom);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getMaximumBillReportSourceAdmissionId(Date admissionDateFrom) {
+        return billingDAO.getMaximumBillReportSourceAdmissionId(admissionDateFrom);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Admission> getAdmissionsByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+            Date admissionDateFrom) {
+        return billingDAO.getAdmissionsByAdmissionIdRange(admissionIdFrom, admissionIdTo, admissionDateFrom);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Integer getMinimumInsuranceReportSourceGlobalBillId() {
         return billingDAO.getMinimumInsuranceReportSourceGlobalBillId();
     }
@@ -1265,6 +1367,12 @@ public class BillingServiceImpl implements BillingService {
     @Transactional(readOnly = true)
     public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(Date createdOnOrBefore) throws DAOException {
         return billingDAO.getUnpaidZeroDueBillsCreatedOnOrBefore(createdOnOrBefore);
+    }
+
+    @Override
+    public List<PatientBill> getUnpaidZeroDueBillsCreatedBetween(Date createdOnOrAfter, Date createdOnOrBefore)
+            throws DAOException {
+        return billingDAO.getUnpaidZeroDueBillsCreatedBetween(createdOnOrAfter, createdOnOrBefore);
     }
 
     public static String detectTelco(String phoneNumber) {

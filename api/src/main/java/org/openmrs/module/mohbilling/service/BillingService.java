@@ -483,9 +483,12 @@ public interface BillingService {
 
 	/**
 	 * Admissions whose admissionDate is between start and end (inclusive),
-	 * optionally filtered by insurance on the linked policy.
+	 * optionally filtered by a specific insurance or by insurance category
+	 * (e.g. MUTUELLE / RSSB). When {@code insuranceCategory} is set it takes
+	 * precedence over {@code insurance}.
 	 */
-	public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance);
+	public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance,
+			String insuranceCategory);
 
 	/**
 	 * Save consommation to the DB
@@ -733,6 +736,37 @@ public interface BillingService {
 
 	Integer getMaximumCashierReportSourcePaymentId();
 
+	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+			String insuranceCategory);
+
+	int refreshBillReportEtl(Date refreshFrom);
+
+	int refreshBillReportEtlByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+			Date admissionDateFrom);
+
+	/**
+	 * Rebuilds ETL rows for a single admission and commits independently of the batch loop.
+	 */
+	int refreshBillReportEtlForAdmission(Integer admissionId);
+
+	/**
+	 * Deletes ETL rows for admissions on/after {@code refreshFrom} in its own transaction.
+	 */
+	int clearBillReportEtlFromAdmissionDate(Date refreshFrom);
+
+	int deleteBillReportEtlBeforeAdmissionDate(Date startDate);
+
+	Date getLatestBillReportEtlAdmissionDate();
+
+	Integer getMaximumBillReportEtlAdmissionId();
+
+	Integer getMinimumBillReportSourceAdmissionId(Date admissionDateFrom);
+
+	Integer getMaximumBillReportSourceAdmissionId(Date admissionDateFrom);
+
+	List<Admission> getAdmissionsByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+			Date admissionDateFrom);
+
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid);
 	public List<PatientBillIrembo> getUnpaidBills(Patient patient) throws DAOException;
 	public List<PatientBill> getUnpaidBillsWithInvoiceNumber() throws DAOException;
@@ -743,6 +777,13 @@ public interface BillingService {
 	 */
 	public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(java.util.Date createdOnOrBefore)
 			throws DAOException;
+
+	/**
+	 * Unpaid (or unconfirmed) non-voided patient bills with zero due amount
+	 * created within the optional inclusive date bounds.
+	 */
+	public List<PatientBill> getUnpaidZeroDueBillsCreatedBetween(java.util.Date createdOnOrAfter,
+			java.util.Date createdOnOrBefore) throws DAOException;
 
 	public void initIremboPay(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
 

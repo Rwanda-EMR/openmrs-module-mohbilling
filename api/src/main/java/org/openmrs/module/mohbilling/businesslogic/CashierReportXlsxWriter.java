@@ -131,7 +131,7 @@ final class CashierReportXlsxWriter {
 				decimalValue(paymentRevenue != null ? paymentRevenue.getAmount() : null), 3);
 		writeNumberCell(writer, column++, rowNumber,
 				decimalValue(payment != null ? payment.getAmountPaid() : null), 3);
-		writeTextCell(writer, column, rowNumber, apiPaymentPhone(payment), 1);
+		writeTextCell(writer, column, rowNumber, apiPaymentInvoiceNumber(payment), 1);
 		writer.write("</row>");
 	}
 
@@ -162,10 +162,19 @@ final class CashierReportXlsxWriter {
 		return name != null ? name.toString() : "";
 	}
 
-	private static String apiPaymentPhone(BillPayment payment) {
-		PatientBill patientBill = payment != null ? payment.getPatientBill() : null;
-		return patientBill != null && "SUCCESSFUL".equals(patientBill.getTransactionStatus())
-				? valueOrDefault(patientBill.getPhoneNumber(), "") : "";
+	private static String apiPaymentInvoiceNumber(BillPayment payment) {
+		if (payment == null) {
+			return "";
+		}
+		if (payment.getInvoiceNumber() != null && payment.getInvoiceNumber().trim().length() > 0) {
+			return payment.getInvoiceNumber().trim();
+		}
+		PatientBill patientBill = payment.getPatientBill();
+		if (patientBill != null && patientBill.getInvoiceNumber() != null
+				&& patientBill.getInvoiceNumber().trim().length() > 0) {
+			return patientBill.getInvoiceNumber().trim();
+		}
+		return "";
 	}
 
 	private static void writeTextRow(BufferedWriter writer, int rowNumber, String value, int style)

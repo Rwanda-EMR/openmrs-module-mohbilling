@@ -89,9 +89,12 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 	  <td><b><fmt:formatNumber value="${pr.amount}" type="number" pattern="#.##"/></b></td>
 	 <c:set var="pt" value="${pr.payment}"/>
 	  <td><b><fmt:formatNumber value="${pt.amountPaid}" type="number" pattern="#.##"/></b></td>
-	  <c:if test="${pr.payment.patientBill.transactionStatus=='SUCCESSFUL'}">
-	  <td>${pr.payment.patientBill.phoneNumber}</td>
-      </c:if>
+	  <td>
+		<c:choose>
+			<c:when test="${not empty pt.invoiceNumber}">${pt.invoiceNumber}</c:when>
+			<c:when test="${not empty pt.patientBill.invoiceNumber}">${pt.patientBill.invoiceNumber}</c:when>
+		</c:choose>
+	  </td>
 	</tr>
 	</c:forEach> 
 	<tr>

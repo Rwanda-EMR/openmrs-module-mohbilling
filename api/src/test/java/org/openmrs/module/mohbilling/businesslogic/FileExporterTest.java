@@ -41,9 +41,11 @@ public class FileExporterTest {
 		service.setPaidAmount(new BigDecimal("50.25"));
 		BillPayment payment = new BillPayment();
 		payment.setAmountPaid(new BigDecimal("75.50"));
+		payment.setInvoiceNumber("INV-2026-0001");
 		PatientBill patientBill = new PatientBill();
 		patientBill.setTransactionStatus("SUCCESSFUL");
 		patientBill.setPhoneNumber("0788000000");
+		patientBill.setInvoiceNumber("INV-2026-0001");
 		payment.setPatientBill(patientBill);
 		Patient patient = new Patient();
 		PersonName patientName = new PersonName("Test", null, "Patient");
@@ -74,7 +76,7 @@ public class FileExporterTest {
 		Assert.assertTrue(sheet.contains("<c r=\"D6\" t=\"inlineStr\" s=\"2\"><is><t xml:space=\"preserve\">Identifier"));
 		Assert.assertTrue(sheet.contains("<c r=\"D7\" t=\"inlineStr\" s=\"5\"><is><t xml:space=\"preserve\">0000123456789012"));
 		Assert.assertTrue(sheet.contains("<c r=\"E7\" s=\"3\"><v>50.25</v></c>"));
-		Assert.assertTrue(sheet.contains("<c r=\"H7\" t=\"inlineStr\" s=\"1\"><is><t xml:space=\"preserve\">0788000000"));
+		Assert.assertTrue(sheet.contains("<c r=\"H7\" t=\"inlineStr\" s=\"1\"><is><t xml:space=\"preserve\">INV-2026-0001"));
 		Assert.assertTrue(sheet.contains("<c r=\"E8\" s=\"4\"><v>50.25</v></c>"));
 		Assert.assertTrue(entries.get("xl/workbook.xml").contains("name=\"Cashier Report\""));
 		assertXmlEntriesAreWellFormed(entries);

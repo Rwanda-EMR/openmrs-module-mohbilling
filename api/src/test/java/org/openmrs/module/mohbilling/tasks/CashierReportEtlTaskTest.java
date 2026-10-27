@@ -12,7 +12,7 @@ public class CashierReportEtlTaskTest {
 
 	@Test
 	public void materializationConfiguration_shouldIncludePrimaryIdentifierType() {
-		Assert.assertEquals("2:3", CashierReportEtlTask.materializationConfiguration(3));
+		Assert.assertEquals("3:3", CashierReportEtlTask.materializationConfiguration(3));
 	}
 
 	@Test

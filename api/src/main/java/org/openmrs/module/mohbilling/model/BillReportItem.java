@@ -9,9 +9,19 @@ import java.util.Date;
 public class BillReportItem {
 
 	private Integer rowNumber;
+	private Integer patientServiceBillId;
+	private Integer admissionId;
+	private Integer visitId;
+	private Integer globalBillId;
+	private Integer consommationId;
 	private Date admissionDate;
 	private Date dischargeDate;
+	private String admissionStatus;
 	private String wardType;
+	private Integer insuranceId;
+	private String insuranceCategory;
+	private String insuranceName;
+	private String cardNumber;
 	private String voucherId;
 	private String patientId;
 	private String patientNames;
@@ -33,10 +43,14 @@ public class BillReportItem {
 	private String productType;
 	private String productCategory;
 	private String productUnit;
+	private BigDecimal productQuantity;
 	private BigDecimal productCost;
 	private BigDecimal coPayment;
 	private BigDecimal rssbPayment;
 	private BigDecimal totalInvoice;
+	private String transferAvailable;
+	private String transferId;
+	private String transferValidity;
 
 	public Integer getRowNumber() {
 		return rowNumber;
@@ -44,6 +58,46 @@ public class BillReportItem {
 
 	public void setRowNumber(Integer rowNumber) {
 		this.rowNumber = rowNumber;
+	}
+
+	public Integer getPatientServiceBillId() {
+		return patientServiceBillId;
+	}
+
+	public void setPatientServiceBillId(Integer patientServiceBillId) {
+		this.patientServiceBillId = patientServiceBillId;
+	}
+
+	public Integer getAdmissionId() {
+		return admissionId;
+	}
+
+	public void setAdmissionId(Integer admissionId) {
+		this.admissionId = admissionId;
+	}
+
+	public Integer getVisitId() {
+		return visitId;
+	}
+
+	public void setVisitId(Integer visitId) {
+		this.visitId = visitId;
+	}
+
+	public Integer getGlobalBillId() {
+		return globalBillId;
+	}
+
+	public void setGlobalBillId(Integer globalBillId) {
+		this.globalBillId = globalBillId;
+	}
+
+	public Integer getConsommationId() {
+		return consommationId;
+	}
+
+	public void setConsommationId(Integer consommationId) {
+		this.consommationId = consommationId;
 	}
 
 	public Date getAdmissionDate() {
@@ -62,12 +116,52 @@ public class BillReportItem {
 		this.dischargeDate = dischargeDate;
 	}
 
+	public String getAdmissionStatus() {
+		return admissionStatus;
+	}
+
+	public void setAdmissionStatus(String admissionStatus) {
+		this.admissionStatus = admissionStatus;
+	}
+
 	public String getWardType() {
 		return wardType;
 	}
 
 	public void setWardType(String wardType) {
 		this.wardType = wardType;
+	}
+
+	public Integer getInsuranceId() {
+		return insuranceId;
+	}
+
+	public void setInsuranceId(Integer insuranceId) {
+		this.insuranceId = insuranceId;
+	}
+
+	public String getInsuranceCategory() {
+		return insuranceCategory;
+	}
+
+	public void setInsuranceCategory(String insuranceCategory) {
+		this.insuranceCategory = insuranceCategory;
+	}
+
+	public String getInsuranceName() {
+		return insuranceName;
+	}
+
+	public void setInsuranceName(String insuranceName) {
+		this.insuranceName = insuranceName;
+	}
+
+	public String getCardNumber() {
+		return cardNumber;
+	}
+
+	public void setCardNumber(String cardNumber) {
+		this.cardNumber = cardNumber;
 	}
 
 	public String getVoucherId() {
@@ -238,6 +332,14 @@ public class BillReportItem {
 		this.productUnit = productUnit;
 	}
 
+	public BigDecimal getProductQuantity() {
+		return productQuantity;
+	}
+
+	public void setProductQuantity(BigDecimal productQuantity) {
+		this.productQuantity = productQuantity;
+	}
+
 	public BigDecimal getProductCost() {
 		return productCost;
 	}
@@ -268,5 +370,29 @@ public class BillReportItem {
 
 	public void setTotalInvoice(BigDecimal totalInvoice) {
 		this.totalInvoice = totalInvoice;
+	}
+
+	public String getTransferAvailable() {
+		return transferAvailable;
+	}
+
+	public void setTransferAvailable(String transferAvailable) {
+		this.transferAvailable = transferAvailable;
+	}
+
+	public String getTransferId() {
+		return transferId;
+	}
+
+	public void setTransferId(String transferId) {
+		this.transferId = transferId;
+	}
+
+	public String getTransferValidity() {
+		return transferValidity;
+	}
+
+	public void setTransferValidity(String transferValidity) {
+		this.transferValidity = transferValidity;
 	}
 }

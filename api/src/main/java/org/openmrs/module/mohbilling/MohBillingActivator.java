@@ -19,6 +19,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.BaseModuleActivator;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.tasks.AutoPayZeroBillTask;
+import org.openmrs.module.mohbilling.tasks.BillReportEtlTask;
 import org.openmrs.module.mohbilling.tasks.CashierReportEtlTask;
 import org.openmrs.module.mohbilling.tasks.InsuranceReportEtlTask;
 import org.openmrs.module.mohbilling.tasks.IremboReconciliationTask;
@@ -44,6 +45,9 @@ public class MohBillingActivator extends BaseModuleActivator {
 	private static final String CASHIER_REPORT_ETL_TASK_NAME = "mohbilling.cashier.report.etl.task";
 	private static final long DEFAULT_CASHIER_REPORT_ETL_INTERVAL_SECONDS = 43200L;
 	private static final String DEFAULT_CASHIER_REPORT_ETL_START_TIME = "07:00";
+	private static final String BILL_REPORT_ETL_TASK_NAME = "mohbilling.bill.report.etl.task";
+	private static final long DEFAULT_BILL_REPORT_ETL_INTERVAL_SECONDS = 43200L;
+	private static final String DEFAULT_BILL_REPORT_ETL_START_TIME = "05:00";
 
 	protected Log log = LogFactory.getLog(this.getClass());
 
@@ -56,6 +60,7 @@ public class MohBillingActivator extends BaseModuleActivator {
 		scheduleAutoPayZeroBillTask();
 		scheduleInsuranceReportEtlTask();
 		scheduleCashierReportEtlTask();
+		scheduleBillReportEtlTask();
 		log.info("MoH-Billing Module started");
 	}
 
@@ -67,6 +72,7 @@ public class MohBillingActivator extends BaseModuleActivator {
 		shutdownAutoPayZeroBillTask();
 		shutdownInsuranceReportEtlTask();
 		shutdownCashierReportEtlTask();
+		shutdownBillReportEtlTask();
 		log.info("MoH-Billing Module stopped");
 	}
 
@@ -294,6 +300,62 @@ public class MohBillingActivator extends BaseModuleActivator {
 			}
 		} catch (SchedulerException e) {
 			log.error("Failed to stop cashier report ETL task cleanly", e);
+		}
+	}
+
+	private void scheduleBillReportEtlTask() {
+		try {
+			boolean enabled = Boolean.parseBoolean(Context.getAdministrationService().getGlobalProperty(
+					BillingConstants.GLOBAL_PROPERTY_BILL_REPORT_ETL_SCHEDULER_ENABLED, "true"));
+			long intervalSeconds = parsePositiveLong(Context.getAdministrationService().getGlobalProperty(
+					BillingConstants.GLOBAL_PROPERTY_BILL_REPORT_ETL_SCHEDULER_INTERVAL_SECONDS,
+					String.valueOf(DEFAULT_BILL_REPORT_ETL_INTERVAL_SECONDS)),
+					DEFAULT_BILL_REPORT_ETL_INTERVAL_SECONDS);
+			String configuredStartTime = Context.getAdministrationService().getGlobalProperty(
+					BillingConstants.GLOBAL_PROPERTY_BILL_REPORT_ETL_SCHEDULER_START_TIME,
+					DEFAULT_BILL_REPORT_ETL_START_TIME);
+			String startTime = validTimeOrDefault(configuredStartTime, DEFAULT_BILL_REPORT_ETL_START_TIME);
+
+			SchedulerService schedulerService = Context.getSchedulerService();
+			TaskDefinition task = schedulerService.getTaskByName(BILL_REPORT_ETL_TASK_NAME);
+			if (task == null) {
+				task = new TaskDefinition();
+				task.setName(BILL_REPORT_ETL_TASK_NAME);
+			}
+			task.setDescription("Materialize the MoH Billing CBHI Bill Report from local billing tables.");
+			task.setTaskClass(BillReportEtlTask.class.getName());
+			task.setStartTime(nextStartTime(startTime, new Date()));
+			task.setRepeatInterval(intervalSeconds);
+			task.setStartOnStartup(false);
+			task.setStarted(enabled);
+			task = saveAndReloadTaskDefinition(schedulerService, task);
+
+			if (enabled) {
+				schedulerService.scheduleIfNotRunning(task);
+				log.info("Scheduled bill report ETL task every " + intervalSeconds
+						+ " seconds, starting at " + startTime + ".");
+			} else {
+				try {
+					schedulerService.shutdownTask(task);
+				} catch (SchedulerException ignored) {
+					// Task may be registered without having been started.
+				}
+				log.info("Bill report ETL task is registered but disabled.");
+			}
+		} catch (Exception e) {
+			log.error("Failed to register bill report ETL task", e);
+		}
+	}
+
+	private void shutdownBillReportEtlTask() {
+		try {
+			TaskDefinition task = Context.getSchedulerService().getTaskByName(BILL_REPORT_ETL_TASK_NAME);
+			if (task != null) {
+				Context.getSchedulerService().shutdownTask(task);
+				log.info("Stopped bill report ETL task.");
+			}
+		} catch (SchedulerException e) {
+			log.error("Failed to stop bill report ETL task cleanly", e);
 		}
 	}
 

@@ -2571,4 +2571,100 @@
 			initiallyDeferred="false" />
 	</changeSet>
 
+	<changeSet id="mohbilling-20261026-cashier-report-etl-invoice-number" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_cashier_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_cashier_report_etl" columnName="invoice_number" />
+			</not>
+		</preConditions>
+		<comment>Store Irembo/API invoice_number for Cashier Report "Payment through API" column</comment>
+		<addColumn tableName="moh_bill_cashier_report_etl">
+			<column name="invoice_number" type="varchar(255)" />
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261027-bill-report-etl" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="moh_bill_bill_report_etl" />
+			</not>
+		</preConditions>
+		<comment>Materialized CBHI Bill Report rows (one per patient service bill line)</comment>
+		<createTable tableName="moh_bill_bill_report_etl">
+			<column name="bill_report_etl_id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="patient_service_bill_id" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="admission_id" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="visit_id" type="int" />
+			<column name="global_bill_id" type="int" />
+			<column name="consommation_id" type="int" />
+			<column name="admission_date" type="datetime">
+				<constraints nullable="false" />
+			</column>
+			<column name="discharge_date" type="datetime" />
+			<column name="admission_status" type="varchar(32)" />
+			<column name="ward_type" type="varchar(255)" />
+			<column name="insurance_id" type="int" />
+			<column name="insurance_category" type="varchar(64)" />
+			<column name="insurance_name" type="varchar(255)" />
+			<column name="card_number" type="varchar(100)" />
+			<column name="voucher_id" type="varchar(255)" />
+			<column name="patient_id" type="varchar(100)" />
+			<column name="patient_names" type="varchar(255)" />
+			<column name="patient_nid" type="varchar(100)" />
+			<column name="household_head_nid" type="varchar(100)" />
+			<column name="patient_phone" type="varchar(64)" />
+			<column name="patient_dob" type="datetime" />
+			<column name="patient_gender" type="varchar(16)" />
+			<column name="social_registry_level" type="varchar(64)" />
+			<column name="provider_name" type="varchar(255)" />
+			<column name="provider_qualification" type="varchar(255)" />
+			<column name="provider_phone" type="varchar(64)" />
+			<column name="provider_registration" type="varchar(100)" />
+			<column name="primary_diagnosis" type="varchar(1000)" />
+			<column name="confirmed_by_lab_imaging" type="varchar(16)" />
+			<column name="icd11_code" type="varchar(255)" />
+			<column name="product_name" type="varchar(500)" />
+			<column name="product_code" type="varchar(100)" />
+			<column name="product_type" type="varchar(255)" />
+			<column name="product_category" type="varchar(255)" />
+			<column name="product_unit" type="varchar(64)" />
+			<column name="product_quantity" type="decimal(20,4)" />
+			<column name="product_cost" type="decimal(20,2)" />
+			<column name="co_payment" type="decimal(20,2)" />
+			<column name="rssb_payment" type="decimal(20,2)" />
+			<column name="total_invoice" type="decimal(20,2)" />
+			<column name="transfer_available" type="varchar(8)" />
+			<column name="transfer_id" type="varchar(64)" />
+			<column name="transfer_validity" type="varchar(64)" />
+			<column name="etl_loaded_at" type="datetime">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<createIndex tableName="moh_bill_bill_report_etl"
+				indexName="uk_moh_bill_bill_report_etl_psb" unique="true">
+			<column name="patient_service_bill_id" />
+		</createIndex>
+		<createIndex tableName="moh_bill_bill_report_etl"
+				indexName="idx_moh_bill_bill_report_etl_admission_date_ins">
+			<column name="admission_date" />
+			<column name="insurance_id" />
+		</createIndex>
+		<createIndex tableName="moh_bill_bill_report_etl"
+				indexName="idx_moh_bill_bill_report_etl_admission_date_cat">
+			<column name="admission_date" />
+			<column name="insurance_category" />
+		</createIndex>
+		<createIndex tableName="moh_bill_bill_report_etl"
+				indexName="idx_moh_bill_bill_report_etl_admission_id">
+			<column name="admission_id" />
+		</createIndex>
+	</changeSet>
+
 </databaseChangeLog>

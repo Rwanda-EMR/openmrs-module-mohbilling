@@ -4,7 +4,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillReportUtil;
-import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.businesslogic.BillReportUtil.InsuranceFilter;
+import org.openmrs.module.mohbilling.businesslogic.FileExporter;
+import org.openmrs.module.mohbilling.model.BillReportFacilityHeader;
+import org.openmrs.module.mohbilling.model.BillReportItem;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
@@ -37,9 +40,14 @@ public class MohBillingBillReportController extends ParameterizableViewControlle
 			return null;
 		}
 
+		if ("true".equalsIgnoreCase(request.getParameter("export"))) {
+			exportBillReport(request, response);
+			return null;
+		}
+
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-		mav.addObject("insurances", InsuranceUtil.getAllInsurances());
+		mav.addObject("insuranceOptions", BillReportUtil.buildInsuranceFilterOptions());
 		mav.addObject("admissions", Collections.emptyList());
 		mav.addObject("facilityHeader", BillReportUtil.buildFacilityHeader());
 
@@ -49,16 +57,15 @@ public class MohBillingBillReportController extends ParameterizableViewControlle
 
 		String startDateStr = request.getParameter("startDate");
 		String endDateStr = request.getParameter("endDate");
-		String insuranceStr = request.getParameter("insuranceId");
+		String insuranceFilterStr = request.getParameter("insuranceFilter");
+		if (insuranceFilterStr == null || insuranceFilterStr.trim().isEmpty()) {
+			// Backward compatibility with older form field name
+			insuranceFilterStr = request.getParameter("insuranceId");
+		}
 
 		mav.addObject("startDate", startDateStr);
 		mav.addObject("endDate", endDateStr);
-
-		Integer insuranceId = null;
-		if (insuranceStr != null && !insuranceStr.trim().isEmpty()) {
-			insuranceId = Integer.valueOf(insuranceStr);
-		}
-		mav.addObject("selectedInsuranceId", insuranceId);
+		mav.addObject("selectedInsuranceFilter", insuranceFilterStr);
 
 		Date startDate = parseDayStart(startDateStr);
 		Date endDate = parseDayEnd(endDateStr);
@@ -68,18 +75,47 @@ public class MohBillingBillReportController extends ParameterizableViewControlle
 			return mav;
 		}
 
-		Insurance insurance = insuranceId != null ? InsuranceUtil.getInsurance(insuranceId) : null;
+		InsuranceFilter insuranceFilter = BillReportUtil.resolveInsuranceFilter(insuranceFilterStr);
 		List<Map<String, Object>> admissionRows = BillReportUtil.buildAdmissionDisplayRows(startDate, endDate,
-				insurance);
+				insuranceFilter);
 
 		log.info("Bill Report admissions search: start=" + startDate + ", end=" + endDate
-				+ ", insuranceId=" + insuranceId + ", rowsFound=" + admissionRows.size());
+				+ ", insuranceFilter=" + insuranceFilterStr + ", rowsFound=" + admissionRows.size());
 
 		mav.addObject("admissions", admissionRows);
 		mav.addObject("resultMsg",
 				"Found " + admissionRows.size() + " billed item(s) from " + startDateStr + " to " + endDateStr
-						+ " (limited to first 10 patients for testing)");
+						+ " (limited to first 5 patients for testing)");
 		return mav;
+	}
+
+	private void exportBillReport(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		String startDateStr = request.getParameter("startDate");
+		String endDateStr = request.getParameter("endDate");
+		String insuranceFilterStr = request.getParameter("insuranceFilter");
+		if (insuranceFilterStr == null || insuranceFilterStr.trim().isEmpty()) {
+			insuranceFilterStr = request.getParameter("insuranceId");
+		}
+
+		Date startDate = parseDayStart(startDateStr);
+		Date endDate = parseDayEnd(endDateStr);
+		if (startDate == null || endDate == null) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Start Date and End Date are required.");
+			return;
+		}
+
+		InsuranceFilter insuranceFilter = BillReportUtil.resolveInsuranceFilter(insuranceFilterStr);
+		List<BillReportItem> reportRows = BillReportUtil.buildReportItems(startDate, endDate, insuranceFilter);
+		BillReportFacilityHeader facilityHeader = BillReportUtil.buildFacilityHeader();
+		Insurance insurance = insuranceFilter != null ? insuranceFilter.getInsurance() : null;
+		if (insurance == null && insuranceFilter != null && insuranceFilter.getCategory() != null) {
+			insurance = new Insurance();
+			insurance.setName(insuranceFilter.getCategory());
+		}
+
+		log.info("Bill Report Excel export: start=" + startDate + ", end=" + endDate
+				+ ", insuranceFilter=" + insuranceFilterStr + ", rows=" + reportRows.size());
+		FileExporter.exportBillReportData(response, insurance, facilityHeader, reportRows, startDate, endDate);
 	}
 
 	private void handleAjaxSaveFacilitySetting(HttpServletRequest request, HttpServletResponse response)

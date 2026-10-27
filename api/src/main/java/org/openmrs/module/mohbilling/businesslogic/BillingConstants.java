@@ -34,6 +34,18 @@ public class BillingConstants {
 	public static final String PRIMARY_ICD_DIAGNOSIS_CONCEPT_UUID = "2dce81f9-3874-4247-b441-6369ca0725c2";
 	/** Days before/after admission_date used when searching diagnosis obs. */
 	public static final int BILL_REPORT_DIAGNOSIS_OBS_DAY_WINDOW = 2;
+	/**
+	 * Transfer ID concept UUID (value_text = HIE transfer UUID recorded at reception).
+	 * Same defaults as transferapp / rwandaemr.
+	 */
+	public static final String GLOBAL_PROPERTY_TRANSFER_ID_CONCEPT_UUID =
+			"mohbilling.billReport.transferIdConceptUuid";
+	public static final String GP_TRANSFERAPP_RECEIVED_TRANSFER_CONCEPT_UUID =
+			"transferapp.receivedTransferConceptUuid";
+	public static final String GP_RWANDAEMR_TRANSFER_ID_CONCEPT_UUID = "rwandaemr.hie.transfer_id";
+	public static final String DEFAULT_TRANSFER_ID_CONCEPT_UUID = "076b04e5-d62d-47da-83e2-0da6e7a119b4";
+	/** Days before/after admission_date when choosing the Transfer ID obs. */
+	public static final int BILL_REPORT_TRANSFER_OBS_DAY_WINDOW = 2;
 	
 	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO = "billing.healthFacilityLogo";
 	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_NAME = "billing.healthFacilityName";
@@ -121,6 +133,20 @@ public class BillingConstants {
 			"mohbilling.cashierReportEtl.scheduler.startTime";
 	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_LOADED_VERSION =
 			"mohbilling.cashierReportEtl.loadedVersion";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_SCHEDULER_ENABLED =
+			"mohbilling.billReportEtl.scheduler.enabled";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_SCHEDULER_INTERVAL_SECONDS =
+			"mohbilling.billReportEtl.scheduler.intervalSeconds";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_SCHEDULER_START_TIME =
+			"mohbilling.billReportEtl.scheduler.startTime";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_OVERLAP_DAYS =
+			"mohbilling.billReportEtl.overlapDays";
+	/** Inclusive admission_date floor for Bill Report ETL materialization (yyyy-MM-dd). */
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_START_DATE =
+			"mohbilling.billReportEtl.startDate";
+	public static final String DEFAULT_BILL_REPORT_ETL_START_DATE = "2026-08-01";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_LOADED_VERSION =
+			"mohbilling.billReportEtl.loadedVersion";
 	public static final String GLOBAL_PROPERTY_GLOBAL_BILL_PAGE_SIZE = "mohbilling.globalbill.pagesize";
 	public static final String GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE = "mohbilling.irembopay.phone_attribute";
 	public static final String GLOBAL_PROPERTY_IREMBO_AUTO_PHONE_NUMBER = "mohbilling.irembopay.auto_phone_number";
@@ -137,6 +163,13 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_AUTOPAY_USER = "mohbilling.autopayuser";
 	public static final String GLOBAL_PROPERTY_AUTOPAY_TIME = "mohbilling.autopaytime";
 	public static final String GLOBAL_PROPERTY_AUTOPAY_DELAYS = "mohbilling.autopaydelays";
+	/**
+	 * When false (default), auto-pay only newly eligible zero-due bills (within one scheduler
+	 * cycle after the delay). When true, also process the historical backlog of old unpaid
+	 * zero-due bills.
+	 */
+	public static final String GLOBAL_PROPERTY_AUTOPAY_PROCESS_OLD_RECORDS =
+			"mohbilling.autopayzerobill.processOldRecords";
 	public static final long DEFAULT_AUTOPAY_TIME_SECONDS = 86400L;
 	public static final long DEFAULT_AUTOPAY_DELAYS_SECONDS = 43200L;
 
