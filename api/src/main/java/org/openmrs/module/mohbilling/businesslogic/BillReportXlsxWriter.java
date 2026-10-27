@@ -49,10 +49,13 @@ final class BillReportXlsxWriter {
 			"product_type",
 			"product_category",
 			"product_unit",
+			"Quantity",
 			"product_cost",
 			"Co-Payment",
 			"RSSB payment (Total - Copayment)",
-			"TOTAL invoice (100%)"
+			"TOTAL invoice (100%)",
+			"Transfer",
+			"Validity Period Start and end date"
 	};
 
 	private BillReportXlsxWriter() {
@@ -78,42 +81,44 @@ final class BillReportXlsxWriter {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(zip, StandardCharsets.UTF_8));
 		writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 		writer.write("<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">");
-		writer.write("<sheetViews><sheetView workbookViewId=\"0\"><pane ySplit=\"12\" topLeftCell=\"A13\" "
+		writer.write("<sheetViews><sheetView workbookViewId=\"0\"><pane ySplit=\"13\" topLeftCell=\"A14\" "
 				+ "activePane=\"bottomLeft\" state=\"frozen\"/></sheetView></sheetViews>");
 		writer.write("<sheetData>");
 
 		DateFormat dayFormat = new SimpleDateFormat("dd/MM/yyyy");
-		String insuranceLabel = insurance != null ? insurance.getName() : "ALL INSURANCES";
+		String insuranceLabel = insurance != null && insurance.getName() != null ? insurance.getName()
+				: "ALL INSURANCES";
 		String period = formatPeriod(dayFormat, startDate, endDate);
 
 		writeTextRow(writer, 1, 0, "Hospital inpatient/outpatient — Bill Report");
 		writeLabelValueRow(writer, 2, "Insurance", insuranceLabel);
 		writeLabelValueRow(writer, 3, "Period", period);
 		writeLabelValueRow(writer, 4, "HF CODE", value(facilityHeader != null ? facilityHeader.getHfCode() : null));
-		writeLabelValueRow(writer, 5, "facility_name",
+		writeLabelValueRow(writer, 5, "Facility",
 				value(facilityHeader != null ? facilityHeader.getFacilityName() : null));
-		writeLabelValueRow(writer, 6, "facility_type",
+		writeLabelValueRow(writer, 6, "Type",
 				value(facilityHeader != null ? facilityHeader.getFacilityType() : null));
-		writeLabelValueRow(writer, 7, "facility_category",
+		writeLabelValueRow(writer, 7, "Category",
 				value(facilityHeader != null ? facilityHeader.getFacilityCategory() : null));
-		writeLabelValueRow(writer, 8, "facility_level_of_care",
+		writeLabelValueRow(writer, 8, "Level of Care",
 				value(facilityHeader != null ? facilityHeader.getFacilityLevelOfCare() : null));
-		writeLabelValueRow(writer, 9, "facility_ownership_type",
+		writeLabelValueRow(writer, 9, "Ownership",
 				value(facilityHeader != null ? facilityHeader.getFacilityOwnershipType() : null));
-		writeLabelValueRow(writer, 10, "province_name",
+		writeLabelValueRow(writer, 10, "Province",
 				value(facilityHeader != null ? facilityHeader.getProvinceName() : null));
-		writeLabelValueRow(writer, 11, "district_name / sector_name",
-				value(facilityHeader != null ? facilityHeader.getDistrictName() : null) + " / "
-						+ value(facilityHeader != null ? facilityHeader.getSectorName() : null));
+		writeLabelValueRow(writer, 11, "District",
+				value(facilityHeader != null ? facilityHeader.getDistrictName() : null));
+		writeLabelValueRow(writer, 12, "Sector",
+				value(facilityHeader != null ? facilityHeader.getSectorName() : null));
 
-		writer.write("<row r=\"12\">");
+		writer.write("<row r=\"13\">");
 		for (int column = 0; column < DATA_HEADERS.length; column++) {
-			writeTextCell(writer, column, 12, DATA_HEADERS[column], false);
+			writeTextCell(writer, column, 13, DATA_HEADERS[column], false);
 		}
 		writer.write("</row>");
 
 		for (int i = 0; i < rows.size(); i++) {
-			writeDataRow(writer, i + 13, rows.get(i), dayFormat);
+			writeDataRow(writer, i + 14, rows.get(i), dayFormat);
 		}
 
 		writer.write("</sheetData></worksheet>");
@@ -151,10 +156,13 @@ final class BillReportXlsxWriter {
 		writeTextCell(writer, 22, rowNumber, item.getProductType(), false);
 		writeTextCell(writer, 23, rowNumber, item.getProductCategory(), false);
 		writeTextCell(writer, 24, rowNumber, item.getProductUnit(), false);
-		writeNumberCell(writer, 25, rowNumber, decimalValue(item.getProductCost()));
-		writeNumberCell(writer, 26, rowNumber, decimalValue(item.getCoPayment()));
-		writeNumberCell(writer, 27, rowNumber, decimalValue(item.getRssbPayment()));
-		writeNumberCell(writer, 28, rowNumber, decimalValue(item.getTotalInvoice()));
+		writeNumberCell(writer, 25, rowNumber, decimalValue(item.getProductQuantity()));
+		writeNumberCell(writer, 26, rowNumber, decimalValue(item.getProductCost()));
+		writeNumberCell(writer, 27, rowNumber, decimalValue(item.getCoPayment()));
+		writeNumberCell(writer, 28, rowNumber, decimalValue(item.getRssbPayment()));
+		writeNumberCell(writer, 29, rowNumber, decimalValue(item.getTotalInvoice()));
+		writeTextCell(writer, 30, rowNumber, item.getTransferAvailable(), false);
+		writeTextCell(writer, 31, rowNumber, item.getTransferValidity(), false);
 		writer.write("</row>");
 	}
 

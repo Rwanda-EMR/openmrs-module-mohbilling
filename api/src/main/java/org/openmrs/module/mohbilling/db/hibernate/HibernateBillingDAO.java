@@ -1205,7 +1205,8 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
-    public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance) {
+    public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance,
+            String insuranceCategory) {
         Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class, "admission");
         // voided is NOT NULL boolean in moh_bill_admission
         crit.add(Restrictions.eq("voided", false));
@@ -1215,10 +1216,16 @@ public class HibernateBillingDAO implements BillingDAO {
         if (endDate != null) {
             crit.add(Restrictions.le("admissionDate", endDate));
         }
-        if (insurance != null) {
+        boolean filterByCategory = insuranceCategory != null && !insuranceCategory.trim().isEmpty();
+        boolean filterByInsurance = !filterByCategory && insurance != null;
+        if (filterByCategory || filterByInsurance) {
             crit.createAlias("insurancePolicy", "policy");
             crit.createAlias("policy.insurance", "ins");
-            crit.add(Restrictions.eq("ins.insuranceId", insurance.getInsuranceId()));
+            if (filterByCategory) {
+                crit.add(Restrictions.eq("ins.category", insuranceCategory.trim()).ignoreCase());
+            } else {
+                crit.add(Restrictions.eq("ins.insuranceId", insurance.getInsuranceId()));
+            }
         }
         crit.addOrder(Order.asc("admissionDate"));
         return crit.list();
@@ -1757,6 +1764,7 @@ public class HibernateBillingDAO implements BillingDAO {
         query.addScalar("patient_identifier");
         query.addScalar("phone_number");
         query.addScalar("transaction_status");
+        query.addScalar("invoice_number");
         query.addScalar("service_id");
         query.addScalar("service_name");
         query.addScalar("due_amount");
@@ -1938,6 +1946,271 @@ public class HibernateBillingDAO implements BillingDAO {
         return value != null ? Integer.valueOf(value.toString()) : null;
     }
 
+    @Override
+    public List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+            String insuranceCategory) {
+        boolean filterCategory = insuranceCategory != null && !insuranceCategory.trim().isEmpty();
+        boolean filterInsuranceId = !filterCategory && insuranceId != null;
+        SQLQuery query = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillReportEtlSql.reportSql(filterInsuranceId, filterCategory));
+        query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        query.setTimestamp("startDate", startDate);
+        query.setTimestamp("endDate", endDate);
+        if (filterCategory) {
+            query.setString("insuranceCategory", insuranceCategory.trim());
+        } else if (filterInsuranceId) {
+            query.setInteger("insuranceId", insuranceId);
+        }
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> resultSet = query.list();
+        List<BillReportItem> rows = new ArrayList<BillReportItem>(resultSet.size());
+        for (Map<String, Object> row : resultSet) {
+            rows.add(mapBillReportEtlRow(row));
+        }
+        return rows;
+    }
+
+    @Override
+    public int refreshBillReportEtl(Date refreshFrom) {
+        // Caller (service) commits per admission; this method only clears the window once.
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(refreshFrom != null
+                        ? BillReportEtlSql.deleteByAdmissionDateSql()
+                        : BillReportEtlSql.deleteAllSql());
+        if (refreshFrom != null) {
+            deleteQuery.setTimestamp("refreshFrom", refreshFrom);
+        }
+        return deleteQuery.executeUpdate();
+    }
+
+    @Override
+    public int refreshBillReportEtlByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+            Date admissionDateFrom) {
+        // Range orchestration moved to the service so each admission can commit separately.
+        return 0;
+    }
+
+    @Override
+    public int refreshBillReportEtlForAdmission(Integer admissionId) {
+        if (admissionId == null) {
+            return 0;
+        }
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillReportEtlSql.deleteByAdmissionIdSql());
+        deleteQuery.setInteger("admissionId", admissionId);
+        deleteQuery.executeUpdate();
+
+        List<Admission> admissions = getAdmissionsByAdmissionIdRange(admissionId, admissionId, null);
+        if (admissions == null || admissions.isEmpty()) {
+            return 0;
+        }
+        List<BillReportItem> items = BillReportUtil.buildReportItemsLiveFromAdmissions(admissions);
+        return insertBillReportEtlRows(items);
+    }
+
+    @Override
+    public int deleteBillReportEtlBeforeAdmissionDate(Date startDate) {
+        if (startDate == null) {
+            return 0;
+        }
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillReportEtlSql.deleteBeforeAdmissionDateSql());
+        deleteQuery.setTimestamp("startDate", startDate);
+        return deleteQuery.executeUpdate();
+    }
+
+    @Override
+    public Date getLatestBillReportEtlAdmissionDate() {
+        Object value = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillReportEtlSql.latestAdmissionDateSql())
+                .uniqueResult();
+        if (value instanceof Date) {
+            return (Date) value;
+        }
+        return parseDateSubstring(new SimpleDateFormat("yyyy-MM-dd"), value);
+    }
+
+    @Override
+    public Integer getMaximumBillReportEtlAdmissionId() {
+        Object value = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillReportEtlSql.maximumAdmissionIdSql())
+                .uniqueResult();
+        return value != null ? Integer.valueOf(value.toString()) : null;
+    }
+
+    @Override
+    public Integer getMinimumBillReportSourceAdmissionId(Date admissionDateFrom) {
+        return getBillReportSourceAdmissionId(true, admissionDateFrom);
+    }
+
+    @Override
+    public Integer getMaximumBillReportSourceAdmissionId(Date admissionDateFrom) {
+        return getBillReportSourceAdmissionId(false, admissionDateFrom);
+    }
+
+    @Override
+    public List<Admission> getAdmissionsByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+            Date admissionDateFrom) {
+        Criteria crit = sessionFactory.getCurrentSession().createCriteria(Admission.class);
+        crit.add(Restrictions.eq("voided", false));
+        if (admissionIdFrom != null) {
+            crit.add(Restrictions.ge("admissionId", admissionIdFrom));
+        }
+        if (admissionIdTo != null) {
+            crit.add(Restrictions.le("admissionId", admissionIdTo));
+        }
+        if (admissionDateFrom != null) {
+            crit.add(Restrictions.ge("admissionDate", admissionDateFrom));
+        }
+        crit.addOrder(Order.asc("admissionId"));
+        return crit.list();
+    }
+
+    private Integer getBillReportSourceAdmissionId(boolean minimum, Date admissionDateFrom) {
+        SQLQuery query = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillReportEtlSql.sourceAdmissionIdSql(minimum));
+        if (admissionDateFrom == null) {
+            throw new IllegalArgumentException("Bill Report ETL source admission query requires startDate");
+        }
+        query.setTimestamp("startDate", admissionDateFrom);
+        Object value = query.uniqueResult();
+        return value != null ? Integer.valueOf(value.toString()) : null;
+    }
+
+    private int insertBillReportEtlRows(List<BillReportItem> items) {
+        if (items == null || items.isEmpty()) {
+            return 0;
+        }
+        int loaded = 0;
+        for (BillReportItem item : items) {
+            if (item == null || item.getPatientServiceBillId() == null || item.getAdmissionId() == null
+                    || item.getAdmissionDate() == null) {
+                continue;
+            }
+            SQLQuery insert = sessionFactory.getCurrentSession()
+                    .createSQLQuery(BillReportEtlSql.insertSql());
+            bindBillReportEtlInsert(insert, item);
+            insert.executeUpdate();
+            loaded++;
+        }
+        return loaded;
+    }
+
+    private static void bindBillReportEtlInsert(SQLQuery query, BillReportItem item) {
+        query.setInteger("patientServiceBillId", item.getPatientServiceBillId());
+        query.setInteger("admissionId", item.getAdmissionId());
+        setNullableInteger(query, "visitId", item.getVisitId());
+        setNullableInteger(query, "globalBillId", item.getGlobalBillId());
+        setNullableInteger(query, "consommationId", item.getConsommationId());
+        query.setTimestamp("admissionDate", item.getAdmissionDate());
+        setNullableTimestamp(query, "dischargeDate", item.getDischargeDate());
+        query.setString("admissionStatus", item.getAdmissionStatus());
+        query.setString("wardType", item.getWardType());
+        setNullableInteger(query, "insuranceId", item.getInsuranceId());
+        query.setString("insuranceCategory", item.getInsuranceCategory());
+        query.setString("insuranceName", item.getInsuranceName());
+        query.setString("cardNumber", item.getCardNumber());
+        query.setString("voucherId", item.getVoucherId());
+        query.setString("patientId", item.getPatientId());
+        query.setString("patientNames", item.getPatientNames());
+        query.setString("patientNid", item.getPatientNid());
+        query.setString("householdHeadNid", item.getHouseholdHeadNid());
+        query.setString("patientPhone", item.getPatientPhoneNumber());
+        setNullableTimestamp(query, "patientDob", item.getPatientDob());
+        query.setString("patientGender", item.getPatientGender());
+        query.setString("socialRegistryLevel", item.getSocialRegistryLevel());
+        query.setString("providerName", item.getProviderName());
+        query.setString("providerQualification", item.getProviderQualification());
+        query.setString("providerPhone", item.getProviderPhoneNumber());
+        query.setString("providerRegistration", item.getProviderRegistrationNumber());
+        query.setString("primaryDiagnosis", item.getPrimaryWorkingDiagnosis());
+        query.setString("confirmedByLabImaging", item.getPrimaryConfirmedByLabImaging());
+        query.setString("icd11Code", item.getIcd11Code());
+        query.setString("productName", item.getProductName());
+        query.setString("productCode", item.getProductCode());
+        query.setString("productType", item.getProductType());
+        query.setString("productCategory", item.getProductCategory());
+        query.setString("productUnit", item.getProductUnit());
+        query.setParameter("productQuantity", item.getProductQuantity());
+        query.setParameter("productCost", item.getProductCost());
+        query.setParameter("coPayment", item.getCoPayment());
+        query.setParameter("rssbPayment", item.getRssbPayment());
+        query.setParameter("totalInvoice", item.getTotalInvoice());
+        query.setString("transferAvailable", item.getTransferAvailable());
+        query.setString("transferId", item.getTransferId());
+        query.setString("transferValidity", item.getTransferValidity());
+    }
+
+    private static void setNullableInteger(SQLQuery query, String name, Integer value) {
+        if (value == null) {
+            query.setParameter(name, null, org.hibernate.type.StandardBasicTypes.INTEGER);
+        } else {
+            query.setInteger(name, value);
+        }
+    }
+
+    private static void setNullableTimestamp(SQLQuery query, String name, Date value) {
+        if (value == null) {
+            query.setParameter(name, null, org.hibernate.type.StandardBasicTypes.TIMESTAMP);
+        } else {
+            query.setTimestamp(name, value);
+        }
+    }
+
+    private static BillReportItem mapBillReportEtlRow(Map<String, Object> row) {
+        BillReportItem item = new BillReportItem();
+        item.setPatientServiceBillId(getInt(row, "patient_service_bill_id"));
+        item.setAdmissionId(getInt(row, "admission_id"));
+        item.setVisitId(getInt(row, "visit_id"));
+        item.setGlobalBillId(getInt(row, "global_bill_id"));
+        item.setConsommationId(getInt(row, "consommation_id"));
+        item.setAdmissionDate(asDate(row.get("admission_date")));
+        item.setDischargeDate(asDate(row.get("discharge_date")));
+        item.setAdmissionStatus(getString(row, "admission_status"));
+        item.setWardType(getString(row, "ward_type"));
+        item.setInsuranceId(getInt(row, "insurance_id"));
+        item.setInsuranceCategory(getString(row, "insurance_category"));
+        item.setInsuranceName(getString(row, "insurance_name"));
+        item.setCardNumber(getString(row, "card_number"));
+        item.setVoucherId(getString(row, "voucher_id"));
+        item.setPatientId(getString(row, "patient_id"));
+        item.setPatientNames(getString(row, "patient_names"));
+        item.setPatientNid(getString(row, "patient_nid"));
+        item.setHouseholdHeadNid(getString(row, "household_head_nid"));
+        item.setPatientPhoneNumber(getString(row, "patient_phone"));
+        item.setPatientDob(asDate(row.get("patient_dob")));
+        item.setPatientGender(getString(row, "patient_gender"));
+        item.setSocialRegistryLevel(getString(row, "social_registry_level"));
+        item.setProviderName(getString(row, "provider_name"));
+        item.setProviderQualification(getString(row, "provider_qualification"));
+        item.setProviderPhoneNumber(getString(row, "provider_phone"));
+        item.setProviderRegistrationNumber(getString(row, "provider_registration"));
+        item.setPrimaryWorkingDiagnosis(getString(row, "primary_diagnosis"));
+        item.setPrimaryConfirmedByLabImaging(getString(row, "confirmed_by_lab_imaging"));
+        item.setIcd11Code(getString(row, "icd11_code"));
+        item.setProductName(getString(row, "product_name"));
+        item.setProductCode(getString(row, "product_code"));
+        item.setProductType(getString(row, "product_type"));
+        item.setProductCategory(getString(row, "product_category"));
+        item.setProductUnit(getString(row, "product_unit"));
+        item.setProductQuantity(getBigDecimal(row, "product_quantity"));
+        item.setProductCost(getBigDecimal(row, "product_cost"));
+        item.setCoPayment(getBigDecimal(row, "co_payment"));
+        item.setRssbPayment(getBigDecimal(row, "rssb_payment"));
+        item.setTotalInvoice(getBigDecimal(row, "total_invoice"));
+        item.setTransferAvailable(getString(row, "transfer_available"));
+        item.setTransferId(getString(row, "transfer_id"));
+        item.setTransferValidity(getString(row, "transfer_validity"));
+        return item;
+    }
+
+    private static Date asDate(Object value) {
+        if (value instanceof Date) {
+            return (Date) value;
+        }
+        return parseDateSubstring(new SimpleDateFormat("yyyy-MM-dd"), value);
+    }
+
 	private static void setCashierReportFilters(SQLQuery query, Date startDate, Date endDate,
 			Integer collectorId, String paymentType) {
 		query.setTimestamp("startDate", startDate);
@@ -1970,11 +2243,14 @@ public class HibernateBillingDAO implements BillingDAO {
 		payment.setBillPaymentId(getInt(row, "bill_payment_id"));
 		payment.setDateReceived(getDate(row, "date_received"));
 		payment.setAmountPaid(getBigDecimal(row, "amount_paid"));
+		String invoiceNumber = getString(row, "invoice_number");
+		payment.setInvoiceNumber(invoiceNumber);
 
 		PatientBill patientBill = new PatientBill();
 		patientBill.setPatientBillId(getInt(row, "patient_bill_id"));
 		patientBill.setPhoneNumber(getString(row, "phone_number"));
 		patientBill.setTransactionStatus(getString(row, "transaction_status"));
+		patientBill.setInvoiceNumber(invoiceNumber);
 		payment.setPatientBill(patientBill);
 
 		Patient patient = new Patient(getInt(row, "patient_id"));
@@ -2497,12 +2773,20 @@ public class HibernateBillingDAO implements BillingDAO {
 
     @Override
     public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(Date createdOnOrBefore) {
+        return getUnpaidZeroDueBillsCreatedBetween(null, createdOnOrBefore);
+    }
+
+    @Override
+    public List<PatientBill> getUnpaidZeroDueBillsCreatedBetween(Date createdOnOrAfter, Date createdOnOrBefore) {
         Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientBill.class);
         criteria.add(Restrictions.or(Restrictions.eq("isPaid", false), Restrictions.eq("paymentConfirmed", false)));
         criteria.add(Restrictions.or(Restrictions.eq("voided", false), Restrictions.isNull("voided")));
         // Match decimal zero regardless of scale (0 vs 0.00).
         criteria.add(Restrictions.sqlRestriction("amount = 0"));
         criteria.add(Restrictions.isNotNull("createdDate"));
+        if (createdOnOrAfter != null) {
+            criteria.add(Restrictions.ge("createdDate", createdOnOrAfter));
+        }
         if (createdOnOrBefore != null) {
             criteria.add(Restrictions.le("createdDate", createdOnOrBefore));
         }

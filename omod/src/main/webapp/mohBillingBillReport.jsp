@@ -118,11 +118,11 @@
 			<tr>
 				<td>Insurance:</td>
 				<td>
-					<select name="insuranceId">
+					<select name="insuranceFilter">
 						<option value="">-- All insurances --</option>
-						<c:forEach items="${insurances}" var="insurance">
-							<option value="${insurance.insuranceId}"
-								${insurance.insuranceId == selectedInsuranceId ? 'selected="selected"' : ''}>${insurance.name}</option>
+						<c:forEach items="${insuranceOptions}" var="opt">
+							<option value="${opt.value}"
+								${opt.value == selectedInsuranceFilter ? 'selected="selected"' : ''}>${opt.label}</option>
 						</c:forEach>
 					</select>
 				</td>
@@ -194,7 +194,16 @@
 
 <c:if test="${not empty admissions}">
 <br/>
-<b class="boxHeader">${resultMsg}</b>
+<b class="boxHeader">${resultMsg}
+	&nbsp;&nbsp;
+	<c:url var="billReportExcelUrl" value="billReport.form">
+		<c:param name="export" value="true"/>
+		<c:param name="startDate" value="${startDate}"/>
+		<c:param name="endDate" value="${endDate}"/>
+		<c:param name="insuranceFilter" value="${selectedInsuranceFilter}"/>
+	</c:url>
+	<a href="${billReportExcelUrl}" class="print">Excel</a>
+</b>
 <div class="box" style="overflow-x: auto;">
 	<table style="width: 100%">
 		<tr>
@@ -223,27 +232,27 @@
 			<th class="columnHeader">Product Name</th>
 			<th class="columnHeader">Product Code</th>
 			<th class="columnHeader">Product Type</th>
+			<th class="columnHeader">Product Unit</th>
+			<th class="columnHeader">Product Quantity</th>
 			<th class="columnHeader">Product Cost</th>
 			<th class="columnHeader">Co-Payment</th>
 			<th class="columnHeader">RSSB Payment</th>
 			<th class="columnHeader">Total Invoice</th>
+			<th class="columnHeader">Transfer Available</th>
+			<th class="columnHeader">Transfer Validity</th>
 		</tr>
 		<c:forEach items="${admissions}" var="row" varStatus="status">
 			<tr>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">
-					<fmt:formatDate pattern="dd/MM/yyyy HH:mm" value="${row.admission.admissionDate}" />
+					<fmt:formatDate pattern="dd/MM/yyyy HH:mm" value="${row.admissionDate}" />
 				</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">
 					<fmt:formatDate pattern="dd/MM/yyyy HH:mm" value="${row.dischargeDate}" />
 				</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.admissionStatus}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.patientId}</td>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">
-					<c:if test="${not empty row.patient}">
-						${row.patient.personName.fullName}
-					</c:if>
-				</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.patientNames}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.patientNid}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.householdNid}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">
@@ -265,10 +274,14 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.productName}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.productCode}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.productType}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.productUnit}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.productQuantity}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.productCost}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.coPayment}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.rssbPayment}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.totalInvoice}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.transferAvailable}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.transferValidity}</td>
 			</tr>
 		</c:forEach>
 	</table>

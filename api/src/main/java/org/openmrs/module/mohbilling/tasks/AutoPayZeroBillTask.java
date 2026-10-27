@@ -25,6 +25,10 @@ import java.util.Set;
 /**
  * Auto-creates and confirms cash payments for unpaid patient bills whose due
  * amount is zero and that are older than {@code mohbilling.autopaydelays}.
+ * <p>
+ * When {@code mohbilling.autopayzerobill.processOldRecords} is false, only newly
+ * eligible bills (within one scheduler interval after the delay) are processed.
+ * When true, the historical backlog of old unpaid zero-due bills is also processed.
  */
 public class AutoPayZeroBillTask extends AbstractTask {
 
@@ -46,12 +50,30 @@ public class AutoPayZeroBillTask extends AbstractTask {
 							BillingConstants.GLOBAL_PROPERTY_AUTOPAY_DELAYS,
 							String.valueOf(BillingConstants.DEFAULT_AUTOPAY_DELAYS_SECONDS)),
 					BillingConstants.DEFAULT_AUTOPAY_DELAYS_SECONDS);
+			long intervalSeconds = parsePositiveLong(
+					Context.getAdministrationService().getGlobalProperty(
+							BillingConstants.GLOBAL_PROPERTY_AUTOPAY_TIME,
+							String.valueOf(BillingConstants.DEFAULT_AUTOPAY_TIME_SECONDS)),
+					BillingConstants.DEFAULT_AUTOPAY_TIME_SECONDS);
+			boolean processOldRecords = Boolean.parseBoolean(Context.getAdministrationService()
+					.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_AUTOPAY_PROCESS_OLD_RECORDS, "false"));
 
-			Date cutoff = new Date(System.currentTimeMillis() - (delaySeconds * 1000L));
+			long nowMs = System.currentTimeMillis();
+			Date createdOnOrBefore = new Date(nowMs - (delaySeconds * 1000L));
+			Date createdOnOrAfter = null;
+			if (!processOldRecords) {
+				// New records only: bills that just aged past the delay within one scheduler cycle
+				createdOnOrAfter = new Date(createdOnOrBefore.getTime() - (intervalSeconds * 1000L));
+			}
+
 			BillingService billingService = Context.getService(BillingService.class);
-			List<PatientBill> bills = billingService.getUnpaidZeroDueBillsCreatedOnOrBefore(cutoff);
+			List<PatientBill> bills = billingService.getUnpaidZeroDueBillsCreatedBetween(createdOnOrAfter,
+					createdOnOrBefore);
 			if (bills == null || bills.isEmpty()) {
-				log.debug("Auto-pay zero bill task found no eligible bills older than " + delaySeconds + "s.");
+				log.debug("Auto-pay zero bill task found no eligible bills. processOldRecords="
+						+ processOldRecords + ", delaySeconds=" + delaySeconds
+						+ ", createdOnOrAfter=" + createdOnOrAfter
+						+ ", createdOnOrBefore=" + createdOnOrBefore);
 				return;
 			}
 
@@ -80,7 +102,8 @@ public class AutoPayZeroBillTask extends AbstractTask {
 			}
 			log.info("Auto-pay zero bill task completed: candidates=" + bills.size()
 					+ ", paid=" + paid + ", skipped=" + skipped
-					+ ", delaySeconds=" + delaySeconds);
+					+ ", delaySeconds=" + delaySeconds
+					+ ", processOldRecords=" + processOldRecords);
 		} catch (Exception e) {
 			log.error("Auto-pay zero bill task failed", e);
 		}

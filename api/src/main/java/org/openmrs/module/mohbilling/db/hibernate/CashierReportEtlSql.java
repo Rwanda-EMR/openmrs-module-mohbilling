@@ -48,7 +48,8 @@ final class CashierReportEtlSql {
 				.append(paymentTypeExpression()).append(", payment.date_received, payment.amount_paid, ")
 				.append("payment.void_reason, beneficiary.patient_id, primary_identifier.identifier, ")
 				.append(personNameExpression("patient_name")).append(", patient_bill.phoneNumber, ")
-				.append("patient_bill.transactionStatus, 0, '', 0, 0, NOW() ")
+				.append("patient_bill.transactionStatus, ").append(invoiceNumberExpression()).append(", ")
+				.append("0, '', 0, 0, NOW() ")
 				.append(paymentSourceJoins())
 				.append("WHERE COALESCE(payment.voided, 0) = 0 AND payment.date_received IS NOT NULL ");
 		appendBounds(sql, dateBounded, paymentIdBounded);
@@ -75,7 +76,8 @@ final class CashierReportEtlSql {
 				.append(paymentTypeExpression()).append(", payment.date_received, payment.amount_paid, ")
 				.append("payment.void_reason, beneficiary.patient_id, primary_identifier.identifier, ")
 				.append(personNameExpression("patient_name")).append(", patient_bill.phoneNumber, ")
-				.append("patient_bill.transactionStatus, hospital_service.service_id, hospital_service.name, ")
+				.append("patient_bill.transactionStatus, ").append(invoiceNumberExpression()).append(", ")
+				.append("hospital_service.service_id, hospital_service.name, ")
 				.append("COALESCE(bill_item.item_type, 1), ").append(dueAmount).append(", NOW() ")
 				.append(paymentSourceJoins())
 				.append("JOIN moh_bill_paid_service_bill paid_item ")
@@ -102,7 +104,8 @@ final class CashierReportEtlSql {
 				.append("payment.date_received, payment.amount_paid, payment.void_reason, beneficiary.patient_id, ")
 				.append("primary_identifier.identifier, ")
 				.append("patient_name.given_name, patient_name.middle_name, patient_name.family_name, ")
-				.append("patient_bill.phoneNumber, patient_bill.transactionStatus, hospital_service.service_id, ")
+				.append("patient_bill.phoneNumber, patient_bill.transactionStatus, ")
+				.append(invoiceNumberExpression()).append(", hospital_service.service_id, ")
 				.append("hospital_service.name, COALESCE(bill_item.item_type, 1) ")
 				.append("ON DUPLICATE KEY UPDATE ").append(updateAssignments());
 		return sql.toString();
@@ -114,7 +117,8 @@ final class CashierReportEtlSql {
 		sql.append("SELECT report_etl.bill_payment_id, report_etl.patient_bill_id, report_etl.date_received, ")
 				.append("report_etl.amount_paid, report_etl.patient_id, report_etl.beneficiary_name, ")
 				.append("report_etl.patient_identifier, ")
-				.append("report_etl.phone_number, report_etl.transaction_status, report_etl.service_id, ")
+				.append("report_etl.phone_number, report_etl.transaction_status, report_etl.invoice_number, ")
+				.append("report_etl.service_id, ")
 				.append("report_etl.service_name, SUM(report_etl.due_amount) AS due_amount FROM ")
 				.append(TABLE).append(" report_etl ")
 				.append("WHERE report_etl.date_received BETWEEN :startDate AND :endDate ");
@@ -135,7 +139,8 @@ final class CashierReportEtlSql {
 		sql.append("GROUP BY report_etl.bill_payment_id, report_etl.patient_bill_id, report_etl.date_received, ")
 				.append("report_etl.amount_paid, report_etl.patient_id, report_etl.beneficiary_name, ")
 				.append("report_etl.patient_identifier, ")
-				.append("report_etl.phone_number, report_etl.transaction_status, report_etl.service_id, ")
+				.append("report_etl.phone_number, report_etl.transaction_status, report_etl.invoice_number, ")
+				.append("report_etl.service_id, ")
 				.append("report_etl.service_name ")
 				.append("ORDER BY report_etl.date_received, report_etl.bill_payment_id, report_etl.service_id");
 		return sql.toString();
@@ -158,7 +163,14 @@ final class CashierReportEtlSql {
 	private static String insertPrefix() {
 		return "INSERT INTO " + TABLE + " (bill_payment_id, patient_bill_id, collector_id, payment_type, "
 				+ "date_received, amount_paid, payment_void_reason, patient_id, patient_identifier, beneficiary_name, phone_number, "
-				+ "transaction_status, service_id, service_name, item_type, due_amount, etl_loaded_at) ";
+				+ "transaction_status, invoice_number, service_id, service_name, item_type, due_amount, etl_loaded_at) ";
+	}
+
+	/**
+	 * Prefer payment-level Irembo child invoice number, else the patient bill invoice number.
+	 */
+	private static String invoiceNumberExpression() {
+		return "COALESCE(NULLIF(TRIM(payment.invoice_number), ''), NULLIF(TRIM(patient_bill.invoice_number), ''))";
 	}
 
 	private static String paymentSourceJoins() {
@@ -217,7 +229,8 @@ final class CashierReportEtlSql {
 	private static String updateAssignments() {
 		String[] columns = {
 				"patient_bill_id", "collector_id", "payment_type", "date_received", "amount_paid",
-				"payment_void_reason", "patient_id", "patient_identifier", "beneficiary_name", "phone_number", "transaction_status",
+				"payment_void_reason", "patient_id", "patient_identifier", "beneficiary_name", "phone_number",
+				"transaction_status", "invoice_number",
 				"service_name", "due_amount", "etl_loaded_at"
 		};
 		StringBuilder assignments = new StringBuilder();

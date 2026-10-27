@@ -24,6 +24,9 @@ public class CashierReportEtlSqlTest {
 		Assert.assertTrue(sql.contains("SELECT MIN(consumption_match.consommation_id)"));
 		Assert.assertTrue(sql.contains("identifier.identifier_type = :primaryIdentifierTypeId"));
 		Assert.assertTrue(sql.contains("primary_identifier.identifier"));
+		Assert.assertTrue(sql.contains("payment.invoice_number"));
+		Assert.assertTrue(sql.contains("patient_bill.invoice_number"));
+		Assert.assertTrue(sql.contains("invoice_number"));
 		Assert.assertTrue(sql.contains("0, '', 0, 0, NOW()"));
 		Assert.assertTrue(sql.contains("ON DUPLICATE KEY UPDATE"));
 	}
@@ -64,6 +67,7 @@ public class CashierReportEtlSqlTest {
 		Assert.assertTrue(sql.contains("report_etl.collector_id = :collectorId"));
 		Assert.assertTrue(sql.contains("report_etl.payment_type = :paymentType"));
 		Assert.assertTrue(sql.contains("report_etl.patient_identifier"));
+		Assert.assertTrue(sql.contains("report_etl.invoice_number"));
 		Assert.assertTrue(sql.contains("report_etl.service_id IN (:serviceIds)"));
 		Assert.assertTrue(sql.contains("report_etl.item_type <> 2"));
 		Assert.assertTrue(sql.contains("report_etl.service_id = 0 OR"));

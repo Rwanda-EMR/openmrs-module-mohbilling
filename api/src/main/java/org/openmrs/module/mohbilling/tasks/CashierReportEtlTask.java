@@ -17,7 +17,7 @@ public class CashierReportEtlTask extends AbstractTask {
 
 	private static final Log log = LogFactory.getLog(CashierReportEtlTask.class);
 	private static final int FULL_REFRESH_BATCH_SIZE = 25000;
-	private static final String MATERIALIZATION_VERSION = "2";
+	private static final String MATERIALIZATION_VERSION = "3";
 	private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
 	@Override
