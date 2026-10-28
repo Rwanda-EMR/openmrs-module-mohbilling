@@ -126,6 +126,16 @@
 			<td>Card No</td><td> :<b>${insurancePolicy.insuranceCardNo }</b></td>
 			<td>Primary Care ID</td><td> :<b>${Patient_ID}</b></td>
 		</tr>
+		<c:if test="${not empty transferETransferId or not empty transferValidFrom or not empty transferringFacility}">
+			<tr>
+				<td>E-Transfer ID:</td>
+				<td><b>${transferETransferId}</b></td>
+				<td>Transfer Valid From</td>
+				<td> : <b><fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${transferValidFrom}" /></b></td>
+				<td>Transferring facility</td>
+				<td> : <b>${transferringFacility}</b></td>
+			</tr>
+		</c:if>
 
 		<tr>
 			<td>Admission Mode :</td>
@@ -252,6 +262,7 @@
 			<th><b>Insurance rate: ${insuranceRate}</b>%</th>
 			<th><b>Patient rate: ${patientRate}</b> %</th>
 			<th>RHIP Status</th>
+			<th>Status</th>
 		</tr>
 		<c:set var="total100" value="0"/>
 		<c:set var="totalInsurance" value="0"/>
@@ -262,6 +273,7 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b>${sr.service }</b></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
@@ -295,6 +307,9 @@
 								</c:if>
 							</c:if>
 						</td>
+						<td class="rowValue ${(status.count%2!=0)?'even':''}">
+							${billItemStatusesByItemId[item.patientServiceBillId]}
+						</td>
 					</tr>
 					<!-- total by service category -->
 					<c:set var="totalByCategory100" value="${totalByCategory100+itemCost}"/>
@@ -316,6 +331,7 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategory100}" type="number" pattern="#.##"/></b></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategoryInsurance}" type="number" pattern="#.##"/></b></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategoryTM}" type="number" pattern="#.##"/></b></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 				</tr>
 			</c:if>
@@ -340,6 +356,7 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${totalTM}" type="number" pattern="#.##"/></b></td>
 				</c:otherwise>
 			</c:choose>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 		</tr>
 	</table>

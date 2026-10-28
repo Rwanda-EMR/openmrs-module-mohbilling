@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class FileExporter {
 
@@ -1184,7 +1185,7 @@ public class FileExporter {
 			fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
 			openFile(request, response, document);
 			displayHeader(document, fontselector);
-            displayServiceRevenues(document, gb,differentialDiagnosis,finalDiagnosis, sr, fontselector);
+            displayServiceRevenues(request, document, gb,differentialDiagnosis,finalDiagnosis, sr, fontselector);
 			document.add(new Paragraph("\n"));
 			// displayFooter(document,gb.getAdmission().getInsurancePolicy().getOwner(), fontselector);
 			User generatedBy = Context.getAuthenticatedUser();
@@ -1197,8 +1198,8 @@ public class FileExporter {
 			e.printStackTrace();
 		}
 	}
-    public void displayServiceRevenues(Document document, GlobalBill gb,String differentialDiagnosis,String finalDiagnosis, List<ServiceRevenue> sr, FontSelector fontSelector) throws DocumentException {
-		float[] colsWidt = {5f,20f,55f,25f,15f,25f,25f,25f,25f};
+    public void displayServiceRevenues(HttpServletRequest request, Document document, GlobalBill gb,String differentialDiagnosis,String finalDiagnosis, List<ServiceRevenue> sr, FontSelector fontSelector) throws DocumentException {
+		float[] colsWidt = {5f,20f,45f,25f,15f,25f,25f,25f,25f,25f};
 		PdfPTable table = new PdfPTable(colsWidt);
 		table.setWidthPercentage(100f);
 
@@ -1336,6 +1337,29 @@ public class FileExporter {
 		head3.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head3);
 
+		Object transferSummary = request == null ? null : request.getAttribute("transferSummary");
+		String eTransferId = stringProperty(transferSummary, "eTransferId");
+		Date transferValidFrom = dateProperty(transferSummary, "transferValidFrom");
+		String transferringFacility = stringProperty(transferSummary, "transferringFacility");
+		if (eTransferId != null || transferValidFrom != null || transferringFacility != null) {
+			head3 = new PdfPCell(fontSelector.process("E-TRANSFER ID: " + defaultString(eTransferId) + "\n"));
+			head3.setBorder(Rectangle.NO_BORDER);
+			heading2Tab.addCell(head3);
+
+			head3 = new PdfPCell(fontSelector.process("TRANSFER VALID FROM: "
+					+ (transferValidFrom == null ? "" : new SimpleDateFormat("yyyy-MM-dd HH:mm").format(transferValidFrom)) + "\n"));
+			head3.setBorder(Rectangle.NO_BORDER);
+			heading2Tab.addCell(head3);
+
+			head3 = new PdfPCell(fontSelector.process("TRANSFERRING FACILITY: " + defaultString(transferringFacility) + "\n"));
+			head3.setBorder(Rectangle.NO_BORDER);
+			heading2Tab.addCell(head3);
+
+			head3 = new PdfPCell(fontSelector.process(""));
+			head3.setBorder(Rectangle.NO_BORDER);
+			heading2Tab.addCell(head3);
+		}
+
         head3 = new PdfPCell(fontSelector.process("DIFFERENTIAL DIAGNOSIS: " +differentialDiagnosis ));
         head3.setBorder(Rectangle.NO_BORDER);
         heading2Tab.addCell(head3);
@@ -1396,7 +1420,12 @@ public class FileExporter {
 		cell = new PdfPCell(boldFont.process(patientRate+"%"));
 		table.addCell(cell);
 
+		cell = new PdfPCell(boldFont.process("Status"));
+		table.addCell(cell);
+
 		NumberFormat formatter = new DecimalFormat("#0.00");
+		Map<Integer, String> billItemStatusesByItemId = request == null ? null
+				: (Map<Integer, String>) request.getAttribute("billItemStatusesByItemId");
 
 		BigDecimal totalBill = new BigDecimal(0);
 
@@ -1409,6 +1438,8 @@ public class FileExporter {
 				cell = new PdfPCell(fontSelector.process(""));
 				table.addCell(cell);
 				cell = new PdfPCell(boldFont.process(""+r.getService()));
+				table.addCell(cell);
+				cell = new PdfPCell(fontSelector.process(""));
 				table.addCell(cell);
 				cell = new PdfPCell(fontSelector.process(""));
 				table.addCell(cell);
@@ -1447,6 +1478,10 @@ public class FileExporter {
 						table.addCell(cell);
 						cell = new PdfPCell(fontSelector.process(""+formatter.format(total.multiply(new BigDecimal(patientRate).divide(new BigDecimal(100))))));
 						table.addCell(cell);
+						String billItemStatus = billItemStatusesByItemId == null ? null
+								: billItemStatusesByItemId.get(item.getPatientServiceBillId());
+						cell = new PdfPCell(fontSelector.process(defaultString(billItemStatus)));
+						table.addCell(cell);
 
 						totalByCategory=totalByCategory.add(total);
 					}
@@ -1468,6 +1503,8 @@ public class FileExporter {
 				c = new PdfPCell(boldFont.process(""+formatter.format(totalByCategory.multiply(new BigDecimal(insuranceRate).divide(new BigDecimal(100))))));
 				table.addCell(c);
 				c = new PdfPCell(boldFont.process(""+formatter.format(totalByCategory.multiply(new BigDecimal(patientRate).divide(new BigDecimal(100))))));
+				table.addCell(c);
+				c = new PdfPCell(fontSelector.process(""));
 				table.addCell(c);
 			}
 
@@ -1491,7 +1528,39 @@ public class FileExporter {
 		table.addCell(c);
 		c = new PdfPCell(boldFont.process(""+formatter.format(grandDues[1])));
 		table.addCell(c);
+		c = new PdfPCell(fontSelector.process(""));
+		table.addCell(c);
 		document.add(table);
+	}
+
+	private String stringProperty(Object bean, String propertyName) {
+		Object value = property(bean, propertyName);
+		return value == null ? null : value.toString();
+	}
+
+	private Date dateProperty(Object bean, String propertyName) {
+		Object value = property(bean, propertyName);
+		return value instanceof Date ? (Date) value : null;
+	}
+
+	private Object property(Object bean, String propertyName) {
+		if (bean == null || propertyName == null) {
+			return null;
+		}
+		if (bean instanceof Map) {
+			return ((Map<?, ?>) bean).get(propertyName);
+		}
+		try {
+			String getter = "get" + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+			return bean.getClass().getMethod(getter).invoke(bean);
+		}
+		catch (Exception ignored) {
+			return null;
+		}
+	}
+
+	private String defaultString(String value) {
+		return value == null ? "" : value;
 	}
 	public void printCashierReport(HttpServletRequest request,	HttpServletResponse response,BigDecimal amount, List<PaymentRevenue> paymentRevenues,List<BigDecimal> subTotal,BigDecimal bigTotal,BigDecimal totalPaid,String filename,User cachier) throws Exception{
 		response.setContentType("application/pdf");

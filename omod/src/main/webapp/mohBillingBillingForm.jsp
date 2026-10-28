@@ -10,7 +10,7 @@
 </script>
 <script>
 	function loadBillableServiceByCategory(serviceCategoryId,departmentId){
-			$j("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId);
+			$j("#serviceCategory_"+serviceCategoryId).load("billableServiceByServiceCategory.list?serviceCategoryId="+serviceCategoryId+"&insuranceType="+encodeURIComponent("${insurancePolicy.insurance.category}")+"&insuranceName="+encodeURIComponent("${insurancePolicy.insurance.name}"));
 	}
 
 	var index=0;

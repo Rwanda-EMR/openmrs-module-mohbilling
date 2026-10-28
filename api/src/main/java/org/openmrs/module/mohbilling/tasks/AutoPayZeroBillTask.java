@@ -79,7 +79,14 @@ public class AutoPayZeroBillTask extends AbstractTask {
 
 			User autoPayUser = resolveAutoPayUser();
 			if (autoPayUser == null) {
-				log.warn(MISSING_USER_MESSAGE);
+				// collector is NOT NULL on the payment table; fall back to the scheduler's user
+				autoPayUser = Context.getAuthenticatedUser();
+				log.warn(MISSING_USER_MESSAGE + "; falling back to "
+						+ (autoPayUser != null ? autoPayUser.getUsername() : "none"));
+			}
+			if (autoPayUser == null) {
+				log.error("Auto-pay zero bill task skipped: no collector user available.");
+				return;
 			}
 
 			int paid = 0;
