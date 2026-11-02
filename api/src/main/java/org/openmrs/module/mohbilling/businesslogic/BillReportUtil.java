@@ -1253,17 +1253,19 @@ public final class BillReportUtil {
 		return "";
 	}
 
-	/**
-	 * Known embedded product-code prefixes in facility service names
-	 * ({@code -RHIC-} consultations/procedures, {@code -RLTC-} laboratory).
-	 */
-	private static final String[] PRODUCT_CODE_MARKERS = { "RHIC", "RLTC" };
+	/** Fixed suffix length for {@code RHIC-GASTR-*} product codes. */
+	private static final int PRODUCT_CODE_LENGTH_RHIC_GASTR = 14;
+
+	/** Fixed suffix length for other non-medicament / non-consumable product codes. */
+	private static final int PRODUCT_CODE_LENGTH_DEFAULT = 13;
+
+	private static final String RHIC_GASTR_TOKEN = "RHIC-GASTR";
 
 	/**
 	 * Resolves product name/code for a bill line.
 	 * MEDICAMENTS / CONSOMMABLES: keep facility service name; soft-join {@code rpm_item}
 	 * by name for code.
-	 * Others: split embedded {@code -RHIC-}/{@code -RLTC-} suffixes when present.
+	 * Others: take a fixed-length suffix as code ({@code RHIC-GASTR} → 14 chars, else 13).
 	 *
 	 * @return {@code [productName, productCode]}
 	 */
@@ -1375,14 +1377,16 @@ public final class BillReportUtil {
 	}
 
 	/**
-	 * Splits facility service names that embed a coded suffix, e.g.
+	 * Splits facility service names by fixed-length coded suffix, e.g.
 	 * <ul>
 	 *   <li>{@code Consultation by a general practioner-RHIC-CONS-013}
-	 *       → name / {@code RHIC-CONS-013}</li>
+	 *       → name / {@code RHIC-CONS-013} (last 13)</li>
+	 *   <li>{@code Endoscopy-RHIC-GASTR-001}
+	 *       → {@code Endoscopy} / {@code RHIC-GASTR-001} (last 14)</li>
 	 *   <li>{@code SGPT –ALAT*-RLTC-CHEM-181}
-	 *       → {@code SGPT –ALAT*} / {@code RLTC-CHEM-181}</li>
+	 *       → {@code SGPT –ALAT*} / {@code RLTC-CHEM-181} (last 13)</li>
 	 * </ul>
-	 * Other formats are left as full name with blank code for now.
+	 * Names shorter than the expected code length keep the full name with blank code.
 	 *
 	 * @return {@code [productName, productCode]}
 	 */
@@ -1391,21 +1395,36 @@ public final class BillReportUtil {
 		if (StringUtils.isBlank(name)) {
 			return new String[] { "", "" };
 		}
-		for (String marker : PRODUCT_CODE_MARKERS) {
-			String token = "-" + marker + "-";
-			int markerIndex = name.indexOf(token);
-			if (markerIndex <= 0) {
-				continue;
-			}
-			String productName = name.substring(0, markerIndex).trim();
-			String suffix = name.substring(markerIndex + token.length()).trim();
-			String productCode = (marker + "-" + suffix).trim();
-			if (StringUtils.isBlank(productName) || (marker + "-").equals(productCode)) {
-				continue;
-			}
-			return new String[] { productName, productCode };
+		int codeLen = name.contains(RHIC_GASTR_TOKEN) ? PRODUCT_CODE_LENGTH_RHIC_GASTR
+				: PRODUCT_CODE_LENGTH_DEFAULT;
+		if (name.length() < codeLen) {
+			return new String[] { name, "" };
 		}
-		return new String[] { name, "" };
+		String productCode = name.substring(name.length() - codeLen).trim();
+		String productName = stripTrailingNameSeparators(name.substring(0, name.length() - codeLen));
+		if (StringUtils.isBlank(productName) || StringUtils.isBlank(productCode)) {
+			return new String[] { name, "" };
+		}
+		return new String[] { productName, productCode };
+	}
+
+	/**
+	 * After removing the coded suffix, drop any trailing {@code -}, {@code |}, or spaces.
+	 */
+	private static String stripTrailingNameSeparators(String productName) {
+		if (productName == null || productName.isEmpty()) {
+			return "";
+		}
+		int end = productName.length();
+		while (end > 0) {
+			char c = productName.charAt(end - 1);
+			if (c == '-' || c == '|' || Character.isWhitespace(c)) {
+				end--;
+				continue;
+			}
+			break;
+		}
+		return productName.substring(0, end);
 	}
 
 	private static String getIdentifierByTypeNames(Patient patient, String... typeNames) {
