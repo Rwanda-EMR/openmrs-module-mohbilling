@@ -44,6 +44,7 @@ final class BillReportXlsxWriter {
 			"Primary Working Diagnosis",
 			"Primary confirmed diagnosis by lab/imaging (Yes or No)",
 			"ICD-11 Code",
+			"Item Date",
 			"Product name",
 			"product_code",
 			"product_type",
@@ -55,6 +56,7 @@ final class BillReportXlsxWriter {
 			"RSSB payment (Total - Copayment)",
 			"TOTAL invoice (100%)",
 			"Transfer",
+			"Transfer ID",
 			"Validity Period Start and end date"
 	};
 
@@ -151,18 +153,20 @@ final class BillReportXlsxWriter {
 		writeTextCell(writer, 17, rowNumber, item.getPrimaryWorkingDiagnosis(), false);
 		writeTextCell(writer, 18, rowNumber, item.getPrimaryConfirmedByLabImaging(), false);
 		writeTextCell(writer, 19, rowNumber, item.getIcd11Code(), false);
-		writeTextCell(writer, 20, rowNumber, item.getProductName(), false);
-		writeTextCell(writer, 21, rowNumber, item.getProductCode(), true);
-		writeTextCell(writer, 22, rowNumber, item.getProductType(), false);
-		writeTextCell(writer, 23, rowNumber, item.getProductCategory(), false);
-		writeTextCell(writer, 24, rowNumber, item.getProductUnit(), false);
-		writeNumberCell(writer, 25, rowNumber, decimalValue(item.getProductQuantity()));
-		writeNumberCell(writer, 26, rowNumber, decimalValue(item.getProductCost()));
-		writeNumberCell(writer, 27, rowNumber, decimalValue(item.getCoPayment()));
-		writeNumberCell(writer, 28, rowNumber, decimalValue(item.getRssbPayment()));
-		writeNumberCell(writer, 29, rowNumber, decimalValue(item.getTotalInvoice()));
-		writeTextCell(writer, 30, rowNumber, item.getTransferAvailable(), false);
-		writeTextCell(writer, 31, rowNumber, item.getTransferValidity(), false);
+		writeTextCell(writer, 20, rowNumber, FileExporter.formatDate(dayFormat, item.getItemDate()), false);
+		writeTextCell(writer, 21, rowNumber, item.getProductName(), false);
+		writeTextCell(writer, 22, rowNumber, item.getProductCode(), true);
+		writeTextCell(writer, 23, rowNumber, item.getProductType(), false);
+		writeTextCell(writer, 24, rowNumber, item.getProductCategory(), false);
+		writeTextCell(writer, 25, rowNumber, item.getProductUnit(), false);
+		writeNumberCell(writer, 26, rowNumber, decimalValue(item.getProductQuantity()));
+		writeNumberCell(writer, 27, rowNumber, decimalValue(item.getProductCost()));
+		writeNumberCell(writer, 28, rowNumber, decimalValue(item.getCoPayment()));
+		writeNumberCell(writer, 29, rowNumber, decimalValue(item.getRssbPayment()));
+		writeNumberCell(writer, 30, rowNumber, decimalValue(item.getTotalInvoice()));
+		writeTextCell(writer, 31, rowNumber, item.getTransferAvailable(), false);
+		writeTextCell(writer, 32, rowNumber, item.getTransferId(), true);
+		writeTextCell(writer, 33, rowNumber, item.getTransferValidity(), false);
 		writer.write("</row>");
 	}
 

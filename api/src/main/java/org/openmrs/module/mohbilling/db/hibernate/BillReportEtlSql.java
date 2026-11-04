@@ -54,7 +54,7 @@ final class BillReportEtlSql {
 				+ "patient_dob, patient_gender, social_registry_level, "
 				+ "provider_name, provider_qualification, provider_phone, provider_registration, "
 				+ "primary_diagnosis, confirmed_by_lab_imaging, icd11_code, "
-				+ "product_name, product_code, product_type, product_category, product_unit, "
+				+ "item_date, product_name, product_code, product_type, product_category, product_unit, "
 				+ "product_quantity, product_cost, co_payment, rssb_payment, total_invoice, "
 				+ "transfer_available, transfer_id, transfer_validity, etl_loaded_at"
 				+ ") VALUES ("
@@ -65,7 +65,7 @@ final class BillReportEtlSql {
 				+ ":patientDob, :patientGender, :socialRegistryLevel, "
 				+ ":providerName, :providerQualification, :providerPhone, :providerRegistration, "
 				+ ":primaryDiagnosis, :confirmedByLabImaging, :icd11Code, "
-				+ ":productName, :productCode, :productType, :productCategory, :productUnit, "
+				+ ":itemDate, :productName, :productCode, :productType, :productCategory, :productUnit, "
 				+ ":productQuantity, :productCost, :coPayment, :rssbPayment, :totalInvoice, "
 				+ ":transferAvailable, :transferId, :transferValidity, NOW()"
 				+ ") ON DUPLICATE KEY UPDATE "
@@ -97,6 +97,7 @@ final class BillReportEtlSql {
 				+ "primary_diagnosis = VALUES(primary_diagnosis), "
 				+ "confirmed_by_lab_imaging = VALUES(confirmed_by_lab_imaging), "
 				+ "icd11_code = VALUES(icd11_code), "
+				+ "item_date = VALUES(item_date), "
 				+ "product_name = VALUES(product_name), "
 				+ "product_code = VALUES(product_code), "
 				+ "product_type = VALUES(product_type), "
@@ -122,7 +123,7 @@ final class BillReportEtlSql {
 				.append("patient_dob, patient_gender, social_registry_level, ")
 				.append("provider_name, provider_qualification, provider_phone, provider_registration, ")
 				.append("primary_diagnosis, confirmed_by_lab_imaging, icd11_code, ")
-				.append("product_name, product_code, product_type, product_category, product_unit, ")
+				.append("item_date, product_name, product_code, product_type, product_category, product_unit, ")
 				.append("product_quantity, product_cost, co_payment, rssb_payment, total_invoice, ")
 				.append("transfer_available, transfer_id, transfer_validity ")
 				.append("FROM ").append(TABLE).append(" ")

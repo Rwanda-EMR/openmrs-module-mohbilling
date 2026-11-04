@@ -12,6 +12,8 @@ public class BillReportEtlSqlTest {
 		Assert.assertTrue(sql.contains("INSERT INTO moh_bill_bill_report_etl"));
 		Assert.assertTrue(sql.contains("patient_service_bill_id"));
 		Assert.assertTrue(sql.contains("primary_diagnosis"));
+		Assert.assertTrue(sql.contains("item_date"));
+		Assert.assertTrue(sql.contains(":itemDate"));
 		Assert.assertTrue(sql.contains("transfer_available"));
 		Assert.assertTrue(sql.contains("transfer_validity"));
 		Assert.assertTrue(sql.contains("ON DUPLICATE KEY UPDATE"));

@@ -2667,4 +2667,17 @@
 		</createIndex>
 	</changeSet>
 
+	<changeSet id="mohbilling-20261102-bill-report-etl-item-date" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_bill_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_bill_report_etl" columnName="item_date" />
+			</not>
+		</preConditions>
+		<comment>Bill Report Item Date from moh_bill_patient_service_bill.created_date</comment>
+		<addColumn tableName="moh_bill_bill_report_etl">
+			<column name="item_date" type="datetime" />
+		</addColumn>
+	</changeSet>
+
 </databaseChangeLog>

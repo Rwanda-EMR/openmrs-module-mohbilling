@@ -40,6 +40,7 @@ public class BillReportEtlParityTest {
 		Assert.assertEquals("Malaria", row.get("primaryDiagnosis"));
 		Assert.assertEquals("Yes", row.get("confirmedByLabImaging"));
 		Assert.assertEquals("1A00", row.get("icd11Code"));
+		Assert.assertEquals(item.getItemDate(), row.get("itemDate"));
 		Assert.assertEquals("Paracetamol", row.get("productName"));
 		Assert.assertEquals("RHIC-MED-001", row.get("productCode"));
 		Assert.assertEquals("MEDICAMENTS", row.get("productType"));
@@ -108,6 +109,7 @@ public class BillReportEtlParityTest {
 		item.setPrimaryWorkingDiagnosis("Malaria");
 		item.setPrimaryConfirmedByLabImaging("Yes");
 		item.setIcd11Code("1A00");
+		item.setItemDate(admissionDate);
 		item.setProductName("Paracetamol");
 		item.setProductCode("RHIC-MED-001");
 		item.setProductType("MEDICAMENTS");

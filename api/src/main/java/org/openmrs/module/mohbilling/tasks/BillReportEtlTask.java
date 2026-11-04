@@ -24,7 +24,7 @@ public class BillReportEtlTask extends AbstractTask {
 	private static final int DEFAULT_OVERLAP_DAYS = 7;
 	/** Keep batches small so each service call commits and COUNT(*) can rise during a run. */
 	private static final int FULL_REFRESH_BATCH_SIZE = 500;
-	private static final String MATERIALIZATION_VERSION = "2";
+	private static final String MATERIALIZATION_VERSION = "3";
 	private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
 	@Override

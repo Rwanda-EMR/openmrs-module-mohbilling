@@ -84,8 +84,7 @@ public class MohBillingBillReportController extends ParameterizableViewControlle
 
 		mav.addObject("admissions", admissionRows);
 		mav.addObject("resultMsg",
-				"Found " + admissionRows.size() + " billed item(s) from " + startDateStr + " to " + endDateStr
-						+ " (limited to first 5 patients for testing)");
+				"Found " + admissionRows.size() + " billed item(s) from " + startDateStr + " to " + endDateStr);
 		return mav;
 	}
 
