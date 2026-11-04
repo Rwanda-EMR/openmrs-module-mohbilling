@@ -2126,6 +2126,7 @@ public class HibernateBillingDAO implements BillingDAO {
         query.setString("primaryDiagnosis", item.getPrimaryWorkingDiagnosis());
         query.setString("confirmedByLabImaging", item.getPrimaryConfirmedByLabImaging());
         query.setString("icd11Code", item.getIcd11Code());
+        setNullableTimestamp(query, "itemDate", item.getItemDate());
         query.setString("productName", item.getProductName());
         query.setString("productCode", item.getProductCode());
         query.setString("productType", item.getProductType());
@@ -2188,6 +2189,7 @@ public class HibernateBillingDAO implements BillingDAO {
         item.setPrimaryWorkingDiagnosis(getString(row, "primary_diagnosis"));
         item.setPrimaryConfirmedByLabImaging(getString(row, "confirmed_by_lab_imaging"));
         item.setIcd11Code(getString(row, "icd11_code"));
+        item.setItemDate(asDate(row.get("item_date")));
         item.setProductName(getString(row, "product_name"));
         item.setProductCode(getString(row, "product_code"));
         item.setProductType(getString(row, "product_type"));

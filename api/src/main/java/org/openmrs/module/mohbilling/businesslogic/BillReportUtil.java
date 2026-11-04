@@ -471,6 +471,7 @@ public final class BillReportUtil {
 		row.put("primaryDiagnosis", item.getPrimaryWorkingDiagnosis());
 		row.put("confirmedByLabImaging", item.getPrimaryConfirmedByLabImaging());
 		row.put("icd11Code", item.getIcd11Code());
+		row.put("itemDate", item.getItemDate());
 		row.put("productName", item.getProductName());
 		row.put("productCode", item.getProductCode());
 		row.put("productType", item.getProductType());
@@ -572,6 +573,7 @@ public final class BillReportUtil {
 		row.put("primaryDiagnosis", clinicalDiagnosis.getPrimaryDiagnosis());
 		row.put("confirmedByLabImaging", clinicalDiagnosis.getConfirmedByLabImaging());
 		row.put("icd11Code", clinicalDiagnosis.getIcd11Code());
+		row.put("itemDate", item != null ? item.getCreatedDate() : null);
 		row.put("productName", productName);
 		row.put("productCode", productCode);
 		row.put("productType", productType);
@@ -819,9 +821,145 @@ public final class BillReportUtil {
 	}
 
 	/**
+	 * Yes when any non-voided LABORATOIRE bill line on the global bill has an OpenMRS order
+	 * with fulfiller status Completed (same Status column used on Global Bill).
+	 */
+	static boolean hasCompletedLaboratoryOnGlobalBill(GlobalBill globalBill,
+			List<Consommation> consommations) {
+		if (globalBill == null || consommations == null || consommations.isEmpty()) {
+			return false;
+		}
+		Integer patientId = null;
+		if (globalBill.getAdmission() != null && globalBill.getAdmission().getInsurancePolicy() != null
+				&& globalBill.getAdmission().getInsurancePolicy().getOwner() != null) {
+			patientId = globalBill.getAdmission().getInsurancePolicy().getOwner().getPatientId();
+		}
+		if (patientId == null) {
+			return false;
+		}
+		for (Consommation consommation : consommations) {
+			if (consommation == null || Boolean.TRUE.equals(consommation.getVoided())
+					|| consommation.getBillItems() == null) {
+				continue;
+			}
+			for (PatientServiceBill billItem : consommation.getBillItems()) {
+				if (billItem == null || Boolean.TRUE.equals(billItem.getVoided())
+						|| !isLaboratoryBillItem(billItem)) {
+					continue;
+				}
+				if (isLaboratoryOrderCompleted(patientId, billItem, globalBill)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	static boolean isLaboratoryBillItem(PatientServiceBill billItem) {
+		if (billItem == null) {
+			return false;
+		}
+		if (isLaboratoryLabel(billItem.getHopService() != null ? billItem.getHopService().getName() : null)) {
+			return true;
+		}
+		if (billItem.getService() != null && billItem.getService().getServiceCategory() != null
+				&& isLaboratoryLabel(billItem.getService().getServiceCategory().getName())) {
+			return true;
+		}
+		if (billItem.getService() != null && billItem.getService().getFacilityServicePrice() != null
+				&& isLaboratoryLabel(billItem.getService().getFacilityServicePrice().getCategory())) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean isLaboratoryLabel(String label) {
+		if (StringUtils.isBlank(label)) {
+			return false;
+		}
+		String normalized = label.trim().toLowerCase(Locale.ROOT);
+		if (normalized.contains("imaging") || normalized.contains("imagerie")
+				|| normalized.contains("radiology") || normalized.contains("radiologie")
+				|| normalized.contains("xray") || normalized.contains("x-ray")) {
+			return false;
+		}
+		return normalized.contains("laboratoire") || normalized.contains("laboratory")
+				|| normalized.equals("labo") || normalized.equals("lab")
+				|| normalized.startsWith("lab ") || normalized.contains(" lab");
+	}
+
+	private static boolean isLaboratoryOrderCompleted(Integer patientId, PatientServiceBill billItem,
+			GlobalBill globalBill) {
+		Integer conceptId = null;
+		if (billItem != null && billItem.getService() != null
+				&& billItem.getService().getFacilityServicePrice() != null
+				&& billItem.getService().getFacilityServicePrice().getConcept() != null) {
+			conceptId = billItem.getService().getFacilityServicePrice().getConcept().getConceptId();
+		}
+		if (patientId == null || conceptId == null) {
+			return false;
+		}
+		try {
+			String dateClause = laboratoryOrderDateWindowClause(billItem != null ? billItem.getServiceDate() : null,
+					globalBill);
+			String sql = "SELECT fulfiller_status FROM orders WHERE patient_id = " + patientId
+					+ " AND concept_id = " + conceptId
+					+ " AND COALESCE(voided, 0) = 0"
+					+ dateClause
+					+ " ORDER BY COALESCE(date_activated, date_created) DESC, order_id DESC LIMIT 1";
+			List<List<Object>> rows = Context.getAdministrationService().executeSQL(sql, true);
+			if (rows == null || rows.isEmpty() || rows.get(0) == null || rows.get(0).isEmpty()
+					|| rows.get(0).get(0) == null) {
+				return false;
+			}
+			return isCompletedOrderStatus(String.valueOf(rows.get(0).get(0)));
+		} catch (Exception e) {
+			log.debug("Bill Report laboratory order status lookup skipped: " + e.getMessage());
+			return false;
+		}
+	}
+
+	static boolean isCompletedOrderStatus(String status) {
+		if (StringUtils.isBlank(status)) {
+			return false;
+		}
+		String normalized = status.trim().replace('_', ' ').replace('-', ' ').toLowerCase(Locale.ROOT);
+		normalized = normalized.replaceAll("\\s+", " ");
+		return "completed".equals(normalized);
+	}
+
+	private static String laboratoryOrderDateWindowClause(Date serviceDate, GlobalBill globalBill) {
+		Calendar calendar = Calendar.getInstance();
+		Date start = null;
+		Date end = null;
+		if (serviceDate != null) {
+			calendar.setTime(serviceDate);
+			calendar.add(Calendar.DATE, -1);
+			start = calendar.getTime();
+			calendar.setTime(serviceDate);
+			calendar.add(Calendar.DATE, 2);
+			end = calendar.getTime();
+		} else if (globalBill != null && globalBill.getAdmission() != null
+				&& globalBill.getAdmission().getAdmissionDate() != null) {
+			start = globalBill.getAdmission().getAdmissionDate();
+			end = globalBill.getClosingDate() == null ? new Date() : globalBill.getClosingDate();
+		}
+		if (start == null || end == null) {
+			return "";
+		}
+		java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return " AND COALESCE(date_activated, date_created) >= '" + df.format(start) + "'"
+				+ " AND COALESCE(date_activated, date_created) < '" + df.format(end) + "'";
+	}
+
+	/**
 	 * Resolves primary diagnosis / confirmed-by-lab / ICD-11 for an admission.
 	 * When {@code admission.visit} is set, only obs on that visit are used; otherwise
 	 * obs within admission_date +/- 2 days.
+	 * <p>
+	 * Note: ETL overrides {@code confirmedByLabImaging} from completed LABORATOIRE order
+	 * status on the global bill; this method still resolves the concept-based value for
+	 * diagnosis/ICD and for any live display path that does not apply that override.
 	 */
 	public static ClinicalDiagnosis resolveClinicalDiagnosis(Admission admission, GlobalBill globalBill,
 			Patient patient) {
@@ -1625,7 +1763,11 @@ public final class BillReportUtil {
 			Patient patientForDx = admission.getInsurancePolicy() != null
 					? admission.getInsurancePolicy().getOwner()
 					: null;
-			ClinicalDiagnosis clinicalDiagnosis = resolveClinicalDiagnosis(admission, globalBill, patientForDx);
+			ClinicalDiagnosis diagnosis = resolveClinicalDiagnosis(admission, globalBill, patientForDx);
+			// Whole voucher: Yes if any LABORATOIRE line on this global bill has order status Completed.
+			String confirmedByLab = hasCompletedLaboratoryOnGlobalBill(globalBill, consommations) ? "Yes" : "No";
+			ClinicalDiagnosis clinicalDiagnosis = new ClinicalDiagnosis(
+					diagnosis.getPrimaryDiagnosis(), confirmedByLab, diagnosis.getIcd11Code());
 
 			for (Consommation consommation : consommations) {
 				if (consommation == null || Boolean.TRUE.equals(consommation.getVoided())) {
@@ -1683,8 +1825,7 @@ public final class BillReportUtil {
 			row.setCardNumber(policy.getInsuranceCardNo());
 		}
 		if (globalBill != null) {
-			row.setVoucherId(StringUtils.defaultIfBlank(globalBill.getRhipVoucherCode(),
-					globalBill.getRhipVoucherReferenceNumber()));
+			row.setVoucherId(StringUtils.trimToEmpty(globalBill.getBillIdentifier()));
 		}
 
 		Beneficiary beneficiary = consommation.getBeneficiary();
@@ -1714,6 +1855,7 @@ public final class BillReportUtil {
 		row.setPrimaryWorkingDiagnosis(clinicalDiagnosis.getPrimaryDiagnosis());
 		row.setPrimaryConfirmedByLabImaging(clinicalDiagnosis.getConfirmedByLabImaging());
 		row.setIcd11Code(clinicalDiagnosis.getIcd11Code());
+		row.setItemDate(item.getCreatedDate());
 
 		FacilityServicePrice fsp = null;
 		BillableService billable = item.getService();

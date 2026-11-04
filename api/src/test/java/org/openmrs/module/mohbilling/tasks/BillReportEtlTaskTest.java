@@ -15,7 +15,7 @@ public class BillReportEtlTaskTest {
 
 	@Test
 	public void materializationConfiguration_shouldIncludePrimaryIdentifierAndStartDate() {
-		Assert.assertEquals("2:8:start=2026-08-01",
+		Assert.assertEquals("3:8:start=2026-08-01",
 				BillReportEtlTask.materializationConfiguration(8, "2026-08-01"));
 	}
 

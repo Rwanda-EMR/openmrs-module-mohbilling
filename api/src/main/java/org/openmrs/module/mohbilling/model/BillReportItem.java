@@ -38,6 +38,8 @@ public class BillReportItem {
 	private String primaryWorkingDiagnosis;
 	private String primaryConfirmedByLabImaging;
 	private String icd11Code;
+	/** {@code moh_bill_patient_service_bill.created_date} */
+	private Date itemDate;
 	private String productName;
 	private String productCode;
 	private String productType;
@@ -290,6 +292,14 @@ public class BillReportItem {
 
 	public void setIcd11Code(String icd11Code) {
 		this.icd11Code = icd11Code;
+	}
+
+	public Date getItemDate() {
+		return itemDate;
+	}
+
+	public void setItemDate(Date itemDate) {
+		this.itemDate = itemDate;
 	}
 
 	public String getProductName() {

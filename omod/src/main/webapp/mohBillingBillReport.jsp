@@ -229,6 +229,7 @@
 			<th class="columnHeader">Primary Diagnosis</th>
 			<th class="columnHeader">Confirmed By lab/Imaging</th>
 			<th class="columnHeader">ICD-11 Code</th>
+			<th class="columnHeader">Item Date</th>
 			<th class="columnHeader">Product Name</th>
 			<th class="columnHeader">Product Code</th>
 			<th class="columnHeader">Product Type</th>
@@ -239,6 +240,7 @@
 			<th class="columnHeader">RSSB Payment</th>
 			<th class="columnHeader">Total Invoice</th>
 			<th class="columnHeader">Transfer Available</th>
+			<th class="columnHeader">Transfer ID</th>
 			<th class="columnHeader">Transfer Validity</th>
 		</tr>
 		<c:forEach items="${admissions}" var="row" varStatus="status">
@@ -271,6 +273,9 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.primaryDiagnosis}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.confirmedByLabImaging}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.icd11Code}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">
+					<fmt:formatDate pattern="dd/MM/yyyy HH:mm" value="${row.itemDate}" />
+				</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.productName}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.productCode}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.productType}</td>
@@ -281,6 +286,7 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.rssbPayment}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.totalInvoice}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.transferAvailable}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.transferId}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.transferValidity}</td>
 			</tr>
 		</c:forEach>
