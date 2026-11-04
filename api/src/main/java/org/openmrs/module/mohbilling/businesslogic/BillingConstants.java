@@ -173,7 +173,7 @@ public class BillingConstants {
 	public static final long DEFAULT_AUTOPAY_TIME_SECONDS = 86400L;
 	public static final long DEFAULT_AUTOPAY_DELAYS_SECONDS = 43200L;
 
-	/** When true, bills of the private insurance are left out of the Find Bills report */
+	/** When true, bills of the private insurance are left out of the Find Bills and Bill Report reports */
 	public static final String GLOBAL_PROPERTY_ACTIVATE_NONE_FEATURE = "billing.activateNoneFeature";
 	/** Name of the private insurance, set by the rwandaemr module */
 	public static final String GLOBAL_PROPERTY_PRIVATE_INSURANCE_NAME = "rwandaemr.autoCreateInsuranceType";

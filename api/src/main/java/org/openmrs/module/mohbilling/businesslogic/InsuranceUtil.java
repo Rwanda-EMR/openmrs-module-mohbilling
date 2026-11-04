@@ -1,5 +1,6 @@
 package org.openmrs.module.mohbilling.businesslogic;
 
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.Concept;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
@@ -763,6 +764,33 @@ public class InsuranceUtil {
 	public static List<Insurance> getAllInsurances() {
 
 		return getService().getAllInsurances();
+	}
+
+	/**
+	 * Name of the insurance to hide from reports: the private insurance named in rwandaemr.autoCreateInsuranceType,
+	 * or null when billing.activateNoneFeature is not true or no private insurance is set
+	 */
+	public static String getHiddenInsuranceName() {
+		boolean hide = Boolean.parseBoolean(Context.getAdministrationService().getGlobalProperty(
+				BillingConstants.GLOBAL_PROPERTY_ACTIVATE_NONE_FEATURE, "false").trim());
+		if (!hide)
+			return null;
+		String privateInsuranceName = Context.getAdministrationService().getGlobalProperty(
+				BillingConstants.GLOBAL_PROPERTY_PRIVATE_INSURANCE_NAME);
+		if (privateInsuranceName == null || privateInsuranceName.trim().isEmpty()) {
+			LogFactory.getLog(InsuranceUtil.class).warn(BillingConstants.GLOBAL_PROPERTY_PRIVATE_INSURANCE_NAME
+					+ " is not set, so no insurance is hidden on reports");
+			return null;
+		}
+		return privateInsuranceName.trim();
+	}
+
+	public static boolean isInsurance(Insurance insurance, String insuranceName) {
+		return insurance != null && isInsuranceName(insurance.getName(), insuranceName);
+	}
+
+	public static boolean isInsuranceName(String name, String insuranceName) {
+		return name != null && insuranceName != null && insuranceName.equalsIgnoreCase(name.trim());
 	}
 
 	public static ServiceCategory getServiceCategoryById(Integer id) {

@@ -30,7 +30,7 @@ public class MohBillingCohortBuilderFormController extends
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 												 HttpServletResponse response) throws Exception {		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
-		String hiddenInsuranceName = getHiddenInsuranceName();
+		String hiddenInsuranceName = InsuranceUtil.getHiddenInsuranceName();
 
 
 		if (request.getParameter("formStatus") != null
@@ -84,7 +84,7 @@ public class MohBillingCohortBuilderFormController extends
 			if (hiddenInsuranceName != null) {
 				List<Consommation> consWithoutPrivate = new ArrayList<Consommation>();
 				for (Consommation con : cons) {
-					if (!isInsurance(con.getBeneficiary().getInsurancePolicy().getInsurance(), hiddenInsuranceName))
+					if (!InsuranceUtil.isInsurance(con.getBeneficiary().getInsurancePolicy().getInsurance(), hiddenInsuranceName))
 						consWithoutPrivate.add(con);
 				}
 				cons = consWithoutPrivate;
@@ -118,7 +118,7 @@ public class MohBillingCohortBuilderFormController extends
 		if (hiddenInsuranceName != null) {
 			List<Insurance> insurancesWithoutPrivate = new ArrayList<Insurance>();
 			for (Insurance ins : insurances) {
-				if (!isInsurance(ins, hiddenInsuranceName))
+				if (!InsuranceUtil.isInsurance(ins, hiddenInsuranceName))
 					insurancesWithoutPrivate.add(ins);
 			}
 			insurances = insurancesWithoutPrivate;
@@ -146,27 +146,5 @@ public class MohBillingCohortBuilderFormController extends
 
 	private String getGlobalBillStatus(GlobalBill globalBill) {
 		return globalBill != null && globalBill.getClosingDate() != null ? "DISCHARGED" : "NOT DISCHARGED";
-	}
-
-	/**
-	 * Name of the insurance to hide: the private insurance named in rwandaemr.autoCreateInsuranceType,
-	 * or null when billing.activateNoneFeature is not true or no private insurance is set
-	 */
-	private String getHiddenInsuranceName() {
-		boolean hide = Boolean.parseBoolean(Context.getAdministrationService().getGlobalProperty(
-				BillingConstants.GLOBAL_PROPERTY_ACTIVATE_NONE_FEATURE, "false").trim());
-		if (!hide)
-			return null;
-		String privateInsuranceName = Context.getAdministrationService().getGlobalProperty(
-				BillingConstants.GLOBAL_PROPERTY_PRIVATE_INSURANCE_NAME);
-		if (privateInsuranceName == null || privateInsuranceName.trim().isEmpty()) {
-			log.warn(BillingConstants.GLOBAL_PROPERTY_PRIVATE_INSURANCE_NAME + " is not set, so no insurance is hidden on Find Bills");
-			return null;
-		}
-		return privateInsuranceName.trim();
-	}
-
-	private boolean isInsurance(Insurance insurance, String insuranceName) {
-		return insurance != null && insurance.getName() != null && insuranceName.equalsIgnoreCase(insurance.getName().trim());
 	}
 }

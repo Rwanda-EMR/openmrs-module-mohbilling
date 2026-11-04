@@ -314,10 +314,12 @@ public final class BillReportUtil {
 			all = Collections.emptyList();
 		}
 
+		String hiddenInsuranceName = InsuranceUtil.getHiddenInsuranceName();
 		Set<String> presentCombinedCategories = new HashSet<>();
 		List<Insurance> individual = new ArrayList<>();
 		for (Insurance insurance : all) {
-			if (insurance == null || Boolean.TRUE.equals(insurance.isVoided())) {
+			if (insurance == null || Boolean.TRUE.equals(insurance.isVoided())
+					|| InsuranceUtil.isInsurance(insurance, hiddenInsuranceName)) {
 				continue;
 			}
 			String category = StringUtils.trimToEmpty(insurance.getCategory());
@@ -1729,11 +1731,40 @@ public final class BillReportUtil {
 		if (rows == null || rows.isEmpty()) {
 			return Collections.emptyList();
 		}
+		rows = withoutHiddenInsurance(rows);
 		int sequence = 1;
 		for (BillReportItem row : rows) {
 			row.setRowNumber(sequence++);
 		}
 		return rows;
+	}
+
+	/**
+	 * Leaves out rows of the private insurance when billing.activateNoneFeature is true
+	 * (see {@link InsuranceUtil#getHiddenInsuranceName()}).
+	 */
+	private static List<BillReportItem> withoutHiddenInsurance(List<BillReportItem> rows) {
+		String hiddenInsuranceName = InsuranceUtil.getHiddenInsuranceName();
+		if (hiddenInsuranceName == null) {
+			return rows;
+		}
+		Set<Integer> hiddenInsuranceIds = new HashSet<>();
+		List<Insurance> insurances = InsuranceUtil.getAllInsurances();
+		if (insurances != null) {
+			for (Insurance insurance : insurances) {
+				if (InsuranceUtil.isInsurance(insurance, hiddenInsuranceName) && insurance.getInsuranceId() != null) {
+					hiddenInsuranceIds.add(insurance.getInsuranceId());
+				}
+			}
+		}
+		List<BillReportItem> visibleRows = new ArrayList<>(rows.size());
+		for (BillReportItem row : rows) {
+			if (!hiddenInsuranceIds.contains(row.getInsuranceId())
+					&& !InsuranceUtil.isInsuranceName(row.getInsuranceName(), hiddenInsuranceName)) {
+				visibleRows.add(row);
+			}
+		}
+		return visibleRows;
 	}
 
 	/**

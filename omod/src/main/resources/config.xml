@@ -571,10 +571,6 @@
     <globalProperty>
         <property>billing.activateNoneFeature</property>
         <defaultValue>false</defaultValue>
-        <description>
-            When true, bills of the private insurance (the insurance named in rwandaemr.autoCreateInsuranceType)
-            are not shown on the Find Bills report. When false (default), bills of all insurances are shown.
-        </description>
     </globalProperty>
 
     <!-- /Required Global Properties -->
