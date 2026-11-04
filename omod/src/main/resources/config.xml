@@ -718,6 +718,11 @@
     </privilege>
 
     <privilege>
+        <name>Billing Report - View Bill Insurance Reconciliation</name>
+        <description>Allows users to view and export Bill Report vs Insurance Report reconciliation</description>
+    </privilege>
+
+    <privilege>
         <name>Billing Report - View Cashier Report</name>
         <description>Allows users to view Cashier Report</description>
     </privilege>

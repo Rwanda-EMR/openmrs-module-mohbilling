@@ -708,6 +708,12 @@ public interface BillingDAO {
 	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
 			String insuranceCategory);
 
+	/**
+	 * Global bills present in Bill Report ETL or Insurance Report ETL but not both,
+	 * for the given admission-date range (all insurers).
+	 */
+	List<BillInsuranceReconciliationItem> getBillInsuranceReconciliation(Date startDate, Date endDate);
+
 	int refreshBillReportEtl(Date refreshFrom);
 
 	int refreshBillReportEtlByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
