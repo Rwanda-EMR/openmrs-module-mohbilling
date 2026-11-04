@@ -211,6 +211,34 @@ public class FileExporter {
 		}
 	}
 
+	public static void exportBillInsuranceReconciliationData(HttpServletResponse response,
+			List<BillInsuranceReconciliationItem> rows, Date startDate, Date endDate) {
+		if (response == null || rows == null) {
+			throw new IllegalArgumentException(
+					"exportBillInsuranceReconciliationData expects a response and rows.");
+		}
+		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition",
+				"attachment; filename=\"bill_insurance_reconciliation_" + formatter.format(new Date())
+						+ ".xlsx\"");
+		try (OutputStream outputStream = response.getOutputStream()) {
+			BillInsuranceReconciliationXlsxWriter.write(outputStream, rows, startDate, endDate);
+			outputStream.flush();
+		} catch (Exception | LinkageError e) {
+			log.error("Failed to write bill/insurance reconciliation XLSX", e);
+			if (!response.isCommitted()) {
+				try {
+					response.reset();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Unable to generate the reconciliation report.");
+				} catch (IOException responseError) {
+					log.error("Failed to send the reconciliation export error", responseError);
+				}
+			}
+		}
+	}
+
 	public static void exportCashierReportData(HttpServletResponse response,
 			List<PaymentRevenue> paymentRevenues, List<BigDecimal> subTotals, BigDecimal bigTotal,
 			BigDecimal totalPaid, String reportTitle, User cashier) {

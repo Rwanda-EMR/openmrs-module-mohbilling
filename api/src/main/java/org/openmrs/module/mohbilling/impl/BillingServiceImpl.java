@@ -1242,6 +1242,12 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<BillInsuranceReconciliationItem> getBillInsuranceReconciliation(Date startDate, Date endDate) {
+        return billingDAO.getBillInsuranceReconciliation(startDate, endDate);
+    }
+
+    @Override
     public int refreshBillReportEtl(Date refreshFrom) {
         BillingService self = Context.getService(BillingService.class);
         // Commit the window clear first so it cannot roll back rows inserted below.

@@ -1971,6 +1971,52 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
+    public List<BillInsuranceReconciliationItem> getBillInsuranceReconciliation(Date startDate, Date endDate) {
+        if (startDate == null || endDate == null) {
+            return Collections.emptyList();
+        }
+        String excludedInsuranceName = org.apache.commons.lang3.StringUtils.trimToEmpty(
+                Context.getAdministrationService().getGlobalProperty(
+                        BillingConstants.GLOBAL_PROPERTY_PRIVATE_INSURANCE_NAME, ""));
+        SQLQuery query = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillInsuranceReconciliationSql.reconciliationSql());
+        query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        query.setTimestamp("startDate", startDate);
+        query.setTimestamp("endDate", endDate);
+        query.setString("excludedInsuranceName", excludedInsuranceName);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> resultSet = query.list();
+        List<BillInsuranceReconciliationItem> rows = new ArrayList<BillInsuranceReconciliationItem>(
+                resultSet.size());
+        int sequence = 1;
+        for (Map<String, Object> row : resultSet) {
+            BillInsuranceReconciliationItem item = mapBillInsuranceReconciliationRow(row);
+            item.setRowNumber(sequence++);
+            rows.add(item);
+        }
+        return rows;
+    }
+
+    private static BillInsuranceReconciliationItem mapBillInsuranceReconciliationRow(Map<String, Object> row) {
+        BillInsuranceReconciliationItem item = new BillInsuranceReconciliationItem();
+        item.setAppearsIn(getString(row, "appears_in"));
+        item.setReason(getString(row, "reason"));
+        item.setGlobalBillId(getInt(row, "global_bill_id"));
+        item.setVoucherId(getString(row, "voucher_id"));
+        item.setAdmissionDate(asDate(row.get("admission_date")));
+        item.setClosingDate(asDate(row.get("closing_date")));
+        item.setPatientNames(getString(row, "patient_names"));
+        item.setPatientId(getString(row, "patient_id"));
+        item.setCardNumber(getString(row, "card_number"));
+        item.setInsuranceName(getString(row, "insurance_name"));
+        Object total = row.get("total_amount");
+        if (total != null) {
+            item.setTotalAmount(new BigDecimal(total.toString()));
+        }
+        return item;
+    }
+
+    @Override
     public int refreshBillReportEtl(Date refreshFrom) {
         // Caller (service) commits per admission; this method only clears the window once.
         SQLQuery deleteQuery = sessionFactory.getCurrentSession()
