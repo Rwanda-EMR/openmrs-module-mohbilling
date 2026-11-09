@@ -112,8 +112,10 @@
 
 <b class="boxHeader">Search Form</b>
 <div class="box">
-	<form method="post" action="">
+	<form method="get" action="billReport.form">
 		<input type="hidden" name="formStatus" id="formStatusId" value="" />
+		<input type="hidden" name="page" value="1" />
+		<input type="hidden" name="pageSize" value="${empty pageSize ? 500 : pageSize}" />
 		<table>
 			<tr>
 				<td>Insurance:</td>
@@ -204,12 +206,57 @@
 	</c:url>
 	<a href="${billReportExcelUrl}" class="print">Excel</a>
 </b>
+<c:set var="prevPage" value="${page - 1}" />
+<c:if test="${prevPage < 1}"><c:set var="prevPage" value="1" /></c:if>
+<c:set var="nextPage" value="${page + 1}" />
+<c:if test="${nextPage > totalPages}"><c:set var="nextPage" value="${totalPages}" /></c:if>
+<c:url var="billReportPrevUrl" value="billReport.form">
+	<c:param name="formStatus" value="clicked"/>
+	<c:param name="startDate" value="${startDate}"/>
+	<c:param name="endDate" value="${endDate}"/>
+	<c:param name="insuranceFilter" value="${selectedInsuranceFilter}"/>
+	<c:param name="page" value="${prevPage}"/>
+	<c:param name="pageSize" value="${pageSize}"/>
+</c:url>
+<c:url var="billReportNextUrl" value="billReport.form">
+	<c:param name="formStatus" value="clicked"/>
+	<c:param name="startDate" value="${startDate}"/>
+	<c:param name="endDate" value="${endDate}"/>
+	<c:param name="insuranceFilter" value="${selectedInsuranceFilter}"/>
+	<c:param name="page" value="${nextPage}"/>
+	<c:param name="pageSize" value="${pageSize}"/>
+</c:url>
+<div class="box" style="margin-bottom: 8px; padding: 6px;">
+	Page ${page} of ${totalPages}
+	&nbsp;|&nbsp;
+	Showing ${rowNumberOffset + 1} - ${rowNumberOffset + admissions.size()} of ${totalCount}
+	&nbsp;|&nbsp;
+	<c:choose>
+		<c:when test="${page > 1}">
+			<a href="${billReportPrevUrl}">Previous</a>
+		</c:when>
+		<c:otherwise>
+			<span style="color:#999;">Previous</span>
+		</c:otherwise>
+	</c:choose>
+	&nbsp;
+	<c:choose>
+		<c:when test="${page < totalPages}">
+			<a href="${billReportNextUrl}">Next</a>
+		</c:when>
+		<c:otherwise>
+			<span style="color:#999;">Next</span>
+		</c:otherwise>
+	</c:choose>
+</div>
 <div class="box" style="overflow-x: auto;">
 	<table style="width: 100%">
 		<tr>
 			<th class="columnHeader">#</th>
 			<th class="columnHeader">Admission Date</th>
 			<th class="columnHeader">Discharge Date</th>
+			<th class="columnHeader">Visit Start Date</th>
+			<th class="columnHeader">Visit End Date</th>
 			<th class="columnHeader">Admission Status</th>
 			<th class="columnHeader">PatientId</th>
 			<th class="columnHeader">Patient</th>
@@ -218,6 +265,7 @@
 			<th class="columnHeader">Patient Date of Birth</th>
 			<th class="columnHeader">Social Registry Level</th>
 			<th class="columnHeader">Patient Phone</th>
+			<th class="columnHeader">Payment Phone</th>
 			<th class="columnHeader">Patient Gender</th>
 			<th class="columnHeader">Insurance</th>
 			<th class="columnHeader">Card No</th>
@@ -245,12 +293,18 @@
 		</tr>
 		<c:forEach items="${admissions}" var="row" varStatus="status">
 			<tr>
-				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${rowNumberOffset + status.count}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">
 					<fmt:formatDate pattern="dd/MM/yyyy HH:mm" value="${row.admissionDate}" />
 				</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">
 					<fmt:formatDate pattern="dd/MM/yyyy HH:mm" value="${row.dischargeDate}" />
+				</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">
+					<fmt:formatDate pattern="dd/MM/yyyy HH:mm" value="${row.visitStartDate}" />
+				</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">
+					<fmt:formatDate pattern="dd/MM/yyyy HH:mm" value="${row.visitEndDate}" />
 				</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.admissionStatus}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.patientId}</td>
@@ -262,6 +316,7 @@
 				</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.socialRegistryLevel}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.patientPhone}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.paymentPhone}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.patientGender}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.insuranceName}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.cardNumber}</td>
@@ -291,6 +346,27 @@
 			</tr>
 		</c:forEach>
 	</table>
+</div>
+<div class="box" style="margin-top: 8px; padding: 6px;">
+	Page ${page} of ${totalPages}
+	&nbsp;|&nbsp;
+	<c:choose>
+		<c:when test="${page > 1}">
+			<a href="${billReportPrevUrl}">Previous</a>
+		</c:when>
+		<c:otherwise>
+			<span style="color:#999;">Previous</span>
+		</c:otherwise>
+	</c:choose>
+	&nbsp;
+	<c:choose>
+		<c:when test="${page < totalPages}">
+			<a href="${billReportNextUrl}">Next</a>
+		</c:when>
+		<c:otherwise>
+			<span style="color:#999;">Next</span>
+		</c:otherwise>
+	</c:choose>
 </div>
 </c:if>
 

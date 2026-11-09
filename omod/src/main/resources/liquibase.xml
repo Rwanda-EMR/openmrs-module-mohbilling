@@ -2680,4 +2680,117 @@
 		</addColumn>
 	</changeSet>
 
+	<changeSet id="mohbilling-20261106-patient-bill-initiated-by" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_patient_bill" />
+			<tableExists tableName="users" />
+			<not>
+				<columnExists tableName="moh_bill_patient_bill" columnName="initiated_by" />
+			</not>
+		</preConditions>
+		<comment>
+			User who initiated the Irembo Pay process for this patient bill.
+			Shown as a separate Initiator column on Cashier Report (collector unchanged).
+		</comment>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="initiated_by" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	</changeSet>
+
+	<!--
+		No FK on initiated_by: on large production moh_bill_patient_bill tables, addForeignKeyConstraint
+		can COPY/lock the table during module startup. Column remains nullable; Hibernate many-to-one is enough.
+	-->
+
+	<changeSet id="mohbilling-20261106-cashier-report-etl-initiator" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_cashier_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_cashier_report_etl" columnName="initiated_by" />
+			</not>
+		</preConditions>
+		<comment>Cashier Report Initiator (Irembo Pay initiator); separate from collector_id</comment>
+		<addColumn tableName="moh_bill_cashier_report_etl">
+			<column name="initiated_by" type="int">
+				<constraints nullable="true" />
+			</column>
+			<column name="initiator_name" type="varchar(255)" />
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261108-patient-service-bill-order-id" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_patient_service_bill" />
+			<tableExists tableName="orders" />
+			<not>
+				<columnExists tableName="moh_bill_patient_service_bill" columnName="order_id" />
+			</not>
+		</preConditions>
+		<comment>
+			Nullable link from bill line to OpenMRS order (forward-only; set by MohBillingOrderHandler).
+			Used by Bill Report Item Date / lab confirmation when present.
+		</comment>
+		<addColumn tableName="moh_bill_patient_service_bill">
+			<column name="order_id" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	</changeSet>
+
+	<!--
+		No FK on order_id: avoids locking large patient_service_bill during deploy and avoids blocking
+		order purge/void flows. Index below is enough for Bill Report joins.
+	-->
+
+	<changeSet id="mohbilling-20261108-patient-service-bill-order-id-idx" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_patient_service_bill" />
+			<columnExists tableName="moh_bill_patient_service_bill" columnName="order_id" />
+			<not>
+				<indexExists tableName="moh_bill_patient_service_bill"
+						indexName="idx_moh_bill_patient_service_bill_order_id" />
+			</not>
+		</preConditions>
+		<comment>Index for Bill Report joins on patient_service_bill.order_id</comment>
+		<createIndex tableName="moh_bill_patient_service_bill"
+				indexName="idx_moh_bill_patient_service_bill_order_id">
+			<column name="order_id" />
+		</createIndex>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261108-bill-report-etl-visit-dates" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_bill_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_bill_report_etl" columnName="visit_start_date" />
+			</not>
+		</preConditions>
+		<comment>
+			Clinical admission/discharge from linked OpenMRS visit (visit.start_datetime / stop_datetime)
+			when admission.visit_id is set. Null when no visit link.
+		</comment>
+		<addColumn tableName="moh_bill_bill_report_etl">
+			<column name="visit_start_date" type="datetime" />
+			<column name="visit_end_date" type="datetime" />
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261108-bill-report-etl-payment-phone" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_bill_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_bill_report_etl" columnName="payment_phone" />
+			</not>
+		</preConditions>
+		<comment>
+			Phone number used for MoMo/Irembo payment (from moh_bill_patient_bill.phoneNumber).
+			Separate from patient demographic phone.
+		</comment>
+		<addColumn tableName="moh_bill_bill_report_etl">
+			<column name="payment_phone" type="varchar(64)" />
+		</addColumn>
+	</changeSet>
+
 </databaseChangeLog>

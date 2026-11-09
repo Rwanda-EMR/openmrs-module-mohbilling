@@ -259,6 +259,8 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             patientServiceBill.setCreator(currentUser);
             patientServiceBill.setCreatedDate(now);
             patientServiceBill.setItemType(1);
+            // Forward-only link for Bill Report Item Date / lab confirmation.
+            patientServiceBill.setOrderId(resolvePersistedOrderId(order));
             patientServiceBillsByDepartment.computeIfAbsent(department, k -> new ArrayList<>()).add(patientServiceBill);
             
         }
@@ -399,6 +401,37 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             concept = conceptService.getConcept(conceptRef);
         }
         return concept;
+    }
+
+    /**
+     * Resolves a persisted {@code orders.order_id} for the in-flight order entity.
+     * IDs are usually assigned before root {@code beforeTransactionCompletion}; falls back to
+     * order number / uuid lookup when the in-memory entity still lacks an id.
+     */
+    static Integer resolvePersistedOrderId(Order order) {
+        if (order == null) {
+            return null;
+        }
+        if (order.getOrderId() != null) {
+            return order.getOrderId();
+        }
+        try {
+            if (StringUtils.isNotBlank(order.getOrderNumber())) {
+                Order byNumber = Context.getOrderService().getOrderByOrderNumber(order.getOrderNumber());
+                if (byNumber != null && byNumber.getOrderId() != null) {
+                    return byNumber.getOrderId();
+                }
+            }
+            if (StringUtils.isNotBlank(order.getUuid())) {
+                Order byUuid = Context.getOrderService().getOrderByUuid(order.getUuid());
+                if (byUuid != null && byUuid.getOrderId() != null) {
+                    return byUuid.getOrderId();
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Unable to resolve persisted order id for billing link: {}", e.getMessage());
+        }
+        return null;
     }
 
     /**

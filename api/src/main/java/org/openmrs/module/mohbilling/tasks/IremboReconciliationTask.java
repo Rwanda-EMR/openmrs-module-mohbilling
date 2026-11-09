@@ -63,6 +63,7 @@ public class IremboReconciliationTask extends AbstractTask {
                         Integer oldRetryCount = latest.getRetryCount();
                         latest.setInvoiceNumber(null);
                         latest.setInitiatedAt(null);
+                        latest.setInitiatedBy(null);
                         latest.setRetryCount(0);
                         latest.setReferenceId(null);
                         latest.setPaymentLinkUrl(null);

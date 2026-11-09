@@ -48,9 +48,9 @@ final class BillReportEtlSql {
 	static String insertSql() {
 		return "INSERT INTO " + TABLE + " ("
 				+ "patient_service_bill_id, admission_id, visit_id, global_bill_id, consommation_id, "
-				+ "admission_date, discharge_date, admission_status, ward_type, "
+				+ "admission_date, discharge_date, visit_start_date, visit_end_date, admission_status, ward_type, "
 				+ "insurance_id, insurance_category, insurance_name, card_number, voucher_id, "
-				+ "patient_id, patient_names, patient_nid, household_head_nid, patient_phone, "
+				+ "patient_id, patient_names, patient_nid, household_head_nid, patient_phone, payment_phone, "
 				+ "patient_dob, patient_gender, social_registry_level, "
 				+ "provider_name, provider_qualification, provider_phone, provider_registration, "
 				+ "primary_diagnosis, confirmed_by_lab_imaging, icd11_code, "
@@ -59,9 +59,9 @@ final class BillReportEtlSql {
 				+ "transfer_available, transfer_id, transfer_validity, etl_loaded_at"
 				+ ") VALUES ("
 				+ ":patientServiceBillId, :admissionId, :visitId, :globalBillId, :consommationId, "
-				+ ":admissionDate, :dischargeDate, :admissionStatus, :wardType, "
+				+ ":admissionDate, :dischargeDate, :visitStartDate, :visitEndDate, :admissionStatus, :wardType, "
 				+ ":insuranceId, :insuranceCategory, :insuranceName, :cardNumber, :voucherId, "
-				+ ":patientId, :patientNames, :patientNid, :householdHeadNid, :patientPhone, "
+				+ ":patientId, :patientNames, :patientNid, :householdHeadNid, :patientPhone, :paymentPhone, "
 				+ ":patientDob, :patientGender, :socialRegistryLevel, "
 				+ ":providerName, :providerQualification, :providerPhone, :providerRegistration, "
 				+ ":primaryDiagnosis, :confirmedByLabImaging, :icd11Code, "
@@ -75,6 +75,8 @@ final class BillReportEtlSql {
 				+ "consommation_id = VALUES(consommation_id), "
 				+ "admission_date = VALUES(admission_date), "
 				+ "discharge_date = VALUES(discharge_date), "
+				+ "visit_start_date = VALUES(visit_start_date), "
+				+ "visit_end_date = VALUES(visit_end_date), "
 				+ "admission_status = VALUES(admission_status), "
 				+ "ward_type = VALUES(ward_type), "
 				+ "insurance_id = VALUES(insurance_id), "
@@ -87,6 +89,7 @@ final class BillReportEtlSql {
 				+ "patient_nid = VALUES(patient_nid), "
 				+ "household_head_nid = VALUES(household_head_nid), "
 				+ "patient_phone = VALUES(patient_phone), "
+				+ "payment_phone = VALUES(payment_phone), "
 				+ "patient_dob = VALUES(patient_dob), "
 				+ "patient_gender = VALUES(patient_gender), "
 				+ "social_registry_level = VALUES(social_registry_level), "
@@ -115,11 +118,15 @@ final class BillReportEtlSql {
 	}
 
 	static String reportSql(boolean filterInsuranceId, boolean filterCategory) {
+		return reportSql(filterInsuranceId, filterCategory, false);
+	}
+
+	static String reportSql(boolean filterInsuranceId, boolean filterCategory, boolean excludeInsuranceName) {
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT patient_service_bill_id, admission_id, visit_id, global_bill_id, consommation_id, ")
-				.append("admission_date, discharge_date, admission_status, ward_type, ")
+				.append("admission_date, discharge_date, visit_start_date, visit_end_date, admission_status, ward_type, ")
 				.append("insurance_id, insurance_category, insurance_name, card_number, voucher_id, ")
-				.append("patient_id, patient_names, patient_nid, household_head_nid, patient_phone, ")
+				.append("patient_id, patient_names, patient_nid, household_head_nid, patient_phone, payment_phone, ")
 				.append("patient_dob, patient_gender, social_registry_level, ")
 				.append("provider_name, provider_qualification, provider_phone, provider_registration, ")
 				.append("primary_diagnosis, confirmed_by_lab_imaging, icd11_code, ")
@@ -127,13 +134,28 @@ final class BillReportEtlSql {
 				.append("product_quantity, product_cost, co_payment, rssb_payment, total_invoice, ")
 				.append("transfer_available, transfer_id, transfer_validity ")
 				.append("FROM ").append(TABLE).append(" ")
-				.append("WHERE admission_date >= :startDate AND admission_date <= :endDate ");
+				.append(reportWhereSql(filterInsuranceId, filterCategory, excludeInsuranceName))
+				.append("ORDER BY admission_date ASC, patient_service_bill_id ASC");
+		return sql.toString();
+	}
+
+	static String reportCountSql(boolean filterInsuranceId, boolean filterCategory, boolean excludeInsuranceName) {
+		return "SELECT COUNT(*) FROM " + TABLE + " "
+				+ reportWhereSql(filterInsuranceId, filterCategory, excludeInsuranceName);
+	}
+
+	private static String reportWhereSql(boolean filterInsuranceId, boolean filterCategory,
+			boolean excludeInsuranceName) {
+		StringBuilder sql = new StringBuilder();
+		sql.append("WHERE admission_date >= :startDate AND admission_date <= :endDate ");
 		if (filterCategory) {
 			sql.append("AND LOWER(insurance_category) = LOWER(:insuranceCategory) ");
 		} else if (filterInsuranceId) {
 			sql.append("AND insurance_id = :insuranceId ");
 		}
-		sql.append("ORDER BY admission_date ASC, patient_service_bill_id ASC");
+		if (excludeInsuranceName) {
+			sql.append("AND (insurance_name IS NULL OR LOWER(insurance_name) <> LOWER(:excludedInsuranceName)) ");
+		}
 		return sql.toString();
 	}
 }

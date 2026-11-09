@@ -1238,7 +1238,23 @@ public class BillingServiceImpl implements BillingService {
     @Transactional(readOnly = true)
     public List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
             String insuranceCategory) {
-        return billingDAO.getBillReportFromEtl(startDate, endDate, insuranceId, insuranceCategory);
+        return billingDAO.getBillReportFromEtl(startDate, endDate, insuranceId, insuranceCategory, null, null, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+            String insuranceCategory, String excludedInsuranceName, Integer firstResult, Integer maxResults) {
+        return billingDAO.getBillReportFromEtl(startDate, endDate, insuranceId, insuranceCategory,
+                excludedInsuranceName, firstResult, maxResults);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int countBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId, String insuranceCategory,
+            String excludedInsuranceName) {
+        return billingDAO.countBillReportFromEtl(startDate, endDate, insuranceId, insuranceCategory,
+                excludedInsuranceName);
     }
 
     @Override
@@ -1287,6 +1303,7 @@ public class BillingServiceImpl implements BillingService {
         BillingService self = Context.getService(BillingService.class);
         int totalLoaded = 0;
         int processed = 0;
+        int failed = 0;
         for (Admission admission : admissions) {
             if (admission == null || admission.getAdmissionId() == null) {
                 continue;
@@ -1294,13 +1311,25 @@ public class BillingServiceImpl implements BillingService {
             try {
                 totalLoaded += self.refreshBillReportEtlForAdmission(admission.getAdmissionId());
             } catch (Exception e) {
+                failed++;
                 log.error("Bill report ETL failed for admissionId=" + admission.getAdmissionId(), e);
             }
             processed++;
             if (processed % 50 == 0) {
                 log.info("Bill report ETL progress: processed " + processed + "/" + admissions.size()
-                        + " admissions, loaded " + totalLoaded + " rows (committed)");
+                        + " admissions, loaded " + totalLoaded + " rows, failed " + failed
+                        + " (committed)");
             }
+        }
+        if (failed > 0 && (totalLoaded == 0 || failed == processed)) {
+            // Likely a schema/SQL problem (e.g. missing ETL column). Fail the task so the
+            // materialization version is not marked complete and the next run retries fully.
+            throw new DAOException("Bill report ETL failed for all " + failed
+                    + " attempted admission(s) (loaded 0 usable batches). Materialization version was not marked complete.");
+        }
+        if (failed > 0) {
+            log.error("Bill report ETL completed with " + failed + " admission failure(s) out of " + processed
+                    + " (loaded " + totalLoaded + " rows). Version will still be marked; inspect failed admissions.");
         }
         return totalLoaded;
     }
@@ -1478,10 +1507,7 @@ public class BillingServiceImpl implements BillingService {
             patientBill.setReferenceId(transactionId);
             patientBill.setInvoiceNumber(invoice.getInvoiceNumber());
             patientBill.setPaymentLinkUrl(invoice.getPaymentLinkUrl());
-            patientBill.setInitiatedAt(new Date());
-            patientBill.setPhoneNumber(phoneNumber);
-            patientBill.setTransactionStatus("Pending");
-            patientBill.setRetryCount(0);
+            markIremboPaymentInitiated(patientBill, phoneNumber);
             billingDAO.savePatientBill(patientBill);
             if (!hasText(invoice.getPaymentLinkUrl())) {
                 IremboPayLogUtil.logFailure(log, "CREATE_INVOICE",
@@ -2148,10 +2174,7 @@ public class BillingServiceImpl implements BillingService {
         patientBill.setReferenceId(transactionId);
         patientBill.setInvoiceNumber(invoice.getInvoiceNumber());
         patientBill.setPaymentLinkUrl(invoice.getPaymentLinkUrl());
-        patientBill.setInitiatedAt(new Date());
-        patientBill.setPhoneNumber(phoneNumber);
-        patientBill.setTransactionStatus("Pending");
-        patientBill.setRetryCount(0);
+        markIremboPaymentInitiated(patientBill, phoneNumber);
         billingDAO.savePatientBill(patientBill);
         if (!hasText(invoice.getPaymentLinkUrl())) {
             IremboPayLogUtil.logFailure(log, "CREATE_INVOICE",
@@ -2769,10 +2792,22 @@ public class BillingServiceImpl implements BillingService {
         return first + "; " + second;
     }
 
+    /**
+     * Records who/when Irembo Pay was initiated (separate from payment collector).
+     */
+    private static void markIremboPaymentInitiated(PatientBill patientBill, String phoneNumber) {
+        patientBill.setInitiatedAt(new Date());
+        patientBill.setInitiatedBy(Context.getAuthenticatedUser());
+        patientBill.setPhoneNumber(phoneNumber);
+        patientBill.setTransactionStatus("Pending");
+        patientBill.setRetryCount(0);
+    }
+
     private static void clearIremboInvoiceFields(PatientBill bill) {
         bill.setInvoiceNumber(null);
         bill.setReferenceId(null);
         bill.setInitiatedAt(null);
+        bill.setInitiatedBy(null);
         bill.setTransactionStatus(null);
         bill.setRetryCount(null);
         bill.setBatchNumber(null);

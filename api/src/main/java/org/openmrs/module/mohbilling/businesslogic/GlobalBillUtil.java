@@ -5,6 +5,7 @@ package org.openmrs.module.mohbilling.businesslogic;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.GlobalBill;
@@ -41,8 +42,44 @@ public class GlobalBillUtil {
 	 * @return 
 	 */
 	public static GlobalBill saveGlobalBill(GlobalBill globalBill){
-		return getService().saveGlobalBill(globalBill);	
-		
+		syncAdmissionDischargeFields(globalBill);
+		return getService().saveGlobalBill(globalBill);
+	}
+
+	/**
+	 * When a global bill is closed/discharged, keep {@code moh_bill_admission.discharged_by}
+	 * and {@code discharging_date} aligned with {@code closed_by} / {@code closing_date}.
+	 */
+	static void syncAdmissionDischargeFields(GlobalBill globalBill) {
+		if (globalBill == null || globalBill.getAdmission() == null) {
+			return;
+		}
+		if (!Boolean.TRUE.equals(globalBill.getClosed()) && globalBill.getClosingDate() == null) {
+			return;
+		}
+		Admission admission = globalBill.getAdmission();
+		User discharger = globalBill.getClosedBy();
+		if (discharger == null) {
+			discharger = Context.getAuthenticatedUser();
+		}
+		Date dischargeDate = globalBill.getClosingDate() != null ? globalBill.getClosingDate() : new Date();
+		boolean dirty = false;
+		Integer currentDischargerId = admission.getDischargedBy() != null
+				? admission.getDischargedBy().getUserId() : null;
+		Integer newDischargerId = discharger != null ? discharger.getUserId() : null;
+		if (discharger != null && (currentDischargerId == null || !currentDischargerId.equals(newDischargerId))) {
+			admission.setDischargedBy(discharger);
+			dirty = true;
+		}
+		if (admission.getDischargingDate() == null
+				|| (globalBill.getClosingDate() != null
+						&& !globalBill.getClosingDate().equals(admission.getDischargingDate()))) {
+			admission.setDischargingDate(dischargeDate);
+			dirty = true;
+		}
+		if (dirty) {
+			AdmissionUtil.savePatientAdmission(admission);
+		}
 	}
 	public static GlobalBill getGlobalBillByAdmission(Admission admission){
 		

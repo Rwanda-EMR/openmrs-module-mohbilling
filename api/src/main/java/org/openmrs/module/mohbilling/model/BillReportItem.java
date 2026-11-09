@@ -16,6 +16,10 @@ public class BillReportItem {
 	private Integer consommationId;
 	private Date admissionDate;
 	private Date dischargeDate;
+	/** Clinical admission from linked OpenMRS visit.startDatetime (null when no visit_id). */
+	private Date visitStartDate;
+	/** Clinical discharge from linked OpenMRS visit.stopDatetime (null when no visit_id / open visit). */
+	private Date visitEndDate;
 	private String admissionStatus;
 	private String wardType;
 	private Integer insuranceId;
@@ -29,6 +33,8 @@ public class BillReportItem {
 	private String patientNid;
 	private String householdHeadNid;
 	private String patientPhoneNumber;
+	/** Phone used for MoMo/Irembo payment ({@code moh_bill_patient_bill.phoneNumber}). */
+	private String paymentPhoneNumber;
 	private Date patientDob;
 	private String patientGender;
 	private String providerName;
@@ -116,6 +122,22 @@ public class BillReportItem {
 
 	public void setDischargeDate(Date dischargeDate) {
 		this.dischargeDate = dischargeDate;
+	}
+
+	public Date getVisitStartDate() {
+		return visitStartDate;
+	}
+
+	public void setVisitStartDate(Date visitStartDate) {
+		this.visitStartDate = visitStartDate;
+	}
+
+	public Date getVisitEndDate() {
+		return visitEndDate;
+	}
+
+	public void setVisitEndDate(Date visitEndDate) {
+		this.visitEndDate = visitEndDate;
 	}
 
 	public String getAdmissionStatus() {
@@ -220,6 +242,14 @@ public class BillReportItem {
 
 	public void setPatientPhoneNumber(String patientPhoneNumber) {
 		this.patientPhoneNumber = patientPhoneNumber;
+	}
+
+	public String getPaymentPhoneNumber() {
+		return paymentPhoneNumber;
+	}
+
+	public void setPaymentPhoneNumber(String paymentPhoneNumber) {
+		this.paymentPhoneNumber = paymentPhoneNumber;
 	}
 
 	public Date getPatientDob() {

@@ -32,6 +32,14 @@ public class BillingConstants {
 			"mohbilling.billReport.confirmedByLabImagingConceptIds";
 	/** Default Rwanda EMR Primary ICD diagnosis question UUID. */
 	public static final String PRIMARY_ICD_DIAGNOSIS_CONCEPT_UUID = "2dce81f9-3874-4247-b441-6369ca0725c2";
+	/**
+	 * Comma-separated fallback diagnosis question UUIDs used when primary diagnosis
+	 * has no obs. The obs closest to admission_date wins (one diagnosis).
+	 */
+	public static final String GLOBAL_PROPERTY_FALLBACK_DIAGNOSIS_CONCEPT_UUIDS =
+			"mohbilling.billReport.fallbackDiagnosisConceptUuids";
+	/** Default fallback diagnosis concept UUID (single value for the GP default). */
+	public static final String FALLBACK_ICD_DIAGNOSIS_CONCEPT_UUID = "08dd5ecf-b381-47ea-a0f1-cd91a65505f7";
 	/** Days before/after admission_date used when searching diagnosis obs. */
 	public static final int BILL_REPORT_DIAGNOSIS_OBS_DAY_WINDOW = 2;
 	/**

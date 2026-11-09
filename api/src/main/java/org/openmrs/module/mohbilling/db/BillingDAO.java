@@ -709,6 +709,17 @@ public interface BillingDAO {
 			String insuranceCategory);
 
 	/**
+	 * Paginated Bill Report ETL read. Pass {@code firstResult}/{@code maxResults} null for all rows.
+	 * {@code excludedInsuranceName} excludes that insurer when non-blank (activateNoneFeature).
+	 */
+	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+			String insuranceCategory, String excludedInsuranceName, Integer firstResult, Integer maxResults);
+
+	/** Total matching Bill Report ETL rows for the same filters as the paginated read. */
+	int countBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId, String insuranceCategory,
+			String excludedInsuranceName);
+
+	/**
 	 * Global bills present in Bill Report ETL or Insurance Report ETL but not both,
 	 * for the given admission-date range (all insurers).
 	 */

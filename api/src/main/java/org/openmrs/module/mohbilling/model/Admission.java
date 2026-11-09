@@ -24,6 +24,9 @@ public class Admission {
 	private Date admissionDate;
 	
 	private Date dischargingDate;
+
+	/** User who discharged the patient ({@code moh_bill_admission.discharged_by}). */
+	private User dischargedBy;
 	
 	private User creator;
 	
@@ -136,6 +139,20 @@ public class Admission {
 	 */
 	public void setDischargingDate(Date dischargingDate) {
 		this.dischargingDate = dischargingDate;
+	}
+
+	/**
+	 * @return the dischargedBy
+	 */
+	public User getDischargedBy() {
+		return dischargedBy;
+	}
+
+	/**
+	 * @param dischargedBy the dischargedBy to set
+	 */
+	public void setDischargedBy(User dischargedBy) {
+		this.dischargedBy = dischargedBy;
 	}
 
 	/**

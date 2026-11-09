@@ -33,6 +33,7 @@
 		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
 
 		<property name="drugFrequency" column="drug_frequency" type="java.lang.String" />
+		<property name="orderId" column="order_id" type="java.lang.Integer" />
 
 	</class>
 

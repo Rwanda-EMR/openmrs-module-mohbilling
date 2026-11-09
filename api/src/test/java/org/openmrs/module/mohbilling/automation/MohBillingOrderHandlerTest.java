@@ -2,7 +2,9 @@ package org.openmrs.module.mohbilling.automation;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openmrs.Order;
 import org.openmrs.OrderType;
+import org.openmrs.TestOrder;
 
 public class MohBillingOrderHandlerTest {
 
@@ -35,5 +37,13 @@ public class MohBillingOrderHandlerTest {
 		Assert.assertNull(MohBillingOrderHandler.getDepartmentNameForOrderType(radiology, RADIOLOGY_UUID + "="));
 		Assert.assertNull(MohBillingOrderHandler.getDepartmentNameForOrderType(radiology, "RADIOLOGIE"));
 		Assert.assertNull(MohBillingOrderHandler.getDepartmentNameForOrderType(null, RADIOLOGY_UUID + "=RADIOLOGIE"));
+	}
+
+	@Test
+	public void resolvePersistedOrderId_shouldReturnOrderIdWhenAlreadyAssigned() {
+		Order order = new TestOrder();
+		order.setOrderId(42);
+		Assert.assertEquals(Integer.valueOf(42), MohBillingOrderHandler.resolvePersistedOrderId(order));
+		Assert.assertNull(MohBillingOrderHandler.resolvePersistedOrderId(null));
 	}
 }

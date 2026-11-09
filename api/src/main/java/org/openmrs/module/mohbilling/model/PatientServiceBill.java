@@ -40,6 +40,11 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	private String voidReason;
 	private String drugFrequency;
 	private Integer itemType;
+	/**
+	 * OpenMRS {@code orders.order_id} when this bill line was created from an order
+	 * (e.g. MohBillingOrderHandler). Null for manual / HTML-form bills. Forward-only.
+	 */
+	private Integer orderId;
 
 	public Integer getItemType() {
 		return itemType;
@@ -47,6 +52,14 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 
 	public void setItemType(Integer itemType) {
 		this.itemType = itemType;
+	}
+
+	public Integer getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(Integer orderId) {
+		this.orderId = orderId;
 	}
 
 	public  String getDrugFrequency(){return  drugFrequency;};
@@ -97,7 +110,7 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	public static PatientServiceBill newInstance(PatientServiceBill psbToCopy,BigDecimal newQuantity){
 
 		PatientServiceBill newPsb=new PatientServiceBill(psbToCopy.getService(),psbToCopy.getHopService(),psbToCopy.getServiceDate(),psbToCopy.getUnitPrice(),newQuantity,psbToCopy.getCreator(),new Date(),psbToCopy.getDrugFrequency(),psbToCopy.getItemType());
-
+		newPsb.setOrderId(psbToCopy.getOrderId());
 		return newPsb;
 	}
 	/**

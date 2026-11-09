@@ -42,6 +42,8 @@ public class PatientBill {
 	private String paymentLinkUrl;
 	private Integer retryCount;
 	private Date initiatedAt;
+	/** User who initiated the Irembo Pay payment process (nullable). */
+	private User initiatedBy;
 
 	/**
 	 * @return the patientBillId
@@ -419,5 +421,13 @@ public class PatientBill {
 
 	public void setInitiatedAt(Date initiatedAt) {
 		this.initiatedAt = initiatedAt;
+	}
+
+	public User getInitiatedBy() {
+		return initiatedBy;
+	}
+
+	public void setInitiatedBy(User initiatedBy) {
+		this.initiatedBy = initiatedBy;
 	}
 }
