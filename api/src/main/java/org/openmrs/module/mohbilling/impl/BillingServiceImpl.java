@@ -17,6 +17,7 @@ import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.HopServiceUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.ThirdPartyBillUtil;
 import org.openmrs.module.mohbilling.db.BillingDAO;
@@ -145,6 +146,10 @@ public class BillingServiceImpl implements BillingService {
      */
     @Override
     public void saveInsurancePolicy(InsurancePolicy card) {
+        String thirdPartyRateError = InsurancePolicyUtil.getThirdPartyRateError(card);
+        if (thirdPartyRateError != null) {
+            throw new APIException(thirdPartyRateError);
+        }
         if (card.getInsuranceCardNo() == null
                 && !card.getInsurance().getCategory()
                         .equals(InsuranceCategory.NONE.toString())) {

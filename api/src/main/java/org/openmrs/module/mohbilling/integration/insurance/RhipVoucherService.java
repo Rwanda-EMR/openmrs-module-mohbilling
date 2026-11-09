@@ -20,6 +20,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.integration.IntegrationResponse;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.BillableService;
@@ -1371,6 +1372,14 @@ public class RhipVoucherService {
 			return;
 		}
 		if (StringUtils.equals(patientId, policy.getRhipPatientId())) {
+			return;
+		}
+		// An invalid insurance + third party policy would be rejected by saveInsurancePolicy,
+		// which could also roll back the caller's transaction, so skip it here
+		String thirdPartyRateError = InsurancePolicyUtil.getThirdPartyRateError(policy);
+		if (thirdPartyRateError != null) {
+			log.warn("Unable to persist RHIP patientId for policy " + policy.getInsurancePolicyId() + ": "
+					+ thirdPartyRateError);
 			return;
 		}
 		policy.setRhipPatientId(patientId);
