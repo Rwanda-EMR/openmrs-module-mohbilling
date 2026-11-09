@@ -53,7 +53,7 @@ final class CashierReportXlsxWriter {
 				|| payments.get(0).getPaidServiceRevenues() == null
 						? Collections.<PaidServiceRevenue>emptyList()
 						: payments.get(0).getPaidServiceRevenues();
-		int lastColumn = services.size() + 6;
+		int lastColumn = services.size() + 7;
 		int totalsRow = HEADER_ROW + payments.size() + 1;
 
 		zip.putNextEntry(new ZipEntry("xl/worksheets/sheet1.xml"));
@@ -102,7 +102,8 @@ final class CashierReportXlsxWriter {
 		}
 		writeTextCell(writer, column++, HEADER_ROW, "TOTAL Due", 2);
 		writeTextCell(writer, column++, HEADER_ROW, "TOTAL Paid", 2);
-		writeTextCell(writer, column, HEADER_ROW, "Payment through API", 2);
+		writeTextCell(writer, column++, HEADER_ROW, "Payment through API", 2);
+		writeTextCell(writer, column, HEADER_ROW, "Initiator", 2);
 		writer.write("</row>");
 	}
 
@@ -131,7 +132,9 @@ final class CashierReportXlsxWriter {
 				decimalValue(paymentRevenue != null ? paymentRevenue.getAmount() : null), 3);
 		writeNumberCell(writer, column++, rowNumber,
 				decimalValue(payment != null ? payment.getAmountPaid() : null), 3);
-		writeTextCell(writer, column, rowNumber, apiPaymentInvoiceNumber(payment), 1);
+		writeTextCell(writer, column++, rowNumber, apiPaymentInvoiceNumber(payment), 1);
+		writeTextCell(writer, column, rowNumber,
+				valueOrDefault(paymentRevenue != null ? paymentRevenue.getInitiatorName() : null, ""), 1);
 		writer.write("</row>");
 	}
 
@@ -149,6 +152,7 @@ final class CashierReportXlsxWriter {
 		}
 		writeNumberCell(writer, column++, rowNumber, decimalValue(bigTotal), 4);
 		writeNumberCell(writer, column++, rowNumber, decimalValue(totalPaid), 4);
+		writeTextCell(writer, column++, rowNumber, "", 2);
 		writeTextCell(writer, column, rowNumber, "", 2);
 		writer.write("</row>");
 	}

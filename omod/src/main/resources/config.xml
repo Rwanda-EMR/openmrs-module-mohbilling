@@ -215,7 +215,21 @@
         <defaultValue>2dce81f9-3874-4247-b441-6369ca0725c2</defaultValue>
         <description>
             Concept UUID for Bill Report Primary Diagnosis (and ICD-11 extraction).
-            Obs for this concept are searched within admission date +/- 2 days.
+            Always preferred over fallbackDiagnosisConceptUuids. Obs are taken from the
+            admission visit when visit_id is set; otherwise (or if the visit has none)
+            within admission date +/- 2 days. If still empty and the bill is closed,
+            searches again between admission date and discharge/closing date.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReport.fallbackDiagnosisConceptUuids</property>
+        <defaultValue>08dd5ecf-b381-47ea-a0f1-cd91a65505f7</defaultValue>
+        <description>
+            Comma-separated concept UUIDs used when primary diagnosis has no obs.
+            Only one diagnosis is selected: the obs closest to admission_date among these
+            concepts. Applies to admissions with and without visit_id (visit-scoped first,
+            then admission date +/- 2 days, then admission..discharge when that still misses).
         </description>
     </globalProperty>
 

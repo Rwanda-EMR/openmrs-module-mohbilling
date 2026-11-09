@@ -75,6 +75,7 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 		<th class="columnHeader"><b>TOTAL Due</b></th>
 		<th class="columnHeader"><b>TOTAL Paid</b></th>
 		<th class="columnHeader"><b>Payment through API</b></th>
+		<th class="columnHeader"><b>Initiator</b></th>
 	</tr>
 
  	<c:forEach items="${paymentRevenues}" var="pr" varStatus="status">
@@ -95,6 +96,7 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 			<c:when test="${not empty pt.patientBill.invoiceNumber}">${pt.patientBill.invoiceNumber}</c:when>
 		</c:choose>
 	  </td>
+	  <td>${pr.initiatorName}</td>
 	</tr>
 	</c:forEach> 
 	<tr>
@@ -105,6 +107,8 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 		</c:forEach> 
 		<td class="rowValue"><b><fmt:formatNumber value="${bigTotal}" type="number" pattern="#.##"/></b></td>
 		<td class="rowValue"><b><fmt:formatNumber value="${totalRevenueAmount}" type="number" pattern="#.##"/></b></td>
+		<td class="rowValue"></td>
+		<td class="rowValue"></td>
 	</tr>
 </table>
 

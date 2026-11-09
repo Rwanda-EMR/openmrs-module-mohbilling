@@ -22,6 +22,8 @@ public class BillReportEtlParityTest {
 
 		Assert.assertEquals(item.getAdmissionDate(), row.get("admissionDate"));
 		Assert.assertEquals(item.getDischargeDate(), row.get("dischargeDate"));
+		Assert.assertEquals(item.getVisitStartDate(), row.get("visitStartDate"));
+		Assert.assertEquals(item.getVisitEndDate(), row.get("visitEndDate"));
 		Assert.assertEquals("Inpatient", row.get("admissionStatus"));
 		Assert.assertEquals("P-100", row.get("patientId"));
 		Assert.assertEquals("Jane Doe", row.get("patientNames"));
@@ -29,6 +31,7 @@ public class BillReportEtlParityTest {
 		Assert.assertEquals("HH-NID", row.get("householdNid"));
 		Assert.assertEquals("Fully Sponsored", row.get("socialRegistryLevel"));
 		Assert.assertEquals("0788000000", row.get("patientPhone"));
+		Assert.assertEquals("0788123456", row.get("paymentPhone"));
 		Assert.assertEquals("F", row.get("patientGender"));
 		Assert.assertEquals("CBHI", row.get("insuranceName"));
 		Assert.assertEquals("CARD-1", row.get("cardNumber"));
@@ -87,6 +90,8 @@ public class BillReportEtlParityTest {
 		item.setConsommationId(40);
 		item.setAdmissionDate(admissionDate);
 		item.setDischargeDate(dischargeDate);
+		item.setVisitStartDate(admissionDate);
+		item.setVisitEndDate(dischargeDate);
 		item.setAdmissionStatus("Inpatient");
 		item.setWardType("OPD");
 		item.setInsuranceId(7);
@@ -99,6 +104,7 @@ public class BillReportEtlParityTest {
 		item.setPatientNid("1199988776655443322");
 		item.setHouseholdHeadNid("HH-NID");
 		item.setPatientPhoneNumber("0788000000");
+		item.setPaymentPhoneNumber("0788123456");
 		item.setPatientDob(dob);
 		item.setPatientGender("F");
 		item.setSocialRegistryLevel("Fully Sponsored");

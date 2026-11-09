@@ -8,6 +8,8 @@ public class PaymentRevenue {
 	public BillPayment payment;
 	public Beneficiary beneficiary;
 	public String patientIdentifier;
+	/** Display name of the user who initiated Irembo Pay, when available. */
+	public String initiatorName;
 	public List<PaidServiceRevenue> paidServiceRevenues;
 	public BigDecimal amount;
 	/**
@@ -40,6 +42,12 @@ public class PaymentRevenue {
 	}
 	public void setPatientIdentifier(String patientIdentifier) {
 		this.patientIdentifier = patientIdentifier;
+	}
+	public String getInitiatorName() {
+		return initiatorName;
+	}
+	public void setInitiatorName(String initiatorName) {
+		this.initiatorName = initiatorName;
 	}
 	/**
 	 * @return the paidServiceRevenues

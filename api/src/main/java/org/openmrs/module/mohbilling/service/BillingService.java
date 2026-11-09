@@ -739,6 +739,12 @@ public interface BillingService {
 	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
 			String insuranceCategory);
 
+	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+			String insuranceCategory, String excludedInsuranceName, Integer firstResult, Integer maxResults);
+
+	int countBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId, String insuranceCategory,
+			String excludedInsuranceName);
+
 	/**
 	 * Global bills present in Bill Report ETL or Insurance Report ETL but not both,
 	 * for the given admission-date range (all insurers).

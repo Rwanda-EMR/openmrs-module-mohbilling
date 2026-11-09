@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillReportUtil;
 import org.openmrs.module.mohbilling.businesslogic.BillReportUtil.InsuranceFilter;
+import org.openmrs.module.mohbilling.businesslogic.BillReportUtil.PagedDisplayRows;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.model.BillReportFacilityHeader;
 import org.openmrs.module.mohbilling.model.BillReportItem;
@@ -22,7 +23,6 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * CBHI Bill Report — admissions listing (expanded to bill items) + editable facility settings.
@@ -50,6 +50,10 @@ public class MohBillingBillReportController extends ParameterizableViewControlle
 		mav.addObject("insuranceOptions", BillReportUtil.buildInsuranceFilterOptions());
 		mav.addObject("admissions", Collections.emptyList());
 		mav.addObject("facilityHeader", BillReportUtil.buildFacilityHeader());
+		mav.addObject("page", 1);
+		mav.addObject("pageSize", BillReportUtil.DEFAULT_WEB_PAGE_SIZE);
+		mav.addObject("totalCount", 0);
+		mav.addObject("totalPages", 1);
 
 		if (request.getParameter("formStatus") == null || request.getParameter("formStatus").equals("")) {
 			return mav;
@@ -75,16 +79,31 @@ public class MohBillingBillReportController extends ParameterizableViewControlle
 			return mav;
 		}
 
+		int page = parsePositiveInt(request.getParameter("page"), 1);
+		int pageSize = parsePositiveInt(request.getParameter("pageSize"), BillReportUtil.DEFAULT_WEB_PAGE_SIZE);
+		if (pageSize > BillReportUtil.DEFAULT_WEB_PAGE_SIZE) {
+			pageSize = BillReportUtil.DEFAULT_WEB_PAGE_SIZE;
+		}
+
 		InsuranceFilter insuranceFilter = BillReportUtil.resolveInsuranceFilter(insuranceFilterStr);
-		List<Map<String, Object>> admissionRows = BillReportUtil.buildAdmissionDisplayRows(startDate, endDate,
-				insuranceFilter);
+		PagedDisplayRows pageResult = BillReportUtil.buildAdmissionDisplayRowsPage(startDate, endDate,
+				insuranceFilter, page, pageSize);
 
 		log.info("Bill Report admissions search: start=" + startDate + ", end=" + endDate
-				+ ", insuranceFilter=" + insuranceFilterStr + ", rowsFound=" + admissionRows.size());
+				+ ", insuranceFilter=" + insuranceFilterStr + ", page=" + pageResult.getPage()
+				+ ", pageSize=" + pageResult.getPageSize() + ", pageRows=" + pageResult.getRows().size()
+				+ ", totalCount=" + pageResult.getTotalCount());
 
-		mav.addObject("admissions", admissionRows);
+		mav.addObject("admissions", pageResult.getRows());
+		mav.addObject("page", pageResult.getPage());
+		mav.addObject("pageSize", pageResult.getPageSize());
+		mav.addObject("totalCount", pageResult.getTotalCount());
+		mav.addObject("totalPages", pageResult.getTotalPages());
+		mav.addObject("rowNumberOffset", pageResult.getRowNumberOffset());
 		mav.addObject("resultMsg",
-				"Found " + admissionRows.size() + " billed item(s) from " + startDateStr + " to " + endDateStr);
+				"Found " + pageResult.getTotalCount() + " billed item(s) from " + startDateStr + " to " + endDateStr
+						+ " (showing page " + pageResult.getPage() + " of " + pageResult.getTotalPages()
+						+ ", " + pageResult.getPageSize() + " per page)");
 		return mav;
 	}
 
@@ -147,6 +166,18 @@ public class MohBillingBillReportController extends ParameterizableViewControlle
 			return "";
 		}
 		return value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
+	}
+
+	private static int parsePositiveInt(String value, int defaultValue) {
+		if (value == null || value.trim().isEmpty()) {
+			return defaultValue;
+		}
+		try {
+			int parsed = Integer.parseInt(value.trim());
+			return parsed > 0 ? parsed : defaultValue;
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	private static Date parseDayStart(String dateStr) {

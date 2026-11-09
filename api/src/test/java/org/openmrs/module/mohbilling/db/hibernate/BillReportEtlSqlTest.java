@@ -14,6 +14,12 @@ public class BillReportEtlSqlTest {
 		Assert.assertTrue(sql.contains("primary_diagnosis"));
 		Assert.assertTrue(sql.contains("item_date"));
 		Assert.assertTrue(sql.contains(":itemDate"));
+		Assert.assertTrue(sql.contains("visit_start_date"));
+		Assert.assertTrue(sql.contains("visit_end_date"));
+		Assert.assertTrue(sql.contains(":visitStartDate"));
+		Assert.assertTrue(sql.contains(":visitEndDate"));
+		Assert.assertTrue(sql.contains("payment_phone"));
+		Assert.assertTrue(sql.contains(":paymentPhone"));
 		Assert.assertTrue(sql.contains("transfer_available"));
 		Assert.assertTrue(sql.contains("transfer_validity"));
 		Assert.assertTrue(sql.contains("ON DUPLICATE KEY UPDATE"));
@@ -47,6 +53,16 @@ public class BillReportEtlSqlTest {
 		String unfiltered = BillReportEtlSql.reportSql(false, false);
 		Assert.assertFalse(unfiltered.contains("insurance_id = :insuranceId"));
 		Assert.assertFalse(unfiltered.contains(":insuranceCategory"));
+	}
+
+	@Test
+	public void reportCountSql_shouldMirrorReportFilters() {
+		String count = BillReportEtlSql.reportCountSql(true, false, true);
+		Assert.assertTrue(count.contains("SELECT COUNT(*)"));
+		Assert.assertTrue(count.contains("admission_date >= :startDate"));
+		Assert.assertTrue(count.contains("insurance_id = :insuranceId"));
+		Assert.assertTrue(count.contains(":excludedInsuranceName"));
+		Assert.assertFalse(count.contains("ORDER BY"));
 	}
 
 	@Test

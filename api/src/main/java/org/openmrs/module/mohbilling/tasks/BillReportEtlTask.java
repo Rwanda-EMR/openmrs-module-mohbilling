@@ -24,7 +24,7 @@ public class BillReportEtlTask extends AbstractTask {
 	private static final int DEFAULT_OVERLAP_DAYS = 7;
 	/** Keep batches small so each service call commits and COUNT(*) can rise during a run. */
 	private static final int FULL_REFRESH_BATCH_SIZE = 500;
-	private static final String MATERIALIZATION_VERSION = "3";
+	private static final String MATERIALIZATION_VERSION = "10";
 	private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
 	@Override
@@ -58,13 +58,15 @@ public class BillReportEtlTask extends AbstractTask {
 				log.info("Bill report ETL incremental refreshFrom=" + refreshFrom);
 				loaded = billingService.refreshBillReportEtl(refreshFrom);
 			}
+			// Only mark the materialization version after a clean run. Otherwise a schema/SQL
+			// failure would stick on v9 with incomplete rows and never full-refresh again.
 			Context.getAdministrationService().setGlobalProperty(
 					BillingConstants.GLOBAL_PROPERTY_BILL_REPORT_ETL_LOADED_VERSION,
 					materializationConfiguration);
 			log.info("Bill report ETL task loaded " + loaded + " rows; fullRefresh=" + fullRefresh
 					+ "; startDate=" + startDateKey + "; overlapDays=" + overlapDays);
 		} catch (Exception e) {
-			log.error("Bill report ETL task failed", e);
+			log.error("Bill report ETL task failed; materialization version was not updated", e);
 		} finally {
 			RUNNING.set(false);
 		}

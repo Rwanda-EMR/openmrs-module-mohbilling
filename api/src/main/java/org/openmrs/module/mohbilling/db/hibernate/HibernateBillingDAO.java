@@ -1765,6 +1765,8 @@ public class HibernateBillingDAO implements BillingDAO {
         query.addScalar("phone_number");
         query.addScalar("transaction_status");
         query.addScalar("invoice_number");
+        query.addScalar("initiated_by");
+        query.addScalar("initiator_name");
         query.addScalar("service_id");
         query.addScalar("service_name");
         query.addScalar("due_amount");
@@ -1949,17 +1951,25 @@ public class HibernateBillingDAO implements BillingDAO {
     @Override
     public List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
             String insuranceCategory) {
+        return getBillReportFromEtl(startDate, endDate, insuranceId, insuranceCategory, null, null, null);
+    }
+
+    @Override
+    public List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+            String insuranceCategory, String excludedInsuranceName, Integer firstResult, Integer maxResults) {
         boolean filterCategory = insuranceCategory != null && !insuranceCategory.trim().isEmpty();
         boolean filterInsuranceId = !filterCategory && insuranceId != null;
+        boolean excludeInsurance = excludedInsuranceName != null && !excludedInsuranceName.trim().isEmpty();
         SQLQuery query = sessionFactory.getCurrentSession()
-                .createSQLQuery(BillReportEtlSql.reportSql(filterInsuranceId, filterCategory));
+                .createSQLQuery(BillReportEtlSql.reportSql(filterInsuranceId, filterCategory, excludeInsurance));
         query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-        query.setTimestamp("startDate", startDate);
-        query.setTimestamp("endDate", endDate);
-        if (filterCategory) {
-            query.setString("insuranceCategory", insuranceCategory.trim());
-        } else if (filterInsuranceId) {
-            query.setInteger("insuranceId", insuranceId);
+        bindBillReportEtlFilters(query, startDate, endDate, insuranceId, insuranceCategory, excludedInsuranceName,
+                filterCategory, filterInsuranceId, excludeInsurance);
+        if (firstResult != null && firstResult >= 0) {
+            query.setFirstResult(firstResult);
+        }
+        if (maxResults != null && maxResults > 0) {
+            query.setMaxResults(maxResults);
         }
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> resultSet = query.list();
@@ -1968,6 +1978,35 @@ public class HibernateBillingDAO implements BillingDAO {
             rows.add(mapBillReportEtlRow(row));
         }
         return rows;
+    }
+
+    @Override
+    public int countBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId, String insuranceCategory,
+            String excludedInsuranceName) {
+        boolean filterCategory = insuranceCategory != null && !insuranceCategory.trim().isEmpty();
+        boolean filterInsuranceId = !filterCategory && insuranceId != null;
+        boolean excludeInsurance = excludedInsuranceName != null && !excludedInsuranceName.trim().isEmpty();
+        SQLQuery query = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillReportEtlSql.reportCountSql(filterInsuranceId, filterCategory, excludeInsurance));
+        bindBillReportEtlFilters(query, startDate, endDate, insuranceId, insuranceCategory, excludedInsuranceName,
+                filterCategory, filterInsuranceId, excludeInsurance);
+        Object value = query.uniqueResult();
+        return value != null ? Integer.parseInt(value.toString()) : 0;
+    }
+
+    private static void bindBillReportEtlFilters(SQLQuery query, Date startDate, Date endDate, Integer insuranceId,
+            String insuranceCategory, String excludedInsuranceName, boolean filterCategory, boolean filterInsuranceId,
+            boolean excludeInsurance) {
+        query.setTimestamp("startDate", startDate);
+        query.setTimestamp("endDate", endDate);
+        if (filterCategory) {
+            query.setString("insuranceCategory", insuranceCategory.trim());
+        } else if (filterInsuranceId) {
+            query.setInteger("insuranceId", insuranceId);
+        }
+        if (excludeInsurance) {
+            query.setString("excludedInsuranceName", excludedInsuranceName.trim());
+        }
     }
 
     @Override
@@ -2150,6 +2189,8 @@ public class HibernateBillingDAO implements BillingDAO {
         setNullableInteger(query, "consommationId", item.getConsommationId());
         query.setTimestamp("admissionDate", item.getAdmissionDate());
         setNullableTimestamp(query, "dischargeDate", item.getDischargeDate());
+        setNullableTimestamp(query, "visitStartDate", item.getVisitStartDate());
+        setNullableTimestamp(query, "visitEndDate", item.getVisitEndDate());
         query.setString("admissionStatus", item.getAdmissionStatus());
         query.setString("wardType", item.getWardType());
         setNullableInteger(query, "insuranceId", item.getInsuranceId());
@@ -2162,6 +2203,7 @@ public class HibernateBillingDAO implements BillingDAO {
         query.setString("patientNid", item.getPatientNid());
         query.setString("householdHeadNid", item.getHouseholdHeadNid());
         query.setString("patientPhone", item.getPatientPhoneNumber());
+        query.setString("paymentPhone", item.getPaymentPhoneNumber());
         setNullableTimestamp(query, "patientDob", item.getPatientDob());
         query.setString("patientGender", item.getPatientGender());
         query.setString("socialRegistryLevel", item.getSocialRegistryLevel());
@@ -2213,6 +2255,8 @@ public class HibernateBillingDAO implements BillingDAO {
         item.setConsommationId(getInt(row, "consommation_id"));
         item.setAdmissionDate(asDate(row.get("admission_date")));
         item.setDischargeDate(asDate(row.get("discharge_date")));
+        item.setVisitStartDate(asDate(row.get("visit_start_date")));
+        item.setVisitEndDate(asDate(row.get("visit_end_date")));
         item.setAdmissionStatus(getString(row, "admission_status"));
         item.setWardType(getString(row, "ward_type"));
         item.setInsuranceId(getInt(row, "insurance_id"));
@@ -2225,6 +2269,7 @@ public class HibernateBillingDAO implements BillingDAO {
         item.setPatientNid(getString(row, "patient_nid"));
         item.setHouseholdHeadNid(getString(row, "household_head_nid"));
         item.setPatientPhoneNumber(getString(row, "patient_phone"));
+        item.setPaymentPhoneNumber(getString(row, "payment_phone"));
         item.setPatientDob(asDate(row.get("patient_dob")));
         item.setPatientGender(getString(row, "patient_gender"));
         item.setSocialRegistryLevel(getString(row, "social_registry_level"));
@@ -2299,6 +2344,12 @@ public class HibernateBillingDAO implements BillingDAO {
 		patientBill.setPhoneNumber(getString(row, "phone_number"));
 		patientBill.setTransactionStatus(getString(row, "transaction_status"));
 		patientBill.setInvoiceNumber(invoiceNumber);
+		Integer initiatedById = getInt(row, "initiated_by");
+		if (initiatedById != null) {
+			User initiatedBy = new User();
+			initiatedBy.setUserId(initiatedById);
+			patientBill.setInitiatedBy(initiatedBy);
+		}
 		payment.setPatientBill(patientBill);
 
 		Patient patient = new Patient(getInt(row, "patient_id"));
@@ -2313,6 +2364,7 @@ public class HibernateBillingDAO implements BillingDAO {
 		paymentRevenue.setPayment(payment);
 		paymentRevenue.setBeneficiary(beneficiary);
 		paymentRevenue.setPatientIdentifier(getString(row, "patient_identifier"));
+		paymentRevenue.setInitiatorName(getString(row, "initiator_name"));
 		return paymentRevenue;
 	}
 

@@ -9,6 +9,7 @@ import org.openmrs.Location;
 import org.openmrs.LocationAttribute;
 import org.openmrs.LocationAttributeType;
 import org.openmrs.Obs;
+import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.PatientIdentifierType;
@@ -88,6 +89,8 @@ public final class BillReportUtil {
 	private static volatile String confirmedByLabImagingConceptIdsGpCache;
 	private static volatile Concept primaryDiagnosisConceptCache;
 	private static volatile String primaryDiagnosisConceptUuidCache;
+	private static volatile List<Concept> fallbackDiagnosisConceptsCache;
+	private static volatile String fallbackDiagnosisConceptUuidsCache;
 	private static volatile Concept transferIdConceptCache;
 	private static volatile String transferIdConceptUuidCache;
 
@@ -249,6 +252,55 @@ public final class BillReportUtil {
 		}
 		return StringUtils.defaultString(getPersonAttributeByTypeNames(patient, "Phone Number", "Telephone Number",
 				"Telephone", "phone number"));
+	}
+
+	/**
+	 * Phone number used for MoMo/Irembo payment initiation
+	 * ({@code moh_bill_patient_bill.phoneNumber}).
+	 */
+	public static String resolvePaymentPhone(Consommation consommation) {
+		if (consommation == null || consommation.getPatientBill() == null) {
+			return "";
+		}
+		return StringUtils.trimToEmpty(consommation.getPatientBill().getPhoneNumber());
+	}
+
+	/**
+	 * Provider for Bill Report: prefer {@code moh_bill_admission.discharged_by}, then
+	 * legacy {@code moh_bill_global_bill.closed_by}. Does not use bill creator.
+	 */
+	static User resolveReportProvider(Admission admission, GlobalBill globalBill) {
+		if (admission != null && admission.getDischargedBy() != null) {
+			return admission.getDischargedBy();
+		}
+		if (globalBill != null && globalBill.getClosedBy() != null) {
+			return globalBill.getClosedBy();
+		}
+		return null;
+	}
+
+	/** True when the admission/global bill has been discharged (closed). */
+	static boolean isDischarged(Admission admission, GlobalBill globalBill) {
+		if (globalBill != null) {
+			if (Boolean.TRUE.equals(globalBill.getClosed())) {
+				return true;
+			}
+			if (globalBill.getClosingDate() != null) {
+				return true;
+			}
+			if (globalBill.getClosedBy() != null) {
+				return true;
+			}
+		}
+		if (admission != null) {
+			if (admission.getDischargingDate() != null) {
+				return true;
+			}
+			if (admission.getDischargedBy() != null) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static String resolveProviderName(User creator) {
@@ -423,21 +475,95 @@ public final class BillReportUtil {
 		}
 	}
 
+	/** Default web page size so small-RAM servers only render ~500 bill lines at a time. */
+	public static final int DEFAULT_WEB_PAGE_SIZE = 500;
+
 	/**
 	 * Builds UI rows for Bill Report from the materialized ETL table (one row per
 	 * bill line). Facility header fields stay live via {@link #buildFacilityHeader()}.
+	 * Prefer {@link #buildAdmissionDisplayRowsPage} for the web UI.
 	 */
 	public static List<Map<String, Object>> buildAdmissionDisplayRows(Date startDate, Date endDate,
 			InsuranceFilter insuranceFilter) {
-		List<BillReportItem> items = buildReportItems(startDate, endDate, insuranceFilter);
-		if (items.isEmpty()) {
-			return Collections.emptyList();
+		return buildAdmissionDisplayRowsPage(startDate, endDate, insuranceFilter, 1, Integer.MAX_VALUE).getRows();
+	}
+
+	/**
+	 * Paginated Bill Report UI rows (SQL LIMIT/OFFSET). Page is 1-based.
+	 */
+	public static PagedDisplayRows buildAdmissionDisplayRowsPage(Date startDate, Date endDate,
+			InsuranceFilter insuranceFilter, int page, int pageSize) {
+		int safePageSize = pageSize > 0 ? pageSize : DEFAULT_WEB_PAGE_SIZE;
+		int safePage = page > 0 ? page : 1;
+		Insurance insurance = insuranceFilter != null ? insuranceFilter.getInsurance() : null;
+		String category = insuranceFilter != null ? insuranceFilter.getCategory() : null;
+		Integer insuranceId = insurance != null ? insurance.getInsuranceId() : null;
+		String excludedInsuranceName = InsuranceUtil.getHiddenInsuranceName();
+
+		int totalCount = getService().countBillReportFromEtl(startDate, endDate, insuranceId, category,
+				excludedInsuranceName);
+		if (totalCount <= 0) {
+			return new PagedDisplayRows(Collections.emptyList(), 0, safePage, safePageSize);
 		}
+		int totalPages = (int) Math.ceil(totalCount / (double) safePageSize);
+		if (safePage > totalPages) {
+			safePage = totalPages;
+		}
+		int firstResult = (safePage - 1) * safePageSize;
+		List<BillReportItem> items = getService().getBillReportFromEtl(startDate, endDate, insuranceId, category,
+				excludedInsuranceName, firstResult, safePageSize);
+		if (items == null || items.isEmpty()) {
+			return new PagedDisplayRows(Collections.emptyList(), totalCount, safePage, safePageSize);
+		}
+		int sequence = firstResult + 1;
 		List<Map<String, Object>> rows = new ArrayList<>(items.size());
 		for (BillReportItem item : items) {
+			item.setRowNumber(sequence++);
 			rows.add(toDisplayRowFromEtl(item));
 		}
-		return rows;
+		return new PagedDisplayRows(rows, totalCount, safePage, safePageSize);
+	}
+
+	/** One page of Bill Report display rows plus paging metadata. */
+	public static final class PagedDisplayRows {
+		private final List<Map<String, Object>> rows;
+		private final int totalCount;
+		private final int page;
+		private final int pageSize;
+
+		public PagedDisplayRows(List<Map<String, Object>> rows, int totalCount, int page, int pageSize) {
+			this.rows = rows != null ? rows : Collections.emptyList();
+			this.totalCount = Math.max(0, totalCount);
+			this.page = page > 0 ? page : 1;
+			this.pageSize = pageSize > 0 ? pageSize : DEFAULT_WEB_PAGE_SIZE;
+		}
+
+		public List<Map<String, Object>> getRows() {
+			return rows;
+		}
+
+		public int getTotalCount() {
+			return totalCount;
+		}
+
+		public int getPage() {
+			return page;
+		}
+
+		public int getPageSize() {
+			return pageSize;
+		}
+
+		public int getTotalPages() {
+			if (totalCount <= 0) {
+				return 1;
+			}
+			return (int) Math.ceil(totalCount / (double) pageSize);
+		}
+
+		public int getRowNumberOffset() {
+			return (page - 1) * pageSize;
+		}
 	}
 
 	/**
@@ -454,6 +580,8 @@ public final class BillReportUtil {
 		row.put("admission", admissionStub);
 		row.put("admissionDate", item.getAdmissionDate());
 		row.put("dischargeDate", item.getDischargeDate());
+		row.put("visitStartDate", item.getVisitStartDate());
+		row.put("visitEndDate", item.getVisitEndDate());
 		row.put("admissionStatus", item.getAdmissionStatus());
 		row.put("patientId", item.getPatientId());
 		row.put("patientNames", item.getPatientNames());
@@ -462,6 +590,7 @@ public final class BillReportUtil {
 		row.put("patientDob", item.getPatientDob());
 		row.put("socialRegistryLevel", item.getSocialRegistryLevel());
 		row.put("patientPhone", item.getPatientPhoneNumber());
+		row.put("paymentPhone", item.getPaymentPhoneNumber());
 		row.put("patientGender", item.getPatientGender());
 		row.put("insuranceName", item.getInsuranceName());
 		row.put("cardNumber", item.getCardNumber());
@@ -516,19 +645,27 @@ public final class BillReportUtil {
 		row.put("billItem", item);
 		row.put("voucherId", globalBill != null ? globalBill.getBillIdentifier() : null);
 		row.put("dischargeDate", globalBill != null ? globalBill.getClosingDate() : null);
+		if (admission.getVisit() != null) {
+			row.put("visitStartDate", admission.getVisit().getStartDatetime());
+			row.put("visitEndDate", admission.getVisit().getStopDatetime());
+		} else {
+			row.put("visitStartDate", null);
+			row.put("visitEndDate", null);
+		}
 		row.put("admissionStatus", Boolean.TRUE.equals(admission.getIsAdmitted()) ? "Inpatient" : "Outpatient");
 		row.put("patientId", resolvePatientId(patient));
 		row.put("patientNid", resolvePatientNid(patient));
 		row.put("patientDob", patient != null ? patient.getBirthdate() : null);
 		row.put("householdNid", resolveHouseholdNid(policy));
 		row.put("patientPhone", resolvePatientPhone(patient));
+		row.put("paymentPhone", resolvePaymentPhone(consommation));
 		row.put("patientGender", patient != null ? patient.getGender() : null);
 
-		User billCreator = globalBill != null ? globalBill.getCreator() : null;
-		row.put("providerName", resolveProviderName(billCreator));
-		row.put("providerQualification", resolveProviderQualification(billCreator));
-		row.put("providerPhone", resolveProviderPhone(billCreator));
-		row.put("providerRegistration", resolveProviderRegistration(billCreator));
+		User provider = resolveReportProvider(admission, globalBill);
+		row.put("providerName", resolveProviderName(provider));
+		row.put("providerQualification", resolveProviderQualification(provider));
+		row.put("providerPhone", resolveProviderPhone(provider));
+		row.put("providerRegistration", resolveProviderRegistration(provider));
 
 		BigDecimal insuranceRatePercent = resolveInsuranceRatePercent(admission, globalBill);
 		row.put("socialRegistryLevel", resolveSocialRegistryLevel(insuranceRatePercent));
@@ -575,7 +712,7 @@ public final class BillReportUtil {
 		row.put("primaryDiagnosis", clinicalDiagnosis.getPrimaryDiagnosis());
 		row.put("confirmedByLabImaging", clinicalDiagnosis.getConfirmedByLabImaging());
 		row.put("icd11Code", clinicalDiagnosis.getIcd11Code());
-		row.put("itemDate", item != null ? item.getCreatedDate() : null);
+		row.put("itemDate", resolveItemDate(item));
 		row.put("productName", productName);
 		row.put("productCode", productCode);
 		row.put("productType", productType);
@@ -892,16 +1029,27 @@ public final class BillReportUtil {
 
 	private static boolean isLaboratoryOrderCompleted(Integer patientId, PatientServiceBill billItem,
 			GlobalBill globalBill) {
-		Integer conceptId = null;
-		if (billItem != null && billItem.getService() != null
-				&& billItem.getService().getFacilityServicePrice() != null
-				&& billItem.getService().getFacilityServicePrice().getConcept() != null) {
-			conceptId = billItem.getService().getFacilityServicePrice().getConcept().getConceptId();
-		}
-		if (patientId == null || conceptId == null) {
-			return false;
-		}
 		try {
+			// Prefer exact forward link when MohBillingOrderHandler stored order_id.
+			if (billItem != null && billItem.getOrderId() != null) {
+				String linkedSql = "SELECT fulfiller_status FROM orders WHERE order_id = " + billItem.getOrderId()
+						+ " AND COALESCE(voided, 0) = 0 LIMIT 1";
+				List<List<Object>> linkedRows = Context.getAdministrationService().executeSQL(linkedSql, true);
+				if (linkedRows != null && !linkedRows.isEmpty() && linkedRows.get(0) != null
+						&& !linkedRows.get(0).isEmpty() && linkedRows.get(0).get(0) != null) {
+					return isCompletedOrderStatus(String.valueOf(linkedRows.get(0).get(0)));
+				}
+				return false;
+			}
+			Integer conceptId = null;
+			if (billItem != null && billItem.getService() != null
+					&& billItem.getService().getFacilityServicePrice() != null
+					&& billItem.getService().getFacilityServicePrice().getConcept() != null) {
+				conceptId = billItem.getService().getFacilityServicePrice().getConcept().getConceptId();
+			}
+			if (patientId == null || conceptId == null) {
+				return false;
+			}
 			String dateClause = laboratoryOrderDateWindowClause(billItem != null ? billItem.getServiceDate() : null,
 					globalBill);
 			String sql = "SELECT fulfiller_status FROM orders WHERE patient_id = " + patientId
@@ -918,6 +1066,271 @@ public final class BillReportUtil {
 		} catch (Exception e) {
 			log.debug("Bill Report laboratory order status lookup skipped: " + e.getMessage());
 			return false;
+		}
+	}
+
+	/**
+	 * Item Date for Bill Report (forward-linked when {@code order_id} is set):
+	 * <ol>
+	 * <li>medication {@code dispense_date_time} (RPM dispense) when available</li>
+	 * <li>{@code performed_date_time} (lab result obs / order date_activated) when available</li>
+	 * <li>otherwise bill-line {@code created_date} (item create datetime)</li>
+	 * </ol>
+	 */
+	static Date resolveItemDate(PatientServiceBill item) {
+		if (item == null) {
+			return null;
+		}
+		Date dispenseDateTime = resolveMedicationDispenseDateTime(item.getOrderId());
+		if (dispenseDateTime != null) {
+			return dispenseDateTime;
+		}
+		Date performedDateTime = resolvePerformedDateTime(item.getOrderId());
+		if (performedDateTime != null) {
+			return performedDateTime;
+		}
+		return item.getCreatedDate();
+	}
+
+	/** Medication dispense datetime via {@code order_id} → RPM request line → dispense record. */
+	static Date resolveMedicationDispenseDateTime(Integer orderId) {
+		MedicationDispenseInfo dispense = resolveMedicationDispenseByOrderId(orderId);
+		return dispense != null ? dispense.getDispensedAt() : null;
+	}
+
+	/**
+	 * Clinical/service performed datetime for a linked OpenMRS order: earliest non-voided result
+	 * obs, else {@code orders.date_activated}. Does not fall back to order/bill created dates.
+	 */
+	static Date resolvePerformedDateTime(Integer orderId) {
+		return resolveLinkedOrderPerformedAt(orderId);
+	}
+
+	/**
+	 * Timestamp when the linked lab/request was performed (or activated), for forward-linked rows only.
+	 */
+	static Date resolveLinkedOrderPerformedAt(Integer orderId) {
+		if (orderId == null) {
+			return null;
+		}
+		try {
+			String obsSql = "SELECT MIN(obs_datetime) FROM obs WHERE order_id = " + orderId
+					+ " AND COALESCE(voided, 0) = 0";
+			List<List<Object>> obsRows = Context.getAdministrationService().executeSQL(obsSql, true);
+			if (obsRows != null && !obsRows.isEmpty() && obsRows.get(0) != null && !obsRows.get(0).isEmpty()
+					&& obsRows.get(0).get(0) instanceof Date) {
+				return (Date) obsRows.get(0).get(0);
+			}
+			Order order = Context.getOrderService().getOrder(orderId);
+			if (order == null) {
+				return null;
+			}
+			// date_activated is the performed/activation time; do not use order.dateCreated here
+			// (Item Date falls back to bill-line created_date instead).
+			return order.getDateActivated();
+		} catch (Exception e) {
+			log.debug("Bill Report linked order timestamp lookup skipped for orderId=" + orderId + ": "
+					+ e.getMessage());
+			return null;
+		}
+	}
+
+	/**
+	 * Display status for a pharmacy bill line when {@code patient_service_bill.order_id} is set.
+	 * Joins RPM request line by {@code order_id} (exact). Returns null when RPM tables are absent
+	 * or no matching request/dispense exists.
+	 */
+	public static String resolvePharmacyStatusByOrderId(Integer orderId) {
+		MedicationDispenseInfo info = resolveMedicationDispenseByOrderId(orderId);
+		if (info == null) {
+			return null;
+		}
+		return StringUtils.trimToNull(info.getStatus());
+	}
+
+	/**
+	 * Exact join for forward-linked medication bills:
+	 * {@code moh_bill_patient_service_bill.order_id = rpm_patient_dispensing_request_line.order_id}.
+	 * Aggregates dispensed quantity and earliest dispense timestamp when dispense records exist.
+	 */
+	public static MedicationDispenseInfo resolveMedicationDispenseByOrderId(Integer orderId) {
+		if (orderId == null || !isRpmDispenseLinkTablesAvailable()) {
+			return null;
+		}
+		try {
+			// Exact line match on request_line.order_id (forward DrugOrder → bill → RPM request).
+			String lineSql = "SELECT l.patient_dispensing_request_id, l.item_id, "
+					+ "COALESCE(NULLIF(TRIM(l.line_status), ''), NULLIF(TRIM(r.request_status), '')) AS status "
+					+ "FROM rpm_patient_dispensing_request_line l "
+					+ "JOIN rpm_patient_dispensing_request r "
+					+ "ON r.patient_dispensing_request_id = l.patient_dispensing_request_id "
+					+ "AND COALESCE(r.voided, 0) = 0 "
+					+ "WHERE l.order_id = " + orderId
+					+ " AND COALESCE(l.voided, 0) = 0 "
+					+ "ORDER BY l.patient_dispensing_request_line_id DESC LIMIT 1";
+			List<List<Object>> lineRows = Context.getAdministrationService().executeSQL(lineSql, true);
+			if (lineRows == null || lineRows.isEmpty() || lineRows.get(0) == null) {
+				return null;
+			}
+			List<Object> lineRow = lineRows.get(0);
+			Integer requestId = lineRow.get(0) != null ? Integer.valueOf(lineRow.get(0).toString()) : null;
+			Integer itemId = lineRow.size() > 1 && lineRow.get(1) != null
+					? Integer.valueOf(lineRow.get(1).toString()) : null;
+			String status = lineRow.size() > 2 && lineRow.get(2) != null
+					? String.valueOf(lineRow.get(2)).trim() : null;
+			Date dispensedAt = null;
+			BigDecimal quantity = null;
+			if (requestId != null && tableExistsQuietly("rpm_dispense_record")
+					&& tableExistsQuietly("rpm_dispense_record_line")) {
+				String itemFilter = itemId != null ? (" AND drl.item_id = " + itemId) : "";
+				String dispenseAtExpr = resolveRpmDispenseDateTimeExpression("dr");
+				String dispenseSql = "SELECT MIN(" + dispenseAtExpr + "), "
+						+ "SUM(CASE WHEN COALESCE(drl.voided, 0) = 0 THEN COALESCE(drl.quantity_dispensed, 0) ELSE 0 END) "
+						+ "FROM rpm_dispense_record dr "
+						+ "LEFT JOIN rpm_dispense_record_line drl "
+						+ "ON drl.dispense_record_id = dr.dispense_record_id "
+						+ "WHERE dr.patient_dispensing_request_id = " + requestId
+						+ " AND COALESCE(dr.voided, 0) = 0" + itemFilter;
+				List<List<Object>> dispenseRows = Context.getAdministrationService().executeSQL(dispenseSql, true);
+				if (dispenseRows != null && !dispenseRows.isEmpty() && dispenseRows.get(0) != null) {
+					List<Object> d = dispenseRows.get(0);
+					if (d.size() > 0 && d.get(0) instanceof Date) {
+						dispensedAt = (Date) d.get(0);
+					}
+					if (d.size() > 1 && d.get(1) != null) {
+						quantity = new BigDecimal(d.get(1).toString());
+					}
+				}
+			}
+			if (StringUtils.isBlank(status) && dispensedAt == null
+					&& (quantity == null || quantity.compareTo(BigDecimal.ZERO) == 0)) {
+				return null;
+			}
+			return new MedicationDispenseInfo(status, dispensedAt, quantity);
+		} catch (Exception e) {
+			// Do not cache unavailable=true here: transient SQL/auth errors must not disable
+			// dispense lookups for the rest of the JVM lifetime.
+			log.warn("Bill Report medication dispense lookup skipped for orderId=" + orderId + ": "
+					+ e.getMessage());
+			return null;
+		}
+	}
+
+	private static boolean tableExistsQuietly(String tableName) {
+		if (StringUtils.isBlank(tableName)) {
+			return false;
+		}
+		try {
+			String sql = "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '"
+					+ tableName.replace("'", "''") + "' LIMIT 1";
+			List<List<Object>> rows = Context.getAdministrationService().executeSQL(sql, true);
+			return rows != null && !rows.isEmpty();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private static volatile String rpmDispenseDateTimeExpressionCache;
+
+	/**
+	 * Prefers dedicated dispense datetime columns when present on {@code rpm_dispense_record},
+	 * else {@code date_created}.
+	 */
+	private static String resolveRpmDispenseDateTimeExpression(String alias) {
+		String cached = rpmDispenseDateTimeExpressionCache;
+		if (cached != null) {
+			return cached.replace("dr.", alias + ".");
+		}
+		String column = firstExistingColumn("rpm_dispense_record",
+				"dispense_date_time", "dispensed_at", "dispensing_date", "date_dispensed", "dispensed_date",
+				"date_created");
+		if (StringUtils.isBlank(column)) {
+			column = "date_created";
+		}
+		rpmDispenseDateTimeExpressionCache = "dr." + column;
+		return alias + "." + column;
+	}
+
+	private static String firstExistingColumn(String tableName, String... candidates) {
+		if (StringUtils.isBlank(tableName) || candidates == null) {
+			return null;
+		}
+		for (String candidate : candidates) {
+			if (StringUtils.isBlank(candidate)) {
+				continue;
+			}
+			try {
+				String sql = "SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() "
+						+ "AND table_name = '" + tableName.replace("'", "''") + "' "
+						+ "AND column_name = '" + candidate.replace("'", "''") + "' LIMIT 1";
+				List<List<Object>> rows = Context.getAdministrationService().executeSQL(sql, true);
+				if (rows != null && !rows.isEmpty()) {
+					return candidate;
+				}
+			} catch (Exception ignored) {
+				// try next candidate
+			}
+		}
+		return null;
+	}
+
+	private static volatile Boolean rpmDispenseLinkTablesAvailable;
+
+	private static boolean isRpmDispenseLinkTablesAvailable() {
+		Boolean available = rpmDispenseLinkTablesAvailable;
+		if (available != null) {
+			return available;
+		}
+		synchronized (BillReportUtil.class) {
+			if (rpmDispenseLinkTablesAvailable != null) {
+				return rpmDispenseLinkTablesAvailable;
+			}
+			try {
+				String sql = "SELECT 1 FROM information_schema.tables "
+						+ "WHERE table_schema = DATABASE() AND table_name = 'rpm_patient_dispensing_request_line' "
+						+ "LIMIT 1";
+				List<List<Object>> rows = Context.getAdministrationService().executeSQL(sql, true);
+				boolean hasRequestLine = rows != null && !rows.isEmpty();
+				if (!hasRequestLine) {
+					rpmDispenseLinkTablesAvailable = Boolean.FALSE;
+					return false;
+				}
+				String colSql = "SELECT 1 FROM information_schema.columns "
+						+ "WHERE table_schema = DATABASE() AND table_name = 'rpm_patient_dispensing_request_line' "
+						+ "AND column_name = 'order_id' LIMIT 1";
+				List<List<Object>> colRows = Context.getAdministrationService().executeSQL(colSql, true);
+				rpmDispenseLinkTablesAvailable = colRows != null && !colRows.isEmpty();
+			} catch (Exception e) {
+				// Leave cache unset so a transient privilege/DB error can be retried.
+				log.warn("Bill Report RPM dispense-link table check failed: " + e.getMessage());
+				return false;
+			}
+			return rpmDispenseLinkTablesAvailable;
+		}
+	}
+
+	/** Snapshot of RPM dispense linkage for one DrugOrder / bill line (forward {@code order_id} join). */
+	public static final class MedicationDispenseInfo {
+		private final String status;
+		private final Date dispensedAt;
+		private final BigDecimal quantityDispensed;
+
+		public MedicationDispenseInfo(String status, Date dispensedAt, BigDecimal quantityDispensed) {
+			this.status = StringUtils.trimToNull(status);
+			this.dispensedAt = dispensedAt;
+			this.quantityDispensed = quantityDispensed;
+		}
+
+		public String getStatus() {
+			return status;
+		}
+
+		public Date getDispensedAt() {
+			return dispensedAt;
+		}
+
+		public BigDecimal getQuantityDispensed() {
+			return quantityDispensed;
 		}
 	}
 
@@ -956,8 +1369,14 @@ public final class BillReportUtil {
 
 	/**
 	 * Resolves primary diagnosis / confirmed-by-lab / ICD-11 for an admission.
-	 * When {@code admission.visit} is set, only obs on that visit are used; otherwise
-	 * obs within admission_date +/- 2 days.
+	 * Search order (primary preferred over fallback concepts at every step):
+	 * <ol>
+	 * <li>admission visit (when visit_id is set)</li>
+	 * <li>admission_date +/- {@link BillingConstants#BILL_REPORT_DIAGNOSIS_OBS_DAY_WINDOW} days</li>
+	 * <li>configured fallback concept UUIDs (visit, then +/- window; one obs closest to admission)</li>
+	 * <li>if still empty and discharge/closing date exists: primary then fallback within
+	 * admission_date..discharge_date (that record only)</li>
+	 * </ol>
 	 * <p>
 	 * Note: ETL overrides {@code confirmedByLabImaging} from completed LABORATOIRE order
 	 * status on the global bill; this method still resolves the concept-based value for
@@ -969,22 +1388,62 @@ public final class BillReportUtil {
 			return ClinicalDiagnosis.empty();
 		}
 		Visit visit = admission.getVisit();
-		boolean restrictToVisit = visit != null && visit.getVisitId() != null;
-		if (!restrictToVisit && admission.getAdmissionDate() == null) {
+		boolean hasVisit = visit != null && visit.getVisitId() != null;
+		Date admissionDate = admission.getAdmissionDate();
+		if (!hasVisit && admissionDate == null) {
 			return ClinicalDiagnosis.empty();
 		}
 		try {
 			int dayWindow = BillingConstants.BILL_REPORT_DIAGNOSIS_OBS_DAY_WINDOW;
-			Date rangeStart = !restrictToVisit
-					? startOfDay(addDays(admission.getAdmissionDate(), -dayWindow)) : null;
-			Date rangeEnd = !restrictToVisit
-					? endOfDay(addDays(admission.getAdmissionDate(), dayWindow)) : null;
+			Date rangeStart = admissionDate != null
+					? startOfDay(addDays(admissionDate, -dayWindow)) : null;
+			Date rangeEnd = admissionDate != null
+					? endOfDay(addDays(admissionDate, dayWindow)) : null;
+			Date dischargeDate = globalBill != null ? globalBill.getClosingDate() : null;
+			Date stayStart = admissionDate != null ? startOfDay(admissionDate) : null;
+			Date stayEnd = dischargeDate != null ? endOfDay(dischargeDate) : null;
+			boolean stayWindowUsable = stayStart != null && stayEnd != null && !stayEnd.before(stayStart);
 
 			Concept diagnosisConcept = resolvePrimaryDiagnosisConcept();
-			List<String> diagnosisLabels = collectObsLabels(patient, diagnosisConcept, visit, rangeStart, rangeEnd);
+			List<String> diagnosisLabels = Collections.emptyList();
+			// Prefer primary on the visit when visit_id is available.
+			if (hasVisit && diagnosisConcept != null) {
+				diagnosisLabels = collectObsLabels(patient, diagnosisConcept, visit, null, null);
+			}
+			// Still prefer primary over fallbacks: search the date window when visit had none
+			// (or when there is no visit).
+			if (diagnosisLabels.isEmpty() && diagnosisConcept != null && rangeStart != null) {
+				diagnosisLabels = collectObsLabels(patient, diagnosisConcept, null, rangeStart, rangeEnd);
+			}
+			// No primary obs: one fallback concept obs closest to admission (visit first).
+			if (diagnosisLabels.isEmpty()) {
+				String fallbackLabel = resolveClosestFallbackDiagnosisLabel(patient, diagnosisConcept, visit,
+						hasVisit, rangeStart, rangeEnd, admissionDate);
+				if (StringUtils.isNotBlank(fallbackLabel)) {
+					diagnosisLabels = Collections.singletonList(fallbackLabel);
+				}
+			}
+			// Extra per-record layer: stay window admission..discharge when earlier windows missed.
+			if (diagnosisLabels.isEmpty() && stayWindowUsable) {
+				if (diagnosisConcept != null) {
+					diagnosisLabels = collectObsLabels(patient, diagnosisConcept, null, stayStart, stayEnd);
+				}
+				if (diagnosisLabels.isEmpty()) {
+					String fallbackLabel = resolveClosestFallbackDiagnosisLabel(patient, diagnosisConcept, null,
+							false, stayStart, stayEnd, admissionDate);
+					if (StringUtils.isNotBlank(fallbackLabel)) {
+						diagnosisLabels = Collections.singletonList(fallbackLabel);
+					}
+				}
+			}
 
 			List<Integer> confirmedConceptIds = resolveConfirmedByLabImagingConceptIds();
-			String confirmed = resolveConfirmedByLabImaging(patient, confirmedConceptIds, visit, rangeStart, rangeEnd);
+			// Confirmed-by-lab still uses visit when present; otherwise the date window.
+			Visit confirmedVisit = hasVisit ? visit : null;
+			Date confirmedStart = hasVisit ? null : rangeStart;
+			Date confirmedEnd = hasVisit ? null : rangeEnd;
+			String confirmed = resolveConfirmedByLabImaging(patient, confirmedConceptIds, confirmedVisit,
+					confirmedStart, confirmedEnd);
 
 			LinkedHashSet<String> diagnosisNames = new LinkedHashSet<>();
 			LinkedHashSet<String> icdCodes = new LinkedHashSet<>();
@@ -1002,7 +1461,7 @@ public final class BillReportUtil {
 			if (StringUtils.isBlank(primaryDiagnosis) && StringUtils.isBlank(icd11) && log.isDebugEnabled()) {
 				log.debug("Bill Report diagnosis empty: admissionId="
 						+ admission.getAdmissionId() + ", patientId=" + patient.getPatientId()
-						+ ", visitId=" + (restrictToVisit ? visit.getVisitId() : null)
+						+ ", visitId=" + (hasVisit ? visit.getVisitId() : null)
 						+ ", conceptUuid=" + (diagnosisConcept != null ? diagnosisConcept.getUuid() : null)
 						+ ", conceptId=" + (diagnosisConcept != null ? diagnosisConcept.getConceptId() : null)
 						+ ", range=" + rangeStart + ".." + rangeEnd);
@@ -1027,16 +1486,146 @@ public final class BillReportUtil {
 			return cached;
 		}
 		if (cached == null && uuid.equals(primaryDiagnosisConceptUuidCache)) {
-			// Previously resolved as missing for this uuid
+			// Previously resolved as missing for this configured uuid (fallback tried separately).
 			return null;
 		}
 		Concept concept = Context.getConceptService().getConceptByUuid(uuid);
 		primaryDiagnosisConceptUuidCache = uuid;
 		primaryDiagnosisConceptCache = concept;
 		if (concept == null) {
-			log.warn("Bill Report primary diagnosis concept not found for uuid=" + uuid);
+			log.warn("Bill Report primary diagnosis concept not found for uuid=" + uuid
+					+ "; will try fallbackDiagnosisConceptUuids");
 		}
 		return concept;
+	}
+
+	/**
+	 * Resolves configured fallback diagnosis question concepts (comma-separated UUIDs).
+	 * Concepts that match the primary concept (same id) are omitted at use time.
+	 */
+	private static List<Concept> resolveFallbackDiagnosisConcepts() {
+		String gp = Context.getAdministrationService()
+				.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_FALLBACK_DIAGNOSIS_CONCEPT_UUIDS);
+		if (StringUtils.isBlank(gp)) {
+			gp = BillingConstants.FALLBACK_ICD_DIAGNOSIS_CONCEPT_UUID;
+		}
+		gp = gp.trim();
+		List<Concept> cached = fallbackDiagnosisConceptsCache;
+		if (cached != null && gp.equals(fallbackDiagnosisConceptUuidsCache)) {
+			return cached;
+		}
+		List<Concept> concepts = new ArrayList<>();
+		for (String part : gp.split(",")) {
+			if (part == null) {
+				continue;
+			}
+			String uuid = part.trim();
+			if (uuid.isEmpty()) {
+				continue;
+			}
+			Concept concept = Context.getConceptService().getConceptByUuid(uuid);
+			if (concept == null) {
+				log.warn("Bill Report fallback diagnosis concept not found for uuid=" + uuid);
+				continue;
+			}
+			concepts.add(concept);
+		}
+		List<Concept> immutable = Collections.unmodifiableList(concepts);
+		fallbackDiagnosisConceptUuidsCache = gp;
+		fallbackDiagnosisConceptsCache = immutable;
+		return immutable;
+	}
+
+	/**
+	 * Picks a single fallback diagnosis label: among configured fallback concepts, the obs
+	 * closest to {@code admissionDate}. Prefers visit-scoped obs when visit_id is set; if
+	 * none, searches the admission date window. Returns null when nothing is found.
+	 */
+	private static String resolveClosestFallbackDiagnosisLabel(Patient patient, Concept primaryConcept,
+			Visit visit, boolean hasVisit, Date rangeStart, Date rangeEnd, Date admissionDate) {
+		List<Concept> fallbacks = resolveFallbackDiagnosisConcepts();
+		if (fallbacks.isEmpty()) {
+			return null;
+		}
+		DiagnosisObsCandidate best = null;
+		if (hasVisit) {
+			best = findClosestDiagnosisObs(patient, fallbacks, primaryConcept, visit, null, null, admissionDate);
+		}
+		if (best == null && rangeStart != null && rangeEnd != null) {
+			best = findClosestDiagnosisObs(patient, fallbacks, primaryConcept, null, rangeStart, rangeEnd,
+					admissionDate);
+		}
+		return best != null ? best.label : null;
+	}
+
+	private static DiagnosisObsCandidate findClosestDiagnosisObs(Patient patient, List<Concept> concepts,
+			Concept primaryConcept, Visit visit, Date rangeStart, Date rangeEnd, Date admissionDate) {
+		DiagnosisObsCandidate best = null;
+		long bestDistance = Long.MAX_VALUE;
+		for (Concept concept : concepts) {
+			if (concept == null) {
+				continue;
+			}
+			if (primaryConcept != null && primaryConcept.getConceptId() != null
+					&& primaryConcept.getConceptId().equals(concept.getConceptId())) {
+				continue;
+			}
+			List<Obs> obsList = collectObsForConcept(patient, concept, visit);
+			if (obsList == null || obsList.isEmpty()) {
+				continue;
+			}
+			boolean restrictToVisit = visit != null && visit.getVisitId() != null;
+			for (Obs obs : obsList) {
+				if (obs == null || Boolean.TRUE.equals(obs.getVoided())) {
+					continue;
+				}
+				Date obsDatetime = obs.getObsDatetime();
+				if (!restrictToVisit) {
+					if (obsDatetime == null || rangeStart == null || rangeEnd == null
+							|| obsDatetime.before(rangeStart) || obsDatetime.after(rangeEnd)) {
+						continue;
+					}
+				}
+				String label = obsLabel(obs);
+				if (StringUtils.isBlank(label)) {
+					continue;
+				}
+				long distance;
+				if (admissionDate != null && obsDatetime != null) {
+					distance = Math.abs(obsDatetime.getTime() - admissionDate.getTime());
+				} else if (obsDatetime != null) {
+					distance = obsDatetime.getTime();
+				} else {
+					distance = Long.MAX_VALUE - 1L;
+				}
+				if (best == null || distance < bestDistance) {
+					best = new DiagnosisObsCandidate(label);
+					bestDistance = distance;
+				}
+			}
+		}
+		return best;
+	}
+
+	private static String obsLabel(Obs obs) {
+		if (obs == null) {
+			return null;
+		}
+		if (obs.getValueCoded() != null && obs.getValueCoded().getName() != null) {
+			return StringUtils.trimToNull(obs.getValueCoded().getName().getName());
+		}
+		if (StringUtils.isNotBlank(obs.getValueText())) {
+			return obs.getValueText().trim();
+		}
+		return null;
+	}
+
+	private static final class DiagnosisObsCandidate {
+		private final String label;
+
+		private DiagnosisObsCandidate(String label) {
+			this.label = label;
+		}
 	}
 
 	private static List<String> collectObsLabels(Patient patient, Concept concept, Visit visit, Date rangeStart,
@@ -1727,7 +2316,9 @@ public final class BillReportUtil {
 		Insurance insurance = insuranceFilter != null ? insuranceFilter.getInsurance() : null;
 		String category = insuranceFilter != null ? insuranceFilter.getCategory() : null;
 		Integer insuranceId = insurance != null ? insurance.getInsuranceId() : null;
-		List<BillReportItem> rows = getService().getBillReportFromEtl(startDate, endDate, insuranceId, category);
+		String excludedInsuranceName = InsuranceUtil.getHiddenInsuranceName();
+		List<BillReportItem> rows = getService().getBillReportFromEtl(startDate, endDate, insuranceId, category,
+				excludedInsuranceName, null, null);
 		if (rows == null || rows.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -1783,6 +2374,10 @@ public final class BillReportUtil {
 				continue;
 			}
 			GlobalBill globalBill = getService().getGlobalBillByAdmission(admission);
+			// Bill Report includes discharged (closed) admissions only.
+			if (!isDischarged(admission, globalBill)) {
+				continue;
+			}
 			List<Consommation> consommations = globalBill != null
 					? getService().getAllConsommationByGlobalBill(globalBill)
 					: Collections.emptyList();
@@ -1830,6 +2425,9 @@ public final class BillReportUtil {
 		row.setAdmissionId(admission.getAdmissionId());
 		if (admission.getVisit() != null) {
 			row.setVisitId(admission.getVisit().getVisitId());
+			// Clinical admission/discharge from the linked OpenMRS visit (when visit_id is set).
+			row.setVisitStartDate(admission.getVisit().getStartDatetime());
+			row.setVisitEndDate(admission.getVisit().getStopDatetime());
 		}
 		if (globalBill != null) {
 			row.setGlobalBillId(globalBill.getGlobalBillId());
@@ -1869,16 +2467,17 @@ public final class BillReportUtil {
 			row.setPatientPhoneNumber(resolvePatientPhone(patient));
 			row.setPatientNid(resolvePatientNid(patient));
 		}
+		row.setPaymentPhoneNumber(resolvePaymentPhone(consommation));
 		if (beneficiary != null) {
 			row.setHouseholdHeadNid(beneficiary.getOwnerCode());
 		}
 		row.setSocialRegistryLevel(resolveSocialRegistryLevel(insuranceRatePercent));
 
-		User billCreator = globalBill != null ? globalBill.getCreator() : null;
-		row.setProviderName(resolveProviderName(billCreator));
-		row.setProviderQualification(resolveProviderQualification(billCreator));
-		row.setProviderPhoneNumber(resolveProviderPhone(billCreator));
-		row.setProviderRegistrationNumber(resolveProviderRegistration(billCreator));
+		User provider = resolveReportProvider(admission, globalBill);
+		row.setProviderName(resolveProviderName(provider));
+		row.setProviderQualification(resolveProviderQualification(provider));
+		row.setProviderPhoneNumber(resolveProviderPhone(provider));
+		row.setProviderRegistrationNumber(resolveProviderRegistration(provider));
 
 		if (clinicalDiagnosis == null) {
 			clinicalDiagnosis = ClinicalDiagnosis.empty();
@@ -1886,7 +2485,7 @@ public final class BillReportUtil {
 		row.setPrimaryWorkingDiagnosis(clinicalDiagnosis.getPrimaryDiagnosis());
 		row.setPrimaryConfirmedByLabImaging(clinicalDiagnosis.getConfirmedByLabImaging());
 		row.setIcd11Code(clinicalDiagnosis.getIcd11Code());
-		row.setItemDate(item.getCreatedDate());
+		row.setItemDate(resolveItemDate(item));
 
 		FacilityServicePrice fsp = null;
 		BillableService billable = item.getService();

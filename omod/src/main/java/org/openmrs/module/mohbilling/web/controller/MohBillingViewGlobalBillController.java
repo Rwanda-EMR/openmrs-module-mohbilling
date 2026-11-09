@@ -13,6 +13,7 @@ import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherIntegratio
 import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.module.mohbilling.GlobalPropertyConfig;
+import org.openmrs.module.mohbilling.businesslogic.BillReportUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
@@ -292,8 +293,18 @@ public class MohBillingViewGlobalBillController extends
 	}
 
 	private String resolveRwandaPharmacyStatus(PatientServiceBill billItem) {
-		if (billItem == null || billItem.getConsommation() == null || !tableExists("rpm_patient_dispensing_request")
+		if (billItem == null || !tableExists("rpm_patient_dispensing_request")
 				|| !tableExists("rpm_patient_dispensing_request_line")) {
+			return null;
+		}
+		// Prefer exact forward link: patient_service_bill.order_id = request_line.order_id
+		if (billItem.getOrderId() != null) {
+			String byOrder = BillReportUtil.resolvePharmacyStatusByOrderId(billItem.getOrderId());
+			if (StringUtils.isNotBlank(byOrder)) {
+				return displayStatus(byOrder);
+			}
+		}
+		if (billItem.getConsommation() == null) {
 			return null;
 		}
 		Integer patientBillId = billItem.getConsommation().getPatientBill() == null ? null
