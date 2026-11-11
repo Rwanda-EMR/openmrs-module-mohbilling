@@ -80,6 +80,7 @@ public class MohBillingOpenBillConfirmationPageFormController extends
 				PatientBill pb=consommation.getPatientBill();
 				if (!pb.isPaymentConfirmed()) {
 					BillPayment billPayment = new BillPayment();
+					billPayment.setInvoiceNumber(pb.getInvoiceNumber());
 					billPayment.setCollector(Context.getAuthenticatedUser());
 					billPayment.setDateReceived(new Date());
 					billPayment.setPatientBill(pb);
@@ -100,7 +101,7 @@ public class MohBillingOpenBillConfirmationPageFormController extends
 						billPayment = cp;
 
 						createPaidServiceBill(consommation, cp);
-
+						pb.setIsPaid(true);
 						pb.setPaymentConfirmed(true);
 						pb.setPaymentConfirmedBy(Context.getAuthenticatedUser());
 						pb.setPaymentConfirmedDate(new Date());

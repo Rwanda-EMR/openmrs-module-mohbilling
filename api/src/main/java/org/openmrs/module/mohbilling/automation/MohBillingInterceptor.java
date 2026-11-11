@@ -50,7 +50,14 @@ public class MohBillingInterceptor extends EmptyInterceptor {
 			public void beforeCompletion() {
 				log.trace("beforeTransactionCompletion");
 				for (MohBillingHandler<?> handler : Context.getRegisteredComponents(MohBillingHandler.class)) {
-					handler.beforeTransactionCompletion();
+					try {
+						handler.beforeTransactionCompletion();
+					}
+					catch (RuntimeException e) {
+						// Hibernate only logs the exception message, so log the full stack trace here
+						log.error("Error in beforeTransactionCompletion of {}", handler.getClass().getSimpleName(), e);
+						throw e;
+					}
 				}
 			}
 

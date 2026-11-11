@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<class name="RhipVoucherItemRecord" table="moh_bill_rhip_voucher_item_record">
+
+		<id name="rhipVoucherItemRecordId" type="int" column="rhip_voucher_item_record_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<many-to-one name="globalBill" class="org.openmrs.module.mohbilling.model.GlobalBill" column="global_bill_id" not-null="true" />
+		<many-to-one name="patientServiceBill" class="org.openmrs.module.mohbilling.model.PatientServiceBill" column="patient_service_bill_id" not-null="true" />
+		<property name="productCode" column="product_code" type="string" not-null="true" />
+		<property name="quantity" column="quantity" type="big_decimal" />
+		<property name="price" column="price" type="big_decimal" />
+		<property name="status" column="status" type="string" not-null="true" />
+		<property name="rejectionReason" column="rejection_reason" type="text" />
+		<property name="voucherCode" column="voucher_code" type="string" />
+		<property name="voucherReferenceNumber" column="voucher_reference_number" type="string" />
+		<property name="dateCreated" column="date_created" not-null="true" />
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" />
+		<property name="uuid" column="uuid" type="string" not-null="true" />
+	</class>
+
+</hibernate-mapping>

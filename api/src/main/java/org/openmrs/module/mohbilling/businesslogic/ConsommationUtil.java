@@ -132,8 +132,6 @@ public class ConsommationUtil {
 		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
 		Department department = DepartementUtil.getDepartement(departmentId);
 
-		BigDecimal globalAmount = globalBill.getGlobalAmount();
-		BigDecimal totalAmount = new BigDecimal(0);
 		Beneficiary beneficiary = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request
 				.getParameter("ipCardNumber"));
 		Insurance insurance = beneficiary.getInsurancePolicy().getInsurance();
@@ -143,20 +141,10 @@ public class ConsommationUtil {
 
 		int numberOfServicesClicked=0;
 		String[] billItems = request.getParameterValues("billItem");
-		BigDecimal insuranceRate = (new BigDecimal(beneficiary.getInsurancePolicy().getInsurance().getCurrentRate().getRate()));
-		BigDecimal patientRate = (new BigDecimal(100).subtract(insuranceRate)).divide(new BigDecimal(100));
-
 		//update quantity on the existing consommation/add new item on the existing consommation
 		if(request.getParameter("consommationId")!=null || request.getParameter("addNew")!=null) {
 			existingConsom = ConsommationUtil.getConsommation(Integer.valueOf(request.getParameter("consommationId")));
 			numberOfServicesClicked = billItems.length;
-			// Get 100% of the Ticket Moderateur
-			//totalAmount=existingConsom.getPatientBill().getAmount().divide(patientRate);
-			if (patientRate.compareTo(BigDecimal.ZERO) > 0) {
-				totalAmount = existingConsom.getPatientBill().getAmount().divide(patientRate, 2, RoundingMode.HALF_UP);
-			} else {
-				totalAmount = existingConsom.getPatientBill().getAmount();
-			}
 		}
 		//add new consommation
 		else if (request.getParameter("consommationId")==null){
@@ -165,12 +153,6 @@ public class ConsommationUtil {
 					.getParameter("numberOfServicesClicked"));
 		}
 		String message="";
-		BigDecimal voidedItemTotalAmount = new BigDecimal(0);
-		BigDecimal addedItemTotalAmount = new BigDecimal(0);
-		BigDecimal removedItemTotalAmount = new BigDecimal(0);
-		BigDecimal totalExistingConsomm= new BigDecimal(0);
-		int existingItemsLoopControl=0;
-
 		for (int i = 0; i < numberOfServicesClicked; i++) {
 			BigDecimal  quantity= null;
 			BigDecimal unitPrice = null;
@@ -182,9 +164,7 @@ public class ConsommationUtil {
 				if(request.getParameter("removeItem_"  + billItems[i])!=null){
 					PatientServiceBill itemToRemove = ConsommationUtil.getPatientServiceBill(Integer.valueOf(request.getParameter("removeItem_" + billItems[i])));
 					retireItem(itemToRemove);
-
-					BigDecimal removedItemAmount = itemToRemove .getQuantity().multiply(itemToRemove .getUnitPrice());
-					removedItemTotalAmount = removedItemTotalAmount.add(removedItemAmount);
+					syncVoidedItemInConsommation(existingConsom, itemToRemove);
 
 					message="Item removed succefully...";
 				}
@@ -201,10 +181,7 @@ public class ConsommationUtil {
 					existingPsb.setVoidedBy(creator);
 					existingPsb.setVoidReason("edit");
 					existingPsb.setVoidedDate(new Date());
-					BigDecimal voidedItemAmount = existingPsb.getQuantity().multiply(existingPsb.getUnitPrice());
-					BigDecimal newItemAmount = quantity.multiply(unitPrice);
-					voidedItemTotalAmount = voidedItemTotalAmount.add(voidedItemAmount);
-					addedItemTotalAmount=addedItemTotalAmount.add(newItemAmount);
+					syncVoidedItemInConsommation(existingConsom, existingPsb);
 
 
 					existingConsom.addBillItem(psb);
@@ -225,14 +202,6 @@ public class ConsommationUtil {
 						drugf = request.getParameter("frequency_"+i);
 						item_type = bs.getFacilityServicePrice().getItemType().intValue();
 						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf,item_type); // <<<<<<<<<<<<<<<<<<< Here Suspect Number One
-						addedItemTotalAmount=addedItemTotalAmount.add(quantity.multiply(unitPrice));
-							if(existingItemsLoopControl==0) {
-								for (PatientServiceBill pp : existingConsom.getBillItems()) {
-									totalExistingConsomm = totalExistingConsomm.add(pp.getQuantity().multiply(pp.getUnitPrice()));
-								}
-								existingItemsLoopControl++;
-							}
-
 						existingConsom.addBillItem(psb);
 
 
@@ -248,34 +217,34 @@ public class ConsommationUtil {
 						unitPrice = BigDecimal.valueOf(Double.valueOf(request.getParameter("servicePrice_" + i)));
 						drugf = request.getParameter("frequency_"+i);
 						psb = new PatientServiceBill(bs, hopService, new Date(), unitPrice, quantity, creator, new Date(),drugf,item_type);
-						// totalAmount = totalAmount.add(quantity.multiply(unitPrice));
-						addedItemTotalAmount = addedItemTotalAmount.add(quantity.multiply(unitPrice));
 						existingConsom.addBillItem(psb);
 						message = "A new consommation has been added to the global bill...";
 					}
 				}
 			}
 		}
-		BigDecimal addedItemTotalAmountt=addedItemTotalAmount.add(totalExistingConsomm);
-		totalAmount = totalAmount.add(addedItemTotalAmountt);
-		totalAmount = totalAmount.subtract(voidedItemTotalAmount);
-		totalAmount = totalAmount.subtract(removedItemTotalAmount);
-
-		PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());
-		InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);
-		ThirdPartyBill	thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(), totalAmount);
-
+		// Recompute amounts from current active (non-voided) items
+		BigDecimal totalAmount = calculateNonVoidedItemsTotal(existingConsom);
 		existingConsom.setDepartment(department);
-		existingConsom.setPatientBill(pb);
-		existingConsom.setDepartment(department);
-		existingConsom.setInsuranceBill(ib);
-		existingConsom.setThirdPartyBill(thirdPartyBill);
 
-		saveConsommation = ConsommationUtil.saveConsommation(existingConsom);
-		globalAmount = globalAmount.subtract(voidedItemTotalAmount).subtract(removedItemTotalAmount).add(addedItemTotalAmount);
-		//globalAmount =globalAmount.add(totalAmount);
-		globalBill.setGlobalAmount(globalAmount);
-		GlobalBillUtil.saveGlobalBill(globalBill);
+		if (existingConsom.getPatientBill() != null
+				&& existingConsom.getPatientBill().getPatientBillId() != null) {
+			// Editing existing consommation: keep the same PatientBill row and refresh amounts
+			saveConsommation = ConsommationUtil.saveConsommation(existingConsom);
+			refreshBillAmountsFromNonVoidedItems(existingConsom, beneficiary.getInsurancePolicy());
+		} else {
+			// New consommation must have PatientBill before insert (patient_bill_id NOT NULL)
+			PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, beneficiary.getInsurancePolicy());
+			InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(insurance, totalAmount);
+			ThirdPartyBill thirdPartyBill = ThirdPartyBillUtil.createThirdPartyBill(beneficiary.getInsurancePolicy(),
+					totalAmount);
+			existingConsom.setPatientBill(pb);
+			existingConsom.setInsuranceBill(ib);
+			existingConsom.setThirdPartyBill(thirdPartyBill);
+			saveConsommation = ConsommationUtil.saveConsommation(existingConsom);
+			globalBill.setGlobalAmount(calculateGlobalBillNonVoidedTotal(globalBill));
+			GlobalBillUtil.saveGlobalBill(globalBill);
+		}
 
 		request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR, message);
 
@@ -367,8 +336,24 @@ public class ConsommationUtil {
     public static List<Consommation> getConsommations(Date startDate,
                                                       Date endDate, Insurance insurance, ThirdParty tp,
                                                       User billCreator,Department department){
-        return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department);
+        return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department, Integer.MAX_VALUE, 0);
 	}
+
+	public static List<Consommation> getConsommations(Date startDate,
+													  Date endDate, Insurance insurance, ThirdParty tp,
+													  User billCreator, Department department, int limit, int page) {
+		int currentPage = Math.max(page, 1);
+		int offSet = limit <= 0 ? 0 : (currentPage - 1) * limit;
+		return getService().getConsommations(startDate, endDate, insurance, tp, billCreator, department, limit, offSet);
+	}
+
+	public static List<Consommation> getConsommationsOld(Date startDate,
+													  Date endDate, Insurance insurance, ThirdParty tp,
+													  User billCreator,Department department){
+		return getService().getConsommationsOld(startDate, endDate, insurance, tp, billCreator, department);
+	}
+
+	
 	public static List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate,
 													  Date endDate) throws IOException {
 		List<Consommation> cons=getService().getConsommationsWithPatientNotConfirmed(startDate, endDate);
@@ -392,6 +377,165 @@ public class ConsommationUtil {
 		psb.setVoidedBy(Context.getAuthenticatedUser());
 		psb.setVoidReason("removed");
 		psb.setVoidedDate(new Date());
-		ConsommationUtil.saveConsommation(psb.getConsommation());
+		Consommation consommation = psb.getConsommation();
+		syncVoidedItemInConsommation(consommation, psb);
+		ConsommationUtil.saveConsommation(consommation);
+		if (consommation != null && consommation.getBeneficiary() != null
+				&& consommation.getBeneficiary().getInsurancePolicy() != null) {
+			refreshBillAmountsFromNonVoidedItems(consommation,
+					consommation.getBeneficiary().getInsurancePolicy());
+		}
+	}
+
+	/**
+	 * Recalculates and persists PatientBill / InsuranceBill / ThirdPartyBill amounts
+	 * (and GlobalBill.globalAmount) from non-voided PatientServiceBill rows on the
+	 * given consommation. Keeps the existing PatientBill row so Irembo / payment
+	 * linkage is preserved.
+	 */
+	public static void refreshBillAmountsFromNonVoidedItems(Consommation consommation,
+			InsurancePolicy insurancePolicy) {
+		if (consommation == null || insurancePolicy == null) {
+			return;
+		}
+		Insurance insurance = insurancePolicy.getInsurance();
+		if (insurance == null) {
+			return;
+		}
+
+		BigDecimal totalAmount = calculateNonVoidedItemsTotal(consommation);
+		BigDecimal patientAmount = calculatePatientShare(totalAmount, insurancePolicy);
+		BigDecimal insuranceAmount = calculateInsuranceShare(totalAmount, insurance);
+		BigDecimal thirdPartyAmount = calculateThirdPartyShare(totalAmount, insurancePolicy);
+
+		PatientBill patientBill = consommation.getPatientBill();
+		if (patientBill != null) {
+			patientBill.setAmount(patientAmount);
+			PatientBillUtil.savePatientBill(patientBill);
+		}
+
+		InsuranceBill insuranceBill = consommation.getInsuranceBill();
+		if (insuranceBill != null) {
+			insuranceBill.setAmount(insuranceAmount);
+			InsuranceBillUtil.saveInsuranceBill(insuranceBill);
+		}
+
+		ThirdPartyBill thirdPartyBill = consommation.getThirdPartyBill();
+		if (thirdPartyBill != null) {
+			thirdPartyBill.setAmount(thirdPartyAmount != null ? thirdPartyAmount : BigDecimal.ZERO);
+			ThirdPartyBillUtil.saveThirdPartyBill(thirdPartyBill);
+		} else if (thirdPartyAmount != null && thirdPartyAmount.compareTo(BigDecimal.ZERO) > 0) {
+			ThirdPartyBill created = ThirdPartyBillUtil.createThirdPartyBill(insurancePolicy, totalAmount);
+			consommation.setThirdPartyBill(created);
+			saveConsommation(consommation);
+		}
+
+		GlobalBill globalBill = consommation.getGlobalBill();
+		if (globalBill != null) {
+			globalBill.setGlobalAmount(calculateGlobalBillNonVoidedTotal(globalBill));
+			GlobalBillUtil.saveGlobalBill(globalBill);
+		}
+	}
+
+	private static BigDecimal calculatePatientShare(BigDecimal totalAmount, InsurancePolicy insurancePolicy) {
+		if (totalAmount == null) {
+			return BigDecimal.ZERO;
+		}
+		InsuranceRate validRate = insurancePolicy.getInsurance().getRateOnDate(new Date());
+		if (insurancePolicy.getInsurance().getCurrentRate() != null
+				&& insurancePolicy.getInsurance().getCurrentRate().getFlatFee() != null
+				&& insurancePolicy.getInsurance().getCurrentRate().getFlatFee().compareTo(BigDecimal.ZERO) > 0) {
+			return BigDecimal.ZERO;
+		}
+		float rateToPay;
+		ThirdParty thirdParty = insurancePolicy.getThirdParty();
+		if (thirdParty == null) {
+			rateToPay = 100 - validRate.getRate();
+		} else {
+			rateToPay = (100 - validRate.getRate()) - thirdParty.getRate();
+		}
+		return totalAmount.multiply(BigDecimal.valueOf(rateToPay / 100d));
+	}
+
+	private static BigDecimal calculateInsuranceShare(BigDecimal totalAmount, Insurance insurance) {
+		if (totalAmount == null || insurance == null) {
+			return BigDecimal.ZERO;
+		}
+		InsuranceRate validRate = insurance.getRateOnDate(new Date());
+		if (validRate == null) {
+			return BigDecimal.ZERO;
+		}
+		return totalAmount.multiply(BigDecimal.valueOf(validRate.getRate() / 100d));
+	}
+
+	private static BigDecimal calculateThirdPartyShare(BigDecimal totalAmount, InsurancePolicy insurancePolicy) {
+		if (totalAmount == null || insurancePolicy == null || insurancePolicy.getThirdParty() == null) {
+			return null;
+		}
+		return totalAmount.multiply(BigDecimal.valueOf(insurancePolicy.getThirdParty().getRate() / 100d));
+	}
+
+	private static BigDecimal calculateNonVoidedItemsTotal(Consommation consommation) {
+		BigDecimal total = BigDecimal.ZERO;
+		if (consommation == null || consommation.getBillItems() == null) {
+			return total;
+		}
+
+		for (PatientServiceBill item : consommation.getBillItems()) {
+			if (item == null || Boolean.TRUE.equals(item.getVoided())) {
+				continue;
+			}
+			BigDecimal quantity = item.getQuantity() != null ? item.getQuantity() : BigDecimal.ZERO;
+			BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice() : BigDecimal.ZERO;
+			total = total.add(quantity.multiply(unitPrice));
+		}
+		return total;
+	}
+
+	private static BigDecimal calculateGlobalBillNonVoidedTotal(GlobalBill globalBill) {
+		BigDecimal total = BigDecimal.ZERO;
+		if (globalBill == null) {
+			return total;
+		}
+
+		List<Consommation> consommations = getConsommationsByGlobalBill(globalBill);
+		if (consommations == null) {
+			return total;
+		}
+
+		for (Consommation consommation : consommations) {
+			if (consommation == null || Boolean.TRUE.equals(consommation.getVoided())) {
+				continue;
+			}
+			total = total.add(calculateNonVoidedItemsTotal(consommation));
+		}
+		return total;
+	}
+
+	private static void syncVoidedItemInConsommation(Consommation consommation, PatientServiceBill voidedItem) {
+		if (consommation == null || voidedItem == null || consommation.getBillItems() == null) {
+			return;
+		}
+		for (PatientServiceBill item : consommation.getBillItems()) {
+			if (item == null || item.getPatientServiceBillId() == null || voidedItem.getPatientServiceBillId() == null) {
+				continue;
+			}
+			if (item.getPatientServiceBillId().equals(voidedItem.getPatientServiceBillId())) {
+				item.setVoided(true);
+				item.setVoidedBy(voidedItem.getVoidedBy());
+				item.setVoidedDate(voidedItem.getVoidedDate());
+				item.setVoidReason(voidedItem.getVoidReason());
+				return;
+			}
+		}
+	}
+
+	public static int getTotalConsommations(Date startDate,
+											Date endDate, Insurance insurance, ThirdParty tp,
+											User billCreator, Department department) {
+		return getService().getTotalConsommations(startDate,
+				endDate, insurance, tp,
+				billCreator, department);
+				
 	}
 }

@@ -20,6 +20,40 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_PRIMARY_IDENTIFIER_TYPE = "billing.primaryIdentifierType";
 	public static final String GLOBAL_PROPERTY_OTHER_IDENTIFIER_TYPES = "billing.otherIdentifierTypes";
 	public static final String GLOBAL_PROPERTY_DEFAULT_LOCATION = "billing.defaultLocation";
+
+	/** Final / primary diagnosis question concept ids (comma-separated) shown on Global Bill. */
+	public static final String GLOBAL_PROPERTY_FINAL_DIAGNOSIS_CONCEPT_IDS =
+			"billing.finalDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill";
+	/** Bill Report primary diagnosis question concept UUID (obs search around admission date). */
+	public static final String GLOBAL_PROPERTY_PRIMARY_DIAGNOSIS_CONCEPT_UUID =
+			"mohbilling.billReport.primaryDiagnosisConceptUuid";
+	/** Optional Yes/No concept ids for "Confirmed By lab/Imaging" on Bill Report. */
+	public static final String GLOBAL_PROPERTY_CONFIRMED_BY_LAB_IMAGING_CONCEPT_IDS =
+			"mohbilling.billReport.confirmedByLabImagingConceptIds";
+	/** Default Rwanda EMR Primary ICD diagnosis question UUID. */
+	public static final String PRIMARY_ICD_DIAGNOSIS_CONCEPT_UUID = "2dce81f9-3874-4247-b441-6369ca0725c2";
+	/**
+	 * Comma-separated fallback diagnosis question UUIDs used when primary diagnosis
+	 * has no obs. The obs closest to admission_date wins (one diagnosis).
+	 */
+	public static final String GLOBAL_PROPERTY_FALLBACK_DIAGNOSIS_CONCEPT_UUIDS =
+			"mohbilling.billReport.fallbackDiagnosisConceptUuids";
+	/** Default fallback diagnosis concept UUID (single value for the GP default). */
+	public static final String FALLBACK_ICD_DIAGNOSIS_CONCEPT_UUID = "08dd5ecf-b381-47ea-a0f1-cd91a65505f7";
+	/** Days before/after admission_date used when searching diagnosis obs. */
+	public static final int BILL_REPORT_DIAGNOSIS_OBS_DAY_WINDOW = 2;
+	/**
+	 * Transfer ID concept UUID (value_text = HIE transfer UUID recorded at reception).
+	 * Same defaults as transferapp / rwandaemr.
+	 */
+	public static final String GLOBAL_PROPERTY_TRANSFER_ID_CONCEPT_UUID =
+			"mohbilling.billReport.transferIdConceptUuid";
+	public static final String GP_TRANSFERAPP_RECEIVED_TRANSFER_CONCEPT_UUID =
+			"transferapp.receivedTransferConceptUuid";
+	public static final String GP_RWANDAEMR_TRANSFER_ID_CONCEPT_UUID = "rwandaemr.hie.transfer_id";
+	public static final String DEFAULT_TRANSFER_ID_CONCEPT_UUID = "076b04e5-d62d-47da-83e2-0da6e7a119b4";
+	/** Days before/after admission_date when choosing the Transfer ID obs. */
+	public static final int BILL_REPORT_TRANSFER_OBS_DAY_WINDOW = 2;
 	
 	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_LOGO = "billing.healthFacilityLogo";
 	public static final String GLOBAL_PROPERTY_HEALTH_FACILITY_NAME = "billing.healthFacilityName";
@@ -78,5 +112,90 @@ public class BillingConstants {
 	 public  static final  String MEDICALACTS ="ACTS";
 	 public static final   String IMAGERIE = "IMAGERIE";
 
+
+	public static final String BLOBAL_PROPERTY_IREMBO_ENVIRONMENT = "mohbilling.irembopay.environement";
+	public static final String BLOBAL_PROPERTY_IREMBO_PAY_SECRET= "mohbilling.irembopay.secretkey";
+	public static final String BLOBAL_PROPERTY_ACCOUNT_IDENTIFIER = "mohbilling.irembopay.accountidentifier";
+	public static final String BLOBAL_PROPERTY_PRODUCT_CODE = "mohbilling.irembopay.productcode";
+	public static final String BLOBAL_PROPERTY_IREMBO_USER = "mohbilling.irembopay.username";
+	public static final String GLOBAL_PROPERTY_IREMBO_MINIMUM_PAYMENT = "mohbilling.irembopay.minimumpayment";
+	public static final String GLOBAL_PROPERTY_IREMBO_SCHEDULER_ENABLED = "mohbilling.irembopay.scheduler.enabled";
+	public static final String GLOBAL_PROPERTY_IREMBO_SCHEDULER_INTERVAL_SECONDS = "mohbilling.irembopay.scheduler.intervalSeconds";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_SCHEDULER_ENABLED =
+			"mohbilling.insuranceReportEtl.scheduler.enabled";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_SCHEDULER_INTERVAL_SECONDS =
+			"mohbilling.insuranceReportEtl.scheduler.intervalSeconds";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_SCHEDULER_START_TIME =
+			"mohbilling.insuranceReportEtl.scheduler.startTime";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_OVERLAP_DAYS =
+			"mohbilling.insuranceReportEtl.overlapDays";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_IMAGING_SERVICES = "mohbilling.IMAGING";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_PROCEDURE_SERVICES = "mohbilling.PROCEDURES";
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_LOADED_SERVICE_CONFIGURATION =
+			"mohbilling.insuranceReportEtl.loadedServiceConfiguration";
+	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_SCHEDULER_ENABLED =
+			"mohbilling.cashierReportEtl.scheduler.enabled";
+	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_SCHEDULER_INTERVAL_SECONDS =
+			"mohbilling.cashierReportEtl.scheduler.intervalSeconds";
+	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_SCHEDULER_START_TIME =
+			"mohbilling.cashierReportEtl.scheduler.startTime";
+	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_LOADED_VERSION =
+			"mohbilling.cashierReportEtl.loadedVersion";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_SCHEDULER_ENABLED =
+			"mohbilling.billReportEtl.scheduler.enabled";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_SCHEDULER_INTERVAL_SECONDS =
+			"mohbilling.billReportEtl.scheduler.intervalSeconds";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_SCHEDULER_START_TIME =
+			"mohbilling.billReportEtl.scheduler.startTime";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_OVERLAP_DAYS =
+			"mohbilling.billReportEtl.overlapDays";
+	/** Inclusive admission_date floor for Bill Report ETL materialization (yyyy-MM-dd). */
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_START_DATE =
+			"mohbilling.billReportEtl.startDate";
+	public static final String DEFAULT_BILL_REPORT_ETL_START_DATE = "2026-08-01";
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_LOADED_VERSION =
+			"mohbilling.billReportEtl.loadedVersion";
+	public static final String GLOBAL_PROPERTY_GLOBAL_BILL_PAGE_SIZE = "mohbilling.globalbill.pagesize";
+	public static final String GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE = "mohbilling.irembopay.phone_attribute";
+	public static final String GLOBAL_PROPERTY_IREMBO_AUTO_PHONE_NUMBER = "mohbilling.irembopay.auto_phone_number";
+	public static final String GLOBAL_PROPERTY_AMBULANCE_DEPARTMENT_ID = "mohbilling.ambulance.departmentId";
+	/**
+	 * Exact facility service price name ({@code moh_bill_facility_service_price.name})
+	 * used for ambulance KM billing. The insurance-specific BillableService is resolved
+	 * from this facility service for each policy.
+	 */
+	public static final String GLOBAL_PROPERTY_AMBULANCE_FACILITY_SERVICE_PRICE_NAME = "mohbilling.ambulance.facilityServicePriceName";
+	public static final String DEFAULT_AMBULANCE_FACILITY_SERVICE_PRICE_NAME = "Ambulance per 1km-RHIC-ADMN-002";
+
+	public static final String GLOBAL_PROPERTY_AUTOPAY_ZERO_BILL = "mohbilling.autopayzerobill";
+	public static final String GLOBAL_PROPERTY_AUTOPAY_USER = "mohbilling.autopayuser";
+	public static final String GLOBAL_PROPERTY_AUTOPAY_TIME = "mohbilling.autopaytime";
+	public static final String GLOBAL_PROPERTY_AUTOPAY_DELAYS = "mohbilling.autopaydelays";
+	/**
+	 * When false (default), auto-pay only newly eligible zero-due bills (within one scheduler
+	 * cycle after the delay). When true, also process the historical backlog of old unpaid
+	 * zero-due bills.
+	 */
+	public static final String GLOBAL_PROPERTY_AUTOPAY_PROCESS_OLD_RECORDS =
+			"mohbilling.autopayzerobill.processOldRecords";
+	public static final long DEFAULT_AUTOPAY_TIME_SECONDS = 86400L;
+	public static final long DEFAULT_AUTOPAY_DELAYS_SECONDS = 43200L;
+
+	/** When true, bills of the private insurance are left out of the Find Bills and Bill Report reports */
+	public static final String GLOBAL_PROPERTY_ACTIVATE_NONE_FEATURE = "billing.activateNoneFeature";
+	/** Name of the private insurance, set by the rwandaemr module */
+	public static final String GLOBAL_PROPERTY_PRIVATE_INSURANCE_NAME = "rwandaemr.autoCreateInsuranceType";
+
+	/** Location attribute type UUIDs created by mohbilling liquibase for CBHI Bill Report */
+	public static final String LOCATION_ATTR_FACILITY_TYPE_UUID = "dc3f9f53-730a-4fc6-928c-a113e1089e7e";
+	public static final String LOCATION_ATTR_FACILITY_CATEGORY_UUID = "23200719-eb8d-4532-854f-75ba9dcf796e";
+	public static final String LOCATION_ATTR_LEVEL_OF_CARE_UUID = "0dfb14f2-9759-4c88-8938-3d9999bc9942";
+	public static final String LOCATION_ATTR_OWNER_TYPE_UUID = "3acba29f-5aef-4620-a72e-46eb971b4bb1";
+	public static final String LOCATION_ATTR_FACILITY_NAME_UUID = "a3c3be95-d1a6-4fe5-9d88-7555f850416a";
+	public static final String LOCATION_ATTR_PROVINCE_NAME_UUID = "f647cb4d-060c-4159-90df-42658365fa9a";
+	public static final String LOCATION_ATTR_DISTRICT_NAME_UUID = "7df320d4-b4d7-4add-b3e9-6742e877fb3e";
+	public static final String LOCATION_ATTR_SECTOR_NAME_UUID = "0699c216-f0f9-4961-bc7b-31f5904a7459";
+	/** Common FOSA ID location attribute type name (rwandaemr / initializer) */
+	public static final String LOCATION_ATTR_FOSA_ID_NAME = "FOSA ID";
 
 }

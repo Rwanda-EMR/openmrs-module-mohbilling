@@ -51,12 +51,44 @@
 			$("#invalid_close").text("Please! Select Reverting Reason").show().fadeOut(4000);
 			event.preventDefault();
 		});
+		$("#btnSendVoucher").on("click",function(){
+			if (confirm("Are you sure you want to send the RHIP voucher?")) {
+				$("#sendVoucherForm").submit();
+			}
+		});
 	});
 </script>
 
 <h2>Global Bill # ${globalBill.billIdentifier} </h2>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<c:set var="voucherCode" value="${not empty sessionScope.rhipVoucherCode ? sessionScope.rhipVoucherCode : globalBill.rhipVoucherCode}" />
+<c:set var="voucherReferenceNumber" value="${not empty sessionScope.rhipVoucherReferenceNumber ? sessionScope.rhipVoucherReferenceNumber : globalBill.rhipVoucherReferenceNumber}" />
+<c:set var="voucherStatus" value="${sessionScope.rhipVoucherStatus}" />
+<c:if test="${not empty voucherCode or not empty voucherReferenceNumber or not empty voucherStatus}">
+	<b class="boxHeader">RHIP Voucher Receipt</b>
+	<div class="box">
+		<table>
+			<tr>
+				<td>Voucher Code:</td>
+				<td><b>${voucherCode}</b></td>
+			</tr>
+			<tr>
+				<td>Reference Number:</td>
+				<td><b>${voucherReferenceNumber}</b></td>
+			</tr>
+			<!--<tr>
+				<td>Status:</td>
+				<td><b>${voucherStatus}</b></td>
+			</tr>-->
+		</table>
+	</div>
+	<c:remove var="rhipVoucherCode" scope="session"/>
+	<c:remove var="rhipVoucherReferenceNumber" scope="session"/>
+	<c:remove var="rhipVoucherStatus" scope="session"/>
+	<br/>
+</c:if>
 
 <c:set var="ipCardNumber" value="${globalBill.admission.insurancePolicy.insuranceCardNo}" />
 <c:set var="globalBillId" value="${globalBill.globalBillId}" />
@@ -69,6 +101,7 @@
 
 <c:set var="insuranceRate" value="${insurancePolicy.insurance.currentRate.rate}"/>
 <c:set var="patientRate" value="${100-insurancePolicy.insurance.currentRate.rate}"/>
+<c:set var="flatRate" value="${empty insurancePolicy.insurance.currentRate.flatFee ? 0 : insurancePolicy.insurance.currentRate.flatFee}"/>
 
 <b class="boxHeader">Summary</b>
 <div class="box">
@@ -93,6 +126,16 @@
 			<td>Card No</td><td> :<b>${insurancePolicy.insuranceCardNo }</b></td>
 			<td>Primary Care ID</td><td> :<b>${Patient_ID}</b></td>
 		</tr>
+		<c:if test="${not empty transferETransferId or not empty transferValidFrom or not empty transferringFacility}">
+			<tr>
+				<td>E-Transfer ID:</td>
+				<td><b>${transferETransferId}</b></td>
+				<td>Transfer Valid From</td>
+				<td> : <b><fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${transferValidFrom}" /></b></td>
+				<td>Transferring facility</td>
+				<td> : <b>${transferringFacility}</b></td>
+			</tr>
+		</c:if>
 
 		<tr>
 			<td>Admission Mode :</td>
@@ -132,6 +175,15 @@
 
 	</c:if>
 </openmrs:hasPrivilege>
+<c:if test="${showRhipVoucherButton}">
+	<div style="float: left; margin-left: 10px;">
+		<button id="btnSendVoucher">Send RHIP Voucher</button>
+	</div>
+	<form action="viewGlobalBill.form" method="post" id="sendVoucherForm" style="display: none;">
+		<input type="hidden" name="globalBillId" value="${globalBill.globalBillId}" />
+		<input type="hidden" name="send_voucher" value="true" />
+	</form>
+</c:if>
 <!-- <div id="revert_discharge_error">
 	<form action="viewGlobalBill.form?globalBillId=${globalBill.globalBillId}&edit_global_bill=true&revert_global_bill=${revert_global_bill}" method="post" id="revertGB">
 		<table>
@@ -209,6 +261,8 @@
 			<th>100%</th>
 			<th><b>Insurance rate: ${insuranceRate}</b>%</th>
 			<th><b>Patient rate: ${patientRate}</b> %</th>
+			<th>RHIP Status</th>
+			<th>Status</th>
 		</tr>
 		<c:set var="total100" value="0"/>
 		<c:set var="totalInsurance" value="0"/>
@@ -219,6 +273,8 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b>${sr.service }</b></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
@@ -242,6 +298,18 @@
 						<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${itemCost}" type="number" pattern="#.##"/></td>
 						<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${(itemCost*insuranceRate)/100 }" type="number" pattern="#.##"/></td>
 						<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${(itemCost*patientRate)/100 }" type="number" pattern="#.##"/></td>
+						<td class="rowValue ${(status.count%2!=0)?'even':''}">
+							<c:set var="rhipItemRecord" value="${rhipVoucherItemRecordsByItemId[item.patientServiceBillId]}" />
+							<c:if test="${not empty rhipItemRecord}">
+								<b>${rhipItemRecord.status}</b>
+								<c:if test="${not empty rhipItemRecord.rejectionReason}">
+									<br/>${rhipItemRecord.rejectionReason}
+								</c:if>
+							</c:if>
+						</td>
+						<td class="rowValue ${(status.count%2!=0)?'even':''}">
+							${billItemStatusesByItemId[item.patientServiceBillId]}
+						</td>
 					</tr>
 					<!-- total by service category -->
 					<c:set var="totalByCategory100" value="${totalByCategory100+itemCost}"/>
@@ -263,6 +331,8 @@
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategory100}" type="number" pattern="#.##"/></b></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategoryInsurance}" type="number" pattern="#.##"/></b></td>
 					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b><fmt:formatNumber value="${totalByCategoryTM}" type="number" pattern="#.##"/></b></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 				</tr>
 			</c:if>
 		</c:forEach>
@@ -274,8 +344,20 @@
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 			<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${total100}" type="number" pattern="#.##"/></b></td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${totalInsurance}" type="number" pattern="#.##"/></b></td>
-			<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${totalTM}" type="number" pattern="#.##"/></b></td>
+			<c:choose>
+				<c:when test="${flatRate gt 0}">
+					<%-- Flat fee insurance: patient pays only the flat fee; insurance covers the rest --%>
+					<c:set var="totalInsuranceWithFlatFee" value="${total100 - flatRate}"/>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${totalInsuranceWithFlatFee}" type="number" pattern="#.##"/></b></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${flatRate}" type="number" pattern="#.##"/></b></td>
+				</c:when>
+				<c:otherwise>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${totalInsurance}" type="number" pattern="#.##"/></b></td>
+					<td class="rowValue ${(status.count%2!=0)?'even':''}"><b style="color: red;"><fmt:formatNumber value="${totalTM}" type="number" pattern="#.##"/></b></td>
+				</c:otherwise>
+			</c:choose>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
+			<td class="rowValue ${(status.count%2!=0)?'even':''}"></td>
 		</tr>
 	</table>
 </div>

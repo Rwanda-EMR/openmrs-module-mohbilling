@@ -8,7 +8,10 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
+import org.openmrs.module.mohbilling.irembo.util.IremboInvoiceResult;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayInitiationResult;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -103,8 +106,8 @@ public interface BillingService {
 	 */
 	PatientBill savePatientBill(PatientBill bill) throws DAOException;
 
-//	List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
-//		String orderBy, String orderDirection) throws DAOException;
+	List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize,
+		String orderBy, String orderDirection) throws DAOException;
 
 
 	/**
@@ -479,6 +482,15 @@ public interface BillingService {
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
 
 	/**
+	 * Admissions whose admissionDate is between start and end (inclusive),
+	 * optionally filtered by a specific insurance or by insurance category
+	 * (e.g. MUTUELLE / RSSB). When {@code insuranceCategory} is set it takes
+	 * precedence over {@code insurance}.
+	 */
+	public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance,
+			String insuranceCategory);
+
+	/**
 	 * Save consommation to the DB
 	 * @param consommation consommat to be saved
 	 */
@@ -670,9 +682,8 @@ public interface BillingService {
 	 * @param billCreator
 	 * @return consommation list
 	 */
-    public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
-//	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
-//	public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department, int limit, int offSet);
+	public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
 
 	public List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate, Date endDate);
 
@@ -696,5 +707,194 @@ public interface BillingService {
 
 	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
-	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
+	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds);
+
+	int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
+			String imagingServiceIds, String procedureServiceIds);
+
+	Date getLatestInsuranceReportEtlClosingDate();
+
+	Integer getMinimumInsuranceReportSourceGlobalBillId();
+
+	Integer getMaximumInsuranceReportSourceGlobalBillId();
+
+	List<PaymentRevenue> getCashierReportFromEtl(Date startDate, Date endDate, Integer collectorId,
+			String paymentType, String reportType, List<HopService> reportColumns);
+
+	BigDecimal getCashierReportTotalPaidFromEtl(Date startDate, Date endDate, Integer collectorId,
+			String paymentType);
+
+	int refreshCashierReportEtl(Date refreshFrom);
+
+	int refreshCashierReportEtlByPaymentIdRange(Integer paymentIdFrom, Integer paymentIdTo);
+
+	Date getLatestCashierReportEtlPaymentDate();
+
+	Integer getMaximumCashierReportEtlPaymentId();
+
+	Integer getMinimumCashierReportSourcePaymentId();
+
+	Integer getMaximumCashierReportSourcePaymentId();
+
+	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+			String insuranceCategory);
+
+	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+			String insuranceCategory, String excludedInsuranceName, Integer firstResult, Integer maxResults);
+
+	int countBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId, String insuranceCategory,
+			String excludedInsuranceName);
+
+	/**
+	 * Global bills present in Bill Report ETL or Insurance Report ETL but not both,
+	 * for the given admission-date range (all insurers).
+	 */
+	List<BillInsuranceReconciliationItem> getBillInsuranceReconciliation(Date startDate, Date endDate);
+
+	int refreshBillReportEtl(Date refreshFrom);
+
+	int refreshBillReportEtlByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+			Date admissionDateFrom);
+
+	/**
+	 * Rebuilds ETL rows for a single admission and commits independently of the batch loop.
+	 */
+	int refreshBillReportEtlForAdmission(Integer admissionId);
+
+	/**
+	 * Deletes ETL rows for admissions on/after {@code refreshFrom} in its own transaction.
+	 */
+	int clearBillReportEtlFromAdmissionDate(Date refreshFrom);
+
+	int deleteBillReportEtlBeforeAdmissionDate(Date startDate);
+
+	Date getLatestBillReportEtlAdmissionDate();
+
+	Integer getMaximumBillReportEtlAdmissionId();
+
+	Integer getMinimumBillReportSourceAdmissionId(Date admissionDateFrom);
+
+	Integer getMaximumBillReportSourceAdmissionId(Date admissionDateFrom);
+
+	List<Admission> getAdmissionsByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+			Date admissionDateFrom);
+
+	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid);
+	public List<PatientBillIrembo> getUnpaidBills(Patient patient) throws DAOException;
+	public List<PatientBill> getUnpaidBillsWithInvoiceNumber() throws DAOException;
+
+	/**
+	 * Unpaid (or unconfirmed) non-voided patient bills with zero due amount
+	 * created on or before {@code createdOnOrBefore}.
+	 */
+	public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(java.util.Date createdOnOrBefore)
+			throws DAOException;
+
+	/**
+	 * Unpaid (or unconfirmed) non-voided patient bills with zero due amount
+	 * created within the optional inclusive date bounds.
+	 */
+	public List<PatientBill> getUnpaidZeroDueBillsCreatedBetween(java.util.Date createdOnOrAfter,
+			java.util.Date createdOnOrBefore) throws DAOException;
+
+	public void initIremboPay(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
+
+	IremboPayInitiationResult initIremboPayWithResult(Patient patient, PatientBill patientBill, String phoneNumber)
+			throws DAOException;
+
+	public PatientBill getInvoiceStatus(String invoiceId) throws DAOException;
+
+	/**
+	 * Process Irembo Pay callback in a single transaction: validate, update PatientBill,
+	 * create BillPayment, update PatientServiceBills and create PaidServiceBills.
+	 * Rolls back on any exception.
+	 */
+	void processIrembopayCallback(String invoiceNumber, Boolean success, java.math.BigDecimal callbackAmount,
+		String paymentReference, String paidAtStr, String paymentStatus);
+	void processIrembopayBatchCallback(String batchNumber, java.util.List<String> childInvoices, Boolean success,
+		String paymentReference, String paidAtStr, String paymentStatus);
+
+	public PatientBill getPatientBillByInvoiceNumber(String invoiceId) throws DAOException;
+
+	public List<PatientServiceBill> getPatientServiceBillByConsomation(Integer consommationId) throws DAOException;
+
+	public PatientBill getPatientBillStatus(String invoiceId) throws DAOException;
+
+	public List<Consommation> getConsommationsOld(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+
+	public String createIremboInvoice(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
+
+	IremboInvoiceResult ensureIremboInvoice(Patient patient, PatientBill patientBill, String phoneNumber) throws DAOException;
+
+	public void initIremboPayBatch(Patient patient,List<String> invoices, String phoneNumber) throws DAOException;
+
+	/**
+	 * Batch initiation with rollback on batch creation failure (clears newly created invoice mappings).
+	 * Payment initiation failure notifies the caller but keeps batch_number mapped for retry.
+	 */
+	IremboPayInitiationResult initIremboPayBatchWithResult(Patient patient, List<String> invoices, String phoneNumber,
+			List<Integer> newlyInvoicedBillIds) throws DAOException;
+
+	IremboPayInitiationResult initIremboPayBatchForBillIds(List<Integer> billIds, String phoneNumber)
+			throws DAOException;
+
+	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog log);
+	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);
+	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult, Integer maxResults);
+	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria);
+
+	/**
+	 * Creates an ambulance consommation bill for the given insurance policy.
+	 * Kilometers are billed as quantity against the insurance billable service that matches
+	 * global property {@code mohbilling.ambulance.facilityServicePriceName}
+	 * (default: {@code Ambulance per 1km-RHIC-ADMN-002}).
+	 * The resulting consommation is attached to the patient's open GlobalBill and uses the
+	 * department from {@code mohbilling.ambulance.departmentId}.
+	 *
+	 * @param insurancePolicyNumber insurance card / policy number
+	 * @param kilometers number of kilometers (must be &gt; 0); used as bill item quantity
+	 * @param description free-text description stored on the bill item
+	 * @return the saved Consommation including PatientBill / InsuranceBill / ThirdPartyBill
+	 */
+	Consommation createAmbulanceBill(String insurancePolicyNumber, int kilometers, String description);
+
+	/**
+	 * Soft-deletes (voids) an ambulance consommation created by {@link #createAmbulanceBill}.
+	 * Refuses deletion when the bill is already paid, has payment records, or has an active
+	 * Irembo invoice. Recalculates related bill amounts and the parent GlobalBill total.
+	 *
+	 * @param consommationId id of the ambulance consommation to void
+	 * @param voidReason reason stored on voided records (defaults when blank)
+	 * @return the voided consommation
+	 */
+	Consommation deleteAmbulanceBill(Integer consommationId, String voidReason);
+
+	/**
+	 * Updates an unpaid ambulance consommation created by {@link #createAmbulanceBill}.
+	 * Can change kilometers (quantity) and/or description. Recalculates patient/insurance/
+	 * third-party amounts and the parent GlobalBill total.
+	 *
+	 * @param consommationId id of the ambulance consommation to update
+	 * @param kilometers new distance in kilometers (quantity); must be &gt; 0
+	 * @param description new free-text description for the bill line
+	 * @return the updated consommation
+	 */
+	Consommation updateAmbulanceBill(Integer consommationId, int kilometers, String description);
+
+	public RhipVoucherItemRecord saveRhipVoucherItemRecord(RhipVoucherItemRecord record);
+	public List<RhipVoucherItemRecord> getRhipVoucherItemRecordsByGlobalBill(GlobalBill globalBill);
+	public RhipVoucherItemRecord getLatestRhipVoucherItemRecord(PatientServiceBill patientServiceBill);
+	public RhipVoucherSubmission saveRhipVoucherSubmission(RhipVoucherSubmission submission);
+	public List<RhipVoucherSubmission> getRhipVoucherSubmissionsByGlobalBill(GlobalBill globalBill);
+	public RhipVoucherSubmission getLatestRhipVoucherSubmission(GlobalBill globalBill);
+	public RhipVoucherSubmission getSuccessfulRhipVoucherSubmission(GlobalBill globalBill);
+	public List<GlobalBill> getRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria,
+			Integer firstResult, Integer maxResults);
+	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria);
+
+	public Proforma saveProforma(Proforma proforma);
+	public Proforma getProforma(Integer proformaId);
+	public Proforma getProformaByUuid(String uuid);
+	public List<Proforma> getProformas(Patient patient, Insurance insurance, Date startDate, Date endDate,
+			String status, String identifier, Integer maxResults);
 }

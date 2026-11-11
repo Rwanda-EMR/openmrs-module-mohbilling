@@ -45,46 +45,77 @@
 
 
 <script type="text/javascript">
-$j(document).ready(function(){
-	//first the balance is hidden until deposit checkbox is checked
-	$j('.depositPayment').hide();
-	//$j('.cashPayment').hide();
-	$j('#depositCheckbox').attr('checked', false);
-	$j('#depositCheckbox').click(function() {
-		  if ($j(this).is(":checked")) {
-                $j(".depositPayment").show();
-                $j('.cashPayment').hide();
-                $j('#cashCheckbox').attr('checked', false);
-            }
-		  else{
-			  $j(".depositPayment").hide();
-			  $j('#cashCheckbox').attr('checked', false);
-			  }
-	});
+	$j(document).ready(function(){
+	    //first the balance is hidden until deposit checkbox is checked
+	    $j('.depositPayment').hide();
+	    $j('.iremboPayment').hide();
+	    //$j('.cashPayment').hide();
+	    $j('#depositCheckbox').attr('checked', false);
+	    $j('#depositCheckbox').click(function() {
+			  if ($j(this).is(":checked")) {
+	                $j(".depositPayment").show();
+	                $j('.cashPayment').hide();
+	                $j('.iremboPayment').hide();
+	                $j('#cashCheckbox').attr('checked', false);
+	                $j('#iremboCheckbox').attr('checked', false);
+	            }
+			  else{
+				  $j(".depositPayment").hide();
+				  $j('#cashCheckbox').attr('checked', false);
+				  $j('#iremboCheckbox').attr('checked', false);
+				  }
+			  updateSubmitAvailability();
+		});
 
-	$j('#cashCheckbox').click(function() {
-		if ($j(this).is(":checked")) {
-            $j(".cashPayment").show();
-            $j('.depositPayment').hide();
-            $j('#depositCheckbox').attr('checked', false);
-        }
-		else{
-			$j(".cashPayment").hide();
-			 $j('#depositCheckbox').attr('checked', false);
+		$j('#cashCheckbox').click(function() {
+			if ($j(this).is(":checked")) {
+	            $j(".cashPayment").show();
+	            $j('.depositPayment').hide();
+	            $j('.iremboPayment').hide();
+	            $j('#depositCheckbox').attr('checked', false);
+	            $j('#iremboCheckbox').attr('checked', false);
+	        }
+			else{
+				$j(".cashPayment").hide();
+				 $j('#depositCheckbox').attr('checked', false);
+				 $j('#iremboCheckbox').attr('checked', false);
+				}
+			updateSubmitAvailability();
+			});
+
+		$j('#iremboCheckbox').click(function() {
+			if ($j(this).is(":checked")) {
+				$j(".iremboPayment").show();
+				$j(".cashPayment").hide();
+				$j(".depositPayment").hide();
+				$j('#cashCheckbox').attr('checked', false);
+				$j('#depositCheckbox').attr('checked', false);
 			}
+			else{
+				$j(".iremboPayment").hide();
+			}
+			updateSubmitAvailability();
 		});
 
-	// this funciton : disable submit button until at least one item is selected
-	 $j('.submitBtn').attr('disabled', true);
-		$j('.items').change(function () {
-		    var a = $j('.items').filter(":checked").length;
-		    var balance=$j('#balance');
-		    var deductedAmount=$j('#deductedAmount');
-		    if (a == 0 || (deductedAmount>balance))
-		        $j('.submitBtn').attr('disabled', true);
-		    else
-		    	 $j('.submitBtn').attr('disabled', false);
+		$j('#iremboPhoneNumber').keyup(function() {
+			updateSubmitAvailability();
 		});
+
+		function updateSubmitAvailability() {
+			if ($j('#iremboCheckbox').is(":checked")) {
+				var phoneNumber = $j.trim($j('#iremboPhoneNumber').val());
+				$j('.submitBtn').attr('disabled', phoneNumber.length == 0);
+				return;
+			}
+			var selectedItems = $j('.items').filter(":checked").length;
+			$j('.submitBtn').attr('disabled', selectedItems == 0);
+		}
+
+		// this funciton : disable submit button until at least one item is selected
+		 $j('.submitBtn').attr('disabled', true);
+			$j('.items').change(function () {
+			    updateSubmitAvailability();
+			});
 
 		$j('#selectAll').click(function() {
         		  if ($j(this).is(":checked")) {
@@ -105,7 +136,7 @@ $j(document).ready(function(){
                                         	var cost=paidQty*up;
                                         	if(!isNaN(cost))
                                             total += parseFloat(cost*patientRate);
-                                        });
+	        });
                                         $j('#tot').text("Your Payable  Is: " + total.toFixed(2));
                     }
         		  else{
@@ -429,9 +460,9 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 				</table>
 				</td>
 			</tr>
-			<tr>
-			  <td><b>Pay with cash</b></td>
-			  <td><input type="checkbox" id="cashCheckbox" name="cashPayment" value="cashPayment" checked="checked" > </td>
+				<tr>
+				  <td><b>Pay with cash</b></td>
+				  <td><input type="checkbox" id="cashCheckbox" name="cashPayment" value="cashPayment" checked="checked" > </td>
 			  <td class="cashPayment">
 			  <table><tr>
 			  <td><b>Received Cash</b>
@@ -451,10 +482,27 @@ Policy Number: <input type="text" name="newCardNumber" size="11"/>
 			  </td>
 			  </tr>
 			  </table>
-			  </td>
-			</tr>
-			</openmrs:hasPrivilege>
-			<tr>
+				  </td>
+				</tr>
+				<c:if test="${iremboPayEnabled}">
+				<tr>
+				  <td><b>Pay with Irembo Pay</b></td>
+				  <td><input type="checkbox" id="iremboCheckbox" name="iremboPayment" value="iremboPayment"> </td>
+				  <td class="iremboPayment">
+				  <table><tr>
+				  <td><b>Phone Number</b>
+				  <input type="text" autocomplete="off" id="iremboPhoneNumber" name="iremboPhoneNumber" size="13" value="${iremboPhoneNumber}" />
+				  </td>
+				  <c:if test="${not empty consommation.patientBill.invoiceNumber}">
+				  <td><b>Invoice</b> ${consommation.patientBill.invoiceNumber}</td>
+				  </c:if>
+				  </tr>
+				  </table>
+				  </td>
+				</tr>
+				</c:if>
+				</openmrs:hasPrivilege>
+				<tr>
 				<td colspan="7"><hr/></td>
 			</tr>
 			<tr style="font-size: 1.2em">

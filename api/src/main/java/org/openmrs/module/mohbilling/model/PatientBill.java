@@ -35,6 +35,16 @@ public class PatientBill {
 	private User paymentConfirmedBy;
 	private Date paymentConfirmedDate;
 
+	private String invoiceNumber;
+	private Date paidAt;
+	private String paymentReference;
+	private String batchNumber;
+	private String paymentLinkUrl;
+	private Integer retryCount;
+	private Date initiatedAt;
+	/** User who initiated the Irembo Pay payment process (nullable). */
+	private User initiatedBy;
+
 	/**
 	 * @return the patientBillId
 	 */
@@ -347,5 +357,77 @@ public class PatientBill {
 
 	public void setPaymentConfirmedDate(Date paymentConfirmedDate) {
 		this.paymentConfirmedDate = paymentConfirmedDate;
+	}
+
+    public boolean isPaid() {
+        return isPaid;
+    }
+
+    public void setPaid(boolean paid) {
+        isPaid = paid;
+    }
+
+    public String getInvoiceNumber() {
+        return invoiceNumber;
+    }
+
+    public void setInvoiceNumber(String invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
+
+    public Date getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(Date paidAt) {
+        this.paidAt = paidAt;
+    }
+
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
+    }
+
+	public String getBatchNumber() {
+		return batchNumber;
+	}
+
+	public void setBatchNumber(String batchNumber) {
+		this.batchNumber = batchNumber;
+	}
+
+	public String getPaymentLinkUrl() {
+		return paymentLinkUrl;
+	}
+
+	public void setPaymentLinkUrl(String paymentLinkUrl) {
+		this.paymentLinkUrl = paymentLinkUrl;
+	}
+
+	public Integer getRetryCount() {
+		return retryCount;
+	}
+
+	public void setRetryCount(Integer retryCount) {
+		this.retryCount = retryCount;
+	}
+
+	public Date getInitiatedAt() {
+		return initiatedAt;
+	}
+
+	public void setInitiatedAt(Date initiatedAt) {
+		this.initiatedAt = initiatedAt;
+	}
+
+	public User getInitiatedBy() {
+		return initiatedBy;
+	}
+
+	public void setInitiatedBy(User initiatedBy) {
+		this.initiatedBy = initiatedBy;
 	}
 }

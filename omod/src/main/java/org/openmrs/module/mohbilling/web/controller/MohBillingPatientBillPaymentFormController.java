@@ -2,9 +2,12 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
+import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceBillUtil;
@@ -12,6 +15,8 @@ import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientAccountUtil;
 import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.BillableService;
+import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.DepositPayment;
@@ -25,6 +30,9 @@ import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.model.Transaction;
+import org.openmrs.module.mohbilling.GlobalPropertyConfig;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayInitiationResult;
+import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +47,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -108,6 +117,8 @@ public class MohBillingPatientBillPaymentFormController extends
 			mav.addObject("todayDate", today);
 			mav.addObject("authUser", Context.getAuthenticatedUser());
 			mav.addObject("patientAccount", PatientAccountUtil.getPatientAccountByPatient(consommation.getBeneficiary().getPatient()));
+			mav.addObject("iremboPayEnabled", isIremboPayEnabled());
+			mav.addObject("iremboPhoneNumber", resolveIremboPhoneNumber(consommation));
 
 		} catch (Exception e) {
 			log.error(">>>>MOH>>BILLING>> " + e.getMessage());
@@ -148,6 +159,10 @@ public class MohBillingPatientBillPaymentFormController extends
 				cpyPay.setCreatedDate(billPayment.getCreatedDate());
 				cpyPay.setCreator(billPayment.getCreator());
 				cpyPay.setAmountPaid(newAmount);
+				if (billPayment.getPatientBill() != null) {
+					cpyPay.setInvoiceNumber(billPayment.getPatientBill().getInvoiceNumber());
+					cpyPay.setPaymentReference(billPayment.getPaymentReference());
+				}
 				Context.getService(BillingService.class).saveBillPayment(cpyPay);
 
 
@@ -183,6 +198,7 @@ public class MohBillingPatientBillPaymentFormController extends
 
 			else{
 				billPayment=new BillPayment();
+				billPayment.setInvoiceNumber(pb.getInvoiceNumber());
 				billPayment.setCollector(Context.getAuthenticatedUser());
 	/*			billPayment.setDateReceived(Context.getDateFormat().parse(
 						request.getParameter("dateBillReceived")));*/
@@ -194,10 +210,61 @@ public class MohBillingPatientBillPaymentFormController extends
 				billPayment.setCreator(Context.getAuthenticatedUser());
 				//bp = PatientBillUtil.createBillPayment(bp);
 
-				//mark as paid all  selected items for payment purpose
+					//mark as paid all  selected items for payment purpose
 
-				if(request.getParameter("cashPayment")!=null){
-					billPayment.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
+					if(request.getParameter("iremboPayment")!=null){
+						if (!isIremboPayEnabled()) {
+							IremboPayLogUtil.logFailure(log, "UI_INIT",
+									"Irembo Pay is not enabled, patientBillId=" + pb.getPatientBillId());
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+									"Irembo Pay is not enabled.");
+							return null;
+						}
+						if (Boolean.TRUE.equals(pb.getIsPaid()) || pb.isPaymentConfirmed()) {
+							IremboPayLogUtil.logFailure(log, "UI_INIT",
+									"bill already paid, patientBillId=" + pb.getPatientBillId());
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+									"This bill is already paid.");
+							return null;
+						}
+						if (pb.getInvoiceNumber() != null && !pb.getInvoiceNumber().trim().isEmpty()
+								&& (pb.getTransactionStatus() == null || !"EXPIRED".equalsIgnoreCase(pb.getTransactionStatus()))) {
+							IremboPayLogUtil.logFailure(log, "UI_INIT",
+									"invoice already exists, patientBillId=" + pb.getPatientBillId()
+											+ ", invoiceNumber=" + pb.getInvoiceNumber());
+							request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+									"Irembo Pay invoice already exists: " + pb.getInvoiceNumber());
+							return null;
+						}
+						String phoneNumber = request.getParameter("iremboPhoneNumber");
+						if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+							IremboPayLogUtil.logFailure(log, "UI_INIT",
+									"phone number required, patientBillId=" + pb.getPatientBillId());
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+									"Phone number is required for Irembo Pay.");
+							return null;
+						}
+						IremboPayInitiationResult initiationResult = Context.getService(BillingService.class)
+								.initIremboPayWithResult(consommation.getBeneficiary().getPatient(), pb,
+										phoneNumber.trim());
+						if (!initiationResult.isSuccess()) {
+							IremboPayLogUtil.logFailure(log,
+									initiationResult.getFailedStep() != null
+											? initiationResult.getFailedStep().name() : "UI_INIT",
+									"Irembo Pay initiation failed for patientBillId=" + pb.getPatientBillId()
+											+ ", message=" + initiationResult.getUserFacingMessage());
+							request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+									initiationResult.getUserFacingMessage());
+							return null;
+						}
+						request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+								"Irembo Pay request has been sent to patient on phone number " + phoneNumber.trim()
+										+ " !");
+						return null;
+					}
+
+					if(request.getParameter("cashPayment")!=null){
+						billPayment.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
 							.getParameter("receivedCash"))));
 					//create cashPayment
 					CashPayment cp =new CashPayment(billPayment);
@@ -212,6 +279,7 @@ public class MohBillingPatientBillPaymentFormController extends
 
 
 					if (pb.getAmountPaid().doubleValue() == pb.getAmount().doubleValue()){
+						pb.setIsPaid(true);
 						pb.setPaymentConfirmed(true);
 						pb.setPaymentConfirmedDate(new Date());
 						pb.setPaymentConfirmedBy(Context.getAuthenticatedUser());
@@ -251,6 +319,7 @@ public class MohBillingPatientBillPaymentFormController extends
 						System.out.println("From patient billlllllllllll2:"+consommation.getPatientBill().getAmount());
 
 						if (consommation.getPatientBill().getAmountPaid().doubleValue()==consommation.getPatientBill().getAmount().doubleValue()){
+							pb.setIsPaid(true);
 							pb.setPaymentConfirmed(true);
 							pb.setPaymentConfirmedDate(new Date());
 							pb.setPaymentConfirmedBy(Context.getAuthenticatedUser());
@@ -324,72 +393,151 @@ public class MohBillingPatientBillPaymentFormController extends
 		payment.setCreatedDate(new Date());
 	}
 
+	private boolean isIremboPayEnabled() {
+		String enabled = Context.getAdministrationService()
+				.getGlobalProperty("mohbilling.irembopay_enabled", "false");
+		return "true".equalsIgnoreCase(enabled);
+	}
+
+	private String resolveIremboPhoneNumber(Consommation consommation) {
+		if (!GlobalPropertyConfig.isIremboAutoPhoneNumberEnabled()) {
+			return "";
+		}
+		if (consommation == null || consommation.getPatientBill() == null) {
+			return "";
+		}
+		PatientBill patientBill = consommation.getPatientBill();
+		if (patientBill.getPhoneNumber() != null && !patientBill.getPhoneNumber().trim().isEmpty()) {
+			return patientBill.getPhoneNumber().trim();
+		}
+		try {
+			String phoneAttributeType = Context.getAdministrationService()
+					.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_PHONENUMBER_PERSONAL_ATTRIBUTE);
+			if (phoneAttributeType == null || phoneAttributeType.trim().isEmpty()
+					|| consommation.getBeneficiary() == null
+					|| consommation.getBeneficiary().getPatient() == null
+					|| consommation.getBeneficiary().getPatient().getPerson() == null) {
+				return "";
+			}
+			PersonAttributeType attrType = Context.getPersonService()
+					.getPersonAttributeType(Integer.valueOf(phoneAttributeType.trim()));
+			if (attrType == null) {
+				return "";
+			}
+			PersonAttribute attr = consommation.getBeneficiary().getPatient().getPerson().getAttribute(attrType);
+			return attr == null || attr.getValue() == null ? "" : attr.getValue().trim();
+		} catch (Exception e) {
+			IremboPayLogUtil.logFailure(log, "UI_INIT", "unable to resolve Irembo Pay phone number", e);
+			return "";
+		}
+	}
+
 
 	private BillPayment handlebillTransfer(HttpServletRequest request) {
 		Consommation consommation = ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
-		PatientBill currentPb =consommation.getPatientBill();
-		InsuranceBill currentIb=consommation.getInsuranceBill();
-		Set<PatientServiceBill> servicesBill=consommation.getBillItems();
+		PatientBill oldPatientBill = consommation.getPatientBill();
+		InsuranceBill oldInsuranceBill = consommation.getInsuranceBill();
+		Set<PatientServiceBill> servicesBill = consommation.getBillItems();
+		String newCardNumber = request.getParameter("newCardNumber");
+		Beneficiary newBeneficiary = InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(newCardNumber);
 
-		BigDecimal totalAmount = new BigDecimal(0);
-		BigDecimal totalMaximaTopay=new BigDecimal(0);
+		if (newBeneficiary != null && newBeneficiary.getInsurancePolicy() != null) {
+			InsurancePolicy newInsurancePolicy = newBeneficiary.getInsurancePolicy();
+			BillingService billingService = Context.getService(BillingService.class);
+			GlobalBill gb = billingService.getOpenGlobalBillByInsuranceCardNo(newInsurancePolicy.getInsuranceCardNo());
 
-		for (PatientServiceBill  serviceBill : servicesBill) {
-
-			/*BigDecimal qty = serviceBill.getQuantity();
-			PatientServiceBill cpyPsb = new PatientServiceBill();
-			cpyPsb.setUnitPrice(psb.getUnitPrice());
-			qty = psb.getQuantity();
-			cpyPsb.setQuantity(qty);
-			cpyPsb.setCreator(Context.getAuthenticatedUser());
-			cpyPsb.setCreatedDate(new Date());
-			cpyPsb.setConsommation(cpyConsom);
-			cpyPsb.setServiceDate(psb.getServiceDate());*/
-
-			totalAmount = totalAmount.add(serviceBill.getQuantity().multiply(serviceBill.getUnitPrice()));
-			totalMaximaTopay=totalMaximaTopay.add(serviceBill.getService().getMaximaToPay());
-			//cpyConsom.addBillItem(cpyPsb);
-		}
-		InsurancePolicy newInsurancePolicy=InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")).getInsurancePolicy();
-
-		if (newInsurancePolicy!=null) {
-			PatientBill pb = PatientBillUtil.createPatientBill(totalAmount, newInsurancePolicy);
-			InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(newInsurancePolicy.getInsurance(), totalAmount);
-
-			//ThirdPartyBill thirdPartyBill =	ThirdPartyBillUtil.createThirdPartyBill(existingConsom.getBeneficiary().getInsurancePolicy(), totalAmount);
-
-			GlobalBill gb = Context.getService(BillingService.class).getOpenGlobalBillByInsuranceCardNo(newInsurancePolicy.getInsuranceCardNo());
 			if (gb != null) {
+				Map<PatientServiceBill, BillableService> transferredServices = new HashMap<PatientServiceBill, BillableService>();
+				BigDecimal oldTotalAmount = BigDecimal.ZERO;
+				BigDecimal newTotalAmount = BigDecimal.ZERO;
 
+				// Resolve every target price before changing or saving any part of the bill.
+				for (PatientServiceBill serviceBill : servicesBill) {
+					if (Boolean.TRUE.equals(serviceBill.getVoided())) {
+						continue;
+					}
+					BillableService transferredService = billingService.getBillableServiceByConcept(
+							serviceBill.getService().getFacilityServicePrice(), newInsurancePolicy.getInsurance());
+					if (transferredService == null || transferredService.getMaximaToPay() == null) {
+						String serviceName = serviceBill.getService().getFacilityServicePrice().getName();
+						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+								"Bill transfer failed: no Unit Price is configured for " + serviceName
+										+ " under " + newInsurancePolicy.getInsurance().getName() + ".");
+						return null;
+					}
 
-				BigDecimal globalAmount = gb.getGlobalAmount().add(totalMaximaTopay);
-				gb.setGlobalAmount(globalAmount);
-				gb = GlobalBillUtil.saveGlobalBill(gb);
+					BigDecimal quantity = serviceBill.getQuantity();
+					oldTotalAmount = oldTotalAmount.add(quantity.multiply(serviceBill.getUnitPrice()));
+					newTotalAmount = newTotalAmount.add(quantity.multiply(transferredService.getMaximaToPay()));
+					transferredServices.put(serviceBill, transferredService);
+				}
+
+				PatientBill pb = PatientBillUtil.createPatientBill(newTotalAmount, newInsurancePolicy);
+				InsuranceBill ib = InsuranceBillUtil.createInsuranceBill(newInsurancePolicy.getInsurance(), newTotalAmount);
 
 				GlobalBill oldGb = consommation.getGlobalBill();
-				BigDecimal oldGlobalAmount = oldGb.getGlobalAmount().subtract(totalMaximaTopay);
-				oldGb = GlobalBillUtil.saveGlobalBill(oldGb);
+				for (Map.Entry<PatientServiceBill, BillableService> entry : transferredServices.entrySet()) {
+					PatientServiceBill serviceBill = entry.getKey();
+					BillableService transferredService = entry.getValue();
+					serviceBill.setService(transferredService);
+					serviceBill.setUnitPrice(transferredService.getMaximaToPay());
+				}
 
-
-				consommation.setBeneficiary(InsurancePolicyUtil.getBeneficiaryByPolicyIdNo(request.getParameter("newCardNumber")));
+				consommation.setBeneficiary(newBeneficiary);
 				consommation.setGlobalBill(gb);
 				consommation.setPatientBill(pb);
 				consommation.setInsuranceBill(ib);
-				//consommation.setThirdPartyBill(thirdPartyBill);
 
-				Consommation saveConsommation = ConsommationUtil.saveConsommation(consommation);
+				ConsommationUtil.saveConsommation(consommation);
+				voidTransferredBills(oldPatientBill, oldInsuranceBill, newCardNumber);
+
+				if (oldGb.getGlobalBillId().equals(gb.getGlobalBillId())) {
+					gb.setGlobalAmount(gb.getGlobalAmount().subtract(oldTotalAmount).add(newTotalAmount));
+					GlobalBillUtil.saveGlobalBill(gb);
+				} else {
+					gb.setGlobalAmount(gb.getGlobalAmount().add(newTotalAmount));
+					GlobalBillUtil.saveGlobalBill(gb);
+					oldGb.setGlobalAmount(oldGb.getGlobalAmount().subtract(oldTotalAmount));
+					GlobalBillUtil.saveGlobalBill(oldGb);
+				}
+
+				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+						"Bill transfer has been saved with the Unit Prices for "
+								+ newInsurancePolicy.getInsurance().getName() + ".");
 			} else {
 				// alert on no Admission opened
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-						"No admission opened by using "+request.getParameter("newCardNumber"));
+						"No admission opened by using " + newCardNumber);
 			}
-		}else{
+		} else {
 			// alert on ipCardNumber invalid
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-					request.getParameter("newCardNumber")+" is invalid, Please it check again");
+					newCardNumber + " is invalid, Please check it again");
 		}
-		BillPayment payment = null;
-		return payment;
+		return null;
+	}
+
+	private void voidTransferredBills(PatientBill patientBill, InsuranceBill insuranceBill,
+			String newCardNumber) {
+		User voidedBy = Context.getAuthenticatedUser();
+		Date voidedDate = new Date();
+		String voidReason = "Bill transferred to policy number " + newCardNumber;
+
+		if (patientBill != null) {
+			patientBill.setVoided(true);
+			patientBill.setVoidedBy(voidedBy);
+			patientBill.setVoidedDate(voidedDate);
+			patientBill.setVoidReason(voidReason);
+			PatientBillUtil.savePatientBill(patientBill);
+		}
+
+		if (insuranceBill != null) {
+			insuranceBill.setVoided(true);
+			insuranceBill.setVoidedBy(voidedBy);
+			insuranceBill.setVoidedDate(voidedDate);
+			insuranceBill.setVoidReason(voidReason);
+			InsuranceBillUtil.saveInsuranceBill(insuranceBill);
+		}
 	}
 
 	//=====================================================

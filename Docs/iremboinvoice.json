@@ -1,0 +1,31 @@
+{
+  "message": "Invoice created successfully",
+  "success": true,
+  "data": {
+    "amount": 100,
+    "invoiceNumber": "880419623157",
+    "transactionId": "TST-1005",
+    "createdAt": "2023-04-19T11:58:02.895+02",
+    "updatedAt": "2023-04-19T11:58:02.895+02",
+    "expiryAt": "2024-09-30T01:00:00.000+02",
+    "paymentAccountIdentifier": "RCA-RWF",
+    "paymentItems": [
+      {
+        "unitAmount": 2000,
+        "quantity": 1,
+        "code": "PI-3e5fe23f2d"
+      }
+    ],
+    "description": "Invoice description",
+    "type": "SINGLE",
+    "paymentStatus": "NEW",
+    "currency": "RWF",
+    "customer": {
+      "email": "example@gmail.com",
+      "phoneNumber": "0780000001",
+      "name": "Jixle Manzi"
+    },
+    "language": "EN",
+    "paymentLinkUrl": "<checkoutUrl>/880419623157"
+  }
+}

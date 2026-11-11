@@ -23,6 +23,8 @@
     <property name="closingReason" column="closed_reason" type="text"/>
 
 		<property name="editingReason" column="edit_reason" type="text"/>
+		<property name="rhipVoucherCode" column="rhip_voucher_code" type="text"/>
+		<property name="rhipVoucherReferenceNumber" column="rhip_voucher_reference_number" type="text"/>
 		   
         <many-to-one name="admission" class="org.openmrs.module.mohbilling.model.Admission"
             column="admission_id" unique="true" not-null="true"        cascade="all" />

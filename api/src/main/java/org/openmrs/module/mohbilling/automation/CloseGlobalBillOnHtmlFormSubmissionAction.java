@@ -6,6 +6,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.htmlformentry.CustomFormSubmissionAction;
 import org.openmrs.module.htmlformentry.FormEntrySession;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -55,6 +56,7 @@ if(currentInsurance.size()>=1)
         openGb.setClosed(true);
         openGb.setClosedBy(Context.getAuthenticatedUser());
         openGb = GlobalBillUtil.saveGlobalBill(openGb);
+        submitMmiRhipVoucher(openGb);
 
         List<InsurancePolicy> insurancePolicies = Context.getService(BillingService.class).getAllInsurancePoliciesByPatient(session.getPatient());
         for (InsurancePolicy insp : insurancePolicies) {
@@ -65,6 +67,7 @@ if(currentInsurance.size()>=1)
                     noneOpenedGB.setClosed(true);
                     noneOpenedGB.setClosedBy(Context.getAuthenticatedUser());
                     noneOpenedGB = GlobalBillUtil.saveGlobalBill(noneOpenedGB);
+                    submitMmiRhipVoucher(noneOpenedGB);
                     break;
                 }
             }
@@ -72,6 +75,17 @@ if(currentInsurance.size()>=1)
         List<Visit> activeVisits= Context.getVisitService().getActiveVisitsByPatient(session.getPatient());
         for (Visit v:activeVisits){
             Context.getVisitService().endVisit(v,new Date());
+        }
+    }
+
+    private void submitMmiRhipVoucher(GlobalBill globalBill) {
+        try {
+            RhipVoucherService voucherService = Context.getRegisteredComponent("rhipVoucherService", RhipVoucherService.class);
+            if (voucherService != null) {
+                voucherService.submitMmiVoucherForGlobalBillOnDischarge(globalBill);
+            }
+        }
+        catch (Exception ignored) {
         }
     }
 

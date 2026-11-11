@@ -5,10 +5,6 @@ import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.pdf.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifierType;
 import org.openmrs.User;
@@ -22,6 +18,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -30,10 +27,35 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class FileExporter {
 
     protected static final Log log = LogFactory.getLog(FileExporter.class);
+
+    /**
+     * Grand-total split for insurance vs patient.
+     * When a flat fee is configured (&gt; 0), the patient pays only that fee and insurance
+     * covers {@code total - flatFee}. Otherwise the split follows the percentage rate.
+     * Line items still use percentage; flat fee is applied only at this total level.
+     *
+     * @return [insuranceDue, patientDue]
+     */
+    private static BigDecimal[] calculateGrandTotalDues(BigDecimal totalAmount, Float insuranceRate,
+            BigDecimal flatFee) {
+        BigDecimal total = totalAmount != null ? totalAmount : BigDecimal.ZERO;
+        BigDecimal flatFeeBD = flatFee != null ? flatFee : BigDecimal.ZERO;
+        if (flatFeeBD.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal patientDue = flatFeeBD.setScale(2, RoundingMode.HALF_UP);
+            BigDecimal insuranceDue = total.subtract(patientDue).setScale(2, RoundingMode.HALF_UP);
+            return new BigDecimal[] { insuranceDue, patientDue };
+        }
+        float rate = insuranceRate != null ? insuranceRate : 0f;
+        BigDecimal insuranceDue = total.multiply(BigDecimal.valueOf(rate))
+                .divide(new BigDecimal(100), 2, RoundingMode.HALF_UP);
+        BigDecimal patientDue = total.subtract(insuranceDue).setScale(2, RoundingMode.HALF_UP);
+        return new BigDecimal[] { insuranceDue, patientDue };
+    }
     private static final String WHITESPACE = " ";
     private PatientIdentifierType patientID = Context.getPatientService()
             .getPatientIdentifierType(Integer.valueOf(Context.getAdministrationService().getGlobalProperty(
@@ -80,6 +102,8 @@ public class FileExporter {
                     + "," + asr.getConsommation().getCreator().getPersonName()
             );
             float insuranceRate = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
+            BigDecimal flatFeeBD = asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee() != null
+                    ? asr.getConsommation().getBeneficiary().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee() : BigDecimal.ZERO;
             pRate = 100 - insuranceRate;
             for (ServiceRevenue serviceRevenue : asr.getRevenues()) {
                 List<PatientServiceBill> billItems = new ArrayList<PatientServiceBill>();
@@ -103,10 +127,9 @@ public class FileExporter {
                 BigDecimal unitPrice = psb.getUnitPrice();
                 totalConsAmount = totalConsAmount.add(reqQty.multiply(unitPrice));
             }
-            BigDecimal totalASR = new BigDecimal(0);
-            BigDecimal totalPatientASR = new BigDecimal(0);
-            totalASR = totalConsAmount.multiply(BigDecimal.valueOf(insuranceRate)).divide(new BigDecimal(100));
-            totalPatientASR = totalConsAmount.multiply(BigDecimal.valueOf(pRate)).divide(new BigDecimal(100));
+            BigDecimal[] dueAmounts = calculateGrandTotalDues(totalConsAmount, insuranceRate, flatFeeBD);
+            BigDecimal totalASR = dueAmounts[0];
+            BigDecimal totalPatientASR = dueAmounts[1];
 
             dcp.print("," + ReportsUtil.roundTwoDecimals(totalConsAmount.doubleValue()));
             dcp.print("," + ReportsUtil.roundTwoDecimals(totalASR.doubleValue()));
@@ -118,8 +141,182 @@ public class FileExporter {
         dcp.flush();
         dcp.close();
     }
+	public static void exportData(HttpServletResponse response,
+	                              Insurance insurance,
+	                              List<InsuranceReportItem> reportRecords) {
 
-    public static void exportData(HttpServletResponse response,
+		if (response == null || reportRecords == null) {
+			throw new IllegalArgumentException("exportData method expects a response and report records.");
+		}
+
+		Date date = new Date();
+		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + formatter.format(date) + ".xlsx\"");
+
+		try (OutputStream outputStream = response.getOutputStream()) {
+			writeInsuranceReportWorkbook(outputStream, insurance, reportRecords,
+					Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME),
+					Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS),
+					Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+			outputStream.flush();
+		} catch (Exception | LinkageError e) {
+			log.error("Failed to write insurance report XLSX", e);
+			if (!response.isCommitted()) {
+				try {
+					response.reset();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Unable to generate the insurance report.");
+				} catch (IOException responseError) {
+					log.error("Failed to send the insurance report export error", responseError);
+				}
+			}
+		}
+	}
+
+	static void writeInsuranceReportWorkbook(OutputStream outputStream,
+	                                         Insurance insurance,
+	                                         List<InsuranceReportItem> reportRecords,
+	                                         String facilityName,
+	                                         String facilityAddress,
+	                                         String facilityEmail) throws IOException {
+		InsuranceReportXlsxWriter.write(outputStream, insurance, reportRecords, facilityName, facilityAddress,
+				facilityEmail);
+	}
+
+	public static void exportBillReportData(HttpServletResponse response, Insurance insurance,
+			BillReportFacilityHeader facilityHeader, List<BillReportItem> reportRows, Date startDate, Date endDate) {
+		if (response == null || reportRows == null) {
+			throw new IllegalArgumentException("exportBillReportData expects a response and report rows.");
+		}
+		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition",
+				"attachment; filename=\"bill_report_" + formatter.format(new Date()) + ".xlsx\"");
+		try (OutputStream outputStream = response.getOutputStream()) {
+			BillReportXlsxWriter.write(outputStream, insurance, facilityHeader, reportRows, startDate, endDate);
+			outputStream.flush();
+		} catch (Exception | LinkageError e) {
+			log.error("Failed to write bill report XLSX", e);
+			if (!response.isCommitted()) {
+				try {
+					response.reset();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Unable to generate the bill report.");
+				} catch (IOException responseError) {
+					log.error("Failed to send the bill report export error", responseError);
+				}
+			}
+		}
+	}
+
+	public static void exportBillInsuranceReconciliationData(HttpServletResponse response,
+			List<BillInsuranceReconciliationItem> rows, Date startDate, Date endDate) {
+		if (response == null || rows == null) {
+			throw new IllegalArgumentException(
+					"exportBillInsuranceReconciliationData expects a response and rows.");
+		}
+		DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition",
+				"attachment; filename=\"bill_insurance_reconciliation_" + formatter.format(new Date())
+						+ ".xlsx\"");
+		try (OutputStream outputStream = response.getOutputStream()) {
+			BillInsuranceReconciliationXlsxWriter.write(outputStream, rows, startDate, endDate);
+			outputStream.flush();
+		} catch (Exception | LinkageError e) {
+			log.error("Failed to write bill/insurance reconciliation XLSX", e);
+			if (!response.isCommitted()) {
+				try {
+					response.reset();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Unable to generate the reconciliation report.");
+				} catch (IOException responseError) {
+					log.error("Failed to send the reconciliation export error", responseError);
+				}
+			}
+		}
+	}
+
+	public static void exportCashierReportData(HttpServletResponse response,
+			List<PaymentRevenue> paymentRevenues, List<BigDecimal> subTotals, BigDecimal bigTotal,
+			BigDecimal totalPaid, String reportTitle, User cashier) {
+		if (response == null || paymentRevenues == null || paymentRevenues.isEmpty()) {
+			throw new IllegalArgumentException("Cashier report export requires a response and report data.");
+		}
+		String cashierName = cashier != null && cashier.getPersonName() != null
+				? cashier.getPersonName().toString() : "All collectors";
+		String fileName = "cashier-report-" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + ".xlsx";
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+
+		try (OutputStream outputStream = response.getOutputStream()) {
+			writeCashierReportWorkbook(outputStream, paymentRevenues, subTotals, bigTotal, totalPaid,
+					reportTitle, cashierName, Context.getAdministrationService().getGlobalProperty(
+							BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+			outputStream.flush();
+		} catch (Exception | LinkageError e) {
+			log.error("Failed to write cashier report XLSX", e);
+			if (!response.isCommitted()) {
+				try {
+					response.reset();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Unable to generate the cashier report.");
+				} catch (IOException responseError) {
+					log.error("Failed to send the cashier report export error", responseError);
+				}
+			}
+		}
+	}
+
+	static void writeCashierReportWorkbook(OutputStream outputStream,
+			List<PaymentRevenue> paymentRevenues, List<BigDecimal> subTotals, BigDecimal bigTotal,
+			BigDecimal totalPaid, String reportTitle, String cashierName, String facilityName) throws IOException {
+		CashierReportXlsxWriter.write(outputStream, paymentRevenues, subTotals, bigTotal, totalPaid,
+				reportTitle, cashierName, facilityName);
+	}
+
+	public static void exportThirdPartyReportData(HttpServletResponse response,
+			List<AllServicesRevenue> reportRows, List<String> columns, ThirdParty thirdParty, String reportTitle) {
+		if (response == null || reportRows == null || thirdParty == null) {
+			throw new IllegalArgumentException("Third party report export requires a response, rows and a third party.");
+		}
+		String fileName = "third_party_report_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + ".xlsx";
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+
+		try (OutputStream outputStream = response.getOutputStream()) {
+			writeThirdPartyReportWorkbook(outputStream, reportRows, columns, thirdParty.getRate(), reportTitle,
+					Context.getAdministrationService().getGlobalProperty(
+							BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+			outputStream.flush();
+		} catch (Exception | LinkageError e) {
+			log.error("Failed to write third party report XLSX", e);
+			if (!response.isCommitted()) {
+				try {
+					response.reset();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Unable to generate the third party report.");
+				} catch (IOException responseError) {
+					log.error("Failed to send the third party report export error", responseError);
+				}
+			}
+		}
+	}
+
+	static void writeThirdPartyReportWorkbook(OutputStream outputStream, List<AllServicesRevenue> reportRows,
+			List<String> columns, Float thirdPartyRate, String reportTitle, String facilityName) throws IOException {
+		ThirdPartyReportXlsxWriter.write(outputStream, reportRows, columns, thirdPartyRate, reportTitle,
+				facilityName);
+	}
+
+	static String formatDate(DateFormat formatter, Date value) {
+		return value != null ? formatter.format(value) : "";
+	}
+
+
+	public static void exportData(HttpServletResponse response,
                                   List<InsuranceReportItem> reportRecords, Insurance insurance) throws IOException {
 
         if (response == null || reportRecords == null) {
@@ -151,18 +348,16 @@ public class FileExporter {
         writer.println(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
         writer.println(getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
         writer.println(); // Empty line for spacing
-        writer.println(",,,,,,,,,,,SUMMARY OF VOUCHERS FOR (" + insurance.getName() + "),,,,,,,,,,,");
+        String insuranceLabel = insurance != null ? insurance.getName() : "ALL INSURANCES";
+        writer.println(",,,,,,,,,,,SUMMARY OF VOUCHERS FOR (" + insuranceLabel + "),,,,,,,,,,,");
         writer.println(); // Empty line for spacing
-
-        double patientRate = getInsurancePatientRate(insurance.getInsuranceId());
-        double insuranceRate = getInsuranceFirmRate(insurance.getInsuranceId());
 
         String[] headers = {
                 "#", "Admission Date", "Closing Date", "BENEFICIARY'S NAMES",
-                "HEAD HOUSEHOLD'S NAMES", "FAMILY'S CODE", "LEVEL", "Card NUMBER",
-                "COMPANY", "AGE", "BIRTH DATE", "GENDER", "DOCTOR", "CONSULTATION", "LABORATOIRE", "HOSPITALISATION", "FORMALITES ADMINISTRATIVES",
-                "AMBULANCE", "CONSOMMABLES", "MEDICAMENTS","IMAGING", "PROCED.",
-                "Total (100%)", "Insurance Rate (" + insuranceRate + "%)", "Patient share (" + patientRate + "%)"
+                "HEAD HOUSEHOLD'S NAMES", "FAMILY'S CODE", "LEVEL", "GB#", "Card NUMBER",
+                "COMPANY", "INSURANCE NAME", "AGE", "BIRTH DATE", "GENDER", "IDENTIFIER", "DOCTOR", "CONSULTATION", "LABORATOIRE", "HOSPITALISATION", "FORMALITES ADMINISTRATIVES",
+                "AMBULANCE", "CONSOMMABLES", "MEDICAMENTS", "OXYGENOTHERAPIE", "AUTRES","IMAGING", "PROCED.",
+                "Total (100%)", "Insurance", "Patient share"
         };
 
         writer.println(String.join(",", headers));
@@ -180,13 +375,16 @@ public class FileExporter {
                     formatter.format(reportItem.getClosingDate()),
                     quoteValue(reportItem.getBeneficiaryName()),
                     quoteValue(reportItem.getHouseholdHeadName()),
-                    wrapLongNumber(reportItem.getFamilyCode()),
+                    quoteValue(reportItem.getFamilyCode()),
                     String.valueOf(reportItem.getBeneficiaryLevel()),
-                    wrapLongNumber(reportItem.getCardNumber()),
+                    quoteValue(reportItem.getGlobalBillIdentifier()),
+                    quoteValue(reportItem.getCardNumber()),
                     quoteValue(reportItem.getCompanyName()),
+                    quoteValue(reportItem.getInsuranceName()),
                     String.valueOf(reportItem.getAge()),
-                    formatter.format(reportItem.getBirthDate()),
+                    formatDate(formatter, reportItem.getBirthDate()),
                     quoteValue(reportItem.getGender()),
+                    quoteValue(reportItem.getPatientIdentifier()),
                     quoteValue(reportItem.getDoctorName()),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getConsultation())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getLaboratoire())),
@@ -195,6 +393,8 @@ public class FileExporter {
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getAmbulance())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getConsommables())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getMedicament())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getOxygenotherapie())),
+                    String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getAutres())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getImaging())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getProced())),
                     String.valueOf(ReportsUtil.roundTwoDecimals(reportItem.getTotal100())),
@@ -225,21 +425,6 @@ public class FileExporter {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
         return value;
-    }
-
-    private static String wrapLongNumber(Object value) {
-        if (value == null) {
-            return "";
-        }
-
-        String stringValue = String.valueOf(value);
-
-        // If the value is a long number, wrap it in double quotes to prevent scientific notation
-        if (stringValue.matches("\\d{11,}")) {  // Matches numbers with 11 or more digits
-            return "=\"" + stringValue + "\"";  // Forces Excel to treat as text
-        }
-
-        return stringValue;
     }
 
 	public void printTransaction(HttpServletRequest request,	HttpServletResponse response, Transaction transaction,String filename) throws Exception{
@@ -304,7 +489,7 @@ public class FileExporter {
 		image.scaleToFit(40, 40);
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		document.add(fontSelector.process("REPUBLIQUE DU RWANDA                                                        Date:"+df.format(new Date())+"\n"));
+		document.add(fontSelector.process("REPUBLIQUE DU RWANDA\n"));
 
 		document.add(image);
 		document.add(fontSelector.process(Context.getAdministrationService().getGlobalProperty(
@@ -1008,7 +1193,7 @@ public class FileExporter {
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);*/
 
-			cell = new PdfPCell(fontselector.process("Beneficiary Names/Signature: \n\n........................."));
+			cell = new PdfPCell(fontselector.process("Beneficiary Signature: \n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 
@@ -1062,7 +1247,7 @@ public class FileExporter {
 			fontselector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
 			openFile(request, response, document);
 			displayHeader(document, fontselector);
-            displayServiceRevenues(document, gb,differentialDiagnosis,finalDiagnosis, sr, fontselector);
+            displayServiceRevenues(request, document, gb,differentialDiagnosis,finalDiagnosis, sr, fontselector);
 			document.add(new Paragraph("\n"));
 			// displayFooter(document,gb.getAdmission().getInsurancePolicy().getOwner(), fontselector);
 			User generatedBy = Context.getAuthenticatedUser();
@@ -1075,9 +1260,8 @@ public class FileExporter {
 			e.printStackTrace();
 		}
 	}
-
-    public void displayServiceRevenues(Document document, GlobalBill gb,String differentialDiagnosis,String finalDiagnosis, List<ServiceRevenue> sr, FontSelector fontSelector) throws DocumentException {
-		float[] colsWidt = {5f,20f,55f,25f,15f,25f,25f,25f,25f};
+    public void displayServiceRevenues(HttpServletRequest request, Document document, GlobalBill gb,String differentialDiagnosis,String finalDiagnosis, List<ServiceRevenue> sr, FontSelector fontSelector) throws DocumentException {
+		float[] colsWidt = {5f,20f,45f,25f,15f,25f,25f,25f,25f,25f};
 		PdfPTable table = new PdfPTable(colsWidt);
 		table.setWidthPercentage(100f);
 
@@ -1215,6 +1399,29 @@ public class FileExporter {
 		head3.setBorder(Rectangle.NO_BORDER);
 		heading2Tab.addCell(head3);
 
+		Object transferSummary = request == null ? null : request.getAttribute("transferSummary");
+		String eTransferId = stringProperty(transferSummary, "eTransferId");
+		Date transferValidFrom = dateProperty(transferSummary, "transferValidFrom");
+		String transferringFacility = stringProperty(transferSummary, "transferringFacility");
+		if (eTransferId != null || transferValidFrom != null || transferringFacility != null) {
+			head3 = new PdfPCell(fontSelector.process("E-TRANSFER ID: " + defaultString(eTransferId) + "\n"));
+			head3.setBorder(Rectangle.NO_BORDER);
+			heading2Tab.addCell(head3);
+
+			head3 = new PdfPCell(fontSelector.process("TRANSFER VALID FROM: "
+					+ (transferValidFrom == null ? "" : new SimpleDateFormat("yyyy-MM-dd HH:mm").format(transferValidFrom)) + "\n"));
+			head3.setBorder(Rectangle.NO_BORDER);
+			heading2Tab.addCell(head3);
+
+			head3 = new PdfPCell(fontSelector.process("TRANSFERRING FACILITY: " + defaultString(transferringFacility) + "\n"));
+			head3.setBorder(Rectangle.NO_BORDER);
+			heading2Tab.addCell(head3);
+
+			head3 = new PdfPCell(fontSelector.process(""));
+			head3.setBorder(Rectangle.NO_BORDER);
+			heading2Tab.addCell(head3);
+		}
+
         head3 = new PdfPCell(fontSelector.process("DIFFERENTIAL DIAGNOSIS: " +differentialDiagnosis ));
         head3.setBorder(Rectangle.NO_BORDER);
         heading2Tab.addCell(head3);
@@ -1266,6 +1473,8 @@ public class FileExporter {
 
 		Float insuranceRate = gb.getAdmission().getInsurancePolicy().getInsurance().getCurrentRate().getRate();
 		Float patientRate = 100-insuranceRate;
+		BigDecimal flatFeeBD = gb.getAdmission().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee() != null
+				? gb.getAdmission().getInsurancePolicy().getInsurance().getCurrentRate().getFlatFee() : BigDecimal.ZERO;
 
 		cell = new PdfPCell(boldFont.process(insuranceRate+"%"));
 		table.addCell(cell);
@@ -1273,7 +1482,12 @@ public class FileExporter {
 		cell = new PdfPCell(boldFont.process(patientRate+"%"));
 		table.addCell(cell);
 
+		cell = new PdfPCell(boldFont.process("Status"));
+		table.addCell(cell);
+
 		NumberFormat formatter = new DecimalFormat("#0.00");
+		Map<Integer, String> billItemStatusesByItemId = request == null ? null
+				: (Map<Integer, String>) request.getAttribute("billItemStatusesByItemId");
 
 		BigDecimal totalBill = new BigDecimal(0);
 
@@ -1286,6 +1500,8 @@ public class FileExporter {
 				cell = new PdfPCell(fontSelector.process(""));
 				table.addCell(cell);
 				cell = new PdfPCell(boldFont.process(""+r.getService()));
+				table.addCell(cell);
+				cell = new PdfPCell(fontSelector.process(""));
 				table.addCell(cell);
 				cell = new PdfPCell(fontSelector.process(""));
 				table.addCell(cell);
@@ -1324,6 +1540,10 @@ public class FileExporter {
 						table.addCell(cell);
 						cell = new PdfPCell(fontSelector.process(""+formatter.format(total.multiply(new BigDecimal(patientRate).divide(new BigDecimal(100))))));
 						table.addCell(cell);
+						String billItemStatus = billItemStatusesByItemId == null ? null
+								: billItemStatusesByItemId.get(item.getPatientServiceBillId());
+						cell = new PdfPCell(fontSelector.process(defaultString(billItemStatus)));
+						table.addCell(cell);
 
 						totalByCategory=totalByCategory.add(total);
 					}
@@ -1346,6 +1566,8 @@ public class FileExporter {
 				table.addCell(c);
 				c = new PdfPCell(boldFont.process(""+formatter.format(totalByCategory.multiply(new BigDecimal(patientRate).divide(new BigDecimal(100))))));
 				table.addCell(c);
+				c = new PdfPCell(fontSelector.process(""));
+				table.addCell(c);
 			}
 
 		}
@@ -1363,11 +1585,44 @@ public class FileExporter {
 		table.addCell(c);
 		c = new PdfPCell(boldFont.process(""+formatter.format(totalBill)));
 		table.addCell(c);
-		c = new PdfPCell(boldFont.process(""+formatter.format(totalBill.multiply(new BigDecimal(insuranceRate).divide(new BigDecimal(100))))));
+		BigDecimal[] grandDues = calculateGrandTotalDues(totalBill, insuranceRate, flatFeeBD);
+		c = new PdfPCell(boldFont.process(""+formatter.format(grandDues[0])));
 		table.addCell(c);
-		c = new PdfPCell(boldFont.process(""+formatter.format(totalBill.multiply(new BigDecimal(patientRate).divide(new BigDecimal(100))))));
+		c = new PdfPCell(boldFont.process(""+formatter.format(grandDues[1])));
+		table.addCell(c);
+		c = new PdfPCell(fontSelector.process(""));
 		table.addCell(c);
 		document.add(table);
+	}
+
+	private String stringProperty(Object bean, String propertyName) {
+		Object value = property(bean, propertyName);
+		return value == null ? null : value.toString();
+	}
+
+	private Date dateProperty(Object bean, String propertyName) {
+		Object value = property(bean, propertyName);
+		return value instanceof Date ? (Date) value : null;
+	}
+
+	private Object property(Object bean, String propertyName) {
+		if (bean == null || propertyName == null) {
+			return null;
+		}
+		if (bean instanceof Map) {
+			return ((Map<?, ?>) bean).get(propertyName);
+		}
+		try {
+			String getter = "get" + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+			return bean.getClass().getMethod(getter).invoke(bean);
+		}
+		catch (Exception ignored) {
+			return null;
+		}
+	}
+
+	private String defaultString(String value) {
+		return value == null ? "" : value;
 	}
 	public void printCashierReport(HttpServletRequest request,	HttpServletResponse response,BigDecimal amount, List<PaymentRevenue> paymentRevenues,List<BigDecimal> subTotal,BigDecimal bigTotal,BigDecimal totalPaid,String filename,User cachier) throws Exception{
 		response.setContentType("application/pdf");
@@ -1443,7 +1698,7 @@ public class FileExporter {
 
 		document.add(new Paragraph("\n"));
 
-		float[] colsWidt = {20f,110f,150f,80f,80f};
+		float[] colsWidt = {20f,110f,150f,100f,80f,80f};
 		for (PaidServiceRevenue n : paymentRevenue.get(0).getPaidServiceRevenues()) {
 			colsWidt = Arrays.copyOf(colsWidt, colsWidt.length + 1);
 			colsWidt[colsWidt.length - 1] = 80f;
@@ -1470,14 +1725,11 @@ public class FileExporter {
 		cell = new PdfPCell(boldFont.process("Patient Names"));
 		table.addCell(cell);
 
+		cell = new PdfPCell(boldFont.process("Identifier"));
+		table.addCell(cell);
+
 		for (PaidServiceRevenue dr : paymentRevenue.get(0).getPaidServiceRevenues()) {
-			String s = dr.getService();
-			if(s.length()>3 && s.split(" ").length==1) // if service name is made of letters greater than 3, display the substring from 0 to 4
-				s=s.substring(0, 5);
-			else if(s.split(" ").length==2){ // if service name is made of 2 words, display the first word plus the 3 letters of the second
-				String[] parts = s.split(" ");
-				s=parts[0]+"."+parts[1].substring(0, 3);
-			}
+			String s = abbreviateServiceName(dr.getService());
 			cell = new PdfPCell(boldFont.process(""+s));
 			table.addCell(cell);
 
@@ -1502,6 +1754,10 @@ public class FileExporter {
 			cell = new PdfPCell(fontSelector.process(""+dr.getBeneficiary().getPatient().getPersonName()));
 			table.addCell(cell);
 
+			cell = new PdfPCell(fontSelector.process(dr.getPatientIdentifier() != null
+					? dr.getPatientIdentifier() : ""));
+			table.addCell(cell);
+
 			for (PaidServiceRevenue psr : dr.getPaidServiceRevenues()) {
 				cell = new PdfPCell(fontSelector.process(""+formatter.format(psr.getPaidAmount())));
 				table.addCell(cell);
@@ -1520,6 +1776,9 @@ public class FileExporter {
 		table.addCell(cell);
 
 		cell = new PdfPCell(boldFont.process("Tot.(Due)"));
+		table.addCell(cell);
+
+		cell = new PdfPCell(boldFont.process(""));
 		table.addCell(cell);
 
 
@@ -1571,13 +1830,7 @@ public class FileExporter {
 		table.addCell(cell);
 
 		for (PaidServiceRevenue dr : departRevenues.get(0).getPaidServiceRevenues()) {
-			String s = dr.getService();
-			if(s.length()>3 && s.split(" ").length==1) // if service name is made of letters greater than 3, display the substring from 0 to 4
-				s=s.substring(0, 5);
-			else if(s.split(" ").length==2){ // if service name is made of 2 words, display the first word plus the 3 letters of the second
-				String[] parts = s.split(" ");
-				s=parts[0]+"."+parts[1].substring(0, 3);
-			}
+			String s = abbreviateServiceName(dr.getService());
 			cell = new PdfPCell(boldFont.process(""+s));
 			table.addCell(cell);
 		}
@@ -1710,6 +1963,113 @@ public class FileExporter {
 		document.add(table);
 	}
 
+    /*
+     * Exports to Excel (.xlsx) format
+     */
+//    public static void exportData(HttpServletResponse response,
+//                                  Insurance insurance,
+//                                  List<InsuranceReportItem> reportRecords) {
+//
+//        if (response == null || insurance == null || reportRecords == null) {
+//            throw new IllegalArgumentException("exportData method expects non-null parameters. " +
+//                    "One of 'response', 'insurance' or 'reportRecords' parameters is null");
+//        }
+//
+//        Date date = new Date();
+//        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+//
+//        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+//        response.setHeader("Content-Disposition", "attachment; filename=\"releve_" + formatter.format(date) + ".xlsx\"");
+//
+//        try (Workbook workbook = new SXSSFWorkbook();
+//             OutputStream outputStream = response.getOutputStream()) {
+//
+//            Sheet sheet = workbook.createSheet("Insurance Report");
+//
+//            Row facilityNameRow = sheet.createRow(0);
+//            facilityNameRow.createCell(0).setCellValue(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+//
+//            Row facilityAddressRow = sheet.createRow(1);
+//            facilityAddressRow.createCell(0).setCellValue(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_PHYSICAL_ADDRESS));
+//
+//            Row facilityEmailRow = sheet.createRow(2);
+//            facilityEmailRow.createCell(0).setCellValue(Context.getAdministrationService().getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_EMAIL));
+//
+//            Row reportTitle = sheet.createRow(5);
+//            reportTitle.createCell(10).setCellValue("SUMMARY OF VOUCHERS FOR " + insurance.getName());
+//
+//            Row headerRow = sheet.createRow(8);
+//            headerRow.createCell(0).setCellValue("#");
+//            headerRow.createCell(1).setCellValue("Admission Date");
+//            headerRow.createCell(2).setCellValue("Closing Date");
+//            headerRow.createCell(3).setCellValue("BENEFICIARY'S NAMES");
+//            headerRow.createCell(4).setCellValue("HEAD HOUSEHOLD'S NAMES");
+//            headerRow.createCell(5).setCellValue("FAMILY'S CODE");
+//            headerRow.createCell(6).setCellValue("LEVEL");
+//            headerRow.createCell(7).setCellValue("Card NUMBER");
+//            headerRow.createCell(8).setCellValue("COMPANY");
+//            headerRow.createCell(9).setCellValue("AGE");
+//            headerRow.createCell(10).setCellValue("BIRTH DATE");
+//            headerRow.createCell(11).setCellValue("GENDER");
+//            headerRow.createCell(12).setCellValue("DOCTOR");
+//            headerRow.createCell(13).setCellValue("MEDICAMENTS");
+//            headerRow.createCell(14).setCellValue("CONSULTATION");
+//            headerRow.createCell(15).setCellValue("HOSPITALISATION");
+//            headerRow.createCell(16).setCellValue("LABORATOIRE");
+//            headerRow.createCell(17).setCellValue("FORMALITES ADMINISTRATIVES");
+//            headerRow.createCell(18).setCellValue("AMBULANCE");
+//            headerRow.createCell(19).setCellValue("CONSOMMABLES");
+//            headerRow.createCell(20).setCellValue("OXYGENOTHERAPIE");
+//            headerRow.createCell(21).setCellValue("IMAGING");
+//            headerRow.createCell(22).setCellValue("PROCED.");
+//
+//            Float insRate = insurance.getCurrentRate().getRate();
+//            headerRow.createCell(23).setCellValue("100%");
+//            headerRow.createCell(24).setCellValue(insRate + "%");
+//            headerRow.createCell(25).setCellValue((100 - insRate) + "%");
+//
+//            for (int i = 0; i < reportRecords.size(); i++) {
+//
+//                InsuranceReportItem reportItem = reportRecords.get(i);
+//
+//                Row dataRow = sheet.createRow(i + 9);
+//                dataRow.createCell(0).setCellValue(i + 1);
+//                dataRow.createCell(1).setCellValue(formatter.format(reportItem.getAdmissionDate()));
+//                dataRow.createCell(2).setCellValue(formatter.format(reportItem.getClosingDate()));
+//
+//                dataRow.createCell(3).setCellValue(reportItem.getBeneficiaryName());
+//                dataRow.createCell(4).setCellValue(reportItem.getHouseholdHeadName());
+//                dataRow.createCell(5).setCellValue(reportItem.getFamilyCode());
+//                dataRow.createCell(6).setCellValue(reportItem.getBeneficiaryLevel());
+//                dataRow.createCell(7).setCellValue(reportItem.getCardNumber());
+//                dataRow.createCell(8).setCellValue(reportItem.getCompanyName());
+//                dataRow.createCell(9).setCellValue(String.valueOf(reportItem.getAge()));
+//                dataRow.createCell(10).setCellValue(formatter.format(reportItem.getBirthDate()));
+//                dataRow.createCell(11).setCellValue(reportItem.getGender());
+//                dataRow.createCell(12).setCellValue(reportItem.getDoctorName());
+//                dataRow.createCell(13).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getMedicament()));
+//                dataRow.createCell(14).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getConsultation()));
+//                dataRow.createCell(15).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getHospitalisation()));
+//                dataRow.createCell(16).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getLaboratoire()));
+//                dataRow.createCell(17).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getFormaliteAdministratives()));
+//                dataRow.createCell(18).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getAmbulance()));
+//                dataRow.createCell(19).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getConsommables()));
+//                dataRow.createCell(20).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getOxygenotherapie()));
+//                dataRow.createCell(21).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getImaging()));
+//                dataRow.createCell(22).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getProced()));
+//                dataRow.createCell(23).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getTotal100()));
+//                dataRow.createCell(24).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getTotalInsurance()));
+//                dataRow.createCell(25).setCellValue(ReportsUtil.roundTwoDecimals(reportItem.getTotalPatient()));
+//            }
+//
+//            workbook.write(outputStream);
+//            outputStream.flush();
+//            outputStream.close();
+//        } catch (Exception e) {
+//			e.printStackTrace();
+//            log.error("Failed to write to excel File with Error: " + e.getMessage() + " \n " + e.getCause());
+//        }
+//    }
 
 	public void epsonPrinter(HttpServletRequest request,HttpServletResponse response,BillPayment payment,String filename) throws Exception {
 		Rectangle pagesize = new Rectangle(216f, 1300f);
@@ -1947,7 +2307,8 @@ public class FileExporter {
 
 		PdfPCell cell = new PdfPCell(fontselector.process(""));
 		if(user!=null){
-			cell = new PdfPCell(fontselector.process("Cashier Signature \n"+ cashier.getPersonName()+"\n\n........................."));
+			String cashierName = cashier != null ? cashier.getPersonName().toString() : "";
+			cell = new PdfPCell(fontselector.process("Cashier Signature \n"+ cashierName+"\n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 		}
@@ -1976,6 +2337,24 @@ public class FileExporter {
 		}
 
 		document.add(table1);
+	}
+
+	static String abbreviateServiceName(String serviceName) {
+		if (serviceName == null) {
+			return "";
+		}
+		String trimmedName = serviceName.trim();
+		if (trimmedName.isEmpty()) {
+			return "";
+		}
+		String[] parts = trimmedName.split("\\s+");
+		if (parts.length == 1) {
+			return parts[0].substring(0, Math.min(5, parts[0].length()));
+		}
+		if (parts.length == 2) {
+			return parts[0] + "." + parts[1].substring(0, Math.min(3, parts[1].length()));
+		}
+		return trimmedName;
 	}
 
 	public void displayFooter(Document document,Patient patient,User user,String other,FontSelector fontselector) throws DocumentException {
@@ -2037,7 +2416,7 @@ public class FileExporter {
 		//for report where a patient has to sign on it
 		if(patient!=null){
 
-			cell = new PdfPCell(fontselector.process("Beneficiary Names/Signature: \n\n........................."));
+			cell = new PdfPCell(fontselector.process("Beneficiary Signature: \n\n........................."));
 			cell.setBorder(Rectangle.NO_BORDER);
 			table1.addCell(cell);
 
@@ -2565,5 +2944,110 @@ public class FileExporter {
 		//displayFooter(document, consommation.getBeneficiary().getPatient(), fontSelector);
 		User user = Context.getAuthenticatedUser();
 		displayFooter(document,consommation.getBeneficiary().getPatient(), user, null, fontSelector);
+	}
+
+	public void printProforma(HttpServletRequest request, HttpServletResponse response, Proforma proforma, String filename) throws Exception {
+		response.setContentType("application/pdf");
+		response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+		Document document = new Document();
+
+		FontSelector fontSelector = new FontSelector();
+		fontSelector.addFont(new Font(FontFamily.COURIER, 8, Font.NORMAL));
+		FontSelector boldFont = new FontSelector();
+		boldFont.addFont(new Font(FontFamily.COURIER, 8, Font.BOLD));
+		FontSelector titleFont = new FontSelector();
+		titleFont.addFont(new Font(FontFamily.COURIER, 12, Font.BOLD));
+
+		openFile(request, response, document);
+		displayHeader(document, fontSelector);
+
+		SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+		NumberFormat nf = new DecimalFormat("#,##0.00");
+
+		Paragraph title = new Paragraph();
+		title.add(titleFont.process("\nPROFORMA INVOICE N\u00b0 " + proforma.getIdentifier() + "\n"));
+		title.add(boldFont.process("ESTIMATE ONLY - THIS IS NOT A RECEIPT, NOT A BILL AND NOT AN INSURANCE CLAIM"
+				+ (proforma.isCancelled() ? "\n*** CANCELLED ***" : "") + "\n\n"));
+		title.setAlignment(Element.ALIGN_CENTER);
+		document.add(title);
+
+		Patient patient = proforma.getPatient();
+		String identifier = "";
+		if (patient.getPatientIdentifier(patientID) != null) {
+			identifier = patient.getPatientIdentifier(patientID).getIdentifier();
+		} else if (patient.getPatientIdentifier() != null) {
+			identifier = patient.getPatientIdentifier().getIdentifier();
+		}
+
+		PdfPTable info = new PdfPTable(new float[] { 25f, 75f });
+		info.setWidthPercentage(100f);
+		addInfoRow(info, "Patient", patient.getPersonName() + "   (" + identifier + ")", boldFont, fontSelector);
+		addInfoRow(info, "Insurance", proforma.getInsurance().getName()
+				+ (proforma.getInsuranceRate() != null ? "   (rate: " + proforma.getInsuranceRate() + "%)" : ""), boldFont, fontSelector);
+		if (proforma.getDepartment() != null) {
+			addInfoRow(info, "Department", proforma.getDepartment().getName(), boldFont, fontSelector);
+		}
+		if (proforma.getAddressee() != null) {
+			addInfoRow(info, "Addressed to", proforma.getAddressee(), boldFont, fontSelector);
+		}
+		addInfoRow(info, "Date issued", df.format(proforma.getCreatedDate()), boldFont, fontSelector);
+		addInfoRow(info, "Valid until", proforma.getValidUntil() != null ? df.format(proforma.getValidUntil()) : "", boldFont, fontSelector);
+		document.add(info);
+		document.add(new Paragraph("\n"));
+
+		PdfPTable table = new PdfPTable(new float[] { 5f, 25f, 45f, 15f, 10f, 20f });
+		table.setWidthPercentage(100f);
+		for (String h : new String[] { "#", "Category", "Service", "Unit price", "Qty", "Amount" }) {
+			PdfPCell cell = new PdfPCell(boldFont.process(h));
+			cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+			table.addCell(cell);
+		}
+		int i = 1;
+		for (ProformaItem item : proforma.getItems()) {
+			table.addCell(fontSelector.process(String.valueOf(i++)));
+			table.addCell(fontSelector.process(item.getCategoryName() != null ? item.getCategoryName() : ""));
+			table.addCell(fontSelector.process(item.getServiceName()));
+			table.addCell(rightCell(fontSelector, nf.format(item.getUnitPrice())));
+			table.addCell(rightCell(fontSelector, item.getQuantity().stripTrailingZeros().toPlainString()));
+			table.addCell(rightCell(fontSelector, nf.format(item.getLineTotal())));
+		}
+		addTotalRow(table, "TOTAL (100%)", nf.format(proforma.getTotalAmount()), boldFont);
+		addTotalRow(table, "INSURANCE SHARE", nf.format(proforma.getInsuranceAmount()), boldFont);
+		addTotalRow(table, "PATIENT SHARE", nf.format(proforma.getPatientAmount()), boldFont);
+		document.add(table);
+
+		Paragraph footNote = new Paragraph();
+		if (proforma.getNotes() != null) {
+			footNote.add(fontSelector.process("\nNotes: " + proforma.getNotes() + "\n"));
+		}
+		footNote.add(fontSelector.process("\nAmounts are estimates based on tariffs in force on the date of issue. "
+				+ "The final bill depends on the care actually provided.\n\n"));
+		document.add(footNote);
+
+		displayFooter(document, "Issued by: " + proforma.getCreator().getPersonName(), fontSelector);
+		document.close();
+	}
+
+	private void addInfoRow(PdfPTable table, String label, String value, FontSelector labelFont, FontSelector valueFont) {
+		PdfPCell cell = new PdfPCell(labelFont.process(label));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+		cell = new PdfPCell(valueFont.process(value != null ? value : ""));
+		cell.setBorder(Rectangle.NO_BORDER);
+		table.addCell(cell);
+	}
+
+	private PdfPCell rightCell(FontSelector font, String text) {
+		PdfPCell cell = new PdfPCell(font.process(text));
+		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+		return cell;
+	}
+
+	private void addTotalRow(PdfPTable table, String label, String value, FontSelector font) {
+		PdfPCell cell = new PdfPCell(font.process(label));
+		cell.setColspan(5);
+		cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+		table.addCell(cell);
+		table.addCell(rightCell(font, value));
 	}
 }

@@ -4,6 +4,7 @@
 package org.openmrs.module.mohbilling.model;
 
 import org.openmrs.User;
+import org.openmrs.Visit;
 
 import java.util.Date;
 
@@ -23,6 +24,9 @@ public class Admission {
 	private Date admissionDate;
 	
 	private Date dischargingDate;
+
+	/** User who discharged the patient ({@code moh_bill_admission.discharged_by}). */
+	private User dischargedBy;
 	
 	private User creator;
 	
@@ -40,9 +44,19 @@ public class Admission {
 
 	private Integer admissionType;
 
+	/** Linked OpenMRS visit; nullable for legacy admissions created before visit hard-link. */
+	private Visit visit;
 
 	public Integer getAdmissionType() {
 		return admissionType;
+	}
+
+	public Visit getVisit() {
+		return visit;
+	}
+
+	public void setVisit(Visit visit) {
+		this.visit = visit;
 	}
 
 	public void setAdmissionType(Integer admissionType) {
@@ -125,6 +139,20 @@ public class Admission {
 	 */
 	public void setDischargingDate(Date dischargingDate) {
 		this.dischargingDate = dischargingDate;
+	}
+
+	/**
+	 * @return the dischargedBy
+	 */
+	public User getDischargedBy() {
+		return dischargedBy;
+	}
+
+	/**
+	 * @param dischargedBy the dischargedBy to set
+	 */
+	public void setDischargedBy(User dischargedBy) {
+		this.dischargedBy = dischargedBy;
 	}
 
 	/**

@@ -4,6 +4,18 @@
 		<li class="<c:if test='<%= request.getRequestURI().contains("Cohort")%>'> active</c:if>">
 			<a href="cohort.form">Find Bills</a>
 		</li>
+
+		<openmrs:hasPrivilege privilege="Billing Report - View Bill Report">
+		<li class="<c:if test='<%= request.getRequestURI().contains("BillReport") && !request.getRequestURI().contains("BillInsurance")%>'> active</c:if>">
+			<a href="billReport.form">Bill Report</a>
+		</li>
+		</openmrs:hasPrivilege>
+
+		<openmrs:hasPrivilege privilege="Billing Report - View Bill Insurance Reconciliation">
+		<li class="<c:if test='<%= request.getRequestURI().contains("BillInsuranceReconciliation")%>'> active</c:if>">
+			<a href="billInsuranceReconciliation.form">Bill / Insurance Reconciliation</a>
+		</li>
+		</openmrs:hasPrivilege>
 		 
 		
 		<openmrs:hasPrivilege privilege="Billing Report - View Cashier Report">

@@ -30,7 +30,7 @@ public class MohBillingInsuranceReportController extends
         Insurance insurance = (Insurance) request.getSession().getAttribute("insurance");
 
         if (insuranceReportRecords != null) {
-            FileExporter.exportData(response, insuranceReportRecords, insurance);
+            FileExporter.exportData(response, insurance, insuranceReportRecords);
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing export data.");
         }
@@ -44,7 +44,7 @@ public class MohBillingInsuranceReportController extends
             throws Exception {
 
         if (Boolean.parseBoolean(request.getParameter("export"))) {
-            log.info("Exporting report CSV file...");
+            log.info("Exporting insurance report XLSX file...");
             handleExportRequest(request, response);
             log.info("Done exporting!");
             return null; //avoid further processing
@@ -70,9 +70,10 @@ public class MohBillingInsuranceReportController extends
                 insuranceId = Integer.valueOf(insuranceStr);
             }
 
-            Insurance insurance = InsuranceUtil.getInsurance(insuranceId);
-            InsuranceRate insuranceRate = insurance.getCurrentRate();
+            Insurance insurance = insuranceId != null ? InsuranceUtil.getInsurance(insuranceId) : null;
+            InsuranceRate insuranceRate = insurance != null ? insurance.getCurrentRate() : null;
             request.getSession().setAttribute("insurance", insurance);
+            mav.addObject("selectedInsuranceId", insuranceId);
 
             String startDateStr = request.getParameter("startDate");
             String endDateStr = request.getParameter("endDate");
@@ -97,7 +98,7 @@ public class MohBillingInsuranceReportController extends
 
             try {
 
-                if (startDate != null && endDate != null && insuranceId != null) {
+                if (startDate != null && endDate != null) {
 
                     InsuranceReport reportItems = ReportsUtil.getPatientServiceBillReport(insuranceId, startDate, endDate);
                     insuranceReportRecords = reportItems.getReportItems();
@@ -116,7 +117,8 @@ public class MohBillingInsuranceReportController extends
                 log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + e.getMessage());
             }
 
-            if (!Objects.equals(insuranceRate.getFlatFee(), BigDecimal.ZERO)) {
+            if (insuranceRate != null && insuranceRate.getFlatFee() != null
+                    && !Objects.equals(insuranceRate.getFlatFee(), BigDecimal.ZERO)) {
                 insuranceFlatFee = insuranceRate.getFlatFee();
             }
 
@@ -126,11 +128,12 @@ public class MohBillingInsuranceReportController extends
             mav.addObject("columns", columns);
             mav.addObject("totals", totals);
             mav.addObject("listOfAllServicesRevenue", insuranceReportRecords);
-            mav.addObject("resultMsg", "[" + insurance.getName() + "] " +
+            String insuranceLabel = insurance != null ? insurance.getName() : "All Insurances";
+            mav.addObject("resultMsg", "[" + insuranceLabel + "] " +
                     "Bill from " + convertDate(startDate) + " To " + convertDate(endDate));
             mav.addObject("insuranceFlatFee", insuranceFlatFee);
 
-            mav.addObject("insuranceRate", insuranceRate.getRate());
+            mav.addObject("insuranceRate", insuranceRate != null ? insuranceRate.getRate() : BigDecimal.ZERO);
             mav.addObject("total100", total100);
         }
         return mav;

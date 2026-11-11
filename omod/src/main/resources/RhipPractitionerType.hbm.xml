@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<class name="RhipPractitionerType" table="moh_bill_rhip_practitioner_type">
+
+		<id name="rhipPractitionerTypeId" type="int" column="rhip_practitioner_type_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<property name="rhipId" column="rhip_id" type="string" not-null="true" />
+		<property name="name" column="name" type="string" not-null="true" />
+		<property name="type" column="type" type="string" not-null="true" />
+		<property name="categoryRhipId" column="category_rhip_id" type="string" />
+		<property name="categoryName" column="category_name" type="string" />
+
+		<property name="dateCreated" column="date_created" />
+		<property name="dateChanged" column="date_changed" />
+		<property name="voided" column="voided" type="boolean" />
+		<property name="dateVoided" column="date_voided" />
+		<property name="voidReason" column="void_reason" type="string" />
+		<property name="uuid" column="uuid" type="string" not-null="true" />
+
+		<many-to-one name="creator" class="org.openmrs.User" column="creator" not-null="true" />
+		<many-to-one name="changedBy" class="org.openmrs.User" column="changed_by" />
+		<many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by" />
+
+	</class>
+
+</hibernate-mapping>
+

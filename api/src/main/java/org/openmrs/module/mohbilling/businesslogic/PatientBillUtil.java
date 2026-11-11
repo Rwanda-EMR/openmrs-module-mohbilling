@@ -265,6 +265,10 @@ public class PatientBillUtil {
 			payment.setCreator(Context.getAuthenticatedUser());
 			bill = payment.getPatientBill();
 			bill.addBillPayment(payment);
+			bill.setIsPaid(true);
+			bill.setPaymentConfirmed(true);
+			bill.setPaymentConfirmedDate(new Date());
+			bill.setPaymentConfirmedBy(Context.getAuthenticatedUser());
 			getService().savePatientBill(bill);
 			return payment;
 		}

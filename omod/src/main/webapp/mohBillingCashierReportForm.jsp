@@ -59,19 +59,23 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-<a href="cashierReport.form?print=true" class="print">PDF</a></b>
+<a href="cashierReport.form?print=true" class="print">PDF</a>
+&nbsp;
+<a href="cashierReport.form?export=true" class="print">Excel</a></b>
 <div class="box">
 <table style="width:70%">
 	<tr>
 		<th class="columnHeader">#.</th>
 		<th class="columnHeader">DATE</th>
 		<th class="columnHeader">Patient Names</th>
+		<th class="columnHeader">Identifier</th>
 		<c:forEach items="${services}" var="s" varStatus="status">
 		<th class="columnHeader">${s.service}</th>	
 		</c:forEach> 
 		<th class="columnHeader"><b>TOTAL Due</b></th>
 		<th class="columnHeader"><b>TOTAL Paid</b></th>
 		<th class="columnHeader"><b>Payment through API</b></th>
+		<th class="columnHeader"><b>Initiator</b></th>
 	</tr>
 
  	<c:forEach items="${paymentRevenues}" var="pr" varStatus="status">
@@ -79,25 +83,32 @@ ${resultMsg }(Paid): <b style="color: black;font: bold;"><fmt:formatNumber value
 	 <td>${status.count}.</td>
 	 <td>${pr.payment.dateReceived}</td>
 	 <td>${pr.beneficiary.patient.personName }</td>
+	 <td>${pr.patientIdentifier}</td>
 	  <c:forEach items="${pr.paidServiceRevenues}" var="sr" varStatus="status">
 		 <td><fmt:formatNumber value="${sr.paidAmount}" type="number" pattern="#.##"/></td>
 	  </c:forEach>
 	  <td><b><fmt:formatNumber value="${pr.amount}" type="number" pattern="#.##"/></b></td>
 	 <c:set var="pt" value="${pr.payment}"/>
 	  <td><b><fmt:formatNumber value="${pt.amountPaid}" type="number" pattern="#.##"/></b></td>
-	  <c:if test="${pr.payment.patientBill.transactionStatus=='SUCCESSFUL'}">
-	  <td>${pr.payment.patientBill.phoneNumber}</td>
-      </c:if>
+	  <td>
+		<c:choose>
+			<c:when test="${not empty pt.invoiceNumber}">${pt.invoiceNumber}</c:when>
+			<c:when test="${not empty pt.patientBill.invoiceNumber}">${pt.patientBill.invoiceNumber}</c:when>
+		</c:choose>
+	  </td>
+	  <td>${pr.initiatorName}</td>
 	</tr>
 	</c:forEach> 
 	<tr>
 	<td class="rowValue"><b>TOT(Due)</b></td>
-	<td class="rowValue"></td><td class="rowValue"></td>
+	<td class="rowValue"></td><td class="rowValue"></td><td class="rowValue"></td>
 	<c:forEach items="${subTotals}" var="st" varStatus="status">
 		<td class="rowValue"><b><fmt:formatNumber value="${st}" type="number" pattern="#.##"/></b></td>
 		</c:forEach> 
 		<td class="rowValue"><b><fmt:formatNumber value="${bigTotal}" type="number" pattern="#.##"/></b></td>
 		<td class="rowValue"><b><fmt:formatNumber value="${totalRevenueAmount}" type="number" pattern="#.##"/></b></td>
+		<td class="rowValue"></td>
+		<td class="rowValue"></td>
 	</tr>
 </table>
 

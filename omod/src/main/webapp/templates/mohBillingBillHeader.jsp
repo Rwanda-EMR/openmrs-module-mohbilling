@@ -8,7 +8,12 @@
 		</li>		
 		<li>
 			<a href="searchBillPayment.form">Manage  Refund</a>
-		</li>		
+		</li>
+		<openmrs:hasPrivilege privilege="Billing Proforma - View">
+		<li class="<c:if test='<%= request.getRequestURI().contains("mohBillingProforma")%>'> active</c:if>">
+			<a href="proformas.list">Proforma Invoice</a>
+		</li>
+		</openmrs:hasPrivilege>
 </ul>
 
 	   <!-- Here I would like to set the totals at the bottom --> 

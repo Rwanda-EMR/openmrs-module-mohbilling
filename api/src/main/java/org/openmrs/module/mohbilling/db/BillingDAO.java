@@ -19,6 +19,7 @@ import org.openmrs.User;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -66,8 +67,8 @@ public interface BillingDAO {
 	 * @return List<PatientBill> paginated and ordered list of bills
 	 * @throws DAOException
 	 */
-//	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize, String orderBy,
-//		String orderDirection) throws DAOException;
+	public List<PatientBill> getPatientBillsByPagination(Integer startIndex, Integer pageSize, String orderBy,
+		String orderDirection) throws DAOException;
 
 	/**
 	 * Gets the insurance from the DB by specifying the Object/ID
@@ -515,6 +516,15 @@ public interface BillingDAO {
 	 */
 	public List<Admission> getAdmissionsListByInsurancePolicy(InsurancePolicy ip);
 
+	/**
+	 * Admissions whose admissionDate is between start and end (inclusive),
+	 * optionally filtered by a specific insurance or by insurance category
+	 * (e.g. MUTUELLE / RSSB). When {@code insuranceCategory} is set it takes
+	 * precedence over {@code insurance}.
+	 */
+	public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance,
+			String insuranceCategory);
+
 
 	public void saveConsommation(Consommation consommation);
 
@@ -577,12 +587,12 @@ public interface BillingDAO {
 	public List<Consommation> getConsommationsByBeneficiary(Beneficiary beneficiary);
 
 	/**
-<<<<<<< HEAD
 	 * Gets BillPayment by a given paymentId
 	 * @param paymentId
 	 * @return billPayment
 	 */
 	public BillPayment getBillPayment(Integer paymentId);
+	public List<BillPayment> getBillPaymentsByPatientBill(PatientBill patientBill);
 
 	/**
 	 * Gets all paid service bills by BillPayment
@@ -653,14 +663,91 @@ public interface BillingDAO {
 	public List<GlobalBill> getGlobalBills(Date date1, Date date2, Insurance insurance);
 
 	/**
-     * Pulls an insurance billing report from MambaETL
-     *
-     * @param insuranceId insurance ID
-     * @param startDate   admission start date
-     * @param endDate     admission end date
-     * @return a list of patient service bills for closed bills
-     */
-    InsuranceReport getBillItemsByCategoryFromMamba(Integer insuranceId, Date startDate, Date endDate);
+	 * Reads the materialized insurance report populated by the billing scheduler.
+	 */
+	InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceId, Date startDate, Date endDate);
+
+	/**
+	 * Rebuilds all ETL rows, or rows whose closing date is at or after {@code refreshFrom}.
+	 */
+	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds);
+
+	int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
+			String imagingServiceIds, String procedureServiceIds);
+
+	Date getLatestInsuranceReportEtlClosingDate();
+
+	Integer getMinimumInsuranceReportSourceGlobalBillId();
+
+	Integer getMaximumInsuranceReportSourceGlobalBillId();
+
+	/**
+	 * Reads the materialized cashier report populated by the billing scheduler.
+	 */
+	List<PaymentRevenue> getCashierReportFromEtl(Date startDate, Date endDate, Integer collectorId,
+			String paymentType, String reportType, List<HopService> reportColumns);
+
+	BigDecimal getCashierReportTotalPaidFromEtl(Date startDate, Date endDate, Integer collectorId,
+			String paymentType);
+
+	int refreshCashierReportEtl(Date refreshFrom);
+
+	int refreshCashierReportEtlByPaymentIdRange(Integer paymentIdFrom, Integer paymentIdTo);
+
+	Date getLatestCashierReportEtlPaymentDate();
+
+	Integer getMaximumCashierReportEtlPaymentId();
+
+	Integer getMinimumCashierReportSourcePaymentId();
+
+	Integer getMaximumCashierReportSourcePaymentId();
+
+	/**
+	 * Reads the materialized CBHI Bill Report populated by the billing scheduler.
+	 */
+	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+			String insuranceCategory);
+
+	/**
+	 * Paginated Bill Report ETL read. Pass {@code firstResult}/{@code maxResults} null for all rows.
+	 * {@code excludedInsuranceName} excludes that insurer when non-blank (activateNoneFeature).
+	 */
+	List<BillReportItem> getBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId,
+			String insuranceCategory, String excludedInsuranceName, Integer firstResult, Integer maxResults);
+
+	/** Total matching Bill Report ETL rows for the same filters as the paginated read. */
+	int countBillReportFromEtl(Date startDate, Date endDate, Integer insuranceId, String insuranceCategory,
+			String excludedInsuranceName);
+
+	/**
+	 * Global bills present in Bill Report ETL or Insurance Report ETL but not both,
+	 * for the given admission-date range (all insurers).
+	 */
+	List<BillInsuranceReconciliationItem> getBillInsuranceReconciliation(Date startDate, Date endDate);
+
+	int refreshBillReportEtl(Date refreshFrom);
+
+	int refreshBillReportEtlByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+			Date admissionDateFrom);
+
+	/**
+	 * Rebuilds ETL rows for one admission (delete + insert). Intended to run in its own
+	 * transaction so progress is visible before the full range finishes.
+	 */
+	int refreshBillReportEtlForAdmission(Integer admissionId);
+
+	int deleteBillReportEtlBeforeAdmissionDate(Date startDate);
+
+	Date getLatestBillReportEtlAdmissionDate();
+
+	Integer getMaximumBillReportEtlAdmissionId();
+
+	Integer getMinimumBillReportSourceAdmissionId(Date admissionDateFrom);
+
+	Integer getMaximumBillReportSourceAdmissionId(Date admissionDateFrom);
+
+	List<Admission> getAdmissionsByAdmissionIdRange(Integer admissionIdFrom, Integer admissionIdTo,
+			Date admissionDateFrom);
 
 	public List<GlobalBill> getGlobalBills();
 
@@ -712,8 +799,8 @@ public interface BillingDAO {
 	 * @param billCreator
 	 * @return consommation list
 	 */
-	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
-//	public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+	public List<Consommation> getConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department, int limit, int offSet);
+	public int getTotalConsommations(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
 	List<Consommation> getConsommationsWithPatientNotConfirmed(Date startDate, Date endDate);
 	public List<Consommation> getDCPConsommations(Date startDate, Date endDate, User billCreator);
 	public void updateOtherInsurances(ServiceCategory sc);
@@ -732,6 +819,59 @@ public interface BillingDAO {
 	public List<InsurancePolicy> getAllInsurancePoliciesByPatient(Patient patient) throws DAOException;
 
 	public FacilityServicePrice getFacilityServiceByName(String name);
-	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, String startDate, String endDate, Integer patientid);
+	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid);
+	public RhipIntegrationLog saveRhipIntegrationLog(RhipIntegrationLog log);
+	public List<RhipIntegrationLog> getRecentRhipIntegrationLogs(Integer limit);
+	public List<RhipIntegrationLog> getRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria, Integer firstResult, Integer maxResults);
+	public Integer countRhipIntegrationLogs(RhipIntegrationLogSearchCriteria criteria);
+	public RhipVoucherItemRecord saveRhipVoucherItemRecord(RhipVoucherItemRecord record);
+	public List<RhipVoucherItemRecord> getRhipVoucherItemRecordsByGlobalBill(GlobalBill globalBill);
+	public RhipVoucherItemRecord getLatestRhipVoucherItemRecord(PatientServiceBill patientServiceBill);
+	public RhipVoucherSubmission saveRhipVoucherSubmission(RhipVoucherSubmission submission);
+	public List<RhipVoucherSubmission> getRhipVoucherSubmissionsByGlobalBill(GlobalBill globalBill);
+	public RhipVoucherSubmission getLatestRhipVoucherSubmission(GlobalBill globalBill);
+	public RhipVoucherSubmission getSuccessfulRhipVoucherSubmission(GlobalBill globalBill);
+	public List<GlobalBill> getRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria,
+			Integer firstResult, Integer maxResults);
+	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria);
 
+	/*public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
+														User collector);
+
+	public PatientBill getBills(Patient patient, Date startDate, Date endDate);*/
+
+	public List<PatientBillIrembo> getUnpaidBills(Patient patient);
+	public List<PatientBill> getUnpaidBillsWithInvoiceNumber();
+
+	/**
+	 * Unpaid (or unconfirmed) non-voided patient bills whose due amount is zero
+	 * and whose createdDate is on or before the given cutoff.
+	 */
+	public List<PatientBill> getUnpaidZeroDueBillsCreatedOnOrBefore(Date createdOnOrBefore);
+
+	/**
+	 * Unpaid (or unconfirmed) non-voided patient bills whose due amount is zero
+	 * and whose createdDate is within the optional inclusive bounds.
+	 *
+	 * @param createdOnOrAfter optional lower bound (inclusive); null = no lower bound
+	 * @param createdOnOrBefore optional upper bound (inclusive); null = no upper bound
+	 */
+	public List<PatientBill> getUnpaidZeroDueBillsCreatedBetween(Date createdOnOrAfter, Date createdOnOrBefore);
+
+	public PatientBill getPatientBillByInvoiceNumber(String invoiceNumber);
+
+	public List<PatientServiceBill> getPatientServiceBillByConsomation(Integer consommationId);
+
+	public PatientBill getPatientBillStatus(String invoiceNumber);
+	public PatientBill getPatientBillStatusForUpdate(String invoiceNumber);
+	public List<PatientBill> getPatientBillsByBatchNumber(String batchNumber);
+
+	public List<Consommation> getConsommationsOld(Date startDate, Date endDate, Insurance insurance, ThirdParty tp, User billCreator, Department department);
+
+
+	public Proforma saveProforma(Proforma proforma);
+	public Proforma getProforma(Integer proformaId);
+	public Proforma getProformaByUuid(String uuid);
+	public List<Proforma> getProformas(Patient patient, Insurance insurance, Date startDate, Date endDate,
+			String status, String identifier, Integer maxResults);
 }

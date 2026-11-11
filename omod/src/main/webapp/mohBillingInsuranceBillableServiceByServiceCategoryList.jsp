@@ -103,6 +103,29 @@ $j(document).ready(function(){
 </style>
 
 <div class="tableList">
+	<%!
+		private String escapeJavaScript(String value) {
+			if (value == null) {
+				return "";
+			}
+			return value.replace("\\", "\\\\")
+					.replace("'", "\\'")
+					.replace("\"", "\\\"")
+					.replace("\r", "\\r")
+					.replace("\n", "\\n");
+		}
+
+		private String escapeHtml(String value) {
+			if (value == null) {
+				return "";
+			}
+			return value.replace("&", "&amp;")
+					.replace("<", "&lt;")
+					.replace(">", "&gt;")
+					.replace("\"", "&quot;")
+					.replace("'", "&#39;");
+		}
+	%>
 		
 	<%
 			try {
@@ -116,7 +139,6 @@ $j(document).ready(function(){
 					List<BillableService> billableServices = InsuranceUtil
 							.getBillableServicesByServiceCategory(sc,
 									new Date(), false);
-
 					List<String> bServ = new ArrayList<String>();
 
 					if (billableServices == null
@@ -132,11 +154,17 @@ $j(document).ready(function(){
 							for (BillableService bs : billableServices) {
 								//if(!bs.isRetired())
 								if(!bs.isRetired() && !bs.getFacilityServicePrice().isHidden()){
+									String serviceName = bs.getFacilityServicePrice().getName();
+									String addServiceClick = "addServiceToCart('"
+											+ bs.getServiceId() + "','"
+											+ escapeJavaScript(serviceName) + "','"
+											+ bs.getMaximaToPay() + "')";
 									/* out.println("<tr>");	
 								    out.println("<td class='submenu'>"); */
-								    out.println("<div class='inTable unselectedService' id='billableService_"+bs.getServiceId()+"' onclick=addServiceToCart('"+bs.getServiceId()+"','"+bs.getFacilityServicePrice().getName().replace("'","&nbsp;").replace(" ","&nbsp;")+"','"+bs.getMaximaToPay()+"')>");
+								    out.println("<div class='inTable unselectedService' id='billableService_"+bs.getServiceId()+"' onclick=\""
+											+ escapeHtml(addServiceClick) + "\">");
 									out.println("<li class='item'>"
-											+ bs.getFacilityServicePrice().getName()
+											+ escapeHtml(serviceName)
 										+ "</li>");
 									out.println("</div>");
 									/* out.println("</td>");

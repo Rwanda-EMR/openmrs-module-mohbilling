@@ -1,0 +1,630 @@
+package org.openmrs.module.mohbilling.web.controller;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.openmrs.Patient;
+import org.openmrs.PatientIdentifier;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
+import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
+import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService;
+import org.openmrs.module.mohbilling.model.Admission;
+import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.GlobalBill;
+import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.RhipVoucherSubmission;
+import org.openmrs.module.mohbilling.model.RhipVoucherSubmissionSearchCriteria;
+import org.openmrs.module.mohbilling.service.BillingService;
+import org.openmrs.web.WebConstants;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.ParameterizableViewController;
+import org.springframework.web.servlet.view.RedirectView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+public class MohBillingRhipVoucherSubmissionController extends ParameterizableViewController {
+
+	protected final Log log = LogFactory.getLog(getClass());
+	public static final String PRIVILEGE_VIEW = "Billing RHIP Voucher - View Submission Page";
+	public static final String PRIVILEGE_SEND = "Billing RHIP Voucher - Send";
+	public static final String PRIVILEGE_CONFIRM = "Billing RHIP Voucher - Confirm";
+	public static final String PRIVILEGE_RETRY = "Billing RHIP Voucher - Retry";
+	public static final String PRIVILEGE_VIEW_HISTORY = "Billing RHIP Voucher - View History";
+	private static final String PRIVILEGE_BILLING_ADMIN = "Billing Configuration - View Billing Admin";
+	private static final String DATE_PATTERN = "yyyy-MM-dd";
+	private static final String SQL_DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+	private static final int DEFAULT_PAGE_SIZE = 25;
+	private static final int MAX_PAGE_SIZE = 100;
+	private static final int MAX_PATIENT_JOURNEY_LOGS = 50;
+
+	private BillingService billingService;
+	private RhipVoucherService voucherService;
+
+	@Override
+	protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if (!Context.isAuthenticated()) {
+			return new ModelAndView(new RedirectView("/login.htm"));
+		}
+		if (!Context.hasPrivilege(PRIVILEGE_VIEW) && !Context.hasPrivilege(PRIVILEGE_BILLING_ADMIN)) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					"You do not have permission to view RHIP voucher submissions.");
+			return new ModelAndView(new RedirectView("billingAdmin.form"));
+		}
+		if ("POST".equalsIgnoreCase(request.getMethod())) {
+			return handleSubmissionAction(request);
+		}
+		return buildListModel(request);
+	}
+
+	private ModelAndView handleSubmissionAction(HttpServletRequest request) {
+		String action = trimToNull(request.getParameter("action"));
+		Integer globalBillId = parseInteger(request.getParameter("globalBillId"));
+		if (globalBillId == null) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Global bill is required.");
+			return redirectToList(request);
+		}
+		if ("confirm".equalsIgnoreCase(action) && !canConfirmVoucher()) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "You do not have permission to confirm RHIP vouchers.");
+			return redirectToList(request);
+		}
+		if ("retry".equalsIgnoreCase(action) && !Context.hasPrivilege(PRIVILEGE_RETRY)) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "You do not have permission to retry RHIP vouchers.");
+			return redirectToList(request);
+		}
+		if (!"retry".equalsIgnoreCase(action) && !"confirm".equalsIgnoreCase(action) && !Context.hasPrivilege(PRIVILEGE_SEND)) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "You do not have permission to send RHIP vouchers.");
+			return redirectToList(request);
+		}
+		GlobalBill globalBill = GlobalBillUtil.getGlobalBill(globalBillId);
+		if (voucherService == null) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "RHIP voucher service is not configured.");
+			return redirectToList(request);
+		}
+		RhipVoucherSubmission submission = "confirm".equalsIgnoreCase(action)
+				? voucherService.closeVoucherForGlobalBillWithAudit(globalBill)
+				: voucherService.submitVoucherForGlobalBillWithAudit(globalBill);
+		if (submission != null && (RhipVoucherSubmission.STATUS_SENT.equals(submission.getStatus())
+				|| RhipVoucherSubmission.STATUS_CONFIRMED.equals(submission.getStatus()))) {
+			String reference = StringUtils.defaultIfBlank(submission.getVoucherReferenceNumber(), submission.getVoucherCode());
+			request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
+					resolveSuccessMessage(submission.getStatus()) + (StringUtils.isBlank(reference) ? "." : ". Reference: " + reference));
+		} else {
+			String error = submission == null ? "RHIP voucher submission failed." : submission.getErrorMessage();
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+					StringUtils.defaultIfBlank(error, "RHIP voucher submission failed."));
+		}
+		return redirectToList(request);
+	}
+
+	private String resolveSuccessMessage(String status) {
+		if (RhipVoucherSubmission.STATUS_CONFIRMED.equals(status)) {
+			return "RHIP voucher confirmed successfully";
+		}
+		return "RHIP voucher submitted successfully";
+	}
+
+	private ModelAndView buildListModel(HttpServletRequest request) {
+		String dischargeDateText = defaultIfBlank(request.getParameter("dischargeDate"), new SimpleDateFormat(DATE_PATTERN).format(new Date()));
+		Date dischargeDate = parseDate(dischargeDateText);
+		if (dischargeDate == null) {
+			dischargeDate = new Date();
+			dischargeDateText = new SimpleDateFormat(DATE_PATTERN).format(dischargeDate);
+		}
+		String status = defaultIfBlank(request.getParameter("status"), "ALL").toUpperCase();
+		Integer insuranceId = parseInteger(request.getParameter("insuranceId"));
+		String query = trimToNull(request.getParameter("query"));
+		String sortBy = defaultIfBlank(request.getParameter("sortBy"), "dischargeDate");
+		String sortDirection = defaultIfBlank(request.getParameter("sortDirection"), "desc");
+		int page = parsePositiveInteger(request.getParameter("page"), 1);
+		int pageSize = parsePositiveInteger(request.getParameter("pageSize"), DEFAULT_PAGE_SIZE);
+		if (pageSize > MAX_PAGE_SIZE) {
+			pageSize = MAX_PAGE_SIZE;
+		}
+
+		RhipVoucherSubmissionSearchCriteria criteria = new RhipVoucherSubmissionSearchCriteria();
+		criteria.setDischargeStartDate(getStartOfDay(dischargeDate));
+		criteria.setDischargeEndDate(getEndOfDay(dischargeDate));
+		criteria.setStatus(status);
+		criteria.setInsuranceId(insuranceId);
+		criteria.setQuery(query);
+		criteria.setSortBy(sortBy);
+		criteria.setSortDirection(sortDirection);
+
+		int totalCount = billingService == null ? 0 : billingService.countRhipVoucherSubmissionGlobalBills(criteria);
+		int totalPages = totalCount == 0 ? 1 : (int) Math.ceil((double) totalCount / pageSize);
+		if (page > totalPages) {
+			page = totalPages;
+		}
+		int firstResult = (page - 1) * pageSize;
+		List<GlobalBill> globalBills = billingService == null
+				? Collections.<GlobalBill>emptyList()
+				: billingService.getRhipVoucherSubmissionGlobalBills(criteria, firstResult, pageSize);
+		List<RhipVoucherSubmissionRow> rows = buildRows(globalBills);
+
+		ModelAndView mav = new ModelAndView();
+		mav.setViewName(getViewName());
+		mav.addObject("rows", rows);
+		mav.addObject("consommationsByGlobalBillId", buildConsommationsByGlobalBillId(globalBills));
+		mav.addObject("patientJourneyLogsByGlobalBillId", buildPatientJourneyLogsByGlobalBillId(globalBills));
+		mav.addObject("dischargeDate", dischargeDateText);
+		mav.addObject("status", status);
+		mav.addObject("selectedInsuranceId", insuranceId);
+		mav.addObject("insurances", InsuranceUtil.getAllInsurances());
+		mav.addObject("query", query == null ? "" : query);
+		mav.addObject("sortBy", sortBy);
+		mav.addObject("sortDirection", sortDirection);
+		mav.addObject("page", page);
+		mav.addObject("pageSize", pageSize);
+		mav.addObject("totalCount", totalCount);
+		mav.addObject("totalPages", totalPages);
+		mav.addObject("hasPreviousPage", page > 1);
+		mav.addObject("hasNextPage", page < totalPages);
+		mav.addObject("previousPage", page - 1);
+		mav.addObject("nextPage", page + 1);
+		mav.addObject("filterQueryString", buildFilterQueryString(request, dischargeDateText, status, insuranceId, query, sortBy, sortDirection, pageSize));
+		mav.addObject("canSend", Context.hasPrivilege(PRIVILEGE_SEND));
+		mav.addObject("canConfirm", canConfirmVoucher());
+		mav.addObject("canRetry", Context.hasPrivilege(PRIVILEGE_RETRY));
+		mav.addObject("canViewHistory", Context.hasPrivilege(PRIVILEGE_VIEW_HISTORY));
+		return mav;
+	}
+
+	private boolean canConfirmVoucher() {
+		return Context.hasPrivilege(PRIVILEGE_CONFIRM)
+				|| Context.hasPrivilege(PRIVILEGE_SEND)
+				|| Context.hasPrivilege(PRIVILEGE_BILLING_ADMIN);
+	}
+
+	private List<RhipVoucherSubmissionRow> buildRows(List<GlobalBill> globalBills) {
+		List<RhipVoucherSubmissionRow> rows = new ArrayList<RhipVoucherSubmissionRow>();
+		if (globalBills == null) {
+			return rows;
+		}
+		for (GlobalBill globalBill : globalBills) {
+			RhipVoucherSubmission latest = billingService == null ? null : billingService.getLatestRhipVoucherSubmission(globalBill);
+			RhipVoucherSubmission successful = billingService == null ? null : billingService.getSuccessfulRhipVoucherSubmission(globalBill);
+			rows.add(new RhipVoucherSubmissionRow(globalBill, latest, successful));
+		}
+		return rows;
+	}
+
+	private Map<Integer, List<Consommation>> buildConsommationsByGlobalBillId(List<GlobalBill> globalBills) {
+		Map<Integer, List<Consommation>> ret = new HashMap<Integer, List<Consommation>>();
+		if (globalBills == null) {
+			return ret;
+		}
+		for (GlobalBill globalBill : globalBills) {
+			try {
+				ret.put(globalBill.getGlobalBillId(), ConsommationUtil.getConsommationsByGlobalBill(globalBill));
+			} catch (Exception e) {
+				log.warn("Unable to load consommations for global bill " + globalBill.getGlobalBillId(), e);
+				ret.put(globalBill.getGlobalBillId(), Collections.<Consommation>emptyList());
+			}
+		}
+		return ret;
+	}
+
+	private Map<Integer, List<PatientJourneyLogRow>> buildPatientJourneyLogsByGlobalBillId(List<GlobalBill> globalBills) {
+		Map<Integer, List<PatientJourneyLogRow>> ret = new LinkedHashMap<Integer, List<PatientJourneyLogRow>>();
+		if (globalBills == null) {
+			return ret;
+		}
+		for (GlobalBill globalBill : globalBills) {
+			try {
+				ret.put(globalBill.getGlobalBillId(), getPatientJourneyLogs(globalBill));
+			}
+			catch (Exception e) {
+				log.warn("Unable to load patient journey logs for global bill " + globalBill.getGlobalBillId(), e);
+				ret.put(globalBill.getGlobalBillId(), Collections.<PatientJourneyLogRow>emptyList());
+			}
+		}
+		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<PatientJourneyLogRow> getPatientJourneyLogs(GlobalBill globalBill) {
+		List<PatientJourneyLogRow> logs = new ArrayList<PatientJourneyLogRow>();
+		Patient patient = getPatient(globalBill);
+		if (patient == null || patient.getPatientId() == null) {
+			return logs;
+		}
+		String where = buildEncounterWindowWhere(globalBill, patient.getPatientId());
+		String sql = "select * from ("
+				+ patientJourneyLogSelect(where, "Created", "e.creator", "e.date_created")
+				+ " union all "
+				+ patientJourneyLogSelect(where + " and e.date_changed is not null", "Updated", "e.changed_by", "e.date_changed")
+				+ " union all "
+				+ patientJourneyLogSelect(where + " and e.voided = 1 and e.date_voided is not null", "Voided", "e.voided_by", "e.date_voided")
+				+ ") patient_journey_logs order by action_datetime desc limit " + MAX_PATIENT_JOURNEY_LOGS;
+
+		List<List<Object>> rows = Context.getAdministrationService().executeSQL(sql, true);
+		for (List<Object> row : rows) {
+			logs.add(new PatientJourneyLogRow(
+					integerValue(value(row, 0)),
+					stringValue(value(row, 1)),
+					stringValue(value(row, 2)),
+					stringValue(value(row, 3)),
+					stringValue(value(row, 4)),
+					stringValue(value(row, 5)),
+					dateValue(value(row, 6)),
+					dateValue(value(row, 7))));
+		}
+		return logs;
+	}
+
+	private String patientJourneyLogSelect(String where, String action, String userColumn, String dateColumn) {
+		return "select e.encounter_id, coalesce(et.name, ''), coalesce(f.name, ''), coalesce(l.name, ''), '"
+				+ action + "', coalesce(u.username, ''), e.encounter_datetime, " + dateColumn + " as action_datetime"
+				+ " from encounter e"
+				+ " left join encounter_type et on et.encounter_type_id = e.encounter_type"
+				+ " left join form f on f.form_id = e.form_id"
+				+ " left join location l on l.location_id = e.location_id"
+				+ " left join users u on u.user_id = " + userColumn
+				+ " where " + where;
+	}
+
+	private String buildEncounterWindowWhere(GlobalBill globalBill, Integer patientId) {
+		StringBuilder where = new StringBuilder("e.patient_id = ").append(patientId);
+		Admission admission = globalBill == null ? null : globalBill.getAdmission();
+		Date startDate = admission == null ? null : admission.getAdmissionDate();
+		Date endDate = globalBill == null ? null : globalBill.getClosingDate();
+		if (startDate != null) {
+			where.append(" and e.encounter_datetime >= '").append(formatSqlDateTime(startDate)).append("'");
+		}
+		if (endDate != null) {
+			where.append(" and e.encounter_datetime <= '").append(formatSqlDateTime(endDate)).append("'");
+		}
+		return where.toString();
+	}
+
+	private Patient getPatient(GlobalBill globalBill) {
+		if (globalBill == null || globalBill.getAdmission() == null
+				|| globalBill.getAdmission().getInsurancePolicy() == null) {
+			return null;
+		}
+		return globalBill.getAdmission().getInsurancePolicy().getOwner();
+	}
+
+	private String formatSqlDateTime(Date date) {
+		return new SimpleDateFormat(SQL_DATE_TIME_PATTERN).format(date);
+	}
+
+	private Object value(List<Object> row, int index) {
+		return row == null || row.size() <= index ? null : row.get(index);
+	}
+
+	private Integer integerValue(Object value) {
+		if (value instanceof Number) {
+			return ((Number) value).intValue();
+		}
+		if (value == null) {
+			return null;
+		}
+		try {
+			return Integer.valueOf(value.toString());
+		}
+		catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	private String stringValue(Object value) {
+		return value == null ? "" : value.toString();
+	}
+
+	private Date dateValue(Object value) {
+		return value instanceof Date ? (Date) value : null;
+	}
+
+	private ModelAndView redirectToList(HttpServletRequest request) {
+		return new ModelAndView(new RedirectView("rhipVoucherSubmissions.form?" + buildRedirectQueryString(request)));
+	}
+
+	private String buildRedirectQueryString(HttpServletRequest request) {
+		StringBuilder ret = new StringBuilder();
+		appendQueryParam(ret, "dischargeDate", request.getParameter("dischargeDate"));
+		appendQueryParam(ret, "status", request.getParameter("status"));
+		appendQueryParam(ret, "insuranceId", request.getParameter("insuranceId"));
+		appendQueryParam(ret, "query", request.getParameter("query"));
+		appendQueryParam(ret, "sortBy", request.getParameter("sortBy"));
+		appendQueryParam(ret, "sortDirection", request.getParameter("sortDirection"));
+		appendQueryParam(ret, "page", request.getParameter("page"));
+		appendQueryParam(ret, "pageSize", request.getParameter("pageSize"));
+		return ret.toString();
+	}
+
+	private String buildFilterQueryString(HttpServletRequest request, String dischargeDate, String status, Integer insuranceId, String query,
+			String sortBy, String sortDirection, int pageSize) {
+		StringBuilder ret = new StringBuilder();
+		appendQueryParam(ret, "dischargeDate", dischargeDate);
+		appendQueryParam(ret, "status", status);
+		appendQueryParam(ret, "insuranceId", insuranceId == null ? null : String.valueOf(insuranceId));
+		appendQueryParam(ret, "query", query);
+		appendQueryParam(ret, "sortBy", sortBy);
+		appendQueryParam(ret, "sortDirection", sortDirection);
+		appendQueryParam(ret, "pageSize", String.valueOf(pageSize));
+		return ret.toString();
+	}
+
+	private void appendQueryParam(StringBuilder builder, String name, String value) {
+		String trimmed = trimToNull(value);
+		if (trimmed == null) {
+			return;
+		}
+		if (builder.length() > 0) {
+			builder.append("&");
+		}
+		try {
+			builder.append(name).append("=").append(URLEncoder.encode(trimmed, "UTF-8"));
+		} catch (Exception e) {
+			builder.append(name).append("=").append(trimmed);
+		}
+	}
+
+	private Date parseDate(String value) {
+		try {
+			return new SimpleDateFormat(DATE_PATTERN).parse(value);
+		}
+		catch (ParseException e) {
+			return null;
+		}
+	}
+
+	private Date getStartOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
+	}
+
+	private Date getEndOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 23);
+		calendar.set(Calendar.MINUTE, 59);
+		calendar.set(Calendar.SECOND, 59);
+		calendar.set(Calendar.MILLISECOND, 999);
+		return calendar.getTime();
+	}
+
+	private int parsePositiveInteger(String value, int defaultValue) {
+		Integer parsed = parseInteger(value);
+		return parsed == null || parsed <= 0 ? defaultValue : parsed;
+	}
+
+	private Integer parseInteger(String value) {
+		String trimmed = trimToNull(value);
+		if (trimmed == null) {
+			return null;
+		}
+		try {
+			return Integer.valueOf(trimmed);
+		}
+		catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	private String trimToNull(String value) {
+		if (value == null) {
+			return null;
+		}
+		String trimmed = value.trim();
+		return trimmed.length() == 0 ? null : trimmed;
+	}
+
+	private String defaultIfBlank(String value, String defaultValue) {
+		return StringUtils.isBlank(value) ? defaultValue : value.trim();
+	}
+
+	public void setBillingService(BillingService billingService) {
+		this.billingService = billingService;
+	}
+
+	public void setVoucherService(RhipVoucherService voucherService) {
+		this.voucherService = voucherService;
+	}
+
+	public static class RhipVoucherSubmissionRow {
+		private final GlobalBill globalBill;
+		private final RhipVoucherSubmission latestSubmission;
+		private final RhipVoucherSubmission successfulSubmission;
+
+		public RhipVoucherSubmissionRow(GlobalBill globalBill, RhipVoucherSubmission latestSubmission,
+				RhipVoucherSubmission successfulSubmission) {
+			this.globalBill = globalBill;
+			this.latestSubmission = latestSubmission;
+			this.successfulSubmission = successfulSubmission;
+		}
+
+		public GlobalBill getGlobalBill() {
+			return globalBill;
+		}
+
+		public RhipVoucherSubmission getLatestSubmission() {
+			return latestSubmission;
+		}
+
+		public String getEffectiveStatus() {
+			if (latestSubmission != null && RhipVoucherSubmission.STATUS_CONFIRMED.equals(latestSubmission.getStatus())) {
+				return RhipVoucherSubmission.STATUS_CONFIRMED;
+			}
+			if (successfulSubmission != null || StringUtils.isNotBlank(globalBill.getRhipVoucherCode())
+					|| StringUtils.isNotBlank(globalBill.getRhipVoucherReferenceNumber())) {
+				return RhipVoucherSubmission.STATUS_SENT;
+			}
+			return latestSubmission == null ? RhipVoucherSubmission.STATUS_NOT_SENT : latestSubmission.getStatus();
+		}
+
+		public String getDisplayStatus() {
+			String status = getEffectiveStatus();
+			if (RhipVoucherSubmission.STATUS_SENT.equals(status)) {
+				return isMmiInsurance() ? "Created" : "Sent";
+			}
+			if (RhipVoucherSubmission.STATUS_CONFIRMED.equals(status)) {
+				return "Confirmed";
+			}
+			if (RhipVoucherSubmission.STATUS_FAILED.equals(status)) {
+				return "Failed";
+			}
+			if (RhipVoucherSubmission.STATUS_PROCESSING.equals(status)) {
+				return "Processing";
+			}
+			return "Not Sent";
+		}
+
+		public Date getLastSubmissionDate() {
+			return latestSubmission == null ? null : latestSubmission.getDateSubmitted();
+		}
+
+		public String getSubmissionMessage() {
+			return latestSubmission == null ? "" : StringUtils.defaultIfBlank(latestSubmission.getErrorMessage(), "");
+		}
+
+		public String getVoucherReference() {
+			if (successfulSubmission != null) {
+				return StringUtils.defaultIfBlank(successfulSubmission.getVoucherReferenceNumber(), successfulSubmission.getVoucherCode());
+			}
+			return StringUtils.defaultIfBlank(globalBill.getRhipVoucherReferenceNumber(), globalBill.getRhipVoucherCode());
+		}
+
+		public String getPatientName() {
+			Patient patient = getPatient();
+			return patient == null || patient.getPersonName() == null ? "" : patient.getPersonName().toString();
+		}
+
+		public String getPatientIdentifier() {
+			Patient patient = getPatient();
+			if (patient == null || patient.getIdentifiers() == null || patient.getIdentifiers().isEmpty()) {
+				return "";
+			}
+			PatientIdentifier identifier = patient.getPatientIdentifier();
+			return identifier == null ? "" : identifier.getIdentifier();
+		}
+
+		public String getInsuranceName() {
+			Insurance insurance = globalBill.getInsurance();
+			return insurance == null ? "" : insurance.getName();
+		}
+
+		public String getInsuranceCardNumber() {
+			InsurancePolicy policy = getInsurancePolicy();
+			return policy == null ? "" : policy.getInsuranceCardNo();
+		}
+
+		public BigDecimal getPatientContribution() {
+			BigDecimal amount = globalBill.getGlobalAmount() == null ? BigDecimal.ZERO : globalBill.getGlobalAmount();
+			InsurancePolicy policy = getInsurancePolicy();
+			if (policy == null || policy.getInsurance() == null || policy.getInsurance().getCurrentRate() == null
+					|| policy.getInsurance().getCurrentRate().getRate() == null) {
+				return BigDecimal.ZERO;
+			}
+			BigDecimal patientRate = BigDecimal.valueOf(100).subtract(
+					BigDecimal.valueOf(policy.getInsurance().getCurrentRate().getRate()));
+			return amount.multiply(patientRate).divide(BigDecimal.valueOf(100));
+		}
+
+		public BigDecimal getInsuranceContribution() {
+			BigDecimal amount = globalBill.getGlobalAmount() == null ? BigDecimal.ZERO : globalBill.getGlobalAmount();
+			BigDecimal patientContribution = getPatientContribution();
+			return amount.subtract(patientContribution);
+		}
+
+		private Patient getPatient() {
+			InsurancePolicy policy = getInsurancePolicy();
+			return policy == null ? null : policy.getOwner();
+		}
+
+		private InsurancePolicy getInsurancePolicy() {
+			Admission admission = globalBill == null ? null : globalBill.getAdmission();
+			return admission == null ? null : admission.getInsurancePolicy();
+		}
+
+		public boolean isMmiInsurance() {
+			Insurance insurance = globalBill == null ? null : globalBill.getInsurance();
+			if (insurance == null) {
+				InsurancePolicy policy = getInsurancePolicy();
+				insurance = policy == null ? null : policy.getInsurance();
+			}
+			if (insurance == null) {
+				return false;
+			}
+			return "MMI".equalsIgnoreCase(StringUtils.trimToEmpty(insurance.getCategory()))
+					|| StringUtils.containsIgnoreCase(StringUtils.trimToEmpty(insurance.getName()), "MMI");
+		}
+	}
+
+	public static class PatientJourneyLogRow {
+		private final Integer encounterId;
+		private final String encounterType;
+		private final String formName;
+		private final String locationName;
+		private final String action;
+		private final String username;
+		private final Date encounterDatetime;
+		private final Date actionDatetime;
+
+		public PatientJourneyLogRow(Integer encounterId, String encounterType, String formName, String locationName,
+				String action, String username, Date encounterDatetime, Date actionDatetime) {
+			this.encounterId = encounterId;
+			this.encounterType = encounterType;
+			this.formName = formName;
+			this.locationName = locationName;
+			this.action = action;
+			this.username = username;
+			this.encounterDatetime = encounterDatetime;
+			this.actionDatetime = actionDatetime;
+		}
+
+		public Integer getEncounterId() {
+			return encounterId;
+		}
+
+		public String getEncounterType() {
+			return encounterType;
+		}
+
+		public String getFormName() {
+			return formName;
+		}
+
+		public String getLocationName() {
+			return locationName;
+		}
+
+		public String getAction() {
+			return action;
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public Date getEncounterDatetime() {
+			return encounterDatetime;
+		}
+
+		public Date getActionDatetime() {
+			return actionDatetime;
+		}
+	}
+}

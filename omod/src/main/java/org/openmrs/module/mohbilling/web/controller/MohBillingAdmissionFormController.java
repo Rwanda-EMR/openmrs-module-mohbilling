@@ -2,9 +2,12 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.Visit;
+import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.AdmissionUtil;
 import org.openmrs.module.mohbilling.businesslogic.GlobalBillUtil;
+import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.GlobalBill;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
@@ -27,6 +30,7 @@ public class MohBillingAdmissionFormController extends
 		ParameterizableViewController {
 
 	protected final Log log = LogFactory.getLog(getClass());
+	private RhipVoucherService voucherService;
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
@@ -56,9 +60,20 @@ public class MohBillingAdmissionFormController extends
 				ip = Context.getService(BillingService.class).getInsurancePolicy(Integer.valueOf(request.getParameter("insurancePolicyId")));
 
 
+				Visit visit;
+				try {
+					visit = AdmissionUtil.requireActiveVisit(ip.getOwner());
+				} catch (APIException e) {
+					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, e.getMessage());
+					mav.addObject("insurancePolicy", ip);
+					mav.setViewName(getViewName());
+					return mav;
+				}
+
 				Admission admission = new Admission();
 				admission.setAdmissionDate(new Date());
 				admission.setInsurancePolicy(ip);
+				admission.setVisit(visit);
 				//admission.setDischargingDate(new Date());
 				Boolean isAdmitted = null;
 				if (request.getParameterValues("isAdmitted") != null) {
@@ -191,7 +206,7 @@ public class MohBillingAdmissionFormController extends
 			discharge = request.getParameter("discharge");
 			gb = GlobalBillUtil.getGlobalBill(Integer.valueOf(request.getParameter("globalBillId")));
 			if(request.getParameter("edit")!=null){
-				if(gb.getAdmission().getInsurancePolicy().getInsurance()==null) {
+				if(gb.getInsurance()==null) {
 					gb.setInsurance(gb.getAdmission().getInsurancePolicy().getInsurance());
 				}
 				gb.setAdmission(gb.getAdmission());
@@ -202,6 +217,8 @@ public class MohBillingAdmissionFormController extends
 				gb.setClosingDate(new Date());
 				gb.setClosedBy(Context.getAuthenticatedUser());
 				gb.setClosed(true);
+				GlobalBillUtil.saveGlobalBill(gb);
+				submitMmiRhipVoucher(gb);
 
 			}
 			mav.addObject("globalBill", gb);
@@ -229,6 +246,22 @@ public class MohBillingAdmissionFormController extends
 				}
 			}
 		return found;
+	}
+
+	private void submitMmiRhipVoucher(GlobalBill globalBill) {
+		if (voucherService == null || globalBill == null) {
+			return;
+		}
+		try {
+			voucherService.submitMmiVoucherForGlobalBillOnDischarge(globalBill);
+		}
+		catch (Exception e) {
+			log.warn("Unable to submit MMI RHIP voucher for global bill " + globalBill.getGlobalBillId(), e);
+		}
+	}
+
+	public void setVoucherService(RhipVoucherService voucherService) {
+		this.voucherService = voucherService;
 	}
 
 }

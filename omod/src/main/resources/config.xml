@@ -6,7 +6,7 @@
     <!-- Base Module Properties -->
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.2.6-SNAPSHOT</version>
     <package>org.openmrs.module.@MODULE_ID@</package>
     <author>MoH Rwanda</author>
     <description>
@@ -65,6 +65,23 @@
 
     <!-- Required Global Properties -->
 
+    <globalProperty>
+        <property>billing.orderTypeDepartments</property>
+        <defaultValue></defaultValue>
+        <description>
+            Department that orders of some order types are billed on, as pairs of orderType=Department separated by commas,
+            for example: Radiology Order=RADIOLOGIE. The order type is given by uuid, id or name, the department by name.
+            Orders of other types are billed as before: test orders on the Laboratory department, drug orders on Pharmacy.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>billing.proformaValidityDays</property>
+        <defaultValue>30</defaultValue>
+        <description>
+            Number of days a proforma invoice remains valid after it is issued
+        </description>
+    </globalProperty>
     <globalProperty>
         <property>billing.defaultLocation</property>
         <defaultValue>137</defaultValue>
@@ -157,6 +174,25 @@
         </description>
     </globalProperty>
 
+    <globalProperty>
+        <property>mohbilling.ambulance.departmentId</property>
+        <defaultValue></defaultValue>
+        <description>
+            Department ID (moh_bill_departement) used when creating ambulance bills.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.ambulance.facilityServicePriceName</property>
+        <defaultValue>Ambulance per 1km-RHIC-ADMN-002</defaultValue>
+        <description>
+            Exact facility service price name (moh_bill_facility_service_price.name) used for
+            ambulance KM billing. The module resolves the matching non-retired billable service
+            for the patient's insurance from this facility service, avoiding ambiguous selection
+            when multiple AMBULANCE billable services exist.
+        </description>
+    </globalProperty>
+
 
     <globalProperty>
         <property>billing.differentialDiagnosisConceptQuestionIDsTobeDisplayedOnGlobalBill</property>
@@ -175,11 +211,380 @@
     </globalProperty>
 
     <globalProperty>
+        <property>mohbilling.billReport.primaryDiagnosisConceptUuid</property>
+        <defaultValue>2dce81f9-3874-4247-b441-6369ca0725c2</defaultValue>
+        <description>
+            Concept UUID for Bill Report Primary Diagnosis (and ICD-11 extraction).
+            Always preferred over fallbackDiagnosisConceptUuids. Obs are taken from the
+            admission visit when visit_id is set; otherwise (or if the visit has none)
+            within admission date +/- 2 days. If still empty and the bill is closed,
+            searches again between admission date and discharge/closing date.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReport.fallbackDiagnosisConceptUuids</property>
+        <defaultValue>08dd5ecf-b381-47ea-a0f1-cd91a65505f7</defaultValue>
+        <description>
+            Comma-separated concept UUIDs used when primary diagnosis has no obs.
+            Only one diagnosis is selected: the obs closest to admission_date among these
+            concepts. Applies to admissions with and without visit_id (visit-scoped first,
+            then admission date +/- 2 days, then admission..discharge when that still misses).
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReport.confirmedByLabImagingConceptIds</property>
+        <defaultValue></defaultValue>
+        <description>
+            Optional comma-separated concept question ids used for Bill Report column
+            "Confirmed By lab/Imaging" (Yes/No). Leave blank until the site concept is known.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReport.transferIdConceptUuid</property>
+        <defaultValue>076b04e5-d62d-47da-83e2-0da6e7a119b4</defaultValue>
+        <description>
+            Concept UUID for Bill Report Transfer ID obs (value_text = HIE transfer UUID
+            recorded at reception). If blank, falls back to transferapp.receivedTransferConceptUuid
+            / rwandaemr.hie.transfer_id. Soft-matched to transfers.uuid / hie_transfer_id for validity.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>billing.hideLegacyUiHeaderAndFooter</property>
         <defaultValue>false</defaultValue>
         <description>
             If this is set to true, jsp pages will hide the legacyui header and footer
         </description>
+    </globalProperty>
+    <globalProperty>
+        <property>mohbilling.rhip.baseUrl</property>
+        <defaultValue></defaultValue>
+        <description>
+            Base URL for RHIP shared insurance integration API. Example:
+            https://rhip-stag.moh.gov.rw/backend. When configured, mohbilling derives
+            /insurance_integration/api/v2/voucher and practitioner endpoint URLs from this value
+            unless the older full endpoint URL properties are configured.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.rhipVoucher.enabledInsuranceKeys</property>
+        <defaultValue>MUTUELLE,RAMA,RSSB,MMI</defaultValue>
+        <description>
+            Comma-separated insurance keys that can show Send RHIP Voucher button.
+            Each key matches either insurance category exactly or insurance name containing the key (case-insensitive).
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.rhipVoucher.closureUrl</property>
+        <defaultValue></defaultValue>
+        <description>
+            Optional full RHIP voucher closure endpoint URL. When blank and mohbilling.rhip.baseUrl is configured,
+            mohbilling derives /insurance_integration/api/v2/voucher-closure from the base URL.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.rhipVoucher.defaultReferralFacilityId</property>
+        <defaultValue></defaultValue>
+        <description>
+            Optional referral facility FOSA ID to include as referralFacilityId in RHIP voucher creation requests.
+            Leave blank for normal, non-referred visits.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay_enabled</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Global Property to controll the IremboPay features
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.environement</property>
+        <defaultValue>testing</defaultValue>
+        <description>
+            Global Property to change working environment irembo pay feature
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.secretkey</property>
+        <defaultValue></defaultValue>
+        <description>
+            Global Property to control authentincation with irembo pay data
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.accountidentifier</property>
+        <defaultValue>OpenMRS-002</defaultValue>
+        <description>
+            Controlling the settings of Hospital Account Information
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.productcode</property>
+        <defaultValue>PC-16a4b8a06c</defaultValue>
+        <description>
+            Controlling the settings of Hospital provided accounts
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.username</property>
+        <defaultValue>admin</defaultValue>
+        <description>
+            Username to be used when configuring irembo pay
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.scheduler.enabled</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Enable/disable OpenMRS scheduled background reconciliation for Irembo Pay
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.scheduler.intervalSeconds</property>
+        <defaultValue>120</defaultValue>
+        <description>
+            Scheduler interval in seconds for Irembo reconciliation task
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.insuranceReportEtl.scheduler.enabled</property>
+        <defaultValue>true</defaultValue>
+        <description>
+            Enable the scheduled local insurance report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.insuranceReportEtl.scheduler.intervalSeconds</property>
+        <defaultValue>86400</defaultValue>
+        <description>
+            Interval in seconds between insurance report ETL refreshes
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.insuranceReportEtl.scheduler.startTime</property>
+        <defaultValue>01:00</defaultValue>
+        <description>
+            Local server time (HH:mm) for the first daily insurance report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.insuranceReportEtl.overlapDays</property>
+        <defaultValue>7</defaultValue>
+        <description>
+            Number of recent report days rebuilt on every ETL refresh to capture corrections
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.enabled</property>
+        <defaultValue>true</defaultValue>
+        <description>
+            Enable the scheduled local cashier report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.intervalSeconds</property>
+        <defaultValue>43200</defaultValue>
+        <description>
+            Twelve-hour interval in seconds between incremental cashier report ETL refreshes
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.startTime</property>
+        <defaultValue>07:00</defaultValue>
+        <description>
+            Local server time (HH:mm) for the first cashier report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.enabled</property>
+        <defaultValue>true</defaultValue>
+        <description>
+            Enable the scheduled local cashier report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.intervalSeconds</property>
+        <defaultValue>86400</defaultValue>
+        <description>
+            Interval in seconds between cashier report ETL refreshes
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.scheduler.startTime</property>
+        <defaultValue>03:00</defaultValue>
+        <description>
+            Local server time (HH:mm) for the first daily cashier report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.cashierReportEtl.overlapDays</property>
+        <defaultValue>7</defaultValue>
+        <description>
+            Number of recent payment days rebuilt on every cashier ETL refresh to capture corrections
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.scheduler.enabled</property>
+        <defaultValue>true</defaultValue>
+        <description>
+            Enable the scheduled local CBHI Bill Report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.scheduler.intervalSeconds</property>
+        <defaultValue>43200</defaultValue>
+        <description>
+            Interval in seconds between bill report ETL refreshes
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.scheduler.startTime</property>
+        <defaultValue>05:00</defaultValue>
+        <description>
+            Local server time (HH:mm) for the first bill report ETL refresh
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.overlapDays</property>
+        <defaultValue>7</defaultValue>
+        <description>
+            Number of recent admission days rebuilt on every bill report ETL refresh to capture late obs/voids
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.startDate</property>
+        <defaultValue>2026-08-01</defaultValue>
+        <description>
+            Inclusive admission date (yyyy-MM-dd) from which the CBHI Bill Report ETL materializes rows.
+            Admissions before this date are skipped. Changing this value triggers a full ETL rebuild.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.IMAGING</property>
+        <defaultValue></defaultValue>
+        <description>
+            Comma-separated moh_bill_hop_service IDs reported under IMAGING
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.PROCEDURES</property>
+        <defaultValue></defaultValue>
+        <description>
+            Comma-separated moh_bill_hop_service IDs reported under PROCED.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.globalbill.pagesize</property>
+        <defaultValue>40</defaultValue>
+        <description>
+            Global pagination page size
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.minimumpayment</property>
+        <defaultValue>5</defaultValue>
+        <description>
+            Minimum payment accepted by irembo pay api
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.phone_attribute</property>
+        <defaultValue>11</defaultValue>
+        <description>
+            Personal Attribute for phone number identification
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.irembopay.auto_phone_number</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Automaticaly load patient phone number to payment interface
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.autopayzerobill</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Enable automatic payment confirmation for patient bills with zero due amount
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.autopayuser</property>
+        <defaultValue></defaultValue>
+        <description>
+            OpenMRS username used as collector/creator when auto-paying zero-due patient bills
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.autopaytime</property>
+        <defaultValue>86400</defaultValue>
+        <description>
+            Interval in seconds between auto-pay zero-bill scheduler runs (default 86400 = one day)
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.autopaydelays</property>
+        <defaultValue>43200</defaultValue>
+        <description>
+            Age in seconds a zero-due unpaid bill must exceed before auto-pay (default 43200 = 12 hours)
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.autopayzerobill.processOldRecords</property>
+        <defaultValue>false</defaultValue>
+        <description>
+            Controls whether auto-pay processes historical zero-due bills.
+            false (default): only newly eligible bills (created within one scheduler cycle after
+            the configured delay) are auto-paid.
+            true: also continues auto-paying old unpaid zero-due bills in the backlog.
+            Requires mohbilling.autopayzerobill=true.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>billing.activateNoneFeature</property>
+        <defaultValue>false</defaultValue>
     </globalProperty>
 
     <!-- /Required Global Properties -->
@@ -195,13 +600,18 @@
     </dwr>
 
     <!-- Servlets -->
-    <!--
-        Accessed through the url
-        /pageContext()/moduleServlet/<moduleId>/<servlet-name> <servlet>
-        <servlet-name>formDownload</servlet-name>
-        <servlet-class>@MODULE_PACKAGE@.web.FormDownloadServlet</servlet-class>
-        </servlet>
-    -->
+    <servlet>
+        <servlet-name>call</servlet-name>
+        <servlet-class>org.directwebremoting.servlet.DwrServlet</servlet-class>
+        <init-param>
+            <param-name>config</param-name>
+            <param-value>/WEB-INF/dwr-modules.xml</param-value>
+        </init-param>
+        <init-param>
+            <param-name>crossDomainSessionSecurity</param-name>
+            <param-value>false</param-value>
+        </init-param>
+    </servlet>
     <!-- /Servlets -->
     <privilege>
         <name>Add Facility service</name>
@@ -317,6 +727,16 @@
     </privilege>
 
     <privilege>
+        <name>Billing Report - View Bill Report</name>
+        <description>Allows users to view and export the CBHI Bill Report</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing Report - View Bill Insurance Reconciliation</name>
+        <description>Allows users to view and export Bill Report vs Insurance Report reconciliation</description>
+    </privilege>
+
+    <privilege>
         <name>Billing Report - View Cashier Report</name>
         <description>Allows users to view Cashier Report</description>
     </privilege>
@@ -366,6 +786,45 @@
     <privilege>
         <name>Billing Configuration - View Billing Admin</name>
         <description>Allows user to configure billing module</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - View Submission Page</name>
+        <description>Allows user to view RHIP voucher submission page</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - Send</name>
+        <description>Allows user to send RHIP vouchers</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - Confirm</name>
+        <description>Allows user to confirm RHIP voucher closure submissions</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - Retry</name>
+        <description>Allows user to retry failed RHIP voucher submissions</description>
+    </privilege>
+
+    <privilege>
+        <name>Billing RHIP Voucher - View History</name>
+        <description>Allows user to view RHIP voucher submission history</description>
+    </privilege>
+
+    <!-- Proforma invoices -->
+    <privilege>
+        <name>Billing Proforma - View</name>
+        <description>Allows user to search, view and print proforma invoices</description>
+    </privilege>
+    <privilege>
+        <name>Billing Proforma - Create</name>
+        <description>Allows user to create proforma invoices</description>
+    </privilege>
+    <privilege>
+        <name>Billing Proforma - Cancel</name>
+        <description>Allows user to cancel proforma invoices</description>
     </privilege>
 
     <!-- Manage billing admission -->
@@ -476,6 +935,12 @@
         DepositPayment.hbm.xml
         PaidServiceBillRefund.hbm.xml
         PaymentRefund.hbm.xml
+        RhipPractitionerType.hbm.xml
+        RhipIntegrationLog.hbm.xml
+        RhipVoucherSubmission.hbm.xml
+        RhipVoucherItemRecord.hbm.xml
+        Proforma.hbm.xml
+        ProformaItem.hbm.xml
     </mappingFiles>
 
 </module>

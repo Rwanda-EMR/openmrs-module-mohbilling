@@ -11,6 +11,16 @@
            http://www.springframework.org/schema/util
            http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
+	<!-- Higher priority (order 1) so callback is handled by our controller before REST framework -->
+	<bean id="irembopayCallbackUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="order" value="1" />
+		<property name="mappings">
+			<props>
+				<prop key="/ws/rest/v1/mohbilling/irembopay/callback">irembopayCallbackController</prop>
+			</props>
+		</property>
+	</bean>
+
 	<bean id="mohbillingUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
 
 		<property name="order">
@@ -20,6 +30,7 @@
 		<property name="mappings">
 			<props>
 				<prop key="**/billingPortlet.portlet">billingPortletController</prop>
+				<prop key="/ws/rest/v1/mohbilling/irembopay">IrembopayStatusResource</prop>
 				<prop key="/ws/rest/v1/mohbilling/*">PatientBillResource</prop>
 				<prop key="module/@MODULE_ID@/insurance.list">mohBillingInsuranceListController</prop>
 				<prop key="module/@MODULE_ID@/insurance.form">mohBillingInsuranceFormController</prop>
@@ -41,12 +52,17 @@
 				<prop key="module/@MODULE_ID@/received.form">mohBillingReceivedController</prop>
 				<prop key="module/@MODULE_ID@/refundBillReport.form">mohBillingRefundReportController</prop>
 				<prop key="module/@MODULE_ID@/billingAdmin.form">mohBillingAdminFormController</prop>
+				<prop key="module/@MODULE_ID@/rhipIntegrationLogs.form">mohBillingRhipIntegrationLogListController</prop>
+				<prop key="module/@MODULE_ID@/rhipVoucherSubmissions.form">mohBillingRhipVoucherSubmissionController</prop>
+				<prop key="module/@MODULE_ID@/proforma.form">mohBillingProformaFormController</prop>
+				<prop key="module/@MODULE_ID@/proformas.list">mohBillingProformaListController</prop>
 				<prop key="module/@MODULE_ID@/department.form">mohBillingDepartmentFormController</prop>
 				<prop key="module/@MODULE_ID@/admission.form">mohBillingAdmissionFormController</prop>
 				<prop key="module/@MODULE_ID@/departments.list">mohBillingDepartmentListController</prop>
 				<prop key="module/@MODULE_ID@/services.list">mohBillingHopServiceListController</prop>
 				<prop key="module/@MODULE_ID@/service.form">mohBillingHopserviceFormController</prop>
 				<prop key="module/@MODULE_ID@/admissionSearch.form">mohBillingAdmissionSearchFormController</prop>
+				<prop key="module/@MODULE_ID@/beneficiarySearch.form">mohBillingBeneficiarySearchController</prop>
 				<prop key="module/@MODULE_ID@/globalBill.list">mohBillingGlobalBillListController</prop>
 				<prop key="module/@MODULE_ID@/consommation.list">mohBillingConsommationListController</prop>
 				<prop key="module/@MODULE_ID@/billSearch.form">mohBillingBillSearchFormController</prop>
@@ -64,6 +80,8 @@
 				<prop key="module/@MODULE_ID@/viewRefundedItems.form">mohBillingViewRefundedItemsController</prop>
 				<prop key="module/@MODULE_ID@/viewGlobalBill.form">mohBillingViewGlobalBillController</prop>
 				<prop key="module/@MODULE_ID@/cohort.form">mohBillingCohortBuilderFormController</prop>
+				<prop key="module/@MODULE_ID@/billReport.form">mohBillingBillReportController</prop>
+				<prop key="module/@MODULE_ID@/billInsuranceReconciliation.form">mohBillingBillInsuranceReconciliationController</prop>
 				<prop key="module/@MODULE_ID@/depositReport.form">mohBillingDepositReportController</prop>
 				<prop key="module/@MODULE_ID@/billingsessionControl.form">mohBillingsessionControlFormController</prop>
 				<prop key="module/@MODULE_ID@/beforeMigrationcashierReport.form">beforemigrationmohBillingCashierReportController</prop>
@@ -75,6 +93,7 @@
 
 	<!-- Controllers -->
 
+	<bean id="irembopayCallbackController" class="org.openmrs.module.mohbilling.rest.controller.IrembopayCallbackController" />
 	<bean id="billingPortletController" class="org.openmrs.module.mohbilling.web.controller.BillingDashboardPortletController" />
 
 	<bean id="mohBillingThirdPatryFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingThirdPatryFormController">
@@ -168,6 +187,30 @@
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingAdminForm</value></property>
 	</bean>
+	<bean id="mohBillingRhipIntegrationLogListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRhipIntegrationLogListController">
+		<property name="supportedMethods" value="GET,POST" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingRhipIntegrationLogList</value></property>
+		<property name="billingService" ref="mohBillingService" />
+	</bean>
+	<bean id="mohBillingRhipVoucherSubmissionController" class="org.openmrs.module.mohbilling.web.controller.MohBillingRhipVoucherSubmissionController">
+		<property name="supportedMethods" value="GET,POST" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingRhipVoucherSubmission</value></property>
+		<property name="billingService" ref="mohBillingService" />
+		<property name="voucherService" ref="rhipVoucherService" />
+	</bean>
+
+	<bean id="mohBillingProformaFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProformaFormController">
+		<property name="supportedMethods" value="GET,POST" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingProformaForm</value></property>
+		<property name="billingService" ref="mohBillingService" />
+	</bean>
+
+	<bean id="mohBillingProformaListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProformaListController">
+		<property name="supportedMethods" value="GET,POST" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingProformaList</value></property>
+		<property name="detailViewName"><value>/module/mohbilling/mohBillingProformaView</value></property>
+		<property name="billingService" ref="mohBillingService" />
+	</bean>
 
 	<bean id="mohBillingDepartmentFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentFormController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
@@ -177,6 +220,7 @@
 	<bean id="mohBillingAdmissionFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingAdmissionFormController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingAdmissionForm</value></property>
+		<property name="voucherService" ref="rhipVoucherService" />
 	</bean>
 	<bean id="mohBillingDepartmentListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingDepartmentListController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
@@ -194,6 +238,7 @@
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillAdmissionSearchForm</value></property>
 	</bean>
+	<bean id="mohBillingBeneficiarySearchController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBeneficiarySearchController" />
 	<bean id="mohBillingGlobalBillListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingGlobalBillListController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingGlobalBillList</value></property>
@@ -201,6 +246,7 @@
 	<bean id="mohBillingConsommationListController" class="org.openmrs.module.mohbilling.web.controller.MohBillingConsommationListController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingConsommationList</value></property>
+		<property name="voucherService" ref="rhipVoucherService" />
 	</bean>
 	<bean id="mohBillingSearchPatientAccountFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingSearchPatientAccountFormController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
@@ -255,6 +301,16 @@
 		<property name="viewName"><value>/module/mohbilling/mohBillingInsuranceReport</value></property>
 	</bean>
 
+	<bean id="mohBillingBillReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillReportController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingBillReport</value></property>
+	</bean>
+
+	<bean id="mohBillingBillInsuranceReconciliationController" class="org.openmrs.module.mohbilling.web.controller.MohBillingBillInsuranceReconciliationController">
+		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
+		<property name="viewName"><value>/module/mohbilling/mohBillingBillInsuranceReconciliation</value></property>
+	</bean>
+
 	<bean id="mohBillingThirdPartyReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingThirdPartyReportController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingThirdPartyReport</value></property>
@@ -267,6 +323,8 @@
 	<bean id="mohBillingViewGlobalBillController" class="org.openmrs.module.mohbilling.web.controller.MohBillingViewGlobalBillController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
 		<property name="viewName"><value>/module/mohbilling/mohBillingViewGlobalBill</value></property>
+		<property name="voucherService" ref="rhipVoucherService" />
+		<property name="voucherIntegrationConfig" ref="rhipVoucherIntegrationConfig" />
 	</bean>
 	<bean id="mohBillingCohortBuilderFormController" class="org.openmrs.module.mohbilling.web.controller.MohBillingCohortBuilderFormController">
 		<property name="supportedMethods" value="GET,POST,PUT,DELETE" />
@@ -291,6 +349,8 @@
 
 	<!-- Register our REST resources -->
 	<bean id="PatientBillResource" class="org.openmrs.module.mohbilling.rest.resource.PatientBillResource" />
+	<bean id="IrembopayStatusResource" class="org.openmrs.module.mohbilling.rest.resource.IrembopayStatusResource" />
+	<bean id="IrembopayCallbackResource" class="org.openmrs.module.mohbilling.rest.resource.IrembopayCallbackResource" />
 
 	<!-- <bean id="mohBillingProviderReportController" class="org.openmrs.module.mohbilling.web.controller.MohBillingProviderReportController">
 		<property name="viewName"><value>/module/mohbilling/mohBillingProviderDCPReport</value></property>

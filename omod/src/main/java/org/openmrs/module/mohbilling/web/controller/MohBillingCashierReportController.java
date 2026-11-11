@@ -23,6 +23,7 @@ import java.util.List;
 
 public class MohBillingCashierReportController extends
 		ParameterizableViewController {
+	private static final String CASHIER_REPORT_PRIVILEGE = "Billing Report - View Cashier Report";
 	
 	protected final Log log = LogFactory.getLog(getClass());
 
@@ -32,6 +33,18 @@ public class MohBillingCashierReportController extends
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
+		if (Boolean.parseBoolean(request.getParameter("export")) || request.getParameter("print") != null) {
+			if (!Context.hasPrivilege(CASHIER_REPORT_PRIVILEGE)) {
+				response.sendError(HttpServletResponse.SC_FORBIDDEN);
+				return null;
+			}
+			if (Boolean.parseBoolean(request.getParameter("export"))) {
+				exportCashierReport(request, response);
+			} else {
+				printCashierReport(request, response);
+			}
+			return null;
+		}
 		
 		
 		ModelAndView mav = new ModelAndView();
@@ -92,40 +105,25 @@ public class MohBillingCashierReportController extends
 			 cashier=collector;
 //			 try {
 				  
-					 List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate, collector);
+						 String paymentType = request.getParameter("paymentType");
+						 String reportMsg;
+						 if ("cashPayment".equals(paymentType)) {
+							 reportMsg = "Cash Payments From "+startDateStr+" To "+endDateStr;
+						 } else if ("depositPayment".equals(paymentType)) {
+							 reportMsg = "Deposit Payments From "+startDateStr+" To "+endDateStr;
+						 } else {
+							 reportMsg = "Total Received Amount From "+startDateStr+" To "+endDateStr;
+						 }
+						 mav.addObject("reportMsg", reportMsg);
+					 mav.addObject("reportMsg1", "Total Received Amount From "+startDateStr+" To "+endDateStr);
 					 
-					 List<BillPayment> cashPayments = new ArrayList<BillPayment>();
-					 List<BillPayment> depositPayments= new ArrayList<BillPayment>();
-					 List<PaidServiceBill> paidItems = null;
-					 if(request.getParameter("paymentType").equals("cashPayment")){
-					 for (BillPayment bp : payments) {
-						if(bp instanceof CashPayment)
-							cashPayments.add(bp);
-					 }
-					 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(cashPayments);
-						mav.addObject("reportMsg", "Cash Payments From "+startDateStr+" To "+endDateStr);
-						
-					 }
-					 else if(request.getParameter("paymentType").equals("depositPayment")){
-						 for (BillPayment bp : payments) {
-								if(bp instanceof DepositPayment)
-									depositPayments.add(bp);
-							 }
-					  paidItems = BillPaymentUtil.getPaidItemsByBillPayments(depositPayments);
-					  mav.addObject("reportMsg", "Deposit Payments From "+startDateStr+" To "+endDateStr);
-					 }
-					 else{
-						 paidItems = BillPaymentUtil.getPaidItemsByBillPayments(payments);
-						 mav.addObject("reportMsg", "Total Received Amount From "+startDateStr+" To "+endDateStr);
-					 }
-				 mav.addObject("reportMsg1", "Total Received Amount From "+startDateStr+" To "+endDateStr);
-				 
-				 List<HopService> reportColumns=null;
-				 if (request.getParameter("reportType")!=null && request.getParameter("reportType")!=""){
-					 if(request.getParameter("reportType").equals("NO_DCP_Report")){
-						 reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
-					 }else if(request.getParameter("reportType").equals("DCP_Report")){
-						 reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumnsDcp");
+					 List<HopService> reportColumns=null;
+					 String reportType = request.getParameter("reportType");
+					 if (reportType != null && !reportType.isEmpty()){
+						 if(reportType.equals("NO_DCP_Report")){
+							 reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumns");
+						 }else if(reportType.equals("DCP_Report")){
+							 reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumnsDcp");
 					 }
 					 else {
 						 reportColumns = GlobalPropertyConfig.getHospitalServiceByCategory("mohbilling.cashierReportColumnsAll");
@@ -136,33 +134,10 @@ public class MohBillingCashierReportController extends
 					 return new ModelAndView(new RedirectView("cashierReport.form"));
 				 }
 			
-	
-					 Consommation c = ConsommationUtil.getConsommationByPatientBill(payments.get(0).getPatientBill());
-			      		if(c!=null && c.getGlobalBill().getBillIdentifier().substring(0, 4).equals("bill")){
-			      			paidItems = BillPaymentUtil.getOldPaidItems(payments);
-			      		}
-					 
-					 List<String> columns = new ArrayList<String>();
-					 for (HopService hopService : reportColumns) {
-						 columns.add(hopService.getName());
-					}
-					 
-					 List<PaymentRevenue> paymentRevenues =  new ArrayList<PaymentRevenue>();
-					 for (BillPayment pay : payments) {
-						PaymentRevenue br =null;
-						if(request.getParameter("reportType")!=null && request.getParameter("reportType").equals("NO_DCP_Report")) {
-							br = ReportsUtil.getRevenuesByPayment(pay, columns);
-						}
-						else if(request.getParameter("reportType")!=null && request.getParameter("reportType").equals("DCP_Report")){
-							br = ReportsUtil.getRevenuesByPaymentDCP(pay, columns);
-							}
-						else {
-							br = ReportsUtil.getRevenuesByPaymentAll(pay,columns);
-						}
-						 if(br!=null){
-							 paymentRevenues.add(br);
-						 }
-					}
+						 BillingService billingService = Context.getService(BillingService.class);
+						 Integer collectorId = collector != null ? collector.getUserId() : null;
+						 List<PaymentRevenue> paymentRevenues = billingService.getCashierReportFromEtl(
+								 startDate, endDate, collectorId, paymentType, reportType, reportColumns);
 					 
 					List<PaidServiceRevenue> services=null;
 					if (paymentRevenues.size()<=0){
@@ -171,18 +146,34 @@ public class MohBillingCashierReportController extends
 					else{
 						services = paymentRevenues.get(0).getPaidServiceRevenues();
 					}
+					 // Footer TOT(Due) must equal the sum of row TOTAL Due values.
+					 // Previously bigTotal used getTotalByCategorizedPaidItems (full qty, no third-party,
+					 // no void/DCP filters), which did not match per-row paidQty-based amounts.
 					 List<BigDecimal> subTotals = new ArrayList<BigDecimal>();
 					 BigDecimal bigTotal = new BigDecimal(0);
-					 for (String s : columns) {
-							 subTotals.add(ReportsUtil.getTotalByCategorizedPaidItems(paidItems, s));
-							 bigTotal=bigTotal.add(ReportsUtil.getTotalByCategorizedPaidItems(paidItems, s));
-					}
+					 if (services != null && !services.isEmpty()) {
+						 for (int colIdx = 0; colIdx < services.size(); colIdx++) {
+							 BigDecimal columnTotal = new BigDecimal(0);
+							 for (PaymentRevenue pr : paymentRevenues) {
+								 List<PaidServiceRevenue> rowServices = pr.getPaidServiceRevenues();
+								 if (rowServices != null && colIdx < rowServices.size()
+										 && rowServices.get(colIdx).getPaidAmount() != null) {
+									 columnTotal = columnTotal.add(rowServices.get(colIdx).getPaidAmount());
+								 }
+							 }
+							 subTotals.add(columnTotal);
+							 bigTotal = bigTotal.add(columnTotal);
+						 }
+					 }
+						 BigDecimal totalPaid = billingService.getCashierReportTotalPaidFromEtl(
+								 startDate, endDate, collectorId, paymentType);
 						
 					 mav.addObject("paymentRevenues", paymentRevenues);	 
 
 					 mav.addObject("services", services);
-					 mav.addObject("totalRevenueAmount", BillPaymentUtil.getTotalPaid(payments));
-					 mav.addObject("resultMsg", "Revenue Amount From "+startDateStr+" To "+ endDateStr);
+					 mav.addObject("totalRevenueAmount", totalPaid);
+					 String resultMsg = "Revenue Amount From "+startDateStr+" To "+ endDateStr;
+					 mav.addObject("resultMsg", resultMsg);
 					 mav.addObject("subTotals", subTotals);
 					 mav.addObject("bigTotal", bigTotal);
 					 mav.addObject("collector", cashier);
@@ -191,8 +182,9 @@ public class MohBillingCashierReportController extends
 					 request.getSession().setAttribute("services" , services);
 					 request.getSession().setAttribute("subTotals" , subTotals); 
 					 request.getSession().setAttribute("bigTotal" , bigTotal); 
-					 request.getSession().setAttribute("totalRevenueAmount" , BillPaymentUtil.getTotalPaid(payments));
+					 request.getSession().setAttribute("totalRevenueAmount" , totalPaid);
 			         request.getSession().setAttribute("collector" , cashier);
+					 request.getSession().setAttribute("cashierReportTitle", reportMsg);
 
 		/*	} catch (Exception e) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
@@ -211,22 +203,40 @@ public class MohBillingCashierReportController extends
 		mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 		mav.addObject("thirdParties", Context.getService(BillingService.class).getAllThirdParties());
 		
-		if(request.getParameter("print")!=null){
-		//	HttpSession session = request.getSession(true);
-			 List<PaymentRevenue> paymentRevenues  = (List<PaymentRevenue>) request.getSession().getAttribute("paymentRevenues" );
-			 List<BigDecimal> subTotals = (List<BigDecimal>) request.getSession().getAttribute("subTotals");
-			 BigDecimal bigTotal = (BigDecimal) request.getSession().getAttribute("bigTotal");
-			 BigDecimal totalPaid = (BigDecimal) request.getSession().getAttribute("totalRevenueAmount");
-				
-				 BigDecimal amount = (BigDecimal)request.getSession().getAttribute("totalReceivedAmount");
-				 FileExporter fexp = new FileExporter();
-				 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-			User cashierUser=(User) request.getSession().getAttribute("collector");
-					String fileName = "cashierReport-"+df.format(new Date())+".pdf";
-			//System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC:"+cashierUser.getPersonName().getFullName());
-				    fexp.printCashierReport(request, response, amount,paymentRevenues,subTotals,bigTotal,totalPaid,fileName,cashierUser);
-			
-		}
 		return mav;
 }
+
+	@SuppressWarnings("unchecked")
+	private void printCashierReport(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		List<PaymentRevenue> paymentRevenues =
+				(List<PaymentRevenue>) request.getSession().getAttribute("paymentRevenues");
+		List<BigDecimal> subTotals = (List<BigDecimal>) request.getSession().getAttribute("subTotals");
+		BigDecimal bigTotal = (BigDecimal) request.getSession().getAttribute("bigTotal");
+		BigDecimal totalPaid = (BigDecimal) request.getSession().getAttribute("totalRevenueAmount");
+		if (paymentRevenues == null || paymentRevenues.isEmpty() || subTotals == null
+				|| bigTotal == null || totalPaid == null) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing cashier report PDF data. Run the report again.");
+			return;
+		}
+
+		String fileName = "cashierReport-" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + ".pdf";
+		new FileExporter().printCashierReport(request, response, null, paymentRevenues, subTotals,
+				bigTotal, totalPaid, fileName, (User) request.getSession().getAttribute("collector"));
+	}
+
+	@SuppressWarnings("unchecked")
+	private void exportCashierReport(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		List<PaymentRevenue> paymentRevenues =
+				(List<PaymentRevenue>) request.getSession().getAttribute("paymentRevenues");
+		if (paymentRevenues == null || paymentRevenues.isEmpty()) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing cashier report export data.");
+			return;
+		}
+		FileExporter.exportCashierReportData(response, paymentRevenues,
+				(List<BigDecimal>) request.getSession().getAttribute("subTotals"),
+				(BigDecimal) request.getSession().getAttribute("bigTotal"),
+				(BigDecimal) request.getSession().getAttribute("totalRevenueAmount"),
+				(String) request.getSession().getAttribute("cashierReportTitle"),
+				(User) request.getSession().getAttribute("collector"));
+	}
 }

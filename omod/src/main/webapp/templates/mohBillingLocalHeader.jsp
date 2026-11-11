@@ -1,5 +1,9 @@
 <ul id="menu">
 
+	<li>
+		<a href="/openmrs">Home</a>
+	</li>
+
 	<openmrs:hasPrivilege privilege="Search Insurance Policy">
 		<li class="<c:if test='<%= request.getRequestURI().contains("mohBillingInsurancePolicy")%>'> active</c:if>">
 			<a href="insurancePolicySearch.form"><spring:message

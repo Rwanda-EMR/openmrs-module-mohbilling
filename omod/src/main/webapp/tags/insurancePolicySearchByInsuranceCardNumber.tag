@@ -2,20 +2,24 @@
 
 <%@ attribute name="redirectUrl" required="true" type="java.lang.String" %>
 
-<script src='<%= request.getContextPath()%>/dwr/interface/MOH_BILLING_DWRUtil.js'></script>
-
 <script type="text/javascript">
 	function beneficiaryListInTable(item,id){
-		//alert(item.value);
-			if (item.value != null && item.value.length >= '${minSearchCharacters}'){
-				MOH_BILLING_DWRUtil.getBeneficiaryListInTable(item.value, function(ret){
-	
-					var box = document.getElementById("resultOfSearch");
-					box.innerHTML = ret;
-				});
+		var box = document.getElementById("resultOfSearch");
+		if (item.value == null || item.value.length < '${minSearchCharacters}'){
+			box.innerHTML = "";
+			return;
+		}
+
+		var request = new XMLHttpRequest();
+		request.onreadystatechange = function() {
+			if (request.readyState == 4 && request.status == 200) {
+				box.innerHTML = request.responseText;
 			}
+		};
+		request.open("GET", "<%= request.getContextPath()%>/module/mohbilling/beneficiarySearch.form?searchString=" + encodeURIComponent(item.value), true);
+		request.send(null);
 	}
-	
+
 	function editInsurancePolicy(ipId,ipCardNumber){
 		window.location.href="${redirectUrl}?insurancePolicyId="+ipId+"&ipCardNumber="+ipCardNumber;
 	}

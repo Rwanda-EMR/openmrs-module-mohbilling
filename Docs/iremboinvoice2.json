@@ -1,0 +1,39 @@
+{
+  "message": "Invoice fetched successfully",
+  "success": true,
+  "data": {
+    "amount": 100,
+    "invoiceNumber": "870419646180",
+    "transactionId": "TST-1005",
+    "language": "EN",
+    "createdAt": "2023-04-19T11:58:02.895+02",
+    "updatedAt": "2023-04-19T11:58:02.895+02",
+    "expiryAt": "2024-09-30T01:00:00.000+02",
+    "paidAt": "2024-09-30T01:00:00.000+02",
+    "paymentAccountIdentifier": "RCA-RWF",
+    "paymentItems": [
+      {
+        "unitAmount": 2000,
+        "quantity": 1,
+        "code": "PI-3e5fe23f2d"
+      }
+    ],
+    "description": "Invoice description",
+    "type": "BATCH",
+    "paymentStatus": "PAID",
+    "paymentReference": "v93cbrT23GijUwxIz5IG1UapTWKtFB",
+    "paymentMethod": "ONLINE_CARD",
+    "currency": "RWF",
+    "batchNumber": "870419646180",
+    "childInvoices": [
+      "880419591102",
+      "880419591103"
+    ],
+    "customer": {
+      "email": "example@gmail.com",
+      "phoneNumber": "0780000001",
+      "name": "Jixle Manzi"
+    },
+    "paymentLinkUrl": "<checkoutUrl>/880419591102"
+  }
+}

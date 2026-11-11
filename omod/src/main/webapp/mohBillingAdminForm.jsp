@@ -19,6 +19,4 @@
 
 <%@ include file="templates/mohBillingAdminHeader.jsp"%>
 
-
-
 <%@ include file="/WEB-INF/view/module/mohbilling/templates/footer.jsp"%>

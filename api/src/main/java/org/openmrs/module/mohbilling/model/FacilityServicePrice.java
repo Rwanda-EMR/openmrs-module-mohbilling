@@ -56,7 +56,7 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	}
 
 	public boolean isHidden (){
-		return hidden;
+		return Boolean.TRUE.equals(hidden);
 	}
 
 	public void setHidden(Boolean hidden) {

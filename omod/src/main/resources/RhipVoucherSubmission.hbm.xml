@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.openmrs.module.mohbilling.model">
+
+	<class name="RhipVoucherSubmission" table="moh_bill_rhip_voucher_submission">
+
+		<id name="rhipVoucherSubmissionId" type="int" column="rhip_voucher_submission_id" unsaved-value="0">
+			<generator class="native" />
+		</id>
+
+		<many-to-one name="globalBill" class="org.openmrs.module.mohbilling.model.GlobalBill" column="global_bill_id" not-null="true" />
+		<property name="status" column="status" type="string" not-null="true" />
+		<property name="requestPayload" column="request_payload" type="text" />
+		<property name="responsePayload" column="response_payload" type="text" />
+		<property name="responseCode" column="response_code" type="integer" />
+		<property name="voucherCode" column="voucher_code" type="text" />
+		<property name="voucherReferenceNumber" column="voucher_reference_number" type="text" />
+		<property name="errorMessage" column="error_message" type="text" />
+		<many-to-one name="submittedBy" class="org.openmrs.User" column="submitted_by" />
+		<property name="dateSubmitted" column="date_submitted" not-null="true" />
+		<property name="attemptNumber" column="attempt_number" type="integer" not-null="true" />
+		<property name="uuid" column="uuid" type="string" not-null="true" />
+	</class>
+
+</hibernate-mapping>

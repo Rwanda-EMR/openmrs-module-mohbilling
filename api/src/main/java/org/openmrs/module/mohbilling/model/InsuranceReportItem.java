@@ -17,9 +17,11 @@ public class InsuranceReportItem {
     private Integer beneficiaryLevel;
     private String cardNumber;
     private String companyName;
+    private String insuranceName;
     private Integer age;
     private Date birthDate;
     private String gender;
+    private String patientIdentifier;
     private String doctorName;
     private Integer insuranceId;
     private Integer globalBillId;
@@ -35,6 +37,7 @@ public class InsuranceReportItem {
     private Double ambulance;
     private Double consommables;
     private Double oxygenotherapie;
+    private Double autres;
     private Double imaging;
     private Double proced;
     private Double total100;
@@ -146,6 +149,14 @@ public class InsuranceReportItem {
         this.companyName = companyName;
     }
 
+    public String getInsuranceName() {
+        return valueOrNone(insuranceName);
+    }
+
+    public void setInsuranceName(String insuranceName) {
+        this.insuranceName = insuranceName;
+    }
+
     public Integer getAge() {
         return age;
     }
@@ -174,6 +185,14 @@ public class InsuranceReportItem {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public String getPatientIdentifier() {
+        return valueOrNone(patientIdentifier);
+    }
+
+    public void setPatientIdentifier(String patientIdentifier) {
+        this.patientIdentifier = patientIdentifier;
     }
 
     public String getDoctorName() {
@@ -300,6 +319,14 @@ public class InsuranceReportItem {
         this.oxygenotherapie = oxygenotherapie;
     }
 
+    public Double getAutres() {
+        return autres;
+    }
+
+    public void setAutres(Double autres) {
+        this.autres = autres;
+    }
+
     public Double getImaging() {
         return imaging;
     }
@@ -338,5 +365,9 @@ public class InsuranceReportItem {
 
     public void setTotalInsurance(Double totalInsurance) {
         this.totalInsurance = totalInsurance;
+    }
+
+    private String valueOrNone(String value) {
+        return value == null || value.trim().isEmpty() ? "None" : value;
     }
 }

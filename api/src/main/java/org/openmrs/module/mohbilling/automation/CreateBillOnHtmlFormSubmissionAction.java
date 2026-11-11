@@ -62,80 +62,84 @@ public class CreateBillOnHtmlFormSubmissionAction implements CustomFormSubmissio
         List<Obs> obs=session.getSubmissionActions().getObsToCreate();
         BigDecimal totalMaximaTopay=new BigDecimal(0);
         for (Obs o:obs) {
-            PatientServiceBill psb=new PatientServiceBill();
+            try {
+                PatientServiceBill psb=new PatientServiceBill();
 
-            if (department==null && o.getValueCoded()!=null ) {
-                for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
-                    if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
-                        department = dept;
-                        break;
+                if (department==null && o.getValueCoded()!=null ) {
+                    for (Department dept : Context.getService(BillingService.class).getAllDepartements()) {
+                        if (o.getValueCoded().getName().getName().toString().trim().equals(dept.getName().toString().trim())) {
+                            department = dept;
+                            break;
+                        }
                     }
                 }
-            }
 
-            //value coded
-            if (o.getValueCoded()!=null) {
-                FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(o.getValueCoded());
-                if (fsp!=null && fsp.isHidden()== false) {
-                    System.out.println("FacilityServicePrice Found: " + fsp.getName());
-                    BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
-                    totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay());
-                    System.out.println("BillableService maxima_to_pay: " + bs.getMaximaToPay());
-                    psb.setService(bs);
-                    psb.setServiceDate(new Date());
-                    psb.setUnitPrice(bs.getMaximaToPay());
-                    psb.setQuantity(new BigDecimal(1));
-                    //psb.setHopService(Context.getService(BillingService.class).getHopService(2));
-                    psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
-                    psb.setCreator(Context.getAuthenticatedUser());
-                    psb.setCreatedDate(new Date());
-                    psb.setItemType(1);
+                //value coded
+                if (o.getValueCoded()!=null) {
+                    FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(o.getValueCoded());
+                    if (fsp!=null && fsp.isHidden()== false) {
+                        System.out.println("FacilityServicePrice Found: " + fsp.getName());
+                        BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
+                        totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay());
+                        System.out.println("BillableService maxima_to_pay: " + bs.getMaximaToPay());
+                        psb.setService(bs);
+                        psb.setServiceDate(new Date());
+                        psb.setUnitPrice(bs.getMaximaToPay());
+                        psb.setQuantity(new BigDecimal(1));
+                        //psb.setHopService(Context.getService(BillingService.class).getHopService(2));
+                        psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
+                        psb.setCreator(Context.getAuthenticatedUser());
+                        psb.setCreatedDate(new Date());
+                        psb.setItemType(1);
 
-                    psbList.add(psb);
+                        psbList.add(psb);
+                    }
+
                 }
+                //value Numeric
+                if (o.getValueNumeric()!=null) {
+                    FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(o.getConcept());
+                    if (fsp!=null && fsp.isHidden()== false) {
+                        System.out.println("FacilityServicePrice Found: " + fsp.getName());
+                        BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
+                        totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay().multiply(new BigDecimal(o.getValueNumeric())));
+                        System.out.println("BillableService maxima_to_pay: " + bs.getMaximaToPay());
+                        psb.setService(bs);
+                        psb.setServiceDate(new Date());
+                        psb.setUnitPrice(bs.getMaximaToPay());
+                        psb.setQuantity(new BigDecimal(o.getValueNumeric()));
+                        //psb.setHopService(Context.getService(BillingService.class).getHopService(2));
+                        psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
+                        psb.setCreator(Context.getAuthenticatedUser());
+                        psb.setCreatedDate(new Date());
+                        psb.setItemType(1);
+                        psbList.add(psb);
+                    }
 
-            }
-            //value Numeric
-            if (o.getValueNumeric()!=null) {
-                FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(o.getConcept());
-                if (fsp!=null && fsp.isHidden()== false) {
-                    System.out.println("FacilityServicePrice Found: " + fsp.getName());
-                    BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
-                    totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay().multiply(new BigDecimal(o.getValueNumeric())));
-                    System.out.println("BillableService maxima_to_pay: " + bs.getMaximaToPay());
-                    psb.setService(bs);
-                    psb.setServiceDate(new Date());
-                    psb.setUnitPrice(bs.getMaximaToPay());
-                    psb.setQuantity(new BigDecimal(o.getValueNumeric()));
-                    //psb.setHopService(Context.getService(BillingService.class).getHopService(2));
-                    psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
-                    psb.setCreator(Context.getAuthenticatedUser());
-                    psb.setCreatedDate(new Date());
-                    psb.setItemType(1);
-                    psbList.add(psb);
                 }
+                //value Numeric
+                if (o.getValueBoolean()!=null) {
+                    FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(o.getConcept());
+                    if (fsp!=null && fsp.isHidden()== false) {
+                        System.out.println("FacilityServicePrice Found: " + fsp.getName());
+                        BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
+                        totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay());
+                        System.out.println("BillableService maxima_to_pay: " + bs.getMaximaToPay());
+                        psb.setService(bs);
+                        psb.setServiceDate(new Date());
+                        psb.setUnitPrice(bs.getMaximaToPay());
+                        psb.setQuantity(new BigDecimal(1));
+                        //psb.setHopService(Context.getService(BillingService.class).getHopService(2));
+                        psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
+                        psb.setCreator(Context.getAuthenticatedUser());
+                        psb.setCreatedDate(new Date());
 
-            }
-            //value Numeric
-            if (o.getValueBoolean()!=null) {
-                FacilityServicePrice fsp = Context.getService(BillingService.class).getFacilityServiceByConcept(o.getConcept());
-                if (fsp!=null && fsp.isHidden()== false) {
-                    System.out.println("FacilityServicePrice Found: " + fsp.getName());
-                    BillableService bs = Context.getService(BillingService.class).getBillableServiceByConcept(fsp,ip.getInsurance());
-                    totalMaximaTopay=totalMaximaTopay.add(bs.getMaximaToPay());
-                    System.out.println("BillableService maxima_to_pay: " + bs.getMaximaToPay());
-                    psb.setService(bs);
-                    psb.setServiceDate(new Date());
-                    psb.setUnitPrice(bs.getMaximaToPay());
-                    psb.setQuantity(new BigDecimal(1));
-                    //psb.setHopService(Context.getService(BillingService.class).getHopService(2));
-                    psb.setHopService(Context.getService(BillingService.class).getHopService(fsp.getCategory()));
-                    psb.setCreator(Context.getAuthenticatedUser());
-                    psb.setCreatedDate(new Date());
+                        psbList.add(psb);
+                    }
 
-                    psbList.add(psb);
                 }
-
+            } catch(NullPointerException npe){
+                System.out.println("Error Found: " + npe.getMessage());
             }
 
         }

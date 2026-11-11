@@ -18,6 +18,7 @@ import org.openmrs.Concept;
 import org.openmrs.DrugOrder;
 import org.openmrs.Obs;
 import org.openmrs.Order;
+import org.openmrs.OrderType;
 import org.openmrs.Patient;
 import org.openmrs.TestOrder;
 import org.openmrs.User;
@@ -155,7 +156,8 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         // Get the patient's insurance.  If none is found, throw an Exception
         InsurancePolicy insurancePolicy = getInsurancePolicyForPatient(patient);
         if (insurancePolicy == null) {
-            throw new RuntimeException("No insurance policy found for patient: " + patient);
+            log.debug("\n\n\n\n\nNo insurance policy found for patient: " + patient + " Unable to create billing information.\\n\\n\\n\\n\\n");
+            return;
         }
         log.debug("insurancePolicy: {}", insurancePolicy);
 
@@ -225,9 +227,17 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             }
 
             BillableService billableService = billingService.getBillableServiceByConcept(facilityServicePrice, insurancePolicy.getInsurance());
+            if(billableService == null ){
+                log.debug("unable to locate billable service for {}, on {} insurance", facilityServicePrice.getName(), insurancePolicy.getInsurance().getName());
+                continue;
+            }
             HopService hopService = billingService.getHopService(facilityServicePrice.getCategory());
             BigDecimal unitPrice = billableService.getMaximaToPay();
             log.debug("unitPrice: {}", unitPrice);
+            if (unitPrice == null) {
+                log.warn("No price (maxima to pay) configured for {} on {} insurance, not billing order {}", facilityServicePrice.getName(), insurancePolicy.getInsurance().getName(), order);
+                continue;
+            }
             BigDecimal quantity = new BigDecimal(1);
             if (order instanceof DrugOrder) {
                 DrugOrder drugOrder = (DrugOrder) order;
@@ -256,7 +266,10 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
             patientServiceBill.setCreator(currentUser);
             patientServiceBill.setCreatedDate(now);
             patientServiceBill.setItemType(1);
+            // Forward-only link for Bill Report Item Date / lab confirmation.
+            patientServiceBill.setOrderId(resolvePersistedOrderId(order));
             patientServiceBillsByDepartment.computeIfAbsent(department, k -> new ArrayList<>()).add(patientServiceBill);
+            
         }
 
         // For each department, create appropriate bills
@@ -398,6 +411,37 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
     }
 
     /**
+     * Resolves a persisted {@code orders.order_id} for the in-flight order entity.
+     * IDs are usually assigned before root {@code beforeTransactionCompletion}; falls back to
+     * order number / uuid lookup when the in-memory entity still lacks an id.
+     */
+    static Integer resolvePersistedOrderId(Order order) {
+        if (order == null) {
+            return null;
+        }
+        if (order.getOrderId() != null) {
+            return order.getOrderId();
+        }
+        try {
+            if (StringUtils.isNotBlank(order.getOrderNumber())) {
+                Order byNumber = Context.getOrderService().getOrderByOrderNumber(order.getOrderNumber());
+                if (byNumber != null && byNumber.getOrderId() != null) {
+                    return byNumber.getOrderId();
+                }
+            }
+            if (StringUtils.isNotBlank(order.getUuid())) {
+                Order byUuid = Context.getOrderService().getOrderByUuid(order.getUuid());
+                if (byUuid != null && byUuid.getOrderId() != null) {
+                    return byUuid.getOrderId();
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Unable to resolve persisted order id for billing link: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    /**
      * @return the InsurancePolicy for a given patient
      */
     InsurancePolicy getInsurancePolicyForPatient(Patient patient) {
@@ -432,9 +476,20 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
     }
 
     /**
+     * Global property mapping order types to the department their orders are billed on, as pairs of
+     * orderType=Department separated by commas, for example "Radiology Order=RADIOLOGIE".  The order type is given by
+     * uuid, id or name, and the department by name.  Orders of other types are billed on the department found as before.
+     */
+    public static final String GP_ORDER_TYPE_DEPARTMENTS = "billing.orderTypeDepartments";
+
+    /**
      * @return the Department applicable for the given order
      */
     Department getDepartmentForOrder(Order order) {
+        Department configured = getConfiguredDepartmentForOrderType(order);
+        if (configured != null) {
+            return configured;
+        }
         Department department = null;
         for (Department dept : billingService.getAllDepartements()) {
             String deptName = dept.getName().trim().toUpperCase();
@@ -483,6 +538,49 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
     }
 
     /**
+     * @return the department configured for the order's type in {@link #GP_ORDER_TYPE_DEPARTMENTS}, or null if none is
+     */
+    Department getConfiguredDepartmentForOrderType(Order order) {
+        String departmentName = getDepartmentNameForOrderType(order.getOrderType(),
+                ConfigUtil.getGlobalProperty(GP_ORDER_TYPE_DEPARTMENTS));
+        if (departmentName == null) {
+            return null;
+        }
+        for (Department dept : billingService.getAllDepartements()) {
+            if (dept.getName() != null && dept.getName().trim().equalsIgnoreCase(departmentName)) {
+                return dept;
+            }
+        }
+        log.warn("{} maps order type {} to department {}, which does not exist; using the default department",
+                GP_ORDER_TYPE_DEPARTMENTS, order.getOrderType(), departmentName);
+        return null;
+    }
+
+    /**
+     * @return the name of the department the configuration maps the order type to, or null if it maps it to none
+     */
+    static String getDepartmentNameForOrderType(OrderType orderType, String configuration) {
+        if (orderType == null || StringUtils.isBlank(configuration)) {
+            return null;
+        }
+        for (String mapping : configuration.split(",")) {
+            int separator = mapping.indexOf('=');
+            if (separator <= 0) {
+                continue;
+            }
+            String orderTypeRef = mapping.substring(0, separator).trim();
+            String departmentName = mapping.substring(separator + 1).trim();
+            boolean matches = orderTypeRef.equalsIgnoreCase(orderType.getUuid())
+                    || (orderType.getOrderTypeId() != null && orderTypeRef.equals(orderType.getOrderTypeId().toString()))
+                    || orderTypeRef.equalsIgnoreCase(StringUtils.trimToEmpty(orderType.getName()));
+            if (matches && StringUtils.isNotBlank(departmentName)) {
+                return departmentName;
+            }
+        }
+        return null;
+    }
+
+    /**
      * This supports the laboratorymanagement configuration where some tests are billed based on the set they are in
      * @return concept to set it should be billed in
      */
@@ -491,7 +589,14 @@ public class MohBillingOrderHandler implements MohBillingHandler<Order> {
         String gpVal = ConfigUtil.getGlobalProperty("laboratorymanagement.conceptSetsToBill");
         if (StringUtils.isNotBlank(gpVal)) {
             for (String conceptSetRef : gpVal.split(",")) {
+                if (StringUtils.isBlank(conceptSetRef)) {
+                    continue;
+                }
                 Concept conceptSet = getConcept(conceptSetRef);
+                if (conceptSet == null) {
+                    log.warn("laboratorymanagement.conceptSetsToBill references a concept that was not found: {}", conceptSetRef);
+                    continue;
+                }
                 List<Concept> conceptSetMembers = conceptService.getConceptsByConceptSet(conceptSet);
                 for (Concept setMember : conceptSetMembers) {
                     ret.put(setMember, conceptSet);

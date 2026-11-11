@@ -30,6 +30,15 @@
 		<many-to-one name="paymentConfirmedBy" class="org.openmrs.User" column="paymentConfirmedBy" />
 		<property name="paymentConfirmedDate" column="paymentConfirmedDate" type="java.util.Date" />
 
+		<property name="invoiceNumber" column="invoice_number" type="text" />
+		<property name="initiatedAt" column="inititated_at" type="java.util.Date" />
+		<many-to-one name="initiatedBy" class="org.openmrs.User" column="initiated_by" />
+		<property name="paidAt" column="paid_at" type="java.util.Date" />
+		<property name="paymentReference" column="payment_reference" type="text" />
+		<property name="batchNumber" column="batch_number" type="text" />
+		<property name="paymentLinkUrl" column="payment_link_url" type="text" />
+		<property name="retryCount" column="retry_count" type="int" />
+
 
 		<set name="payments" lazy="false" inverse="true"
 			 cascade="all-delete-orphan" sort="natural"

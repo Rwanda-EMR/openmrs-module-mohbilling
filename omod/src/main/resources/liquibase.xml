@@ -33,6 +33,98 @@
 		</sql>
 	</changeSet>
 
+	<changeSet id="moh_bill_rhip_practitioner_type" author="bniyonshuti">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_rhip_practitioner_type" /></not>
+		</preConditions>
+		<comment>
+			Local cache table for RHIP practitioner types/sub-categories (fallback when RHIP types endpoint is unavailable).
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_rhip_practitioner_type (
+			rhip_practitioner_type_id int(11) NOT NULL AUTO_INCREMENT,
+			rhip_id char(38) NOT NULL,
+			name varchar(255) NOT NULL,
+			type varchar(50) NOT NULL,
+			category_rhip_id char(38) DEFAULT NULL,
+			category_name varchar(255) DEFAULT NULL,
+			creator int(11) NOT NULL,
+			date_created datetime NOT NULL,
+			changed_by int(11) DEFAULT NULL,
+			date_changed datetime DEFAULT NULL,
+			voided tinyint(1) NOT NULL DEFAULT '0',
+			voided_by int(11) DEFAULT NULL,
+			date_voided datetime DEFAULT NULL,
+			void_reason varchar(255) DEFAULT NULL,
+			uuid char(38) NOT NULL,
+			PRIMARY KEY (rhip_practitioner_type_id),
+			UNIQUE KEY uuid (uuid),
+			UNIQUE KEY rhip_id (rhip_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_rhip_integration_log" author="bniyonshuti">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_rhip_integration_log" /></not>
+		</preConditions>
+		<comment>
+			Audit log table for RHIP integration requests/responses.
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_rhip_integration_log (
+			rhip_integration_log_id int(11) NOT NULL AUTO_INCREMENT,
+			date_created datetime NOT NULL,
+			creator int(11) DEFAULT NULL,
+			sender_username varchar(255) DEFAULT NULL,
+			operation_type varchar(80) DEFAULT NULL,
+			endpoint_url varchar(500) DEFAULT NULL,
+			request_payload mediumtext DEFAULT NULL,
+			response_code int(11) DEFAULT NULL,
+			response_status varchar(50) DEFAULT NULL,
+			response_body mediumtext DEFAULT NULL,
+			error_message mediumtext DEFAULT NULL,
+			uuid char(38) NOT NULL,
+			PRIMARY KEY (rhip_integration_log_id),
+			UNIQUE KEY uuid (uuid),
+			KEY date_created (date_created),
+			KEY response_status (response_status)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_rhip_voucher_submission" author="codex">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_rhip_voucher_submission" /></not>
+		</preConditions>
+		<comment>
+			Submission history for RHIP voucher attempts per global bill.
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_rhip_voucher_submission (
+			rhip_voucher_submission_id int(11) NOT NULL AUTO_INCREMENT,
+			global_bill_id int(11) NOT NULL,
+			status varchar(30) NOT NULL,
+			request_payload mediumtext DEFAULT NULL,
+			response_payload mediumtext DEFAULT NULL,
+			response_code int(11) DEFAULT NULL,
+			voucher_code mediumtext DEFAULT NULL,
+			voucher_reference_number mediumtext DEFAULT NULL,
+			error_message mediumtext DEFAULT NULL,
+			submitted_by int(11) DEFAULT NULL,
+			date_submitted datetime NOT NULL,
+			attempt_number int(11) NOT NULL,
+			uuid char(38) NOT NULL,
+			PRIMARY KEY (rhip_voucher_submission_id),
+			UNIQUE KEY uuid (uuid),
+			KEY rhip_voucher_submission_global_bill (global_bill_id),
+			KEY rhip_voucher_submission_status (status),
+			KEY rhip_voucher_submission_date (date_submitted),
+			KEY rhip_voucher_submission_attempt (global_bill_id, attempt_number)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
 
 	<changeSet id="moh_bill_beneficiary" author="jberchmas">
 		<preConditions onFail="MARK_RAN">
@@ -1640,4 +1732,1065 @@
 			ALTER TABLE moh_bill_patient_bill CHANGE COLUMN paymentConfirmed paymentConfirmed TINYINT(1) DEFAULT 0;
 		</sql>
 	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_invoice_number" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="invoice_number"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="invoice_number" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_add_paid_at" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="paid_at"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="paid_at" type="DATETIME"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_payment_reference" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="payment_reference"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="payment_reference" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_department_adding_account_identifier_2" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_department" columnName="account_identifier"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_department">
+			<column name="account_identifier" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_retry_count" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="retry_count"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="retry_count" type="int"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_payment_adding_payment_reference" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="moh_bill_payment" columnName="payment_reference"/>
+			</not>
+		</preConditions>
+
+		<addColumn tableName="moh_bill_payment">
+			<column name="payment_reference" type="varchar(255)">
+				<constraints nullable="true"/>
+			</column>
+		</addColumn>
+
+		<addUniqueConstraint
+			tableName="moh_bill_payment"
+			columnNames="payment_reference"
+			constraintName="uk_moh_bill_payment_reference"/>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_inititated_at" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="inititated_at"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="inititated_at" type="DATETIME"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_add_unique_invoice_number" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><indexExists tableName="moh_bill_patient_bill" indexName="uk_moh_bill_patient_bill_invoice_number"/></not>
+		</preConditions>
+
+		<createIndex tableName="moh_bill_patient_bill"
+					indexName="uk_moh_bill_patient_bill_invoice_number"
+					unique="true">
+			<column name="invoice_number"/>
+		</createIndex>
+	</changeSet>
+	<changeSet id="moh_bill_patient_bill_adding_batch_number" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="batch_number"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="batch_number" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_payment_adding_invoice_number" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_payment" columnName="invoice_number"/></not>
+		</preConditions>
+		<addColumn tableName="moh_bill_payment">
+			<column name="invoice_number" type="varchar(255)"/>
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="drop_uk_moh_bill_payment_reference" author="moh-dev">
+		<!-- uniqueConstraintExists is not valid in older Liquibase / OpenMRS XSD; use sqlCheck (MySQL/MariaDB). -->
+		<preConditions onFail="MARK_RAN">
+			<dbms type="mysql,mariadb"/>
+			<sqlCheck expectedResult="1">
+				SELECT COUNT(*) FROM information_schema.table_constraints
+				WHERE constraint_schema = DATABASE()
+				AND table_name = 'moh_bill_payment'
+				AND constraint_name = 'uk_moh_bill_payment_reference'
+				AND constraint_type = 'UNIQUE'
+			</sqlCheck>
+		</preConditions>
+
+		<dropUniqueConstraint
+			tableName="moh_bill_payment"
+			constraintName="uk_moh_bill_payment_reference"/>
+	</changeSet>
+
+	<changeSet id="add-uk-moh-bill-payment-invoice-reference" author="chatgpt">
+		<preConditions onFail="MARK_RAN">
+			<dbms type="mysql,mariadb"/>
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM information_schema.table_constraints
+				WHERE constraint_schema = DATABASE()
+				AND table_name = 'moh_bill_payment'
+				AND constraint_name = 'uk_moh_bill_payment_invoice_reference'
+				AND constraint_type = 'UNIQUE'
+			</sqlCheck>
+		</preConditions>
+
+		<addUniqueConstraint
+			tableName="moh_bill_payment"
+			columnNames="invoice_number,payment_reference"
+			constraintName="uk_moh_bill_payment_invoice_reference"/>
+
+	</changeSet>
+	<changeSet id="moh_bill_insurance_policy_rhip_patient_id" author="openmrs">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="moh_bill_insurance_policy" columnName="rhip_patient_id" />
+			</not>
+		</preConditions>
+		<comment>
+			Add RHIP patient identifier to insurance policy
+		</comment>
+		<addColumn tableName="moh_bill_insurance_policy">
+			<column name="rhip_patient_id" type="varchar(64)" />
+		</addColumn>
+	</changeSet>
+	<changeSet id="moh_bill_global_bill_rhip_voucher_fields" author="openmrs">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="moh_bill_global_bill" columnName="rhip_voucher_code" />
+			</not>
+		</preConditions>
+		<comment>
+			Add RHIP voucher details to global bill
+		</comment>
+		<addColumn tableName="moh_bill_global_bill">
+			<column name="rhip_voucher_code" type="varchar(64)" />
+			<column name="rhip_voucher_reference_number" type="varchar(64)" />
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="moh_bill_rhip_voucher_item_record" author="openmrs">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="moh_bill_rhip_voucher_item_record" />
+			</not>
+		</preConditions>
+		<comment>
+			Add item-level RHIP voucher submission records
+		</comment>
+		<createTable tableName="moh_bill_rhip_voucher_item_record">
+			<column name="rhip_voucher_item_record_id" type="int" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="global_bill_id" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="patient_service_bill_id" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="product_code" type="varchar(64)">
+				<constraints nullable="false" />
+			</column>
+			<column name="quantity" type="decimal(19,2)" />
+			<column name="price" type="decimal(19,2)" />
+			<column name="status" type="varchar(32)">
+				<constraints nullable="false" />
+			</column>
+			<column name="rejection_reason" type="text" />
+			<column name="voucher_code" type="varchar(64)" />
+			<column name="voucher_reference_number" type="varchar(64)" />
+			<column name="date_created" type="datetime">
+				<constraints nullable="false" />
+			</column>
+			<column name="creator" type="int" />
+			<column name="uuid" type="varchar(38)">
+				<constraints nullable="false" unique="true" />
+			</column>
+		</createTable>
+		<createIndex tableName="moh_bill_rhip_voucher_item_record" indexName="moh_bill_rhip_voucher_item_record_gb_idx">
+			<column name="global_bill_id" />
+		</createIndex>
+		<createIndex tableName="moh_bill_rhip_voucher_item_record" indexName="moh_bill_rhip_voucher_item_record_item_idx">
+			<column name="patient_service_bill_id" />
+		</createIndex>
+	</changeSet>
+
+	<changeSet id="moh_bill_patient_bill_adding_payment_link_url" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<not><columnExists tableName="moh_bill_patient_bill" columnName="payment_link_url"/></not>
+		</preConditions>
+		<comment>Store Irembo Pay checkout paymentLinkUrl for single and batch invoices</comment>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="payment_link_url" type="varchar(512)"/>
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="moh_bill_insurance_report_etl" author="jberchmas">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="moh_bill_insurance_report_etl" />
+			</not>
+		</preConditions>
+		<comment>
+			Materialized insurance report populated by the MoH Billing scheduler
+		</comment>
+		<createTable tableName="moh_bill_insurance_report_etl">
+			<column name="insurance_report_etl_id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="global_bill_id" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="insurance_id" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="patient_id" type="int" />
+			<column name="admission_date" type="datetime" />
+			<column name="closing_date" type="datetime">
+				<constraints nullable="false" />
+			</column>
+			<column name="beneficiary_name" type="varchar(255)" />
+			<column name="household_head_name" type="varchar(255)" />
+			<column name="family_code" type="varchar(255)" />
+			<column name="beneficiary_level" type="int" />
+			<column name="card_number" type="varchar(255)" />
+			<column name="company_name" type="varchar(255)" />
+			<column name="age" type="int" />
+			<column name="birth_date" type="date" />
+			<column name="gender" type="varchar(50)" />
+			<column name="doctor_name" type="varchar(1000)" />
+			<column name="global_bill_identifier" type="varchar(255)" />
+			<column name="insurance_rate" type="decimal(7,2)" defaultValueNumeric="0" />
+			<column name="insurance_flat_fee" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="medicaments" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="consultation" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="hospitalisation" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="laboratoire" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="consommables" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="ambulance" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="oxygenotherapie" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="autres" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="formalites_administratives" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="imaging" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="procedures" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="total_100" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="total_insurance" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="total_patient" type="decimal(19,2)" defaultValueNumeric="0" />
+			<column name="etl_loaded_at" type="datetime">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<createIndex tableName="moh_bill_insurance_report_etl"
+					 indexName="uk_moh_bill_insurance_report_etl_global_bill" unique="true">
+			<column name="global_bill_id" />
+		</createIndex>
+		<createIndex tableName="moh_bill_insurance_report_etl"
+					 indexName="idx_moh_bill_insurance_report_etl_insurance_date">
+			<column name="insurance_id" />
+			<column name="closing_date" />
+		</createIndex>
+		<createIndex tableName="moh_bill_insurance_report_etl"
+					 indexName="idx_moh_bill_insurance_report_etl_loaded_at">
+			<column name="etl_loaded_at" />
+		</createIndex>
+		</changeSet>
+
+			<changeSet id="moh_bill_global_bill_insurance_etl_closing_date_index" author="jberchmas">
+			<preConditions onFail="MARK_RAN">
+				<not>
+					<indexExists tableName="moh_bill_global_bill"
+							indexName="idx_moh_bill_global_bill_closing_date" />
+				</not>
+			</preConditions>
+			<comment>Bound incremental insurance ETL refreshes by global bill closing date</comment>
+			<createIndex tableName="moh_bill_global_bill"
+					indexName="idx_moh_bill_global_bill_closing_date">
+				<column name="closing_date" />
+			</createIndex>
+			</changeSet>
+
+			<changeSet id="moh_bill_insurance_report_etl_closing_date_index" author="jberchmas">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<indexExists tableName="moh_bill_insurance_report_etl"
+								indexName="idx_moh_bill_insurance_report_etl_closing_date" />
+					</not>
+				</preConditions>
+				<comment>Support insurance report date searches without an insurance filter</comment>
+				<createIndex tableName="moh_bill_insurance_report_etl"
+						indexName="idx_moh_bill_insurance_report_etl_closing_date">
+					<column name="closing_date" />
+				</createIndex>
+			</changeSet>
+
+			<changeSet id="moh_bill_insurance_report_etl_insurance_name" author="jberchmas">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<columnExists tableName="moh_bill_insurance_report_etl" columnName="insurance_name" />
+					</not>
+				</preConditions>
+				<comment>Materialize the insurance name so report reads require no insurance join</comment>
+				<addColumn tableName="moh_bill_insurance_report_etl">
+					<column name="insurance_name" type="varchar(255)" />
+				</addColumn>
+			</changeSet>
+
+			<changeSet id="moh_bill_insurance_report_etl_primary_identifier" author="jberchmas">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<columnExists tableName="moh_bill_insurance_report_etl" columnName="primary_identifier" />
+					</not>
+				</preConditions>
+				<comment>Materialize the primary patient identifier so report reads require no identifier join</comment>
+				<addColumn tableName="moh_bill_insurance_report_etl">
+					<column name="primary_identifier" type="varchar(255)" />
+				</addColumn>
+			</changeSet>
+
+			<changeSet id="patient_identifier_insurance_report_etl_lookup_index" author="jberchmas">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<indexExists tableName="patient_identifier"
+								indexName="idx_patient_identifier_insurance_report_etl" />
+					</not>
+				</preConditions>
+				<comment>Support primary identifier lookup while the insurance report ETL task runs</comment>
+				<createIndex tableName="patient_identifier"
+						indexName="idx_patient_identifier_insurance_report_etl">
+					<column name="patient_id" />
+					<column name="identifier_type" />
+					<column name="voided" />
+					<column name="preferred" />
+					<column name="patient_identifier_id" />
+				</createIndex>
+			</changeSet>
+
+			<changeSet id="moh_bill_cashier_report_etl" author="jberchmas">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<tableExists tableName="moh_bill_cashier_report_etl" />
+					</not>
+				</preConditions>
+				<comment>Materialized cashier report populated by the MoH Billing scheduler</comment>
+				<createTable tableName="moh_bill_cashier_report_etl">
+					<column name="cashier_report_etl_id" type="bigint" autoIncrement="true">
+						<constraints primaryKey="true" nullable="false" />
+					</column>
+					<column name="bill_payment_id" type="int">
+						<constraints nullable="false" />
+					</column>
+					<column name="patient_bill_id" type="int">
+						<constraints nullable="false" />
+					</column>
+					<column name="collector_id" type="int">
+						<constraints nullable="false" />
+					</column>
+					<column name="payment_type" type="varchar(20)">
+						<constraints nullable="false" />
+					</column>
+					<column name="date_received" type="datetime">
+						<constraints nullable="false" />
+					</column>
+					<column name="amount_paid" type="decimal(20,2)" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="payment_void_reason" type="varchar(250)" />
+					<column name="patient_id" type="int" />
+					<column name="beneficiary_name" type="varchar(255)" />
+					<column name="phone_number" type="varchar(50)" />
+					<column name="transaction_status" type="varchar(50)" />
+					<column name="service_id" type="int" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="service_name" type="varchar(255)" defaultValue="">
+						<constraints nullable="false" />
+					</column>
+					<column name="item_type" type="smallint" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="due_amount" type="decimal(20,2)" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="etl_loaded_at" type="datetime">
+						<constraints nullable="false" />
+					</column>
+				</createTable>
+				<createIndex tableName="moh_bill_cashier_report_etl"
+						indexName="uk_moh_bill_cashier_report_etl_payment_service" unique="true">
+					<column name="bill_payment_id" />
+					<column name="service_id" />
+					<column name="item_type" />
+				</createIndex>
+				<createIndex tableName="moh_bill_cashier_report_etl"
+						indexName="idx_moh_bill_cashier_report_etl_date_collector">
+					<column name="date_received" />
+					<column name="collector_id" />
+					<column name="payment_type" />
+				</createIndex>
+				<createIndex tableName="moh_bill_cashier_report_etl"
+						indexName="idx_moh_bill_cashier_report_etl_loaded_at">
+					<column name="etl_loaded_at" />
+				</createIndex>
+			</changeSet>
+
+			<changeSet id="moh_bill_cashier_report_etl_patient_identifier" author="jberchmas">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<columnExists tableName="moh_bill_cashier_report_etl" columnName="patient_identifier" />
+					</not>
+				</preConditions>
+				<comment>Materialize the configured primary patient identifier in the cashier report</comment>
+				<addColumn tableName="moh_bill_cashier_report_etl">
+					<column name="patient_identifier" type="varchar(255)" />
+				</addColumn>
+			</changeSet>
+
+			<changeSet id="moh_bill_payment_cashier_report_etl_index" author="jberchmas">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<indexExists tableName="moh_bill_payment"
+								indexName="idx_moh_bill_payment_cashier_report_etl" />
+					</not>
+				</preConditions>
+				<comment>Bound incremental cashier ETL refreshes by payment date</comment>
+				<createIndex tableName="moh_bill_payment"
+						indexName="idx_moh_bill_payment_cashier_report_etl">
+					<column name="date_received" />
+					<column name="voided" />
+					<column name="bill_payment_id" />
+				</createIndex>
+			</changeSet>
+
+			<changeSet id="moh_bill_cashier_report_etl" author="openmrs">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<tableExists tableName="moh_bill_cashier_report_etl" />
+					</not>
+				</preConditions>
+				<comment>Materialized cashier report populated by the MoH Billing scheduler</comment>
+				<createTable tableName="moh_bill_cashier_report_etl">
+					<column name="cashier_report_etl_id" type="bigint" autoIncrement="true">
+						<constraints primaryKey="true" nullable="false" />
+					</column>
+					<column name="bill_payment_id" type="int">
+						<constraints nullable="false" />
+					</column>
+					<column name="patient_bill_id" type="int">
+						<constraints nullable="false" />
+					</column>
+					<column name="collector_id" type="int">
+						<constraints nullable="false" />
+					</column>
+					<column name="payment_type" type="varchar(20)">
+						<constraints nullable="false" />
+					</column>
+					<column name="date_received" type="datetime">
+						<constraints nullable="false" />
+					</column>
+					<column name="amount_paid" type="decimal(20,2)" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="payment_void_reason" type="varchar(250)" />
+					<column name="patient_id" type="int" />
+					<column name="beneficiary_name" type="varchar(255)" />
+					<column name="phone_number" type="varchar(50)" />
+					<column name="transaction_status" type="varchar(50)" />
+					<column name="service_id" type="int" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="service_name" type="varchar(255)" defaultValue="">
+						<constraints nullable="false" />
+					</column>
+					<column name="item_type" type="smallint" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="due_amount" type="decimal(20,2)" defaultValueNumeric="0">
+						<constraints nullable="false" />
+					</column>
+					<column name="etl_loaded_at" type="datetime">
+						<constraints nullable="false" />
+					</column>
+				</createTable>
+				<createIndex tableName="moh_bill_cashier_report_etl"
+						indexName="uk_moh_bill_cashier_report_etl_payment_service" unique="true">
+					<column name="bill_payment_id" />
+					<column name="service_id" />
+					<column name="item_type" />
+				</createIndex>
+				<createIndex tableName="moh_bill_cashier_report_etl"
+						indexName="idx_moh_bill_cashier_report_etl_date_collector">
+					<column name="date_received" />
+					<column name="collector_id" />
+					<column name="payment_type" />
+				</createIndex>
+				<createIndex tableName="moh_bill_cashier_report_etl"
+						indexName="idx_moh_bill_cashier_report_etl_loaded_at">
+					<column name="etl_loaded_at" />
+				</createIndex>
+			</changeSet>
+
+			<changeSet id="moh_bill_payment_cashier_report_etl_index" author="openmrs">
+				<preConditions onFail="MARK_RAN">
+					<not>
+						<indexExists tableName="moh_bill_payment"
+								indexName="idx_moh_bill_payment_cashier_report_etl" />
+					</not>
+				</preConditions>
+				<comment>Bound incremental cashier ETL refreshes by payment date</comment>
+				<createIndex tableName="moh_bill_payment"
+						indexName="idx_moh_bill_payment_cashier_report_etl">
+					<column name="date_received" />
+					<column name="voided" />
+					<column name="bill_payment_id" />
+				</createIndex>
+			</changeSet>
+
+	<changeSet id="moh_bill_proforma" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_proforma" /></not>
+		</preConditions>
+		<comment>
+			Proforma invoices (price estimates) issued before treatment. Independent from global bills.
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_proforma (
+			proforma_id int(11) NOT NULL AUTO_INCREMENT,
+			identifier varchar(50) DEFAULT NULL,
+			patient_id int(11) NOT NULL,
+			insurance_id int(11) NOT NULL,
+			department_id int(11) DEFAULT NULL,
+			insurance_rate float DEFAULT NULL,
+			flat_fee decimal(20,2) DEFAULT NULL,
+			total_amount decimal(20,2) NOT NULL DEFAULT '0.00',
+			insurance_amount decimal(20,2) NOT NULL DEFAULT '0.00',
+			patient_amount decimal(20,2) NOT NULL DEFAULT '0.00',
+			valid_until date DEFAULT NULL,
+			addressee varchar(255) DEFAULT NULL,
+			notes text DEFAULT NULL,
+			status varchar(20) NOT NULL,
+			creator int(11) NOT NULL,
+			created_date datetime NOT NULL,
+			cancelled_by int(11) DEFAULT NULL,
+			cancelled_date datetime DEFAULT NULL,
+			cancel_reason varchar(255) DEFAULT NULL,
+			uuid char(38) NOT NULL,
+			PRIMARY KEY (proforma_id),
+			UNIQUE KEY moh_bill_proforma_uuid (uuid),
+			UNIQUE KEY moh_bill_proforma_identifier (identifier),
+			KEY moh_bill_proforma_patient (patient_id),
+			KEY moh_bill_proforma_insurance (insurance_id),
+			KEY moh_bill_proforma_created_date (created_date),
+			CONSTRAINT moh_bill_proforma_patient_fk FOREIGN KEY (patient_id) REFERENCES patient (patient_id),
+			CONSTRAINT moh_bill_proforma_insurance_fk FOREIGN KEY (insurance_id) REFERENCES moh_bill_insurance (insurance_id),
+			CONSTRAINT moh_bill_proforma_creator_fk FOREIGN KEY (creator) REFERENCES users (user_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<changeSet id="moh_bill_proforma_item" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="moh_bill_proforma_item" /></not>
+		</preConditions>
+		<comment>
+			Line items of proforma invoices, with price snapshots.
+		</comment>
+		<sql>
+			CREATE TABLE moh_bill_proforma_item (
+			proforma_item_id int(11) NOT NULL AUTO_INCREMENT,
+			proforma_id int(11) NOT NULL,
+			billable_service_id int(11) DEFAULT NULL,
+			service_name varchar(255) NOT NULL,
+			category_name varchar(255) DEFAULT NULL,
+			unit_price decimal(20,2) NOT NULL,
+			quantity decimal(20,2) NOT NULL,
+			line_total decimal(20,2) NOT NULL,
+			uuid char(38) NOT NULL,
+			PRIMARY KEY (proforma_item_id),
+			UNIQUE KEY moh_bill_proforma_item_uuid (uuid),
+			KEY moh_bill_proforma_item_proforma (proforma_id),
+			CONSTRAINT moh_bill_proforma_item_proforma_fk FOREIGN KEY (proforma_id) REFERENCES moh_bill_proforma (proforma_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		</sql>
+	</changeSet>
+
+	<!-- CBHI claim report: location attribute types for facility classification -->
+
+	<changeSet id="mohbilling-20261020-location-attr-facility-type" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = 'dc3f9f53-730a-4fc6-928c-a113e1089e7e'
+				   OR name = 'Facility Type'
+			</sqlCheck>
+		</preConditions>
+		<comment>
+			Create Location Attribute Type: Facility Type (free text) for CBHI claim reporting
+		</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Facility Type',
+			 'Facility type classification for CBHI claim reporting (free text)',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL,
+			 0, 1, 1, NOW(), 0,
+			 'dc3f9f53-730a-4fc6-928c-a113e1089e7e');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261020-location-attr-facility-category" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '23200719-eb8d-4532-854f-75ba9dcf796e'
+				   OR name = 'Facility Category'
+			</sqlCheck>
+		</preConditions>
+		<comment>
+			Create Location Attribute Type: Facility Category (free text) for CBHI claim reporting
+		</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Facility Category',
+			 'Facility category classification for CBHI claim reporting (free text)',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL,
+			 0, 1, 1, NOW(), 0,
+			 '23200719-eb8d-4532-854f-75ba9dcf796e');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261020-location-attr-level-of-care" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '0dfb14f2-9759-4c88-8938-3d9999bc9942'
+				   OR name = 'Level of Care'
+			</sqlCheck>
+		</preConditions>
+		<comment>
+			Create Location Attribute Type: Level of Care (free text) for CBHI claim reporting
+		</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Level of Care',
+			 'Level of care classification for CBHI claim reporting (free text)',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL,
+			 0, 1, 1, NOW(), 0,
+			 '0dfb14f2-9759-4c88-8938-3d9999bc9942');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261020-location-attr-owner-type" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '3acba29f-5aef-4620-a72e-46eb971b4bb1'
+				   OR name = 'Owner Type'
+			</sqlCheck>
+		</preConditions>
+		<comment>
+			Create Location Attribute Type: Owner Type (free text) for CBHI claim reporting
+		</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Owner Type',
+			 'Owner type classification for CBHI claim reporting (free text)',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL,
+			 0, 1, 1, NOW(), 0,
+			 '3acba29f-5aef-4620-a72e-46eb971b4bb1');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261021-location-attr-facility-name" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = 'a3c3be95-d1a6-4fe5-9d88-7555f850416a'
+				   OR name = 'Facility Name'
+			</sqlCheck>
+		</preConditions>
+		<comment>Location Attribute Type: Facility Name (free text) for Bill Report settings</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Facility Name',
+			 'Facility display name for CBHI Bill Report header',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL, 0, 1, 1, NOW(), 0,
+			 'a3c3be95-d1a6-4fe5-9d88-7555f850416a');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261021-location-attr-province-name" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = 'f647cb4d-060c-4159-90df-42658365fa9a'
+				   OR name = 'Province Name'
+			</sqlCheck>
+		</preConditions>
+		<comment>Location Attribute Type: Province Name (free text) for Bill Report settings</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Province Name',
+			 'Province name for CBHI Bill Report header',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL, 0, 1, 1, NOW(), 0,
+			 'f647cb4d-060c-4159-90df-42658365fa9a');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261021-location-attr-district-name" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '7df320d4-b4d7-4add-b3e9-6742e877fb3e'
+				   OR name = 'District Name'
+			</sqlCheck>
+		</preConditions>
+		<comment>Location Attribute Type: District Name (free text) for Bill Report settings</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('District Name',
+			 'District name for CBHI Bill Report header',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL, 0, 1, 1, NOW(), 0,
+			 '7df320d4-b4d7-4add-b3e9-6742e877fb3e');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261021-location-attr-sector-name" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="location_attribute_type" />
+			<sqlCheck expectedResult="0">
+				SELECT COUNT(*) FROM location_attribute_type
+				WHERE uuid = '0699c216-f0f9-4961-bc7b-31f5904a7459'
+				   OR name = 'Sector Name'
+			</sqlCheck>
+		</preConditions>
+		<comment>Location Attribute Type: Sector Name (free text) for Bill Report settings</comment>
+		<sql>
+			INSERT INTO location_attribute_type
+			(name, description, datatype, datatype_config, preferred_handler, handler_config,
+			 min_occurs, max_occurs, creator, date_created, retired, uuid)
+			VALUES
+			('Sector Name',
+			 'Sector name for CBHI Bill Report header',
+			 'org.openmrs.customdatatype.datatype.FreeTextDatatype',
+			 NULL, NULL, NULL, 0, 1, 1, NOW(), 0,
+			 '0699c216-f0f9-4961-bc7b-31f5904a7459');
+		</sql>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261022-admission-visit-id-column" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_admission" />
+			<tableExists tableName="visit" />
+			<not>
+				<columnExists tableName="moh_bill_admission" columnName="visit_id" />
+			</not>
+		</preConditions>
+		<comment>
+			Add nullable visit_id on moh_bill_admission for hard link to OpenMRS visit.
+			NULL is allowed so existing admissions remain valid.
+		</comment>
+		<addColumn tableName="moh_bill_admission">
+			<column name="visit_id" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261022-admission-visit-id-fk" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_admission" />
+			<tableExists tableName="visit" />
+			<columnExists tableName="moh_bill_admission" columnName="visit_id" />
+			<not>
+				<foreignKeyConstraintExists foreignKeyTableName="moh_bill_admission" foreignKeyName="admission_visit" />
+			</not>
+		</preConditions>
+		<comment>Foreign key moh_bill_admission.visit_id → visit.visit_id</comment>
+		<addForeignKeyConstraint
+			baseTableName="moh_bill_admission"
+			baseColumnNames="visit_id"
+			constraintName="admission_visit"
+			referencedTableName="visit"
+			referencedColumnNames="visit_id"
+			deferrable="false"
+			initiallyDeferred="false" />
+	</changeSet>
+
+	<changeSet id="mohbilling-20261026-cashier-report-etl-invoice-number" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_cashier_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_cashier_report_etl" columnName="invoice_number" />
+			</not>
+		</preConditions>
+		<comment>Store Irembo/API invoice_number for Cashier Report "Payment through API" column</comment>
+		<addColumn tableName="moh_bill_cashier_report_etl">
+			<column name="invoice_number" type="varchar(255)" />
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261027-bill-report-etl" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="moh_bill_bill_report_etl" />
+			</not>
+		</preConditions>
+		<comment>Materialized CBHI Bill Report rows (one per patient service bill line)</comment>
+		<createTable tableName="moh_bill_bill_report_etl">
+			<column name="bill_report_etl_id" type="bigint" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="patient_service_bill_id" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="admission_id" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="visit_id" type="int" />
+			<column name="global_bill_id" type="int" />
+			<column name="consommation_id" type="int" />
+			<column name="admission_date" type="datetime">
+				<constraints nullable="false" />
+			</column>
+			<column name="discharge_date" type="datetime" />
+			<column name="admission_status" type="varchar(32)" />
+			<column name="ward_type" type="varchar(255)" />
+			<column name="insurance_id" type="int" />
+			<column name="insurance_category" type="varchar(64)" />
+			<column name="insurance_name" type="varchar(255)" />
+			<column name="card_number" type="varchar(100)" />
+			<column name="voucher_id" type="varchar(255)" />
+			<column name="patient_id" type="varchar(100)" />
+			<column name="patient_names" type="varchar(255)" />
+			<column name="patient_nid" type="varchar(100)" />
+			<column name="household_head_nid" type="varchar(100)" />
+			<column name="patient_phone" type="varchar(64)" />
+			<column name="patient_dob" type="datetime" />
+			<column name="patient_gender" type="varchar(16)" />
+			<column name="social_registry_level" type="varchar(64)" />
+			<column name="provider_name" type="varchar(255)" />
+			<column name="provider_qualification" type="varchar(255)" />
+			<column name="provider_phone" type="varchar(64)" />
+			<column name="provider_registration" type="varchar(100)" />
+			<column name="primary_diagnosis" type="varchar(1000)" />
+			<column name="confirmed_by_lab_imaging" type="varchar(16)" />
+			<column name="icd11_code" type="varchar(255)" />
+			<column name="product_name" type="varchar(500)" />
+			<column name="product_code" type="varchar(100)" />
+			<column name="product_type" type="varchar(255)" />
+			<column name="product_category" type="varchar(255)" />
+			<column name="product_unit" type="varchar(64)" />
+			<column name="product_quantity" type="decimal(20,4)" />
+			<column name="product_cost" type="decimal(20,2)" />
+			<column name="co_payment" type="decimal(20,2)" />
+			<column name="rssb_payment" type="decimal(20,2)" />
+			<column name="total_invoice" type="decimal(20,2)" />
+			<column name="transfer_available" type="varchar(8)" />
+			<column name="transfer_id" type="varchar(64)" />
+			<column name="transfer_validity" type="varchar(64)" />
+			<column name="etl_loaded_at" type="datetime">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<createIndex tableName="moh_bill_bill_report_etl"
+				indexName="uk_moh_bill_bill_report_etl_psb" unique="true">
+			<column name="patient_service_bill_id" />
+		</createIndex>
+		<createIndex tableName="moh_bill_bill_report_etl"
+				indexName="idx_moh_bill_bill_report_etl_admission_date_ins">
+			<column name="admission_date" />
+			<column name="insurance_id" />
+		</createIndex>
+		<createIndex tableName="moh_bill_bill_report_etl"
+				indexName="idx_moh_bill_bill_report_etl_admission_date_cat">
+			<column name="admission_date" />
+			<column name="insurance_category" />
+		</createIndex>
+		<createIndex tableName="moh_bill_bill_report_etl"
+				indexName="idx_moh_bill_bill_report_etl_admission_id">
+			<column name="admission_id" />
+		</createIndex>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261102-bill-report-etl-item-date" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_bill_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_bill_report_etl" columnName="item_date" />
+			</not>
+		</preConditions>
+		<comment>Bill Report Item Date from moh_bill_patient_service_bill.created_date</comment>
+		<addColumn tableName="moh_bill_bill_report_etl">
+			<column name="item_date" type="datetime" />
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261106-patient-bill-initiated-by" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_patient_bill" />
+			<tableExists tableName="users" />
+			<not>
+				<columnExists tableName="moh_bill_patient_bill" columnName="initiated_by" />
+			</not>
+		</preConditions>
+		<comment>
+			User who initiated the Irembo Pay process for this patient bill.
+			Shown as a separate Initiator column on Cashier Report (collector unchanged).
+		</comment>
+		<addColumn tableName="moh_bill_patient_bill">
+			<column name="initiated_by" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	</changeSet>
+
+	<!--
+		No FK on initiated_by: on large production moh_bill_patient_bill tables, addForeignKeyConstraint
+		can COPY/lock the table during module startup. Column remains nullable; Hibernate many-to-one is enough.
+	-->
+
+	<changeSet id="mohbilling-20261106-cashier-report-etl-initiator" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_cashier_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_cashier_report_etl" columnName="initiated_by" />
+			</not>
+		</preConditions>
+		<comment>Cashier Report Initiator (Irembo Pay initiator); separate from collector_id</comment>
+		<addColumn tableName="moh_bill_cashier_report_etl">
+			<column name="initiated_by" type="int">
+				<constraints nullable="true" />
+			</column>
+			<column name="initiator_name" type="varchar(255)" />
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261108-patient-service-bill-order-id" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_patient_service_bill" />
+			<tableExists tableName="orders" />
+			<not>
+				<columnExists tableName="moh_bill_patient_service_bill" columnName="order_id" />
+			</not>
+		</preConditions>
+		<comment>
+			Nullable link from bill line to OpenMRS order (forward-only; set by MohBillingOrderHandler).
+			Used by Bill Report Item Date / lab confirmation when present.
+		</comment>
+		<addColumn tableName="moh_bill_patient_service_bill">
+			<column name="order_id" type="int">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	</changeSet>
+
+	<!--
+		No FK on order_id: avoids locking large patient_service_bill during deploy and avoids blocking
+		order purge/void flows. Index below is enough for Bill Report joins.
+	-->
+
+	<changeSet id="mohbilling-20261108-patient-service-bill-order-id-idx" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_patient_service_bill" />
+			<columnExists tableName="moh_bill_patient_service_bill" columnName="order_id" />
+			<not>
+				<indexExists tableName="moh_bill_patient_service_bill"
+						indexName="idx_moh_bill_patient_service_bill_order_id" />
+			</not>
+		</preConditions>
+		<comment>Index for Bill Report joins on patient_service_bill.order_id</comment>
+		<createIndex tableName="moh_bill_patient_service_bill"
+				indexName="idx_moh_bill_patient_service_bill_order_id">
+			<column name="order_id" />
+		</createIndex>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261108-bill-report-etl-visit-dates" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_bill_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_bill_report_etl" columnName="visit_start_date" />
+			</not>
+		</preConditions>
+		<comment>
+			Clinical admission/discharge from linked OpenMRS visit (visit.start_datetime / stop_datetime)
+			when admission.visit_id is set. Null when no visit link.
+		</comment>
+		<addColumn tableName="moh_bill_bill_report_etl">
+			<column name="visit_start_date" type="datetime" />
+			<column name="visit_end_date" type="datetime" />
+		</addColumn>
+	</changeSet>
+
+	<changeSet id="mohbilling-20261108-bill-report-etl-payment-phone" author="mohbilling">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_bill_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_bill_report_etl" columnName="payment_phone" />
+			</not>
+		</preConditions>
+		<comment>
+			Phone number used for MoMo/Irembo payment (from moh_bill_patient_bill.phoneNumber).
+			Separate from patient demographic phone.
+		</comment>
+		<addColumn tableName="moh_bill_bill_report_etl">
+			<column name="payment_phone" type="varchar(64)" />
+		</addColumn>
+	</changeSet>
+
 </databaseChangeLog>

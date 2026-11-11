@@ -15,110 +15,136 @@ import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MohBillingCohortBuilderFormController extends
-        ParameterizableViewController {
-    protected final Log log = LogFactory.getLog(getClass());
-    /* (non-Javadoc)
-     * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-     */
-    @Override
-    protected ModelAndView handleRequestInternal(HttpServletRequest request,
-                                                 HttpServletResponse response) throws Exception {		ModelAndView mav = new ModelAndView();
-        mav.setViewName(getViewName());
+		ParameterizableViewController {
+	protected final Log log = LogFactory.getLog(getClass());
+	/* (non-Javadoc)
+	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected ModelAndView handleRequestInternal(HttpServletRequest request,
+												 HttpServletResponse response) throws Exception {		ModelAndView mav = new ModelAndView();
+		mav.setViewName(getViewName());
+		String hiddenInsuranceName = InsuranceUtil.getHiddenInsuranceName();
 
 
-        if (request.getParameter("formStatus") != null
-                && !request.getParameter("formStatus").equals("")) {
-            String startDateStr = request.getParameter("startDate");
-            String startHourStr = request.getParameter("startHour");
-            String startMinStr = request.getParameter("startMinute");
+		if (request.getParameter("formStatus") != null
+				&& !request.getParameter("formStatus").equals("")) {
+			String startDateStr = request.getParameter("startDate");
+			String startHourStr = request.getParameter("startHour");
+			String startMinStr = request.getParameter("startMinute");
 
-            String endDateStr = request.getParameter("endDate");
-            String endHourStr = request.getParameter("endHour");
-            String endMinuteStr = request.getParameter("endMinute");
+			String endDateStr = request.getParameter("endDate");
+			String endHourStr = request.getParameter("endHour");
+			String endMinuteStr = request.getParameter("endMinute");
 
-            String collectorStr = null;
-            String insuranceStr = null;
-            String thirdPartyStr = null;
-            String billStatus = null;
-            String departmentStr = null;
-
-
-            User creator = null;
-            Department department = null;
-
-            String billCreatorStr = null;
-            if(request.getParameter("billCreator")!=null &&!request.getParameter("billCreator").equals("")){
-                billCreatorStr=request.getParameter("billCreator");
-                creator = Context.getUserService().getUser(Integer.valueOf(billCreatorStr));
-            }
-            if(request.getParameter("billStatus")!=null&&!request.getParameter("billStatus").equals(""))
-                billStatus = request.getParameter("billStatus");
-
-            if(request.getParameter("departmentId")!=null&&!request.getParameter("departmentId").equals("")){
-                departmentStr = request.getParameter("departmentId");
-                department = DepartementUtil.getDepartement(Integer.valueOf(departmentStr));
-            }
-
-            // parameters
-            Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
-
-            Date startDate = (Date) params[0];
-            Date endDate = (Date) params[1];
-
-            Insurance insurance = null;
-            ThirdParty thirdParty =null;
-            if(request.getParameter("insuranceId")!=null &&!request.getParameter("insuranceId").equals("") ){
-                insurance = InsuranceUtil.getInsurance(Integer.valueOf(request.getParameter("insuranceId")));
-            }
-            if(request.getParameter("thirdPartyId")!=null && !request.getParameter("thirdPartyId").equals(""))
-                thirdParty = Context.getService(BillingService.class).getThirdParty(Integer.valueOf(request.getParameter("thirdPartyId")));
-
-            List<Consommation> cons = ConsommationUtil.getConsommations(startDate, endDate, insurance, thirdParty, creator, department);
-            List<Consommation> consFilteredByBillStatus=new ArrayList<Consommation>();
-            if(billStatus!=null){
-                for (Consommation con:cons){
-						/*if(con.getPatientBill().getStatus().toString().equals(billStatus.toString())){
-							consFilteredByBillStatus.add(con);
-						}*/
-
-                    BigDecimal pamount=new BigDecimal(0);
-                    if(con.getPatientBill().getPayments().size()>0)
-                        for(BillPayment bp:con.getPatientBill().getPayments()){
-
-                            pamount=pamount.add(bp.getAmountPaid());
-                        }
-// FULL PAID
-                    if(con.getPatientBill().getPayments().size()>=0 && (con.getPatientBill().getAmount().compareTo(pamount)==-1 || con.getPatientBill().getAmount().compareTo(pamount)==0) && billStatus.toString().equals("FULLY PAID")){
-                        consFilteredByBillStatus.add(con);
-                    }
-// Partialy PAID
-                    if(con.getPatientBill().getPayments().size()>=0 && (con.getPatientBill().getAmount().compareTo(pamount)==1) && billStatus.toString().equals("PARTLY PAID")){
-                        consFilteredByBillStatus.add(con);
-                    }
-//  UNPAID
-                    if(con.getPatientBill().getPayments().size()==0 && billStatus.toString().equals("UNPAID")){
-                        consFilteredByBillStatus.add(con);
-                    }
+			String collectorStr = null;
+			String insuranceStr = null;
+			String thirdPartyStr = null;
+			String billStatus = null;
+			String departmentStr = null;
 
 
+			User creator = null;
+			Department department = null;
 
-                }
-                mav.addObject("consommations", consFilteredByBillStatus);
-            }
-            else {
-                mav.addObject("consommations", cons);
-            }
-            cons.get(0).getPatientBill().getStatus();
+			String billCreatorStr = null;
+			if(request.getParameter("billCreator")!=null &&!request.getParameter("billCreator").equals("")){
+				billCreatorStr=request.getParameter("billCreator");
+				creator = Context.getUserService().getUser(Integer.valueOf(billCreatorStr));
+			}
+			if(request.getParameter("billStatus")!=null&&!request.getParameter("billStatus").equals(""))
+				billStatus = request.getParameter("billStatus");
 
-        }
-        mav.addObject("insurances", InsuranceUtil.getAllInsurances());
-        mav.addObject("insurances", InsuranceUtil.getAllInsurances());
-        mav.addObject("thirdParties", InsurancePolicyUtil.getAllThirdParties());
-        mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
-        return mav;
-    }
+			if(request.getParameter("departmentId")!=null&&!request.getParameter("departmentId").equals("")){
+				departmentStr = request.getParameter("departmentId");
+				department = DepartementUtil.getDepartement(Integer.valueOf(departmentStr));
+			}
+
+			// parameters
+			Object[] params = ReportsUtil.getReportParameters(request, startDateStr, startHourStr, startMinStr, endDateStr, endHourStr, endMinuteStr, collectorStr, insuranceStr, thirdPartyStr);
+
+			Date startDate = (Date) params[0];
+			Date endDate = (Date) params[1];
+
+			Insurance insurance = null;
+			ThirdParty thirdParty =null;
+			if(request.getParameter("insuranceId")!=null &&!request.getParameter("insuranceId").equals("") ){
+				insurance = InsuranceUtil.getInsurance(Integer.valueOf(request.getParameter("insuranceId")));
+			}
+			if(request.getParameter("thirdPartyId")!=null && !request.getParameter("thirdPartyId").equals(""))
+				thirdParty = Context.getService(BillingService.class).getThirdParty(Integer.valueOf(request.getParameter("thirdPartyId")));
+
+			List<Consommation> cons = ConsommationUtil.getConsommationsOld(startDate, endDate, insurance, thirdParty, creator, department);
+			if (hiddenInsuranceName != null) {
+				List<Consommation> consWithoutPrivate = new ArrayList<Consommation>();
+				for (Consommation con : cons) {
+					if (!InsuranceUtil.isInsurance(con.getBeneficiary().getInsurancePolicy().getInsurance(), hiddenInsuranceName))
+						consWithoutPrivate.add(con);
+				}
+				cons = consWithoutPrivate;
+			}
+			String globalBillStatus = null;
+			if(request.getParameter("globalBillStatus")!=null&&!request.getParameter("globalBillStatus").equals(""))
+				globalBillStatus = request.getParameter("globalBillStatus");
+
+			// one status per bill, used by both the filters and the table
+			Map<Integer, String> billStatuses = new HashMap<Integer, String>();
+			Map<Integer, String> globalBillStatuses = new HashMap<Integer, String>();
+			List<Consommation> filteredCons = new ArrayList<Consommation>();
+			for (Consommation con : cons) {
+				String conBillStatus = getBillStatus(con.getPatientBill());
+				String conGlobalBillStatus = getGlobalBillStatus(con.getGlobalBill());
+				if ((billStatus == null || billStatus.equals(conBillStatus))
+						&& (globalBillStatus == null || globalBillStatus.equals(conGlobalBillStatus))) {
+					filteredCons.add(con);
+					billStatuses.put(con.getConsommationId(), conBillStatus);
+					globalBillStatuses.put(con.getConsommationId(), conGlobalBillStatus);
+				}
+			}
+			mav.addObject("consommations", filteredCons);
+			mav.addObject("billStatuses", billStatuses);
+			mav.addObject("globalBillStatuses", globalBillStatuses);
+			mav.addObject("billStatus", billStatus);
+			mav.addObject("globalBillStatus", globalBillStatus);
+		}
+		mav.addObject("showGlobalBillStatusFilter", true);
+		List<Insurance> insurances = InsuranceUtil.getAllInsurances();
+		if (hiddenInsuranceName != null) {
+			List<Insurance> insurancesWithoutPrivate = new ArrayList<Insurance>();
+			for (Insurance ins : insurances) {
+				if (!InsuranceUtil.isInsurance(ins, hiddenInsuranceName))
+					insurancesWithoutPrivate.add(ins);
+			}
+			insurances = insurancesWithoutPrivate;
+		}
+		mav.addObject("insurances", insurances);
+		mav.addObject("thirdParties", InsurancePolicyUtil.getAllThirdParties());
+		mav.addObject("departments", DepartementUtil.getAllHospitalDepartements());
+		return mav;
+	}
+
+	/**
+	 * UNPAID when nothing was paid, FULLY PAID when payments cover the patient bill, PARTLY PAID otherwise
+	 */
+	private String getBillStatus(PatientBill patientBill) {
+		if (patientBill == null || patientBill.getPayments() == null || patientBill.getPayments().isEmpty())
+			return "UNPAID";
+		BigDecimal paid = BigDecimal.ZERO;
+		for (BillPayment bp : patientBill.getPayments()) {
+			if (bp.getAmountPaid() != null)
+				paid = paid.add(bp.getAmountPaid());
+		}
+		BigDecimal due = patientBill.getAmount() == null ? BigDecimal.ZERO : patientBill.getAmount();
+		return paid.compareTo(due) >= 0 ? "FULLY PAID" : "PARTLY PAID";
+	}
+
+	private String getGlobalBillStatus(GlobalBill globalBill) {
+		return globalBill != null && globalBill.getClosingDate() != null ? "DISCHARGED" : "NOT DISCHARGED";
+	}
 }

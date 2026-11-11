@@ -94,7 +94,7 @@ public class BeforeMigrationFileExporter {
 		image.scaleToFit(40, 40);
 		
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		document.add(fontSelector.process("REPUBLIQUE DU RWANDA                                                        Date:"+df.format(new Date())+"\n"));
+		document.add(fontSelector.process("REPUBLIQUE DU RWANDA\n"));
 
 		document.add(image);		
 		document.add(fontSelector.process(Context.getAdministrationService().getGlobalProperty(
