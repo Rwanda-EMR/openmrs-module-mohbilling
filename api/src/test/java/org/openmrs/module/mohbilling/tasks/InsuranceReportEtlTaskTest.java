@@ -48,7 +48,7 @@ public class InsuranceReportEtlTaskTest {
 
 	@Test
 	public void serviceConfiguration_shouldDistinguishImagingAndProcedureLists() {
-		Assert.assertEquals("VERSION=2;IMAGING=4,16;PROCEDURES=1,7,9",
+		Assert.assertEquals("VERSION=3;IMAGING=4,16;PROCEDURES=1,7,9",
 				InsuranceReportEtlTask.serviceConfiguration("4,16", "1,7,9"));
 	}
 
