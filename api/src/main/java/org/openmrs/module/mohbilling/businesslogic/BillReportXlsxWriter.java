@@ -40,6 +40,8 @@ final class BillReportXlsxWriter {
 			"Payment Phone number",
 			"Patient's DoB (dd/mm/yyyy)",
 			"Patient's Gender",
+			"Insurance",
+			"Card number",
 			"Name of service provider",
 			"Provider's Qualification",
 			"Provider's phone number",
@@ -136,43 +138,46 @@ final class BillReportXlsxWriter {
 		writer.write("<row r=\"");
 		writer.write(Integer.toString(rowNumber));
 		writer.write("\">");
-		writeNumberCell(writer, 0, rowNumber, integerValue(item.getRowNumber()));
-		writeTextCell(writer, 1, rowNumber, FileExporter.formatDate(dayFormat, item.getAdmissionDate()), false);
-		writeTextCell(writer, 2, rowNumber, FileExporter.formatDate(dayFormat, item.getDischargeDate()), false);
-		writeTextCell(writer, 3, rowNumber, FileExporter.formatDate(dayFormat, item.getVisitStartDate()), false);
-		writeTextCell(writer, 4, rowNumber, FileExporter.formatDate(dayFormat, item.getVisitEndDate()), false);
-		writeTextCell(writer, 5, rowNumber, item.getWardType(), false);
-		writeTextCell(writer, 6, rowNumber, item.getVoucherId(), true);
-		writeTextCell(writer, 7, rowNumber, item.getPatientId(), true);
-		writeTextCell(writer, 8, rowNumber, item.getPatientNames(), false);
-		writeTextCell(writer, 9, rowNumber, item.getSocialRegistryLevel(), false);
-		writeTextCell(writer, 10, rowNumber, item.getPatientNid(), true);
-		writeTextCell(writer, 11, rowNumber, item.getHouseholdHeadNid(), true);
-		writeTextCell(writer, 12, rowNumber, item.getPatientPhoneNumber(), true);
-		writeTextCell(writer, 13, rowNumber, item.getPaymentPhoneNumber(), true);
-		writeTextCell(writer, 14, rowNumber, FileExporter.formatDate(dayFormat, item.getPatientDob()), false);
-		writeTextCell(writer, 15, rowNumber, item.getPatientGender(), false);
-		writeTextCell(writer, 16, rowNumber, item.getProviderName(), false);
-		writeTextCell(writer, 17, rowNumber, item.getProviderQualification(), false);
-		writeTextCell(writer, 18, rowNumber, item.getProviderPhoneNumber(), false);
-		writeTextCell(writer, 19, rowNumber, item.getProviderRegistrationNumber(), false);
-		writeTextCell(writer, 20, rowNumber, item.getPrimaryWorkingDiagnosis(), false);
-		writeTextCell(writer, 21, rowNumber, item.getPrimaryConfirmedByLabImaging(), false);
-		writeTextCell(writer, 22, rowNumber, item.getIcd11Code(), false);
-		writeTextCell(writer, 23, rowNumber, FileExporter.formatDate(dayFormat, item.getItemDate()), false);
-		writeTextCell(writer, 24, rowNumber, item.getProductName(), false);
-		writeTextCell(writer, 25, rowNumber, item.getProductCode(), true);
-		writeTextCell(writer, 26, rowNumber, item.getProductType(), false);
-		writeTextCell(writer, 27, rowNumber, item.getProductCategory(), false);
-		writeTextCell(writer, 28, rowNumber, item.getProductUnit(), false);
-		writeNumberCell(writer, 29, rowNumber, decimalValue(item.getProductQuantity()));
-		writeNumberCell(writer, 30, rowNumber, decimalValue(item.getProductCost()));
-		writeNumberCell(writer, 31, rowNumber, decimalValue(item.getCoPayment()));
-		writeNumberCell(writer, 32, rowNumber, decimalValue(item.getRssbPayment()));
-		writeNumberCell(writer, 33, rowNumber, decimalValue(item.getTotalInvoice()));
-		writeTextCell(writer, 34, rowNumber, item.getTransferAvailable(), false);
-		writeTextCell(writer, 35, rowNumber, item.getTransferId(), true);
-		writeTextCell(writer, 36, rowNumber, item.getTransferValidity(), false);
+		int c = 0;
+		writeNumberCell(writer, c++, rowNumber, integerValue(item.getRowNumber()));
+		writeTextCell(writer, c++, rowNumber, FileExporter.formatDate(dayFormat, item.getAdmissionDate()), false);
+		writeTextCell(writer, c++, rowNumber, FileExporter.formatDate(dayFormat, item.getDischargeDate()), false);
+		writeTextCell(writer, c++, rowNumber, FileExporter.formatDate(dayFormat, item.getVisitStartDate()), false);
+		writeTextCell(writer, c++, rowNumber, FileExporter.formatDate(dayFormat, item.getVisitEndDate()), false);
+		writeTextCell(writer, c++, rowNumber, item.getWardType(), false);
+		writeTextCell(writer, c++, rowNumber, item.getVoucherId(), true);
+		writeTextCell(writer, c++, rowNumber, item.getPatientId(), true);
+		writeTextCell(writer, c++, rowNumber, item.getPatientNames(), false);
+		writeTextCell(writer, c++, rowNumber, item.getSocialRegistryLevel(), false);
+		writeTextCell(writer, c++, rowNumber, item.getPatientNid(), true);
+		writeTextCell(writer, c++, rowNumber, item.getHouseholdHeadNid(), true);
+		writeTextCell(writer, c++, rowNumber, item.getPatientPhoneNumber(), true);
+		writeTextCell(writer, c++, rowNumber, item.getPaymentPhoneNumber(), true);
+		writeTextCell(writer, c++, rowNumber, FileExporter.formatDate(dayFormat, item.getPatientDob()), false);
+		writeTextCell(writer, c++, rowNumber, item.getPatientGender(), false);
+		writeTextCell(writer, c++, rowNumber, item.getInsuranceName(), false);
+		writeTextCell(writer, c++, rowNumber, item.getCardNumber(), true);
+		writeTextCell(writer, c++, rowNumber, item.getProviderName(), false);
+		writeTextCell(writer, c++, rowNumber, item.getProviderQualification(), false);
+		writeTextCell(writer, c++, rowNumber, item.getProviderPhoneNumber(), false);
+		writeTextCell(writer, c++, rowNumber, item.getProviderRegistrationNumber(), false);
+		writeTextCell(writer, c++, rowNumber, item.getPrimaryWorkingDiagnosis(), false);
+		writeTextCell(writer, c++, rowNumber, item.getPrimaryConfirmedByLabImaging(), false);
+		writeTextCell(writer, c++, rowNumber, item.getIcd11Code(), false);
+		writeTextCell(writer, c++, rowNumber, FileExporter.formatDate(dayFormat, item.getItemDate()), false);
+		writeTextCell(writer, c++, rowNumber, item.getProductName(), false);
+		writeTextCell(writer, c++, rowNumber, item.getProductCode(), true);
+		writeTextCell(writer, c++, rowNumber, item.getProductType(), false);
+		writeTextCell(writer, c++, rowNumber, item.getProductCategory(), false);
+		writeTextCell(writer, c++, rowNumber, item.getProductUnit(), false);
+		writeNumberCell(writer, c++, rowNumber, decimalValue(item.getProductQuantity()));
+		writeNumberCell(writer, c++, rowNumber, decimalValue(item.getProductCost()));
+		writeNumberCell(writer, c++, rowNumber, decimalValue(item.getCoPayment()));
+		writeNumberCell(writer, c++, rowNumber, decimalValue(item.getRssbPayment()));
+		writeNumberCell(writer, c++, rowNumber, decimalValue(item.getTotalInvoice()));
+		writeTextCell(writer, c++, rowNumber, item.getTransferAvailable(), false);
+		writeTextCell(writer, c++, rowNumber, item.getTransferId(), true);
+		writeTextCell(writer, c++, rowNumber, item.getTransferValidity(), false);
 		writer.write("</row>");
 	}
 
