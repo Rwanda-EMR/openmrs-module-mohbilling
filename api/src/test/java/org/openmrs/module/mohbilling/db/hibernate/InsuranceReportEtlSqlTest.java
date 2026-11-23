@@ -47,8 +47,6 @@ public class InsuranceReportEtlSqlTest {
 	}
 
 	@Test
-<<<<<<< HEAD
-=======
 	public void insertSql_shouldClassifyEnglishServiceNamesIntoTheirReportColumns() {
 		String sql = InsuranceReportEtlSql.insertSql(false);
 
@@ -59,7 +57,6 @@ public class InsuranceReportEtlSqlTest {
 	}
 
 	@Test
->>>>>>> 8986ed6e845322b271dce2f84f6c7e2f1a284d9f
 	public void insertSql_shouldClassifyUnknownServicesAsAutresWithoutDoubleCounting() {
 		String sql = InsuranceReportEtlSql.insertSql(false);
 

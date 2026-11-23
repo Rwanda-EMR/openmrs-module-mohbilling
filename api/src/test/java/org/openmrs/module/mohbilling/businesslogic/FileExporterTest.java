@@ -4,10 +4,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openmrs.Patient;
 import org.openmrs.PersonName;
-<<<<<<< HEAD
-import org.openmrs.module.mohbilling.model.Beneficiary;
-import org.openmrs.module.mohbilling.model.BillPayment;
-=======
 import org.openmrs.module.mohbilling.model.AllServicesRevenue;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
@@ -15,15 +11,11 @@ import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
 import org.openmrs.module.mohbilling.model.InsuranceRate;
->>>>>>> 8986ed6e845322b271dce2f84f6c7e2f1a284d9f
 import org.openmrs.module.mohbilling.model.InsuranceReportItem;
 import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PaymentRevenue;
-<<<<<<< HEAD
-=======
 import org.openmrs.module.mohbilling.model.ServiceRevenue;
->>>>>>> 8986ed6e845322b271dce2f84f6c7e2f1a284d9f
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -150,8 +142,6 @@ public class FileExporterTest {
 		Assert.assertTrue(entries.get("xl/styles.xml").contains("numFmtId=\"49\""));
 	}
 
-<<<<<<< HEAD
-=======
 	@Test
 	public void writeThirdPartyReportWorkbook_shouldCreateXlsxWithThirdPartySharesAndTotals() throws Exception {
 		InsuranceRate rate = new InsuranceRate();
@@ -210,7 +200,6 @@ public class FileExporterTest {
 				new BigDecimal("15"), new BigDecimal("85"), new BigDecimal("15")));
 	}
 
->>>>>>> 8986ed6e845322b271dce2f84f6c7e2f1a284d9f
 	private static Map<String, String> unzipTextEntries(byte[] xlsx) throws Exception {
 		Map<String, String> entries = new HashMap<String, String>();
 		try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(xlsx))) {
