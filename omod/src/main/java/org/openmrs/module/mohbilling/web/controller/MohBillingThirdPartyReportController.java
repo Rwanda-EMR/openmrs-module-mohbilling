@@ -23,12 +23,36 @@ public class MohBillingThirdPartyReportController extends
 		ParameterizableViewController {
 
 	protected final Log log = LogFactory.getLog(getClass());
+
+	private void handleExportRequest(HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		List<AllServicesRevenue> reportRows = (List<AllServicesRevenue>) request.getSession().getAttribute("thirdPartyReportRows");
+		List<String> columns = (List<String>) request.getSession().getAttribute("thirdPartyReportColumns");
+		ThirdParty thirdParty = (ThirdParty) request.getSession().getAttribute("thirdPartyReportThirdParty");
+		String reportTitle = (String) request.getSession().getAttribute("thirdPartyReportTitle");
+
+		if (reportRows != null && thirdParty != null) {
+			FileExporter.exportThirdPartyReportData(response, reportRows, columns, thirdParty, reportTitle);
+		} else {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing export data.");
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.ParameterizableViewController#handleRequestInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
+
+		if (Boolean.parseBoolean(request.getParameter("export"))) {
+			log.info("Exporting third party report XLSX file...");
+			handleExportRequest(request, response);
+			log.info("Done exporting!");
+			return null; //avoid further processing
+		}
+
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(getViewName());
 
@@ -140,16 +164,17 @@ public class MohBillingThirdPartyReportController extends
 							log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
 						}*/
 		    		}
-		    		//requests sessions.
-			request.getSession().setAttribute("columns" , columns);
-			request.getSession().setAttribute("listOfAllServicesRevenue" , listOfAllServicesRevenue);
-			request.getSession().setAttribute("insurance" , insurance);
-
 					if(!columns.contains("IMAGING"))
 						 columns.add("IMAGING");
 					if(!columns.contains("PROCEDURES"))
 						 columns.add("PROCED.");
-			
+
+			// kept for the Excel export, under own keys so that the insurance report export data is not replaced
+			request.getSession().setAttribute("thirdPartyReportColumns", columns);
+			request.getSession().setAttribute("thirdPartyReportRows", listOfAllServicesRevenue);
+			request.getSession().setAttribute("thirdPartyReportThirdParty", thirdParty);
+			request.getSession().setAttribute("thirdPartyReportTitle", "["+thirdParty.getName()+"] Bill from "+startDateStr +" To "+ endDateStr);
+
 					mav.addObject("columns", columns);
 					mav.addObject("totals", totals);
 

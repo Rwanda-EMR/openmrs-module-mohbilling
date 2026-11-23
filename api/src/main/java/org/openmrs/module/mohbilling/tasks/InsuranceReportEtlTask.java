@@ -21,7 +21,7 @@ public class InsuranceReportEtlTask extends AbstractTask {
 	private static final Log log = LogFactory.getLog(InsuranceReportEtlTask.class);
 	private static final int DEFAULT_OVERLAP_DAYS = 7;
 	private static final int FULL_REFRESH_BATCH_SIZE = 25000;
-	private static final int MATERIALIZATION_VERSION = 2;
+	private static final int MATERIALIZATION_VERSION = 3;
 	private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
 	@Override

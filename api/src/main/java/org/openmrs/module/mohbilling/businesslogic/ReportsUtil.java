@@ -379,7 +379,7 @@ public class ReportsUtil {
 			}
 		}
 		
-		if(amount.compareTo(BigDecimal.ZERO)>0){	
+		if(!billItems.isEmpty()){
 			String[]	parts =  categ.split("\\.");
 			categ = parts[1]; 
 	        revenue = new ServiceRevenue(categ.toUpperCase(), amount);

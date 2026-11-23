@@ -5,6 +5,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.model.*;
 import org.openmrs.module.mohbilling.service.BillingService;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -228,6 +229,53 @@ public class InsurancePolicyUtil {
 		return card;
 	}
 
+
+	/**
+	 * Checks that the insurance rate and the third party rate of the policy add
+	 * up to exactly 100%, otherwise the patient share becomes wrong (or
+	 * negative). Policies without a third party and retired policies are not
+	 * checked.
+	 *
+	 * @param card
+	 *            the Insurance policy to be checked
+	 * @return the message to show to the user, null when the combination is
+	 *         valid
+	 */
+	public static String getThirdPartyRateError(InsurancePolicy card) {
+
+		if (card == null || card.isRetired() || card.getThirdParty() == null)
+			return null;
+
+		ThirdParty thirdParty = card.getThirdParty();
+		Insurance insurance = card.getInsurance();
+
+		if (insurance == null)
+			return "Please select the insurance to be used with the third party "
+					+ thirdParty.getName() + ".";
+
+		InsuranceRate insuranceRate = insurance.getRates() != null ? insurance
+				.getRateOnDate(new Date()) : null;
+		if (insuranceRate == null || insuranceRate.getRate() == null)
+			return insurance.getName() + " has no active rate, so it cannot be combined with the third party "
+					+ thirdParty.getName() + ". Please configure the insurance rate first.";
+
+		if (thirdParty.getRate() == null)
+			return "The third party " + thirdParty.getName()
+					+ " has no rate. Please configure the third party rate first.";
+
+		float total = insuranceRate.getRate() + thirdParty.getRate();
+		if (total != 100f)
+			return insurance.getName() + " (" + formatRate(insuranceRate.getRate()) + "%) + "
+					+ thirdParty.getName() + " (" + formatRate(thirdParty.getRate()) + "%) = "
+					+ formatRate(total) + "%. Insurance + third party must equal 100%.";
+
+		return null;
+	}
+
+	private static String formatRate(Float rate) {
+		return new BigDecimal(Float.toString(rate)).stripTrailingZeros()
+				.toPlainString();
+	}
 
 	/**
 	 * Updates the Insurance policy that has been changed

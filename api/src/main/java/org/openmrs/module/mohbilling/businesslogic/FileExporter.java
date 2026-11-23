@@ -277,6 +277,40 @@ public class FileExporter {
 				reportTitle, cashierName, facilityName);
 	}
 
+	public static void exportThirdPartyReportData(HttpServletResponse response,
+			List<AllServicesRevenue> reportRows, List<String> columns, ThirdParty thirdParty, String reportTitle) {
+		if (response == null || reportRows == null || thirdParty == null) {
+			throw new IllegalArgumentException("Third party report export requires a response, rows and a third party.");
+		}
+		String fileName = "third_party_report_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + ".xlsx";
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+
+		try (OutputStream outputStream = response.getOutputStream()) {
+			writeThirdPartyReportWorkbook(outputStream, reportRows, columns, thirdParty.getRate(), reportTitle,
+					Context.getAdministrationService().getGlobalProperty(
+							BillingConstants.GLOBAL_PROPERTY_HEALTH_FACILITY_NAME));
+			outputStream.flush();
+		} catch (Exception | LinkageError e) {
+			log.error("Failed to write third party report XLSX", e);
+			if (!response.isCommitted()) {
+				try {
+					response.reset();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Unable to generate the third party report.");
+				} catch (IOException responseError) {
+					log.error("Failed to send the third party report export error", responseError);
+				}
+			}
+		}
+	}
+
+	static void writeThirdPartyReportWorkbook(OutputStream outputStream, List<AllServicesRevenue> reportRows,
+			List<String> columns, Float thirdPartyRate, String reportTitle, String facilityName) throws IOException {
+		ThirdPartyReportXlsxWriter.write(outputStream, reportRows, columns, thirdPartyRate, reportTitle,
+				facilityName);
+	}
+
 	static String formatDate(DateFormat formatter, Date value) {
 		return value != null ? formatter.format(value) : "";
 	}

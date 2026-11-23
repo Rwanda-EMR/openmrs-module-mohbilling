@@ -47,6 +47,19 @@ public class InsuranceReportEtlSqlTest {
 	}
 
 	@Test
+<<<<<<< HEAD
+=======
+	public void insertSql_shouldClassifyEnglishServiceNamesIntoTheirReportColumns() {
+		String sql = InsuranceReportEtlSql.insertSql(false);
+
+		Assert.assertTrue(sql.contains("IN ('HOSPITALISATION', 'HOSPITAL', 'HOSPITALIZATION') THEN 'HOSPITALISATION'"));
+		Assert.assertTrue(sql.contains("IN ('LABORATOIRE', 'LABO', 'LABORATORY') THEN 'LABORATOIRE'"));
+		Assert.assertTrue(sql.contains("IN ('FORMALITES ADMINISTRATIVES', 'ADMINISTRATION') "
+				+ "THEN 'FORMALITES ADMINISTRATIVES'"));
+	}
+
+	@Test
+>>>>>>> 8986ed6e845322b271dce2f84f6c7e2f1a284d9f
 	public void insertSql_shouldClassifyUnknownServicesAsAutresWithoutDoubleCounting() {
 		String sql = InsuranceReportEtlSql.insertSql(false);
 

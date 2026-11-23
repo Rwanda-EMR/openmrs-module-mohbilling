@@ -4,12 +4,26 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openmrs.Patient;
 import org.openmrs.PersonName;
+<<<<<<< HEAD
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillPayment;
+=======
+import org.openmrs.module.mohbilling.model.AllServicesRevenue;
+import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
+>>>>>>> 8986ed6e845322b271dce2f84f6c7e2f1a284d9f
 import org.openmrs.module.mohbilling.model.InsuranceReportItem;
 import org.openmrs.module.mohbilling.model.PaidServiceRevenue;
 import org.openmrs.module.mohbilling.model.PatientBill;
 import org.openmrs.module.mohbilling.model.PaymentRevenue;
+<<<<<<< HEAD
+=======
+import org.openmrs.module.mohbilling.model.ServiceRevenue;
+>>>>>>> 8986ed6e845322b271dce2f84f6c7e2f1a284d9f
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -136,6 +150,67 @@ public class FileExporterTest {
 		Assert.assertTrue(entries.get("xl/styles.xml").contains("numFmtId=\"49\""));
 	}
 
+<<<<<<< HEAD
+=======
+	@Test
+	public void writeThirdPartyReportWorkbook_shouldCreateXlsxWithThirdPartySharesAndTotals() throws Exception {
+		InsuranceRate rate = new InsuranceRate();
+		rate.setRate(90f);
+		Insurance insurance = new Insurance();
+		insurance.setName("TEST INSURANCE");
+		insurance.addInsuranceRate(rate);
+		InsurancePolicy policy = new InsurancePolicy();
+		policy.setInsurance(insurance);
+		policy.setInsuranceCardNo("TEST-0001");
+		Patient patient = new Patient();
+		PersonName patientName = new PersonName("Test", null, "Patient");
+		patientName.setPreferred(true);
+		patient.addName(patientName);
+		patient.setGender("F");
+		Beneficiary beneficiary = new Beneficiary();
+		beneficiary.setPatient(patient);
+		beneficiary.setInsurancePolicy(policy);
+		Consommation consommation = new Consommation();
+		consommation.setBeneficiary(beneficiary);
+
+		// patient part (10%) of a 1000 laboratory bill, no item for the second column
+		AllServicesRevenue row = new AllServicesRevenue(BigDecimal.ZERO, BigDecimal.ZERO, "2026-11-01");
+		row.setConsommation(consommation);
+		row.setRevenues(Arrays.asList(new ServiceRevenue("LABORATOIRE", new BigDecimal("100")), null));
+		row.setAllDueAmounts(new BigDecimal("1000"));
+
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		FileExporter.writeThirdPartyReportWorkbook(outputStream, Collections.singletonList(row),
+				Arrays.asList("LABORATOIRE", "FORMALITES ADMINISTRATIVES"), 10f,
+				"[TEST THIRD PARTY] Bill from 01/11/2026 To 05/11/2026", "Test Facility");
+
+		Map<String, String> entries = unzipTextEntries(outputStream.toByteArray());
+		assertXmlEntriesAreWellFormed(entries);
+		String sheet = entries.get("xl/worksheets/sheet1.xml");
+		Assert.assertTrue(sheet.contains("[TEST THIRD PARTY] Bill from 01/11/2026 To 05/11/2026"));
+		Assert.assertTrue(sheet.contains("<c r=\"K5\" t=\"inlineStr\" s=\"2\"><is><t xml:space=\"preserve\">OTHERCONSUM."));
+		Assert.assertTrue(sheet.contains("<c r=\"N5\" t=\"inlineStr\" s=\"2\"><is><t xml:space=\"preserve\">Third Party Amount on: 10%"));
+		Assert.assertTrue(sheet.contains("<c r=\"C6\" t=\"inlineStr\" s=\"5\"><is><t xml:space=\"preserve\">TEST-0001"));
+		Assert.assertTrue(sheet.contains("<c r=\"H6\" s=\"5\"><v>90</v></c>"));
+		Assert.assertTrue(sheet.contains("<c r=\"I6\" s=\"5\"><v>0</v></c>"));
+		Assert.assertTrue(sheet.contains("<c r=\"J6\" s=\"3\"><v>100</v></c>"));
+		Assert.assertTrue(sheet.contains("<c r=\"K6\" s=\"3\"><v>0</v></c>"));
+		Assert.assertTrue(sheet.contains("<c r=\"L6\" s=\"3\"><v>1000</v></c>"));
+		Assert.assertTrue(sheet.contains("<c r=\"M6\" s=\"3\"><v>900</v></c>"));
+		Assert.assertTrue(sheet.contains("<c r=\"N6\" s=\"3\"><v>100</v></c>"));
+		Assert.assertTrue(sheet.contains("<c r=\"O6\" s=\"3\"><v>0</v></c>"));
+		Assert.assertTrue(sheet.contains("<c r=\"N7\" s=\"4\"><v>100</v></c>"));
+	}
+
+	@Test
+	public void thirdPartyServiceAmount_shouldNotDivideByZeroForFullInsurance() {
+		Assert.assertEquals(new BigDecimal("0.00"), ThirdPartyReportXlsxWriter.thirdPartyServiceAmount(
+				BigDecimal.ZERO, new BigDecimal("100"), new BigDecimal("10")));
+		Assert.assertEquals(new BigDecimal("15.00"), ThirdPartyReportXlsxWriter.thirdPartyServiceAmount(
+				new BigDecimal("15"), new BigDecimal("85"), new BigDecimal("15")));
+	}
+
+>>>>>>> 8986ed6e845322b271dce2f84f6c7e2f1a284d9f
 	private static Map<String, String> unzipTextEntries(byte[] xlsx) throws Exception {
 		Map<String, String> entries = new HashMap<String, String>();
 		try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(xlsx))) {

@@ -53,7 +53,8 @@ ${resultMsg} <b style="color: black;font: bold;"></b>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="#" class="print">PDF</a></b>
+<a href="#" class="print">PDF</a>
+<a href="thirdPartyReport.form?export=true">Excel</a></b>
 <div class="box">
 <table style="width: 100%">
 	<tr>

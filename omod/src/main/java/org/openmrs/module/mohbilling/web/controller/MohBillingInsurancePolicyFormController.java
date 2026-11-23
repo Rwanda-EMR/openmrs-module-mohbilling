@@ -6,11 +6,14 @@ package org.openmrs.module.mohbilling.web.controller;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.exception.ConstraintViolationException;
+import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.model.Beneficiary;
+import org.openmrs.module.mohbilling.model.Insurance;
 import org.openmrs.module.mohbilling.model.InsurancePolicy;
+import org.openmrs.module.mohbilling.model.ThirdParty;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
@@ -109,6 +112,13 @@ public class MohBillingInsurancePolicyFormController extends
 					.getService(BillingService.class)
 					.getInsurancePolicy(
 							Integer.parseInt(request.getParameter("insurancePolicyId")));
+			// loaded before changing the card, so that no service call flushes it unchecked
+			Insurance insurance = getInsuranceFromRequest(request);
+			ThirdParty thirdParty = getThirdPartyFromRequest(request);
+			if (insurance != null)
+				card.setInsurance(insurance);
+			card.setThirdParty(thirdParty);
+
 			for (Beneficiary b:card.getBeneficiaries()){
 				if(card.getOwner().getPatientId() == b.getPatient().getPatientId()) {
 					b.setPolicyIdNumber(request.getParameter("insurancePolicyOwnerCardNumber"));
@@ -147,6 +157,14 @@ public class MohBillingInsurancePolicyFormController extends
 			}catch (ParseException pex){
 				pex.getMessage();
 			}
+			/* the duplicate card check below flushes the card, so the rates are checked before it */
+			String thirdPartyRateError = InsurancePolicyUtil.getThirdPartyRateError(card);
+			if (thirdPartyRateError != null) {
+				Context.evictFromSession(card);
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, thirdPartyRateError);
+				keepEnteredValues(request, mav, card);
+				return false;
+			}
 			try {
 				if(!InsurancePolicyUtil.isInsurancePolicyExists(request.getParameter("insurancePolicyOwnerCardNumber"))==true){
 
@@ -157,6 +175,15 @@ public class MohBillingInsurancePolicyFormController extends
 				request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR,
 						"The insurance policy has been Edited successfully !");
 				return true;
+			}
+			catch (APIException ae) {
+
+				Context.evictFromSession(card);
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, ae.getMessage());
+				log.error(">>>>MOH>>BILLING>> " + ae.getMessage());
+				keepEnteredValues(request, mav, card);
+
+				return false;
 			}
 			catch (Exception e) {
 
@@ -193,13 +220,7 @@ public class MohBillingInsurancePolicyFormController extends
 			} else*/
 			card = new InsurancePolicy();
 
-			if (request.getParameter("thirdParty") != null
-					&& !request.getParameter("thirdParty").equals("")
-					&& !request.getParameter("thirdParty").equals("0")) {
-
-				card.setThirdParty(InsurancePolicyUtil.getThirdParty(Integer
-						.parseInt(request.getParameter("thirdParty"))));
-			}
+			card.setThirdParty(getThirdPartyFromRequest(request));
 
 			if (request.getParameter("insurancePolicyCoverageStartDate") != null
 					&& !request
@@ -220,16 +241,7 @@ public class MohBillingInsurancePolicyFormController extends
 						request.getParameter("insurancePolicyExpirationDate")));
 			}
 
-			if (request.getParameter("insurancePolicyInsurance") != null
-					&& !request.getParameter("insurancePolicyInsurance")
-					.equals("")) {
-
-				card.setInsurance(Context
-						.getService(BillingService.class)
-						.getInsurance(
-								Integer.valueOf(request
-										.getParameter("insurancePolicyInsurance"))));
-			}
+			card.setInsurance(getInsuranceFromRequest(request));
 
 			if (request.getParameter("insurancePolicyOwnerCardNumber") != null
 					&& !request.getParameter("insurancePolicyOwnerCardNumber")
@@ -340,6 +352,14 @@ public class MohBillingInsurancePolicyFormController extends
 
 			return false;
 
+		} catch (APIException ae) {
+
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, ae.getMessage());
+			log.error(">>>>MOH>>BILLING>> " + ae.getMessage());
+			keepEnteredValues(request, mav, card);
+
+			return false;
+
 		} catch (Exception e) {
 
 			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
@@ -352,6 +372,55 @@ public class MohBillingInsurancePolicyFormController extends
 
 		return true;
 	}
+
+	/**
+	 * @param request
+	 * @return the selected insurance, null if none was selected
+	 */
+	private Insurance getInsuranceFromRequest(HttpServletRequest request) {
+		if (request.getParameter("insurancePolicyInsurance") != null
+				&& !request.getParameter("insurancePolicyInsurance").equals("")) {
+
+			return Context.getService(BillingService.class).getInsurance(
+					Integer.valueOf(request.getParameter("insurancePolicyInsurance")));
+		}
+		return null;
+	}
+
+	/**
+	 * @param request
+	 * @return the selected third party, null if "Has Third part?" is not checked
+	 *         or no third party was selected
+	 */
+	private ThirdParty getThirdPartyFromRequest(HttpServletRequest request) {
+		if (request.getParameter("hasThirdPart") != null
+				&& request.getParameter("thirdParty") != null
+				&& !request.getParameter("thirdParty").equals("")
+				&& !request.getParameter("thirdParty").equals("0")) {
+
+			return InsurancePolicyUtil.getThirdParty(Integer.parseInt(request
+					.getParameter("thirdParty")));
+		}
+		return null;
+	}
+
+	/**
+	 * Puts back on the form the values entered by the user, so that they can be
+	 * corrected after a failed save
+	 */
+	private void keepEnteredValues(HttpServletRequest request, ModelAndView mav,
+								   InsurancePolicy card) {
+		if (card == null)
+			return;
+		mav.addObject("insurancePolicy", card);
+		mav.addObject("beneficiaryId", card.getOwner() != null ? card
+				.getOwner().getPatientId() : request.getParameter("insurancePolicyOwner"));
+		mav.addObject("company", request.getParameter("company"));
+		mav.addObject("ownerName", request.getParameter("ownerName"));
+		mav.addObject("ownerCode", request.getParameter("ownerCode"));
+		mav.addObject("level", request.getParameter("level"));
+	}
+
 	private void handleRetireInsurancePolicy(InsurancePolicy ip) {
 		if(ip!=null){
 			ip.setRetired(true);
