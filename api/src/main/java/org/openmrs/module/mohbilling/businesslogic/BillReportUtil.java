@@ -712,7 +712,8 @@ public final class BillReportUtil {
 		row.put("primaryDiagnosis", clinicalDiagnosis.getPrimaryDiagnosis());
 		row.put("confirmedByLabImaging", clinicalDiagnosis.getConfirmedByLabImaging());
 		row.put("icd11Code", clinicalDiagnosis.getIcd11Code());
-		row.put("itemDate", resolveItemDate(item));
+		row.put("itemDate",
+				clampItemDateToAdmissionMonth(resolveItemDate(item), admission != null ? admission.getAdmissionDate() : null));
 		row.put("productName", productName);
 		row.put("productCode", productCode);
 		row.put("productType", productType);
@@ -1090,6 +1091,178 @@ public final class BillReportUtil {
 			return performedDateTime;
 		}
 		return item.getCreatedDate();
+	}
+
+	/**
+	 * Bill Report / ETL only: when {@code itemDate} is not in the same calendar month as
+	 * {@code admissionDate}, return the last day of the admission month. Does not mutate source
+	 * bill or clinical dates.
+	 */
+	static Date clampItemDateToAdmissionMonth(Date itemDate, Date admissionDate) {
+		if (itemDate == null || admissionDate == null) {
+			return itemDate;
+		}
+		Calendar itemCal = Calendar.getInstance();
+		itemCal.setTime(itemDate);
+		Calendar admissionCal = Calendar.getInstance();
+		admissionCal.setTime(admissionDate);
+		if (itemCal.get(Calendar.YEAR) == admissionCal.get(Calendar.YEAR)
+				&& itemCal.get(Calendar.MONTH) == admissionCal.get(Calendar.MONTH)) {
+			return itemDate;
+		}
+		admissionCal.set(Calendar.DAY_OF_MONTH, admissionCal.getActualMaximum(Calendar.DAY_OF_MONTH));
+		preserveTimeOfDay(admissionCal, itemCal);
+		return admissionCal.getTime();
+	}
+
+	private static void preserveTimeOfDay(Calendar target, Calendar source) {
+		target.set(Calendar.HOUR_OF_DAY, source.get(Calendar.HOUR_OF_DAY));
+		target.set(Calendar.MINUTE, source.get(Calendar.MINUTE));
+		target.set(Calendar.SECOND, source.get(Calendar.SECOND));
+		target.set(Calendar.MILLISECOND, source.get(Calendar.MILLISECOND));
+	}
+
+	/**
+	 * True when the bill line is DCP ({@code item_type = 2}), matching Insurance Report ETL
+	 * {@code COALESCE(psb.item_type, 1) <> 2}. Falls back to facility service item type; null → ordinary.
+	 */
+	static boolean isDcpItem(PatientServiceBill item) {
+		if (item == null) {
+			return false;
+		}
+		Integer itemType = item.getItemType();
+		if (itemType == null && item.getService() != null && item.getService().getFacilityServicePrice() != null) {
+			itemType = item.getService().getFacilityServicePrice().getItemType();
+		}
+		return Integer.valueOf(2).equals(itemType);
+	}
+
+	/** Prefer bill-line {@code created_date}; no clinical soft-join here (period logic is create-based). */
+	static Date itemCreatedDate(PatientServiceBill item) {
+		return item != null ? item.getCreatedDate() : null;
+	}
+
+	static boolean sameYearMonth(Date left, Date right) {
+		if (left == null || right == null) {
+			return false;
+		}
+		Calendar a = Calendar.getInstance();
+		a.setTime(left);
+		Calendar b = Calendar.getInstance();
+		b.setTime(right);
+		return a.get(Calendar.YEAR) == b.get(Calendar.YEAR) && a.get(Calendar.MONTH) == b.get(Calendar.MONTH);
+	}
+
+	/** True when real admission year-month is strictly before the item created year-month. */
+	static boolean isCrossMonthItem(Date admissionDate, Date itemCreated) {
+		if (admissionDate == null || itemCreated == null) {
+			return false;
+		}
+		Calendar admission = Calendar.getInstance();
+		admission.setTime(admissionDate);
+		Calendar created = Calendar.getInstance();
+		created.setTime(itemCreated);
+		int admYm = admission.get(Calendar.YEAR) * 12 + admission.get(Calendar.MONTH);
+		int itemYm = created.get(Calendar.YEAR) * 12 + created.get(Calendar.MONTH);
+		return admYm < itemYm;
+	}
+
+	static String yearMonthKey(Date date) {
+		if (date == null) {
+			return "";
+		}
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		return calendar.get(Calendar.YEAR) + "-" + calendar.get(Calendar.MONTH);
+	}
+
+	/**
+	 * Report-only admission/discharge for a bill×month bucket. Does not mutate source data.
+	 */
+	static final class ReportPeriodDates {
+		private final Date admissionDate;
+		private final Date dischargeDate;
+
+		ReportPeriodDates(Date admissionDate, Date dischargeDate) {
+			this.admissionDate = admissionDate;
+			this.dischargeDate = dischargeDate;
+		}
+
+		Date getAdmissionDate() {
+			return admissionDate;
+		}
+
+		Date getDischargeDate() {
+			return dischargeDate;
+		}
+	}
+
+	static final class MonthCreatedBounds {
+		private Date minCreated;
+		private Date maxCreated;
+
+		void include(Date created) {
+			if (created == null) {
+				return;
+			}
+			if (minCreated == null || created.before(minCreated)) {
+				minCreated = created;
+			}
+			if (maxCreated == null || created.after(maxCreated)) {
+				maxCreated = created;
+			}
+		}
+
+		Date getMinCreated() {
+			return minCreated;
+		}
+
+		Date getMaxCreated() {
+			return maxCreated;
+		}
+	}
+
+	/**
+	 * Cross-month report dates: admission = first created in month; discharge = last created when that
+	 * month is not the current calendar month, else real closing/discharge if any. Open bills never
+	 * leave a null discharge for a past month — fall back to max then min created in the month.
+	 */
+	static ReportPeriodDates resolveCrossMonthReportDates(MonthCreatedBounds bounds, Date realClosingDate,
+			Date today) {
+		if (bounds == null || bounds.getMinCreated() == null) {
+			Date fallbackDischarge = realClosingDate != null ? realClosingDate : null;
+			return new ReportPeriodDates(null, fallbackDischarge);
+		}
+		Date reportAdmission = bounds.getMinCreated();
+		Date reportDischarge;
+		if (!sameYearMonth(reportAdmission, today != null ? today : new Date())) {
+			reportDischarge = firstNonNull(bounds.getMaxCreated(), bounds.getMinCreated());
+		} else {
+			reportDischarge = firstNonNull(realClosingDate, bounds.getMaxCreated(), bounds.getMinCreated());
+		}
+		return new ReportPeriodDates(reportAdmission, reportDischarge);
+	}
+
+	private static Date firstNonNull(Date... dates) {
+		if (dates == null) {
+			return null;
+		}
+		for (Date date : dates) {
+			if (date != null) {
+				return date;
+			}
+		}
+		return null;
+	}
+
+	static Date realDischargeDate(Admission admission, GlobalBill globalBill) {
+		if (globalBill != null && globalBill.getClosingDate() != null) {
+			return globalBill.getClosingDate();
+		}
+		if (admission != null && admission.getDischargingDate() != null) {
+			return admission.getDischargingDate();
+		}
+		return null;
 	}
 
 	/** Medication dispense datetime via {@code order_id} → RPM request line → dispense record. */
@@ -2361,11 +2534,20 @@ public final class BillReportUtil {
 	/**
 	 * Live (non-ETL) expansion used by the ETL refresh task so soft-join rules stay
 	 * in one place ({@link #toReportItem}).
+	 * <p>
+	 * Includes discharged admissions and undischarged admissions that have billable lines.
+	 * Cross-month lines (item created after admission month) get report-only synthetic
+	 * admission/discharge dates; source tables are never updated.
 	 */
 	public static List<BillReportItem> buildReportItemsLiveFromAdmissions(List<Admission> admissions) {
+		return buildReportItemsLiveFromAdmissions(admissions, new Date());
+	}
+
+	static List<BillReportItem> buildReportItemsLiveFromAdmissions(List<Admission> admissions, Date today) {
 		if (admissions == null || admissions.isEmpty()) {
 			return Collections.emptyList();
 		}
+		Date asOf = today != null ? today : new Date();
 
 		List<BillReportItem> rows = new ArrayList<>();
 		int sequence = 1;
@@ -2374,10 +2556,6 @@ public final class BillReportUtil {
 				continue;
 			}
 			GlobalBill globalBill = getService().getGlobalBillByAdmission(admission);
-			// Bill Report includes discharged (closed) admissions only.
-			if (!isDischarged(admission, globalBill)) {
-				continue;
-			}
 			List<Consommation> consommations = globalBill != null
 					? getService().getAllConsommationByGlobalBill(globalBill)
 					: Collections.emptyList();
@@ -2385,40 +2563,92 @@ public final class BillReportUtil {
 				continue;
 			}
 
+			List<ItemOnConsommation> includable = collectIncludableItems(consommations);
+			if (includable.isEmpty()) {
+				continue;
+			}
+			// Undischarged admissions are included when they have non-DCP lines (failed discharge).
+			// Discharged admissions with lines are included as before.
+
+			Map<String, MonthCreatedBounds> boundsByMonth = new HashMap<>();
+			for (ItemOnConsommation entry : includable) {
+				Date created = itemCreatedDate(entry.item);
+				if (created == null) {
+					continue;
+				}
+				String key = yearMonthKey(created);
+				MonthCreatedBounds bounds = boundsByMonth.get(key);
+				if (bounds == null) {
+					bounds = new MonthCreatedBounds();
+					boundsByMonth.put(key, bounds);
+				}
+				bounds.include(created);
+			}
+
 			BigDecimal insuranceRatePercent = resolveInsuranceRatePercent(admission, globalBill);
 			Patient patientForDx = admission.getInsurancePolicy() != null
 					? admission.getInsurancePolicy().getOwner()
 					: null;
 			ClinicalDiagnosis diagnosis = resolveClinicalDiagnosis(admission, globalBill, patientForDx);
-			// Whole voucher: Yes if any LABORATOIRE line on this global bill has order status Completed.
 			String confirmedByLab = hasCompletedLaboratoryOnGlobalBill(globalBill, consommations) ? "Yes" : "No";
 			ClinicalDiagnosis clinicalDiagnosis = new ClinicalDiagnosis(
 					diagnosis.getPrimaryDiagnosis(), confirmedByLab, diagnosis.getIcd11Code());
+			Date realDischarge = realDischargeDate(admission, globalBill);
 
-			for (Consommation consommation : consommations) {
-				if (consommation == null || Boolean.TRUE.equals(consommation.getVoided())) {
-					continue;
+			for (ItemOnConsommation entry : includable) {
+				Date created = itemCreatedDate(entry.item);
+				ReportPeriodDates periodDates;
+				if (isCrossMonthItem(admission.getAdmissionDate(), created)) {
+					MonthCreatedBounds bounds = created != null ? boundsByMonth.get(yearMonthKey(created)) : null;
+					periodDates = resolveCrossMonthReportDates(bounds, realDischarge, asOf);
+				} else {
+					periodDates = new ReportPeriodDates(admission.getAdmissionDate(), realDischarge);
 				}
-				Set<PatientServiceBill> items = consommation.getBillItems();
-				if (items == null || items.isEmpty()) {
-					continue;
-				}
-				for (PatientServiceBill item : items) {
-					if (item == null || Boolean.TRUE.equals(item.getVoided())) {
-						continue;
-					}
-					BillReportItem row = toReportItem(sequence++, admission, globalBill, consommation, item,
-							insuranceRatePercent, clinicalDiagnosis);
-					rows.add(row);
-				}
+				BillReportItem row = toReportItem(sequence++, admission, globalBill, entry.consommation, entry.item,
+						insuranceRatePercent, clinicalDiagnosis, periodDates);
+				rows.add(row);
 			}
 		}
 		return rows;
 	}
 
+	private static final class ItemOnConsommation {
+		private final Consommation consommation;
+		private final PatientServiceBill item;
+
+		private ItemOnConsommation(Consommation consommation, PatientServiceBill item) {
+			this.consommation = consommation;
+			this.item = item;
+		}
+	}
+
+	private static List<ItemOnConsommation> collectIncludableItems(List<Consommation> consommations) {
+		List<ItemOnConsommation> includable = new ArrayList<>();
+		for (Consommation consommation : consommations) {
+			if (consommation == null || Boolean.TRUE.equals(consommation.getVoided())) {
+				continue;
+			}
+			Set<PatientServiceBill> items = consommation.getBillItems();
+			if (items == null || items.isEmpty()) {
+				continue;
+			}
+			for (PatientServiceBill item : items) {
+				if (item == null || Boolean.TRUE.equals(item.getVoided()) || isDcpItem(item)) {
+					continue;
+				}
+				// Cross-month admission/closing needs created_date; skip undated lines (same as Insurance ETL).
+				if (item.getCreatedDate() == null) {
+					continue;
+				}
+				includable.add(new ItemOnConsommation(consommation, item));
+			}
+		}
+		return includable;
+	}
+
 	private static BillReportItem toReportItem(int sequence, Admission admission, GlobalBill globalBill,
 			Consommation consommation, PatientServiceBill item, BigDecimal insuranceRatePercent,
-			ClinicalDiagnosis clinicalDiagnosis) {
+			ClinicalDiagnosis clinicalDiagnosis, ReportPeriodDates periodDates) {
 		BillReportItem row = new BillReportItem();
 		row.setRowNumber(sequence);
 		row.setPatientServiceBillId(item.getPatientServiceBillId());
@@ -2433,9 +2663,13 @@ public final class BillReportUtil {
 			row.setGlobalBillId(globalBill.getGlobalBillId());
 		}
 		row.setConsommationId(consommation.getConsommationId());
-		row.setAdmissionDate(admission.getAdmissionDate());
-		// Discharge is recorded on moh_bill_global_bill.closing_date
-		row.setDischargeDate(globalBill != null ? globalBill.getClosingDate() : null);
+		Date reportAdmission = periodDates != null && periodDates.getAdmissionDate() != null
+				? periodDates.getAdmissionDate()
+				: admission.getAdmissionDate();
+		Date reportDischarge = periodDates != null ? periodDates.getDischargeDate()
+				: (globalBill != null ? globalBill.getClosingDate() : null);
+		row.setAdmissionDate(reportAdmission);
+		row.setDischargeDate(reportDischarge);
 		row.setAdmissionStatus(Boolean.TRUE.equals(admission.getIsAdmitted()) ? "Inpatient" : "Outpatient");
 		row.setWardType(consommation.getDepartment() != null ? consommation.getDepartment().getName() : null);
 		Insurance insurance = null;
@@ -2485,7 +2719,8 @@ public final class BillReportUtil {
 		row.setPrimaryWorkingDiagnosis(clinicalDiagnosis.getPrimaryDiagnosis());
 		row.setPrimaryConfirmedByLabImaging(clinicalDiagnosis.getConfirmedByLabImaging());
 		row.setIcd11Code(clinicalDiagnosis.getIcd11Code());
-		row.setItemDate(resolveItemDate(item));
+		// Report/ETL only: clamp out-of-month item dates to last day of report admission month.
+		row.setItemDate(clampItemDateToAdmissionMonth(resolveItemDate(item), reportAdmission));
 
 		FacilityServicePrice fsp = null;
 		BillableService billable = item.getService();

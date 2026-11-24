@@ -44,6 +44,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -709,6 +710,16 @@ public class BillingServiceImpl implements BillingService {
         return billingDAO.getAdmissionsByAdmissionDate(startDate, endDate, insurance, insuranceCategory);
     }
 
+    @Override
+    public List<Admission> getAdmissionsByGlobalBillClosingDate(Date closingDateFrom) {
+        return billingDAO.getAdmissionsByGlobalBillClosingDate(closingDateFrom);
+    }
+
+    @Override
+    public List<Admission> getAdmissionsByPatientServiceBillCreatedDate(Date createdDateFrom) {
+        return billingDAO.getAdmissionsByPatientServiceBillCreatedDate(createdDateFrom);
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -1174,14 +1185,112 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     public int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds) {
-        return billingDAO.refreshInsuranceReportEtl(refreshFrom, imagingServiceIds, procedureServiceIds);
+        return refreshInsuranceReportEtl(refreshFrom, imagingServiceIds, procedureServiceIds, null);
+    }
+
+    @Override
+    public int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds,
+            Date etlStartDate) {
+        // Per-GB delete+insert only for candidates (do not wipe whole months).
+        List<Integer> globalBillIds = billingDAO.listInsuranceReportSourceGlobalBillIds(null, null, refreshFrom,
+                etlStartDate);
+        return refreshInsuranceReportEtlGlobalBills(globalBillIds, imagingServiceIds, procedureServiceIds,
+                etlStartDate);
     }
 
     @Override
     public int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
             String imagingServiceIds, String procedureServiceIds) {
-        return billingDAO.refreshInsuranceReportEtlByGlobalBillIdRange(globalBillIdFrom, globalBillIdTo,
-                imagingServiceIds, procedureServiceIds);
+        return refreshInsuranceReportEtlByGlobalBillIdRange(globalBillIdFrom, globalBillIdTo, imagingServiceIds,
+                procedureServiceIds, null);
+    }
+
+    @Override
+    public int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
+            String imagingServiceIds, String procedureServiceIds, Date etlStartDate) {
+        BillingService self = Context.getService(BillingService.class);
+        // Drop ETL rows for this id window first (covers GBs that no longer have billable lines).
+        self.clearInsuranceReportEtlByGlobalBillIdRange(globalBillIdFrom, globalBillIdTo);
+        List<Integer> globalBillIds = billingDAO.listInsuranceReportSourceGlobalBillIds(globalBillIdFrom,
+                globalBillIdTo, null, etlStartDate);
+        return refreshInsuranceReportEtlGlobalBills(globalBillIds, imagingServiceIds, procedureServiceIds,
+                etlStartDate);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int refreshInsuranceReportEtlForGlobalBill(Integer globalBillId, String imagingServiceIds,
+            String procedureServiceIds, Date etlStartDate) {
+        return billingDAO.refreshInsuranceReportEtlForGlobalBill(globalBillId, imagingServiceIds,
+                procedureServiceIds, etlStartDate);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int clearInsuranceReportEtlFromRefreshDate(Date refreshFrom) {
+        return billingDAO.clearInsuranceReportEtlFromRefreshDate(refreshFrom);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int clearInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo) {
+        return billingDAO.clearInsuranceReportEtlByGlobalBillIdRange(globalBillIdFrom, globalBillIdTo);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int deleteInsuranceReportEtlBeforeStartDate(Date etlStartDate) {
+        return billingDAO.deleteInsuranceReportEtlBeforeStartDate(etlStartDate);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Integer> listInsuranceReportSourceGlobalBillIds(Integer globalBillIdFrom, Integer globalBillIdTo,
+            Date refreshFrom, Date etlStartDate) {
+        return billingDAO.listInsuranceReportSourceGlobalBillIds(globalBillIdFrom, globalBillIdTo, refreshFrom,
+                etlStartDate);
+    }
+
+    /**
+     * Calls {@link #refreshInsuranceReportEtlForGlobalBill} through the Spring proxy so each
+     * global bill commits independently (REQUIRES_NEW).
+     */
+    private int refreshInsuranceReportEtlGlobalBills(List<Integer> globalBillIds, String imagingServiceIds,
+            String procedureServiceIds, Date etlStartDate) {
+        if (globalBillIds == null || globalBillIds.isEmpty()) {
+            return 0;
+        }
+        BillingService self = Context.getService(BillingService.class);
+        int totalLoaded = 0;
+        int processed = 0;
+        int failed = 0;
+        for (Integer globalBillId : globalBillIds) {
+            if (globalBillId == null) {
+                continue;
+            }
+            try {
+                totalLoaded += self.refreshInsuranceReportEtlForGlobalBill(globalBillId, imagingServiceIds,
+                        procedureServiceIds, etlStartDate);
+            } catch (Exception e) {
+                failed++;
+                log.error("Insurance report ETL failed for globalBillId=" + globalBillId, e);
+            }
+            processed++;
+            if (processed % 50 == 0) {
+                log.info("Insurance report ETL progress: processed " + processed + "/" + globalBillIds.size()
+                        + " global bills, loaded " + totalLoaded + " rows, failed " + failed
+                        + " (committed)");
+            }
+        }
+        if (failed > 0 && (totalLoaded == 0 || failed == processed)) {
+            throw new DAOException("Insurance report ETL failed for all " + failed
+                    + " attempted global bill(s) (loaded 0 usable batches).");
+        }
+        if (failed > 0) {
+            log.error("Insurance report ETL completed with " + failed + " global bill failure(s) out of "
+                    + processed + " (loaded " + totalLoaded + " rows).");
+        }
+        return totalLoaded;
     }
 
     @Override
@@ -1273,8 +1382,37 @@ public class BillingServiceImpl implements BillingService {
         BillingService self = Context.getService(BillingService.class);
         // Commit the window clear first so it cannot roll back rows inserted below.
         self.clearBillReportEtlFromAdmissionDate(refreshFrom);
-        List<Admission> admissions = getAdmissionsByAdmissionDate(refreshFrom, null, null, null);
+        // Union admission_date, closing_date, and late item created_date windows.
+        List<Admission> admissions = mergeAdmissionsById(
+                mergeAdmissionsById(
+                        getAdmissionsByAdmissionDate(refreshFrom, null, null, null),
+                        getAdmissionsByGlobalBillClosingDate(refreshFrom)),
+                getAdmissionsByPatientServiceBillCreatedDate(refreshFrom));
         return refreshBillReportEtlAdmissions(admissions);
+    }
+
+    /**
+     * Dedupes by admissionId, preserving first-seen order (admission-date list first).
+     */
+    static List<Admission> mergeAdmissionsById(List<Admission> primary, List<Admission> secondary) {
+        LinkedHashMap<Integer, Admission> byId = new LinkedHashMap<Integer, Admission>();
+        appendAdmissions(byId, primary);
+        appendAdmissions(byId, secondary);
+        return new ArrayList<Admission>(byId.values());
+    }
+
+    private static void appendAdmissions(Map<Integer, Admission> byId, List<Admission> admissions) {
+        if (admissions == null) {
+            return;
+        }
+        for (Admission admission : admissions) {
+            if (admission == null || admission.getAdmissionId() == null) {
+                continue;
+            }
+            if (!byId.containsKey(admission.getAdmissionId())) {
+                byId.put(admission.getAdmissionId(), admission);
+            }
+        }
     }
 
     @Override
@@ -1377,14 +1515,14 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     @Transactional(readOnly = true)
-    public Integer getMinimumInsuranceReportSourceGlobalBillId() {
-        return billingDAO.getMinimumInsuranceReportSourceGlobalBillId();
+    public Integer getMinimumInsuranceReportSourceGlobalBillId(Date etlStartDate) {
+        return billingDAO.getMinimumInsuranceReportSourceGlobalBillId(etlStartDate);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Integer getMaximumInsuranceReportSourceGlobalBillId() {
-        return billingDAO.getMaximumInsuranceReportSourceGlobalBillId();
+    public Integer getMaximumInsuranceReportSourceGlobalBillId(Date etlStartDate) {
+        return billingDAO.getMaximumInsuranceReportSourceGlobalBillId(etlStartDate);
     }
 
 	public String getDiagnosisFromAdmissionToDischarge(String primaryAndSecondaryDiagnosis, Date startDate, Date endDate, Integer patientid){

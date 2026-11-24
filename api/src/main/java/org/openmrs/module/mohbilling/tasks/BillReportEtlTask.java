@@ -6,6 +6,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
 import org.openmrs.module.mohbilling.businesslogic.InsurancePolicyUtil;
+import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
@@ -13,6 +14,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -24,7 +26,8 @@ public class BillReportEtlTask extends AbstractTask {
 	private static final int DEFAULT_OVERLAP_DAYS = 7;
 	/** Keep batches small so each service call commits and COUNT(*) can rise during a run. */
 	private static final int FULL_REFRESH_BATCH_SIZE = 500;
-	private static final String MATERIALIZATION_VERSION = "10";
+	/** Bumped when start-floor / cross-month candidate semantics change. */
+	private static final String MATERIALIZATION_VERSION = "14";
 	private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
 	@Override
@@ -53,11 +56,18 @@ public class BillReportEtlTask extends AbstractTask {
 			if (fullRefresh) {
 				billingService.deleteBillReportEtlBeforeAdmissionDate(startDate);
 				loaded = refreshAllInBatches(billingService, startDate);
+				// Pre-floor admissions with items created on/after startDate (same as Insurance).
+				int lateCreated = refreshAdmissionsWithItemsCreatedOnOrAfter(billingService, startDate);
+				loaded += lateCreated;
+				log.info("Bill report ETL late-created-item admissions loaded " + lateCreated + " rows");
 			} else {
 				Date refreshFrom = laterOf(calculateRefreshFrom(latestAdmissionDate, overlapDays), startDate);
 				log.info("Bill report ETL incremental refreshFrom=" + refreshFrom);
 				loaded = billingService.refreshBillReportEtl(refreshFrom);
 			}
+			// Drop any report rows whose report admission_date is still before the floor
+			// (e.g. July lines from a pre-August admission that also had August creates).
+			billingService.deleteBillReportEtlBeforeAdmissionDate(startDate);
 			// Only mark the materialization version after a clean run. Otherwise a schema/SQL
 			// failure would stick on v9 with incomplete rows and never full-refresh again.
 			Context.getAdministrationService().setGlobalProperty(
@@ -82,6 +92,37 @@ public class BillReportEtlTask extends AbstractTask {
 		log.info("Bill report ETL full refresh admission_id range " + minimumAdmissionId + ".."
 				+ maximumAdmissionId);
 		return refreshRangeInBatches(billingService, minimumAdmissionId, maximumAdmissionId, startDate);
+	}
+
+	/**
+	 * Rematerializes admissions that have non-voided bill lines created on/after {@code startDate},
+	 * including those whose real admission_date is before the floor. Cross-month August (etc.) lines
+	 * get synthetic report admission dates and remain after {@code deleteBillReportEtlBeforeAdmissionDate}.
+	 */
+	static int refreshAdmissionsWithItemsCreatedOnOrAfter(BillingService billingService, Date startDate) {
+		if (billingService == null || startDate == null) {
+			return 0;
+		}
+		List<Admission> admissions = billingService.getAdmissionsByPatientServiceBillCreatedDate(startDate);
+		if (admissions == null || admissions.isEmpty()) {
+			return 0;
+		}
+		int totalLoaded = 0;
+		int considered = 0;
+		for (Admission admission : admissions) {
+			if (admission == null || admission.getAdmissionId() == null) {
+				continue;
+			}
+			// Admissions already on/after the floor were covered by the ID-range full refresh.
+			if (admission.getAdmissionDate() != null && !admission.getAdmissionDate().before(startDate)) {
+				continue;
+			}
+			considered++;
+			totalLoaded += billingService.refreshBillReportEtlForAdmission(admission.getAdmissionId());
+		}
+		log.info("Bill report ETL pre-floor admissions with late-created items: considered=" + considered
+				+ ", loaded=" + totalLoaded);
+		return totalLoaded;
 	}
 
 	static Date calculateRefreshFrom(Date latestAdmissionDate, int overlapDays) {

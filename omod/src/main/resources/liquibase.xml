@@ -2793,4 +2793,33 @@
 		</addColumn>
 	</changeSet>
 
+	<changeSet id="moh_bill_insurance_report_etl_report_period_month" author="moh-dev">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_insurance_report_etl" />
+			<not>
+				<columnExists tableName="moh_bill_insurance_report_etl" columnName="report_period_month" />
+			</not>
+		</preConditions>
+		<comment>
+			Allow one Insurance ETL row per global bill per item-created calendar month (cross-month
+			amount sync with Bill Report). report_period_month is ETL-internal only.
+		</comment>
+		<addColumn tableName="moh_bill_insurance_report_etl">
+			<column name="report_period_month" type="date">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+		<sql>
+			UPDATE moh_bill_insurance_report_etl
+			SET report_period_month = DATE(DATE_FORMAT(COALESCE(admission_date, closing_date, etl_loaded_at), '%Y-%m-01'))
+			WHERE report_period_month IS NULL
+		</sql>
+		<dropIndex tableName="moh_bill_insurance_report_etl" indexName="uk_moh_bill_insurance_report_etl_global_bill" />
+		<createIndex tableName="moh_bill_insurance_report_etl"
+				indexName="uk_moh_bill_insurance_report_etl_gb_period" unique="true">
+			<column name="global_bill_id" />
+			<column name="report_period_month" />
+		</createIndex>
+	</changeSet>
+
 </databaseChangeLog>

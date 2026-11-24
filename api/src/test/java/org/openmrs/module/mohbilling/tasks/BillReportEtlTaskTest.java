@@ -3,11 +3,14 @@ package org.openmrs.module.mohbilling.tasks;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openmrs.module.mohbilling.businesslogic.BillingConstants;
+import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.service.BillingService;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -15,7 +18,7 @@ public class BillReportEtlTaskTest {
 
 	@Test
 	public void materializationConfiguration_shouldIncludePrimaryIdentifierAndStartDate() {
-		Assert.assertEquals("10:8:start=2026-08-01",
+		Assert.assertEquals("14:8:start=2026-08-01",
 				BillReportEtlTask.materializationConfiguration(8, "2026-08-01"));
 	}
 
@@ -98,5 +101,43 @@ public class BillReportEtlTaskTest {
 		Assert.assertEquals("1-500", ranges.get(0));
 		Assert.assertEquals("5001-5500", ranges.get(10));
 		Assert.assertEquals("10001-10005", ranges.get(20));
+	}
+
+	@Test
+	public void refreshAdmissionsWithItemsCreatedOnOrAfter_shouldOnlyRefreshPreFloorAdmissions() {
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(2026, Calendar.AUGUST, 1, 0, 0, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		Date startDate = calendar.getTime();
+
+		Admission july = new Admission();
+		july.setAdmissionId(10);
+		calendar.set(2026, Calendar.JULY, 15, 0, 0, 0);
+		july.setAdmissionDate(calendar.getTime());
+
+		Admission august = new Admission();
+		august.setAdmissionId(20);
+		calendar.set(2026, Calendar.AUGUST, 5, 0, 0, 0);
+		august.setAdmissionDate(calendar.getTime());
+
+		List<Integer> refreshed = new ArrayList<Integer>();
+		BillingService billingService = (BillingService) Proxy.newProxyInstance(
+				BillingService.class.getClassLoader(), new Class<?>[] { BillingService.class },
+				(proxy, method, args) -> {
+					if ("getAdmissionsByPatientServiceBillCreatedDate".equals(method.getName())) {
+						Assert.assertEquals(startDate, args[0]);
+						return Arrays.asList(july, august);
+					}
+					if ("refreshBillReportEtlForAdmission".equals(method.getName())) {
+						refreshed.add((Integer) args[0]);
+						return 3;
+					}
+					throw new UnsupportedOperationException(method.getName());
+				});
+
+		int loaded = BillReportEtlTask.refreshAdmissionsWithItemsCreatedOnOrAfter(billingService, startDate);
+
+		Assert.assertEquals(3, loaded);
+		Assert.assertEquals(Collections.singletonList(Integer.valueOf(10)), refreshed);
 	}
 }

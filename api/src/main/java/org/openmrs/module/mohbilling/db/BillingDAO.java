@@ -525,6 +525,18 @@ public interface BillingDAO {
 	public List<Admission> getAdmissionsByAdmissionDate(Date startDate, Date endDate, Insurance insurance,
 			String insuranceCategory);
 
+	/**
+	 * Non-voided admissions whose linked global bill has {@code closing_date >= closingDateFrom}
+	 * (inclusive). Used so Bill Report ETL incremental refresh also picks bills closed in the
+	 * window even when admission_date is older.
+	 */
+	public List<Admission> getAdmissionsByGlobalBillClosingDate(Date closingDateFrom);
+
+	/**
+	 * Non-voided admissions that have at least one non-voided patient service bill with
+	 * {@code created_date >= createdDateFrom} (cross-month / late item refresh).
+	 */
+	public List<Admission> getAdmissionsByPatientServiceBillCreatedDate(Date createdDateFrom);
 
 	public void saveConsommation(Consommation consommation);
 
@@ -675,11 +687,36 @@ public interface BillingDAO {
 	int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
 			String imagingServiceIds, String procedureServiceIds);
 
+	/**
+	 * Deletes and rematerializes Insurance ETL rows for a single global bill (short transaction).
+	 */
+	int refreshInsuranceReportEtlForGlobalBill(Integer globalBillId, String imagingServiceIds,
+			String procedureServiceIds, Date etlStartDate);
+
+	/**
+	 * Clears Insurance ETL rows in the incremental refresh window (admission/closing/period).
+	 */
+	int clearInsuranceReportEtlFromRefreshDate(Date refreshFrom);
+
+	/**
+	 * Clears Insurance ETL rows for a global bill id window (full-refresh chunk).
+	 */
+	int clearInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo);
+
+	/**
+	 * Source global bill ids to rematerialize (optional id range and/or refresh-from window),
+	 * floored by {@code etlStartDate}.
+	 */
+	List<Integer> listInsuranceReportSourceGlobalBillIds(Integer globalBillIdFrom, Integer globalBillIdTo,
+			Date refreshFrom, Date etlStartDate);
+
+	int deleteInsuranceReportEtlBeforeStartDate(Date etlStartDate);
+
 	Date getLatestInsuranceReportEtlClosingDate();
 
-	Integer getMinimumInsuranceReportSourceGlobalBillId();
+	Integer getMinimumInsuranceReportSourceGlobalBillId(Date etlStartDate);
 
-	Integer getMaximumInsuranceReportSourceGlobalBillId();
+	Integer getMaximumInsuranceReportSourceGlobalBillId(Date etlStartDate);
 
 	/**
 	 * Reads the materialized cashier report populated by the billing scheduler.

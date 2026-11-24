@@ -15,10 +15,12 @@ public class InsuranceReportEtlSqlTest {
 		Assert.assertTrue(sql.contains("JOIN moh_bill_patient_service_bill psb"));
 		Assert.assertTrue(sql.contains("COALESCE(psb.item_type, 1) <> 2"));
 		Assert.assertTrue(sql.contains("JOIN moh_bill_global_bill filtered_gb"));
-		Assert.assertTrue(sql.contains("filtered_gb.closing_date >= :refreshFrom"));
+		Assert.assertTrue(sql.contains("report_period_month"));
+		Assert.assertTrue(sql.contains("MIN(classified.item_created) AS min_created"));
+		Assert.assertTrue(sql.contains("MAX(classified.item_created) AS max_created"));
+		Assert.assertTrue(sql.contains("GROUP BY classified.global_bill_id, classified.report_period_month"));
 		Assert.assertTrue(sql.contains("FIND_IN_SET(CAST(psb.service_id AS CHAR), :imagingServiceIds)"));
 		Assert.assertTrue(sql.contains("FIND_IN_SET(CAST(psb.service_id AS CHAR), :procedureServiceIds)"));
-		Assert.assertTrue(sql.contains("ir2.start_date <= DATE(gb.closing_date)"));
 		Assert.assertTrue(sql.contains("insurance_name"));
 		Assert.assertTrue(sql.contains("primary_identifier"));
 		Assert.assertTrue(sql.contains("pi.identifier_type = :primaryIdentifierTypeId"));
@@ -27,9 +29,11 @@ public class InsuranceReportEtlSqlTest {
 		Assert.assertFalse(sql.contains("psb.creator"));
 		Assert.assertFalse(sql.contains("GROUP_CONCAT"));
 		Assert.assertTrue(sql.contains("amounts.total_100 - ("));
-		Assert.assertTrue(sql.contains("AND gb.closing_date >= :refreshFrom"));
+		Assert.assertTrue(sql.contains("psb.created_date >= :refreshFrom"));
+		Assert.assertTrue(sql.contains(">= :etlStartDate"));
 		Assert.assertTrue(sql.contains("ON DUPLICATE KEY UPDATE"));
 		Assert.assertFalse(sql.toLowerCase().contains("mamba"));
+		Assert.assertFalse(sql.contains("gb.closed = 1"));
 	}
 
 	@Test
@@ -80,6 +84,42 @@ public class InsuranceReportEtlSqlTest {
 	}
 
 	@Test
+	public void insertSql_shouldUseSyntheticDatesForCrossMonthPeriods() {
+		String sql = InsuranceReportEtlSql.insertSql(false);
+
+		Assert.assertTrue(sql.contains("ELSE amounts.min_created END"));
+		Assert.assertTrue(sql.contains("ELSE amounts.max_created END"));
+		Assert.assertTrue(sql.contains("DATE_FORMAT(CURDATE(), '%Y-%m')"));
+	}
+
+	@Test
+	public void insertSql_shouldSkipItemsWithoutCreatedDateAndUseCreatedForCrossMonthClosing() {
+		String sql = InsuranceReportEtlSql.insertSql(false);
+
+		Assert.assertTrue(sql.contains("psb.created_date IS NOT NULL"));
+		Assert.assertTrue(sql.contains("psb.created_date AS item_created"));
+		Assert.assertTrue(sql.contains("ELSE amounts.max_created END"));
+		Assert.assertTrue(sql.contains("COALESCE(gb.closing_date, amounts.max_created)"));
+		// Must not stamp real GB closing onto past cross-month slices (wrong month).
+		Assert.assertFalse(sql.contains("amounts.min_created, gb.closing_date)"));
+	}
+
+	@Test
+	public void sourceAndListSql_shouldRequireCreatedDate() {
+		Assert.assertTrue(InsuranceReportEtlSql.sourceGlobalBillIdSql(true).contains("psb.created_date IS NOT NULL"));
+		Assert.assertTrue(InsuranceReportEtlSql.listSourceGlobalBillIdsSql(false, false)
+				.contains("psb.created_date IS NOT NULL"));
+	}
+
+	@Test
+	public void deleteSql_shouldClearByClosingOrAdmissionNotWholePeriodMonth() {
+		String sql = InsuranceReportEtlSql.deleteSql(true);
+		Assert.assertTrue(sql.contains("closing_date >= :refreshFrom"));
+		Assert.assertTrue(sql.contains("admission_date >= :refreshFrom"));
+		Assert.assertFalse(sql.contains("report_period_month >="));
+	}
+
+	@Test
 	public void reportSql_shouldFilterByInsuranceAndAdmissionDate() {
 		String sql = InsuranceReportEtlSql.reportSql(true);
 
@@ -101,5 +141,42 @@ public class InsuranceReportEtlSqlTest {
 		Assert.assertFalse(sql.contains("report_etl.insurance_id = :insuranceId"));
 		Assert.assertTrue(sql.contains("report_etl.admission_date BETWEEN :startDate AND :endDate"));
 		Assert.assertFalse(sql.contains("report_etl.closing_date BETWEEN :startDate AND :endDate"));
+	}
+
+	@Test
+	public void sourceGlobalBillIdSql_shouldIncludeOpenBillsWithLines() {
+		String sql = InsuranceReportEtlSql.sourceGlobalBillIdSql(true);
+		Assert.assertTrue(sql.contains("EXISTS"));
+		Assert.assertTrue(sql.contains("COALESCE(psb.item_type, 1) <> 2"));
+		Assert.assertTrue(sql.contains(":etlStartDate"));
+		Assert.assertFalse(sql.contains("closed = 1"));
+	}
+
+	@Test
+	public void listSourceGlobalBillIdsSql_shouldSupportIdAndDateBounds() {
+		String both = InsuranceReportEtlSql.listSourceGlobalBillIdsSql(true, true);
+		Assert.assertTrue(both.contains("DISTINCT gb.global_bill_id"));
+		Assert.assertTrue(both.contains("gb.global_bill_id >= :globalBillIdFrom"));
+		Assert.assertTrue(both.contains("psb.created_date >= :refreshFrom"));
+		Assert.assertTrue(both.contains("gb.closing_date >= :refreshFrom"));
+		Assert.assertTrue(both.contains(":etlStartDate"));
+
+		String idsOnly = InsuranceReportEtlSql.listSourceGlobalBillIdsSql(true, false);
+		Assert.assertTrue(idsOnly.contains(":globalBillIdFrom"));
+		Assert.assertTrue(idsOnly.contains(":etlStartDate"));
+		Assert.assertFalse(idsOnly.contains(":refreshFrom"));
+	}
+
+	@Test
+	public void deleteBeforeEtlStartDateSql_shouldClearPreFloorRows() {
+		String sql = InsuranceReportEtlSql.deleteBeforeEtlStartDateSql();
+		Assert.assertTrue(sql.contains("admission_date < :etlStartDate"));
+		Assert.assertTrue(sql.contains("report_period_month < :etlStartDate"));
+	}
+
+	@Test
+	public void deleteByGlobalBillIdSql_shouldTargetOneBill() {
+		Assert.assertTrue(InsuranceReportEtlSql.deleteByGlobalBillIdSql()
+				.contains("WHERE global_bill_id = :globalBillId"));
 	}
 }
