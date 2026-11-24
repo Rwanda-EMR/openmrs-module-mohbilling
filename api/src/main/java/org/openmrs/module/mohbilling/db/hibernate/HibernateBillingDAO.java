@@ -1232,6 +1232,49 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public List<Admission> getAdmissionsByGlobalBillClosingDate(Date closingDateFrom) {
+        if (closingDateFrom == null) {
+            return new ArrayList<Admission>();
+        }
+        // GlobalBill.admission is unique; join from GlobalBill so closing_date filter matches Insurance freshness.
+        String hql = "select gb.admission from GlobalBill gb "
+                + "where gb.admission is not null "
+                + "and (gb.voided = false or gb.voided is null) "
+                + "and (gb.admission.voided = false or gb.admission.voided is null) "
+                + "and gb.closingDate is not null "
+                + "and gb.closingDate >= :closingDateFrom "
+                + "order by gb.admission.admissionDate asc";
+        Query query = sessionFactory.getCurrentSession().createQuery(hql);
+        query.setTimestamp("closingDateFrom", closingDateFrom);
+        return query.list();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<Admission> getAdmissionsByPatientServiceBillCreatedDate(Date createdDateFrom) {
+        if (createdDateFrom == null) {
+            return new ArrayList<Admission>();
+        }
+        // Non-DCP lines only (itemType 2 = DCP), matching Bill/Insurance report ETL inclusion.
+        String hql = "select distinct gb.admission from Consommation c, PatientServiceBill psb, GlobalBill gb "
+                + "where psb.consommation = c "
+                + "and c.globalBill = gb "
+                + "and gb.admission is not null "
+                + "and (c.voided = false or c.voided is null) "
+                + "and (psb.voided = false or psb.voided is null) "
+                + "and (gb.voided = false or gb.voided is null) "
+                + "and (gb.admission.voided = false or gb.admission.voided is null) "
+                + "and psb.createdDate is not null "
+                + "and psb.createdDate >= :createdDateFrom "
+                + "and (psb.itemType is null or psb.itemType <> 2) "
+                + "order by gb.admission.admissionDate asc";
+        Query query = sessionFactory.getCurrentSession().createQuery(hql);
+        query.setTimestamp("createdDateFrom", createdDateFrom);
+        return query.list();
+    }
+
+    @Override
     public void saveConsommation(Consommation consommation) {
         sessionFactory.getCurrentSession().saveOrUpdate(consommation);
     }
@@ -1675,40 +1718,97 @@ public class HibernateBillingDAO implements BillingDAO {
 
     @Override
     public int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds) {
-        boolean bounded = refreshFrom != null;
-        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
-                .createSQLQuery(InsuranceReportEtlSql.deleteSql(bounded));
-        SQLQuery insertQuery = sessionFactory.getCurrentSession()
-                .createSQLQuery(InsuranceReportEtlSql.insertSql(bounded));
-        if (bounded) {
-            deleteQuery.setTimestamp("refreshFrom", refreshFrom);
-            insertQuery.setTimestamp("refreshFrom", refreshFrom);
-        }
-        setInsuranceReportServiceParameters(insertQuery, imagingServiceIds, procedureServiceIds);
-        int deleted = deleteQuery.executeUpdate();
-        int inserted = insertQuery.executeUpdate();
-        log.info("Insurance report ETL refresh completed: refreshFrom=" + refreshFrom
-                + ", deleted=" + deleted + ", loaded=" + inserted);
-        return inserted;
+        // Orchestration (window clear + per-GB commits) lives in BillingServiceImpl.
+        return 0;
     }
 
     @Override
     public int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
             String imagingServiceIds, String procedureServiceIds) {
+        // Orchestration (list ids + per-GB commits) lives in BillingServiceImpl.
+        return 0;
+    }
+
+    @Override
+    public int refreshInsuranceReportEtlForGlobalBill(Integer globalBillId, String imagingServiceIds,
+            String procedureServiceIds, Date etlStartDate) {
+        if (globalBillId == null) {
+            return 0;
+        }
         SQLQuery deleteQuery = sessionFactory.getCurrentSession()
-                .createSQLQuery(InsuranceReportEtlSql.deleteByGlobalBillIdRangeSql());
+                .createSQLQuery(InsuranceReportEtlSql.deleteByGlobalBillIdSql());
+        deleteQuery.setInteger("globalBillId", globalBillId);
+        deleteQuery.executeUpdate();
+
         SQLQuery insertQuery = sessionFactory.getCurrentSession()
                 .createSQLQuery(InsuranceReportEtlSql.insertByGlobalBillIdRangeSql());
+        insertQuery.setInteger("globalBillIdFrom", globalBillId);
+        insertQuery.setInteger("globalBillIdTo", globalBillId);
+        setInsuranceReportServiceParameters(insertQuery, imagingServiceIds, procedureServiceIds, etlStartDate);
+        return insertQuery.executeUpdate();
+    }
+
+    @Override
+    public int clearInsuranceReportEtlFromRefreshDate(Date refreshFrom) {
+        boolean bounded = refreshFrom != null;
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.deleteSql(bounded));
+        if (bounded) {
+            deleteQuery.setTimestamp("refreshFrom", refreshFrom);
+        }
+        return deleteQuery.executeUpdate();
+    }
+
+    @Override
+    public int clearInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo) {
+        if (globalBillIdFrom == null || globalBillIdTo == null) {
+            return 0;
+        }
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.deleteByGlobalBillIdRangeSql());
         deleteQuery.setInteger("globalBillIdFrom", globalBillIdFrom);
         deleteQuery.setInteger("globalBillIdTo", globalBillIdTo);
-        insertQuery.setInteger("globalBillIdFrom", globalBillIdFrom);
-        insertQuery.setInteger("globalBillIdTo", globalBillIdTo);
-        setInsuranceReportServiceParameters(insertQuery, imagingServiceIds, procedureServiceIds);
-        int deleted = deleteQuery.executeUpdate();
-        int inserted = insertQuery.executeUpdate();
-        log.info("Insurance report ETL batch completed: globalBillIdFrom=" + globalBillIdFrom
-                + ", globalBillIdTo=" + globalBillIdTo + ", deleted=" + deleted + ", loaded=" + inserted);
-        return inserted;
+        return deleteQuery.executeUpdate();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<Integer> listInsuranceReportSourceGlobalBillIds(Integer globalBillIdFrom, Integer globalBillIdTo,
+            Date refreshFrom, Date etlStartDate) {
+        boolean idBounded = globalBillIdFrom != null && globalBillIdTo != null;
+        boolean dateBounded = refreshFrom != null;
+        SQLQuery query = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.listSourceGlobalBillIdsSql(idBounded, dateBounded));
+        query.setTimestamp("etlStartDate", etlStartDate != null ? etlStartDate : new Date(0L));
+        if (idBounded) {
+            query.setInteger("globalBillIdFrom", globalBillIdFrom);
+            query.setInteger("globalBillIdTo", globalBillIdTo);
+        }
+        if (dateBounded) {
+            query.setTimestamp("refreshFrom", refreshFrom);
+        }
+        List<Integer> ids = new ArrayList<Integer>();
+        List<?> rows = query.list();
+        if (rows == null) {
+            return ids;
+        }
+        for (Object row : rows) {
+            if (row != null) {
+                ids.add(Integer.valueOf(row.toString()));
+            }
+        }
+        return ids;
+    }
+
+    @Override
+    public int deleteInsuranceReportEtlBeforeStartDate(Date etlStartDate) {
+        if (etlStartDate == null) {
+            return 0;
+        }
+        SQLQuery deleteQuery = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.deleteBeforeEtlStartDateSql());
+        deleteQuery.setTimestamp("etlStartDate", etlStartDate);
+        return deleteQuery.executeUpdate();
     }
 
     @Override
@@ -1723,19 +1823,20 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
-    public Integer getMinimumInsuranceReportSourceGlobalBillId() {
-        return getInsuranceReportSourceGlobalBillId(true);
+    public Integer getMinimumInsuranceReportSourceGlobalBillId(Date etlStartDate) {
+        return getInsuranceReportSourceGlobalBillId(true, etlStartDate);
     }
 
     @Override
-    public Integer getMaximumInsuranceReportSourceGlobalBillId() {
-        return getInsuranceReportSourceGlobalBillId(false);
+    public Integer getMaximumInsuranceReportSourceGlobalBillId(Date etlStartDate) {
+        return getInsuranceReportSourceGlobalBillId(false, etlStartDate);
     }
 
-    private Integer getInsuranceReportSourceGlobalBillId(boolean minimum) {
-        Object value = sessionFactory.getCurrentSession()
-                .createSQLQuery(InsuranceReportEtlSql.sourceGlobalBillIdSql(minimum))
-                .uniqueResult();
+    private Integer getInsuranceReportSourceGlobalBillId(boolean minimum, Date etlStartDate) {
+        SQLQuery query = sessionFactory.getCurrentSession()
+                .createSQLQuery(InsuranceReportEtlSql.sourceGlobalBillIdSql(minimum));
+        query.setTimestamp("etlStartDate", etlStartDate != null ? etlStartDate : new Date(0L));
+        Object value = query.uniqueResult();
         return value != null ? Integer.valueOf(value.toString()) : null;
     }
 
@@ -2379,11 +2480,12 @@ public class HibernateBillingDAO implements BillingDAO {
 	}
 
 	private static void setInsuranceReportServiceParameters(SQLQuery query, String imagingServiceIds,
-			String procedureServiceIds) {
+			String procedureServiceIds, Date etlStartDate) {
 		query.setString("imagingServiceIds", imagingServiceIds);
 		query.setString("procedureServiceIds", procedureServiceIds);
 		query.setInteger("primaryIdentifierTypeId", InsurancePolicyUtil
 				.getPrimaryPatientIdentiferType().getPatientIdentifierTypeId());
+		query.setTimestamp("etlStartDate", etlStartDate != null ? etlStartDate : new Date(0L));
 	}
 
 	private static void setCashierReportEtlParameters(SQLQuery query) {

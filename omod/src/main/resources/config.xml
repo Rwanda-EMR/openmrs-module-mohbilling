@@ -6,7 +6,7 @@
     <!-- Base Module Properties -->
     <id>mohbilling</id>
     <name>MoH Billing Module</name>
-    <version>2.2.6-SNAPSHOT</version>
+    <version>2.2.7-SNAPSHOT</version>
     <package>org.openmrs.module.@MODULE_ID@</package>
     <author>MoH Rwanda</author>
     <description>
@@ -390,6 +390,16 @@
         <defaultValue>7</defaultValue>
         <description>
             Number of recent report days rebuilt on every ETL refresh to capture corrections
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.insuranceReportEtl.startDate</property>
+        <defaultValue>2026-08-01</defaultValue>
+        <description>
+            Inclusive floor (yyyy-MM-dd) for Insurance Report ETL materialization. Only global bills with
+            admission, closing, or item created dates on/after this date are loaded (aligned with Bill Report).
+            Changing this value triggers a full ETL rebuild.
         </description>
     </globalProperty>
 

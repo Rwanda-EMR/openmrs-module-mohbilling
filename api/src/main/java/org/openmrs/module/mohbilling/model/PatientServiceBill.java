@@ -453,12 +453,20 @@ public class PatientServiceBill implements Comparable<PatientServiceBill> {
 	@Override
 	public int compareTo(PatientServiceBill other) {
 		int ret = OpenmrsUtil.compareWithNullAsGreatest(this.getVoided(), other.getVoided());
-		if (ret == 0)
+		if (ret == 0) {
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getServiceDate(), other.getServiceDate());
-		if (ret == 0 && this.getCreatedDate() != null)
+		}
+		if (ret == 0) {
 			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getCreatedDate(), other.getCreatedDate());
-		if (ret == 0 && this.getCreatedDate() != null)
-			ret = OpenmrsUtil.compareWithNullAsGreatest(this.hashCode(), other.hashCode());
+		}
+		if (ret == 0) {
+			// Stable tie-break so TreeSet(billItems) never drops distinct lines with null createdDate.
+			ret = OpenmrsUtil.compareWithNullAsGreatest(this.getPatientServiceBillId(),
+					other.getPatientServiceBillId());
+		}
+		if (ret == 0 && this != other) {
+			ret = Integer.compare(System.identityHashCode(this), System.identityHashCode(other));
+		}
 		return ret;
 	}
 }

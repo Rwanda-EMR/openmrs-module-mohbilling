@@ -133,6 +133,13 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_PROCEDURE_SERVICES = "mohbilling.PROCEDURES";
 	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_LOADED_SERVICE_CONFIGURATION =
 			"mohbilling.insuranceReportEtl.loadedServiceConfiguration";
+	/**
+	 * Inclusive floor for Insurance Report ETL materialization (yyyy-MM-dd). Bills/items only
+	 * considered from this date onward (aligned with Bill Report default August 2026).
+	 */
+	public static final String GLOBAL_PROPERTY_INSURANCE_REPORT_ETL_START_DATE =
+			"mohbilling.insuranceReportEtl.startDate";
+	public static final String DEFAULT_INSURANCE_REPORT_ETL_START_DATE = "2026-08-01";
 	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_SCHEDULER_ENABLED =
 			"mohbilling.cashierReportEtl.scheduler.enabled";
 	public static final String GLOBAL_PROPERTY_CASHIER_REPORT_ETL_SCHEDULER_INTERVAL_SECONDS =

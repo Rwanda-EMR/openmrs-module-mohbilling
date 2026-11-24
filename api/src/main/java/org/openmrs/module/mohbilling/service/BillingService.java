@@ -491,6 +491,16 @@ public interface BillingService {
 			String insuranceCategory);
 
 	/**
+	 * Non-voided admissions whose linked global bill has {@code closing_date >= closingDateFrom}.
+	 */
+	public List<Admission> getAdmissionsByGlobalBillClosingDate(Date closingDateFrom);
+
+	/**
+	 * Non-voided admissions with a non-voided bill line created on/after {@code createdDateFrom}.
+	 */
+	public List<Admission> getAdmissionsByPatientServiceBillCreatedDate(Date createdDateFrom);
+
+	/**
 	 * Save consommation to the DB
 	 * @param consommation consommat to be saved
 	 */
@@ -709,14 +719,41 @@ public interface BillingService {
 
 	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds);
 
+	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds,
+			Date etlStartDate);
+
 	int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
 			String imagingServiceIds, String procedureServiceIds);
 
+	int refreshInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo,
+			String imagingServiceIds, String procedureServiceIds, Date etlStartDate);
+
+	/**
+	 * Rematerializes one global bill into Insurance ETL and commits independently.
+	 */
+	int refreshInsuranceReportEtlForGlobalBill(Integer globalBillId, String imagingServiceIds,
+			String procedureServiceIds, Date etlStartDate);
+
+	/**
+	 * Clears Insurance ETL rows for the incremental refresh window and commits independently.
+	 */
+	int clearInsuranceReportEtlFromRefreshDate(Date refreshFrom);
+
+	/**
+	 * Clears Insurance ETL rows for a global bill id window and commits independently.
+	 */
+	int clearInsuranceReportEtlByGlobalBillIdRange(Integer globalBillIdFrom, Integer globalBillIdTo);
+
+	List<Integer> listInsuranceReportSourceGlobalBillIds(Integer globalBillIdFrom, Integer globalBillIdTo,
+			Date refreshFrom, Date etlStartDate);
+
+	int deleteInsuranceReportEtlBeforeStartDate(Date etlStartDate);
+
 	Date getLatestInsuranceReportEtlClosingDate();
 
-	Integer getMinimumInsuranceReportSourceGlobalBillId();
+	Integer getMinimumInsuranceReportSourceGlobalBillId(Date etlStartDate);
 
-	Integer getMaximumInsuranceReportSourceGlobalBillId();
+	Integer getMaximumInsuranceReportSourceGlobalBillId(Date etlStartDate);
 
 	List<PaymentRevenue> getCashierReportFromEtl(Date startDate, Date endDate, Integer collectorId,
 			String paymentType, String reportType, List<HopService> reportColumns);

@@ -2,18 +2,34 @@ package org.openmrs.module.mohbilling.db.hibernate;
 
 /**
  * Native SQL used to materialize the insurance report from MoH Billing tables.
+ * <p>
+ * Cross-month bills (items created after the admission month) are stored as one ETL row per
+ * calendar month of {@code psb.created_date}, with report-only admission/closing dates and
+ * month-filtered amounts. Source billing tables are never updated.
  */
 final class InsuranceReportEtlSql {
 
 	private static final String TABLE = "moh_bill_insurance_report_etl";
 	private static final String CATEGORY = "UPPER(TRIM(COALESCE(hs.name, sc.name, fsp.category, 'AUTRES')))";
+	/**
+	 * First day of the item-created calendar month (report period key).
+	 * Only {@code psb.created_date} — items without created_date are excluded from amounts.
+	 */
+	private static final String PERIOD_MONTH = "DATE(DATE_FORMAT(psb.created_date, '%Y-%m-01'))";
+	private static final String PERIOD_MONTH_UNBOUNDED = PERIOD_MONTH;
 
 	private InsuranceReportEtlSql() {
 	}
 
 	static String deleteSql(boolean bounded) {
-		return bounded ? "DELETE FROM " + TABLE + " WHERE closing_date >= :refreshFrom"
-				: "DELETE FROM " + TABLE;
+		if (!bounded) {
+			return "DELETE FROM " + TABLE;
+		}
+		// Narrow window only (used for rare full-window clears). Prefer per-global-bill delete.
+		// Do not use report_period_month >= month-start(refreshFrom): that wipes a whole month of
+		// ETL while incremental rebuild only reloads recently closed/created bills.
+		return "DELETE FROM " + TABLE + " WHERE closing_date >= :refreshFrom "
+				+ "OR admission_date >= :refreshFrom";
 	}
 
 	static String deleteByGlobalBillIdRangeSql() {
@@ -21,13 +37,59 @@ final class InsuranceReportEtlSql {
 				+ " WHERE global_bill_id >= :globalBillIdFrom AND global_bill_id <= :globalBillIdTo";
 	}
 
+	static String deleteByGlobalBillIdSql() {
+		return "DELETE FROM " + TABLE + " WHERE global_bill_id = :globalBillId";
+	}
+
 	static String latestClosingDateSql() {
 		return "SELECT MAX(closing_date) FROM " + TABLE;
 	}
 
 	static String sourceGlobalBillIdSql(boolean minimum) {
-		return "SELECT " + (minimum ? "MIN" : "MAX") + "(global_bill_id) FROM moh_bill_global_bill "
-				+ "WHERE closed = 1 AND COALESCE(voided, 0) = 0 AND closing_date IS NOT NULL";
+		// Include open GBs with billable lines from the ETL start floor onward (Aug 2026 by default).
+		return "SELECT " + (minimum ? "MIN" : "MAX") + "(gb.global_bill_id) FROM moh_bill_global_bill gb "
+				+ "JOIN moh_bill_admission admission ON admission.admission_id = gb.admission_id "
+				+ "WHERE COALESCE(gb.voided, 0) = 0 AND COALESCE(admission.voided, 0) = 0 AND EXISTS ("
+				+ "SELECT 1 FROM moh_bill_consommation c "
+				+ "JOIN moh_bill_patient_service_bill psb ON psb.consommation_id = c.consommation_id "
+				+ "WHERE c.global_bill_id = gb.global_bill_id AND COALESCE(c.voided, 0) = 0 "
+				+ "AND COALESCE(psb.voided, 0) = 0 AND COALESCE(psb.item_type, 1) <> 2 "
+				+ "AND psb.created_date IS NOT NULL "
+				+ "AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate "
+				+ "OR psb.created_date >= :etlStartDate))";
+	}
+
+	/**
+	 * Distinct source global bills to rematerialize. Optional id range and/or refresh window
+	 * ({@code closing_date} or late {@code psb.created_date}). Always floored by {@code :etlStartDate}.
+	 */
+	static String listSourceGlobalBillIdsSql(boolean idBounded, boolean dateBounded) {
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT DISTINCT gb.global_bill_id FROM moh_bill_global_bill gb ")
+				.append("JOIN moh_bill_admission admission ON admission.admission_id = gb.admission_id ")
+				.append("JOIN moh_bill_consommation c ON c.global_bill_id = gb.global_bill_id ")
+				.append("JOIN moh_bill_patient_service_bill psb ON psb.consommation_id = c.consommation_id ")
+				.append("WHERE COALESCE(gb.voided, 0) = 0 AND COALESCE(admission.voided, 0) = 0 ")
+				.append("AND COALESCE(c.voided, 0) = 0 AND COALESCE(psb.voided, 0) = 0 ")
+				.append("AND COALESCE(psb.item_type, 1) <> 2 ")
+				.append("AND psb.created_date IS NOT NULL ")
+				.append("AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate "
+						+ "OR psb.created_date >= :etlStartDate) ");
+		if (idBounded) {
+			sql.append("AND gb.global_bill_id >= :globalBillIdFrom ")
+					.append("AND gb.global_bill_id <= :globalBillIdTo ");
+		}
+		if (dateBounded) {
+			sql.append("AND (gb.closing_date >= :refreshFrom OR psb.created_date >= :refreshFrom) ");
+		}
+		sql.append("ORDER BY gb.global_bill_id ASC");
+		return sql.toString();
+	}
+
+	/** Removes ETL rows that cannot appear in extracts from the configured start floor onward. */
+	static String deleteBeforeEtlStartDateSql() {
+		return "DELETE FROM " + TABLE + " WHERE (admission_date IS NOT NULL AND admission_date < :etlStartDate) "
+				+ "OR (report_period_month IS NOT NULL AND report_period_month < :etlStartDate)";
 	}
 
 	static String reportSql(boolean filterByInsurance) {
@@ -47,7 +109,7 @@ final class InsuranceReportEtlSql {
 					+ "report_etl.total_insurance, report_etl.total_patient FROM " + TABLE + " report_etl "
 					+ "WHERE " + (filterByInsurance ? "report_etl.insurance_id = :insuranceId AND " : "")
 					+ "report_etl.admission_date BETWEEN :startDate AND :endDate "
-					+ "ORDER BY report_etl.closing_date, report_etl.global_bill_id";
+					+ "ORDER BY report_etl.closing_date, report_etl.global_bill_id, report_etl.report_period_month";
 	}
 
 	static String insertSql(boolean bounded) {
@@ -59,23 +121,40 @@ final class InsuranceReportEtlSql {
 	}
 
 	private static String insertSql(boolean dateBounded, boolean globalBillIdBounded) {
+		// Same rules as Bill Report cross-month dates (created_date only; null-created items are skipped):
+		// - same calendar month as real admission → real admission / real closing (open → max created)
+		// - current calendar month slice → real closing when present, else last created in month
+		// - any other (past cross-month) slice → min/max created in that month (never gb.closing_date —
+		//   that would stamp the wrong month onto the report row)
+		String reportClosingDate = "CASE "
+				+ "WHEN DATE_FORMAT(admission.admission_date, '%Y-%m') = DATE_FORMAT(amounts.report_period_month, '%Y-%m') "
+				+ "THEN COALESCE(gb.closing_date, amounts.max_created) "
+				+ "WHEN DATE_FORMAT(amounts.report_period_month, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') "
+				+ "THEN COALESCE(gb.closing_date, amounts.max_created) "
+				+ "ELSE amounts.max_created END";
+		String reportAdmissionDate = "CASE "
+				+ "WHEN DATE_FORMAT(admission.admission_date, '%Y-%m') = DATE_FORMAT(amounts.report_period_month, '%Y-%m') "
+				+ "THEN admission.admission_date "
+				+ "ELSE amounts.min_created END";
 		String totalInsurance = "CASE WHEN COALESCE(ir.flatFee, 0) > 0 "
 				+ "THEN GREATEST(amounts.total_100 - ir.flatFee, 0) "
 				+ "ELSE ROUND(amounts.total_100 * COALESCE(ir.rate, 0) / 100, 2) END";
 		StringBuilder sql = new StringBuilder();
 		sql.append("INSERT INTO ").append(TABLE).append(" (")
-				.append("global_bill_id, insurance_id, patient_id, admission_date, closing_date, beneficiary_name, ")
+				.append("global_bill_id, report_period_month, insurance_id, patient_id, admission_date, closing_date, beneficiary_name, ")
 				.append("household_head_name, family_code, beneficiary_level, card_number, company_name, insurance_name, age, ")
 				.append("birth_date, gender, primary_identifier, doctor_name, global_bill_identifier, insurance_rate, insurance_flat_fee, ")
 				.append("medicaments, consultation, hospitalisation, laboratoire, consommables, ambulance, ")
 				.append("oxygenotherapie, autres, formalites_administratives, imaging, procedures, total_100, ")
 				.append("total_insurance, total_patient, etl_loaded_at) ")
-				.append("SELECT gb.global_bill_id, gb.insurance_id, b.patient_id, admission.admission_date, gb.closing_date, ")
+				.append("SELECT gb.global_bill_id, amounts.report_period_month, gb.insurance_id, b.patient_id, ")
+				.append(reportAdmissionDate).append(", ").append(reportClosingDate).append(", ")
 					.append(personNameExpression("patient_name"))
 					.append(", NULLIF(TRIM(b.owner_name), ''), NULLIF(TRIM(b.owner_code), ''), ")
 				.append("b.level, COALESCE(NULLIF(TRIM(policy.insurance_card_no), ''), NULLIF(TRIM(b.policy_id_number), '')), ")
 				.append("NULLIF(TRIM(b.company), ''), insurance.name, ")
-				.append("TIMESTAMPDIFF(YEAR, person.birthdate, DATE(gb.closing_date)), ")
+				.append("TIMESTAMPDIFF(YEAR, person.birthdate, DATE(COALESCE((").append(reportClosingDate)
+				.append("), amounts.max_created, CURDATE()))), ")
 				.append("person.birthdate, person.gender, primary_identifier.identifier, ")
 				.append("COALESCE(NULLIF(").append(personNameExpression("closing_user_name"))
 				.append(", ''), closing_user.username), gb.bill_identifier, ")
@@ -104,11 +183,13 @@ final class InsuranceReportEtlSql {
 				.append(") amounts ON amounts.global_bill_id = gb.global_bill_id ")
 				.append("LEFT JOIN moh_bill_insurance_rate ir ON ir.insurance_rate_id = (")
 				.append("SELECT ir2.insurance_rate_id FROM moh_bill_insurance_rate ir2 ")
-				.append("WHERE ir2.insurance_id = gb.insurance_id AND ir2.start_date <= DATE(gb.closing_date) ")
+				.append("WHERE ir2.insurance_id = gb.insurance_id AND ir2.start_date <= DATE(COALESCE((")
+				.append(reportClosingDate).append("), amounts.max_created, CURDATE())) ")
 				.append("ORDER BY ir2.start_date DESC, ir2.insurance_rate_id DESC LIMIT 1) ")
-				.append("WHERE gb.closed = 1 AND COALESCE(gb.voided, 0) = 0 AND gb.closing_date IS NOT NULL ");
+				.append("WHERE COALESCE(gb.voided, 0) = 0 AND COALESCE(admission.voided, 0) = 0 ");
 		if (dateBounded) {
-			sql.append("AND gb.closing_date >= :refreshFrom ");
+			sql.append("AND (gb.closing_date >= :refreshFrom OR amounts.max_created >= :refreshFrom "
+					+ "OR amounts.report_period_month >= DATE(DATE_FORMAT(:refreshFrom, '%Y-%m-01'))) ");
 		}
 		if (globalBillIdBounded) {
 			sql.append("AND gb.global_bill_id >= :globalBillIdFrom ")
@@ -120,8 +201,11 @@ final class InsuranceReportEtlSql {
 	}
 
 	private static String amountsSql(boolean dateBounded, boolean globalBillIdBounded) {
+		String periodExpr = dateBounded ? PERIOD_MONTH : PERIOD_MONTH_UNBOUNDED;
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT classified.global_bill_id, ")
+		sql.append("SELECT classified.global_bill_id, classified.report_period_month, ")
+				.append("MIN(classified.item_created) AS min_created, ")
+				.append("MAX(classified.item_created) AS max_created, ")
 				.append(categorySum("medicaments", "MEDICAMENTS")).append(", ")
 				.append(categorySum("consultation", "CONSULTATION")).append(", ")
 				.append(categorySum("hospitalisation", "HOSPITALISATION")).append(", ")
@@ -135,28 +219,36 @@ final class InsuranceReportEtlSql {
 				.append(categorySum("procedures", "PROCEDURES")).append(", ")
 				.append("ROUND(SUM(classified.amount), 2) AS total_100 FROM (")
 				.append("SELECT c.global_bill_id, ")
+				.append("psb.created_date AS item_created, ")
+				.append(periodExpr).append(" AS report_period_month, ")
 				.append("COALESCE(psb.quantity, 0) * COALESCE(psb.unit_price, 0) AS amount, ")
 				.append(reportCategorySql()).append(" AS report_category ")
 					.append("FROM moh_bill_consommation c ")
-					.append(dateBounded
-							? "JOIN moh_bill_global_bill filtered_gb ON filtered_gb.global_bill_id = c.global_bill_id "
-							: "")
+					.append("JOIN moh_bill_global_bill ")
+					.append(dateBounded ? "filtered_gb" : "gb_for_period")
+					.append(" ON ")
+					.append(dateBounded ? "filtered_gb" : "gb_for_period")
+					.append(".global_bill_id = c.global_bill_id ")
 					.append("JOIN moh_bill_patient_service_bill psb ON psb.consommation_id = c.consommation_id ")
 				.append("LEFT JOIN moh_bill_hop_service hs ON hs.service_id = psb.service_id ")
 				.append("LEFT JOIN moh_bill_billable_service bs ON bs.billable_service_id = psb.billable_service_id ")
 				.append("LEFT JOIN moh_bill_service_category sc ON sc.service_category_id = bs.service_category_id ")
 				.append("LEFT JOIN moh_bill_facility_service_price fsp ON fsp.facility_service_price_id = bs.facility_service_price_id ")
 				.append("WHERE COALESCE(c.voided, 0) = 0 AND COALESCE(psb.voided, 0) = 0 ")
-				.append("AND COALESCE(psb.item_type, 1) <> 2 ");
+				.append("AND COALESCE(psb.item_type, 1) <> 2 ")
+				.append("AND psb.created_date IS NOT NULL ")
+				.append("AND COALESCE(")
+				.append(dateBounded ? "filtered_gb" : "gb_for_period")
+				.append(".voided, 0) = 0 ")
+				.append("AND psb.created_date >= :etlStartDate ");
 		if (dateBounded) {
-			sql.append("AND filtered_gb.closed = 1 AND COALESCE(filtered_gb.voided, 0) = 0 ")
-					.append("AND filtered_gb.closing_date >= :refreshFrom ");
+			sql.append("AND (filtered_gb.closing_date >= :refreshFrom OR psb.created_date >= :refreshFrom) ");
 		}
 		if (globalBillIdBounded) {
 			sql.append("AND c.global_bill_id >= :globalBillIdFrom ")
 					.append("AND c.global_bill_id <= :globalBillIdTo ");
 		}
-		sql.append(") classified GROUP BY classified.global_bill_id");
+		sql.append(") classified GROUP BY classified.global_bill_id, classified.report_period_month");
 		return sql.toString();
 	}
 
