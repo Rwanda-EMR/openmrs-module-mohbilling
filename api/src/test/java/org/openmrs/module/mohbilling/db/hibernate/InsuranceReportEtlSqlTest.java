@@ -160,11 +160,23 @@ public class InsuranceReportEtlSqlTest {
 		Assert.assertTrue(both.contains("psb.created_date >= :refreshFrom"));
 		Assert.assertTrue(both.contains("gb.closing_date >= :refreshFrom"));
 		Assert.assertTrue(both.contains(":etlStartDate"));
+		// Void corrections must rematerialize even when the GB closed before refreshFrom.
+		Assert.assertTrue(both.contains("psb.voided_date >= DATE(:refreshFrom)"));
+		Assert.assertTrue(both.contains("COALESCE(psb.voided, 0) = 1"));
 
 		String idsOnly = InsuranceReportEtlSql.listSourceGlobalBillIdsSql(true, false);
 		Assert.assertTrue(idsOnly.contains(":globalBillIdFrom"));
 		Assert.assertTrue(idsOnly.contains(":etlStartDate"));
 		Assert.assertFalse(idsOnly.contains(":refreshFrom"));
+		Assert.assertFalse(idsOnly.contains("voided_date"));
+	}
+
+	@Test
+	public void listSourceGlobalBillIdsSql_dateBounded_shouldNotRequireAllowDenyInsuranceFilter() {
+		String sql = InsuranceReportEtlSql.listSourceGlobalBillIdsSql(false, true);
+		Assert.assertFalse(sql.contains("insuranceIds"));
+		Assert.assertFalse(sql.contains("excludedInsurance"));
+		Assert.assertTrue(sql.contains("voided_date"));
 	}
 
 	@Test

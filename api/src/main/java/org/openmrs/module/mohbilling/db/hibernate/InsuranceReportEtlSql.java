@@ -60,27 +60,50 @@ final class InsuranceReportEtlSql {
 	}
 
 	/**
-	 * Distinct source global bills to rematerialize. Optional id range and/or refresh window
-	 * ({@code closing_date} or late {@code psb.created_date}). Always floored by {@code :etlStartDate}.
+	 * Distinct source global bills to rematerialize. Optional id range and/or refresh window.
+	 * <p>
+	 * Incremental ({@code dateBounded}) candidates include:
+	 * <ul>
+	 * <li>GBs with non-voided non-DCP lines whose {@code closing_date} or {@code created_date}
+	 * is on/after {@code :refreshFrom}</li>
+	 * <li>GBs with lines {@code voided} on/after {@code :refreshFrom} — so void corrections
+	 * (e.g. RPM not-billable) rematerialize even when the bill closed earlier</li>
+	 * </ul>
+	 * Always floored by {@code :etlStartDate}. Insurance ETL materializes all insurers (no
+	 * allow/deny list — that is Bill Report ETL only).
 	 */
 	static String listSourceGlobalBillIdsSql(boolean idBounded, boolean dateBounded) {
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT DISTINCT gb.global_bill_id FROM moh_bill_global_bill gb ")
 				.append("JOIN moh_bill_admission admission ON admission.admission_id = gb.admission_id ")
-				.append("JOIN moh_bill_consommation c ON c.global_bill_id = gb.global_bill_id ")
-				.append("JOIN moh_bill_patient_service_bill psb ON psb.consommation_id = c.consommation_id ")
 				.append("WHERE COALESCE(gb.voided, 0) = 0 AND COALESCE(admission.voided, 0) = 0 ")
-				.append("AND COALESCE(c.voided, 0) = 0 AND COALESCE(psb.voided, 0) = 0 ")
-				.append("AND COALESCE(psb.item_type, 1) <> 2 ")
-				.append("AND psb.created_date IS NOT NULL ")
-				.append("AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate "
-						+ "OR psb.created_date >= :etlStartDate) ");
+				.append("AND EXISTS (")
+				.append("SELECT 1 FROM moh_bill_consommation c ")
+				.append("JOIN moh_bill_patient_service_bill psb ON psb.consommation_id = c.consommation_id ")
+				.append("WHERE c.global_bill_id = gb.global_bill_id AND COALESCE(c.voided, 0) = 0 ");
+		if (dateBounded) {
+			sql.append("AND (")
+					.append("(COALESCE(psb.voided, 0) = 0 AND COALESCE(psb.item_type, 1) <> 2 ")
+					.append("AND psb.created_date IS NOT NULL ")
+					.append("AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate ")
+					.append("OR psb.created_date >= :etlStartDate) ")
+					.append("AND (gb.closing_date >= :refreshFrom OR psb.created_date >= :refreshFrom)) ")
+					.append("OR ")
+					.append("(COALESCE(psb.voided, 0) = 1 AND psb.voided_date IS NOT NULL ")
+					.append("AND psb.voided_date >= DATE(:refreshFrom) ")
+					.append("AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate ")
+					.append("OR psb.created_date >= :etlStartDate OR psb.voided_date >= DATE(:etlStartDate)))")
+					.append(") ");
+		} else {
+			sql.append("AND COALESCE(psb.voided, 0) = 0 AND COALESCE(psb.item_type, 1) <> 2 ")
+					.append("AND psb.created_date IS NOT NULL ")
+					.append("AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate ")
+					.append("OR psb.created_date >= :etlStartDate) ");
+		}
+		sql.append(") ");
 		if (idBounded) {
 			sql.append("AND gb.global_bill_id >= :globalBillIdFrom ")
 					.append("AND gb.global_bill_id <= :globalBillIdTo ");
-		}
-		if (dateBounded) {
-			sql.append("AND (gb.closing_date >= :refreshFrom OR psb.created_date >= :refreshFrom) ");
 		}
 		sql.append("ORDER BY gb.global_bill_id ASC");
 		return sql.toString();

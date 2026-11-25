@@ -24,6 +24,7 @@ import org.openmrs.api.LocationService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherIntegrationConfig;
+import org.openmrs.module.mohbilling.tasks.BillReportEtlTask;
 import org.openmrs.module.mohbilling.model.Admission;
 import org.openmrs.module.mohbilling.model.Beneficiary;
 import org.openmrs.module.mohbilling.model.BillReportFacilityHeader;
@@ -1124,7 +1125,9 @@ public final class BillReportUtil {
 
 	/**
 	 * True when the bill line is DCP ({@code item_type = 2}), matching Insurance Report ETL
-	 * {@code COALESCE(psb.item_type, 1) <> 2}. Falls back to facility service item type; null → ordinary.
+	 * {@code COALESCE(psb.item_type, 1) <> 2}. Bill Report ETL excludes these lines so monthly
+	 * Bill vs Insurance totals stay aligned (MI-2 DCP parity). Falls back to facility service
+	 * item type; null → ordinary.
 	 */
 	static boolean isDcpItem(PatientServiceBill item) {
 		if (item == null) {
@@ -2540,14 +2543,25 @@ public final class BillReportUtil {
 	 * admission/discharge dates; source tables are never updated.
 	 */
 	public static List<BillReportItem> buildReportItemsLiveFromAdmissions(List<Admission> admissions) {
-		return buildReportItemsLiveFromAdmissions(admissions, new Date());
+		return buildReportItemsLiveFromAdmissions(admissions, new Date(),
+				BillReportEtlTask.configuredInsuranceAllowIds(),
+				BillReportEtlTask.configuredInsuranceExcludeIds());
 	}
 
 	static List<BillReportItem> buildReportItemsLiveFromAdmissions(List<Admission> admissions, Date today) {
+		return buildReportItemsLiveFromAdmissions(admissions, today, Collections.<Integer>emptySet(),
+				Collections.<Integer>emptySet());
+	}
+
+	static List<BillReportItem> buildReportItemsLiveFromAdmissions(List<Admission> admissions, Date today,
+			Set<Integer> allowedInsuranceIds, Set<Integer> excludedInsuranceIds) {
 		if (admissions == null || admissions.isEmpty()) {
 			return Collections.emptyList();
 		}
 		Date asOf = today != null ? today : new Date();
+		Set<Integer> allow = allowedInsuranceIds != null ? allowedInsuranceIds : Collections.<Integer>emptySet();
+		Set<Integer> exclude = excludedInsuranceIds != null ? excludedInsuranceIds
+				: Collections.<Integer>emptySet();
 
 		List<BillReportItem> rows = new ArrayList<>();
 		int sequence = 1;
@@ -2556,6 +2570,10 @@ public final class BillReportUtil {
 				continue;
 			}
 			GlobalBill globalBill = getService().getGlobalBillByAdmission(admission);
+			Integer insuranceId = resolveReportInsuranceId(admission, globalBill);
+			if (!BillReportEtlTask.isInsuranceIdAllowed(insuranceId, allow, exclude)) {
+				continue;
+			}
 			List<Consommation> consommations = globalBill != null
 					? getService().getAllConsommationByGlobalBill(globalBill)
 					: Collections.emptyList();
@@ -2646,6 +2664,21 @@ public final class BillReportUtil {
 		return includable;
 	}
 
+	static Integer resolveReportInsuranceId(Admission admission, GlobalBill globalBill) {
+		Insurance insurance = resolveReportInsurance(admission, globalBill);
+		return insurance != null ? insurance.getInsuranceId() : null;
+	}
+
+	static Insurance resolveReportInsurance(Admission admission, GlobalBill globalBill) {
+		if (globalBill != null && globalBill.getInsurance() != null) {
+			return globalBill.getInsurance();
+		}
+		if (admission != null && admission.getInsurancePolicy() != null) {
+			return admission.getInsurancePolicy().getInsurance();
+		}
+		return null;
+	}
+
 	private static BillReportItem toReportItem(int sequence, Admission admission, GlobalBill globalBill,
 			Consommation consommation, PatientServiceBill item, BigDecimal insuranceRatePercent,
 			ClinicalDiagnosis clinicalDiagnosis, ReportPeriodDates periodDates) {
@@ -2672,12 +2705,7 @@ public final class BillReportUtil {
 		row.setDischargeDate(reportDischarge);
 		row.setAdmissionStatus(Boolean.TRUE.equals(admission.getIsAdmitted()) ? "Inpatient" : "Outpatient");
 		row.setWardType(consommation.getDepartment() != null ? consommation.getDepartment().getName() : null);
-		Insurance insurance = null;
-		if (globalBill != null && globalBill.getInsurance() != null) {
-			insurance = globalBill.getInsurance();
-		} else if (admission.getInsurancePolicy() != null) {
-			insurance = admission.getInsurancePolicy().getInsurance();
-		}
+		Insurance insurance = resolveReportInsurance(admission, globalBill);
 		if (insurance != null) {
 			row.setInsuranceId(insurance.getInsuranceId());
 			row.setInsuranceCategory(insurance.getCategory());

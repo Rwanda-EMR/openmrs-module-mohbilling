@@ -805,6 +805,12 @@ public interface BillingService {
 
 	int deleteBillReportEtlBeforeAdmissionDate(Date startDate);
 
+	/**
+	 * Purges Bill Report ETL rows outside the configured insurance allow/deny filter.
+	 */
+	int deleteBillReportEtlOutsideInsuranceFilter(java.util.Collection<Integer> allowedInsuranceIds,
+			java.util.Collection<Integer> excludedInsuranceIds);
+
 	Date getLatestBillReportEtlAdmissionDate();
 
 	Integer getMaximumBillReportEtlAdmissionId();

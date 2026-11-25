@@ -31,6 +31,19 @@ final class BillReportEtlSql {
 		return "DELETE FROM " + TABLE + " WHERE admission_date < :startDate";
 	}
 
+	/** Removes rows whose insurance_id is in the denylist. */
+	static String deleteByInsuranceIdsSql() {
+		return "DELETE FROM " + TABLE + " WHERE insurance_id IN (:insuranceIds)";
+	}
+
+	/**
+	 * Removes rows outside an allowlist (null insurance_id or not in the effective set).
+	 */
+	static String deleteOutsideInsuranceIdsSql() {
+		return "DELETE FROM " + TABLE
+				+ " WHERE insurance_id IS NULL OR insurance_id NOT IN (:insuranceIds)";
+	}
+
 	static String latestAdmissionDateSql() {
 		return "SELECT MAX(admission_date) FROM " + TABLE;
 	}

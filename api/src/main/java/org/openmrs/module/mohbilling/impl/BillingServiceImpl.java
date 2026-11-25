@@ -1483,6 +1483,12 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    public int deleteBillReportEtlOutsideInsuranceFilter(java.util.Collection<Integer> allowedInsuranceIds,
+            java.util.Collection<Integer> excludedInsuranceIds) {
+        return billingDAO.deleteBillReportEtlOutsideInsuranceFilter(allowedInsuranceIds, excludedInsuranceIds);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Date getLatestBillReportEtlAdmissionDate() {
         return billingDAO.getLatestBillReportEtlAdmissionDate();

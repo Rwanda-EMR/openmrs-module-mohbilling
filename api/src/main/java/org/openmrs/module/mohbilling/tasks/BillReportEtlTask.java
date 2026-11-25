@@ -13,8 +13,12 @@ import org.openmrs.scheduler.tasks.AbstractTask;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -26,8 +30,12 @@ public class BillReportEtlTask extends AbstractTask {
 	private static final int DEFAULT_OVERLAP_DAYS = 7;
 	/** Keep batches small so each service call commits and COUNT(*) can rise during a run. */
 	private static final int FULL_REFRESH_BATCH_SIZE = 500;
-	/** Bumped when start-floor / cross-month candidate semantics change. */
-	private static final String MATERIALIZATION_VERSION = "14";
+	/**
+	 * Bumped when start-floor / insurance allow-deny / DCP exclusion rematerialize semantics change.
+	 * Bill ETL excludes {@code item_type = 2} (DCP) to match Insurance Report ETL; Insurance ETL
+	 * continues to materialize all insurers (no allow/deny list).
+	 */
+	private static final String MATERIALIZATION_VERSION = "16";
 	private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
 	@Override
@@ -42,14 +50,20 @@ public class BillReportEtlTask extends AbstractTask {
 			BillingService billingService = Context.getService(BillingService.class);
 			Date startDate = resolveStartDate();
 			String startDateKey = formatStartDateKey(startDate);
+			String insuranceIdsKey = normalizeInsuranceIds(Context.getAdministrationService().getGlobalProperty(
+					BillingConstants.GLOBAL_PROPERTY_BILL_REPORT_ETL_INSURANCE_IDS, ""));
+			String excludedInsuranceIdsKey = normalizeInsuranceIds(Context.getAdministrationService()
+					.getGlobalProperty(BillingConstants.GLOBAL_PROPERTY_BILL_REPORT_ETL_EXCLUDED_INSURANCE_IDS, ""));
 			Date latestAdmissionDate = billingService.getLatestBillReportEtlAdmissionDate();
 			String materializationConfiguration = materializationConfiguration(InsurancePolicyUtil
-					.getPrimaryPatientIdentiferType().getPatientIdentifierTypeId(), startDateKey);
+					.getPrimaryPatientIdentiferType().getPatientIdentifierTypeId(), startDateKey, insuranceIdsKey,
+					excludedInsuranceIdsKey);
 			String loadedVersion = Context.getAdministrationService().getGlobalProperty(
 					BillingConstants.GLOBAL_PROPERTY_BILL_REPORT_ETL_LOADED_VERSION, "");
 			boolean fullRefresh = latestAdmissionDate == null || !materializationConfiguration.equals(loadedVersion);
 			int overlapDays = getOverlapDays();
 			log.info("Bill report ETL plan: fullRefresh=" + fullRefresh + "; startDate=" + startDateKey
+					+ "; insuranceIds=" + insuranceIdsKey + "; excludedInsuranceIds=" + excludedInsuranceIdsKey
 					+ "; overlapDays=" + overlapDays + "; latestEtlAdmissionDate=" + latestAdmissionDate
 					+ "; loadedVersion=" + loadedVersion);
 			int loaded;
@@ -68,6 +82,11 @@ public class BillReportEtlTask extends AbstractTask {
 			// Drop any report rows whose report admission_date is still before the floor
 			// (e.g. July lines from a pre-August admission that also had August creates).
 			billingService.deleteBillReportEtlBeforeAdmissionDate(startDate);
+			int purged = billingService.deleteBillReportEtlOutsideInsuranceFilter(
+					parseInsuranceIdSet(insuranceIdsKey), parseInsuranceIdSet(excludedInsuranceIdsKey));
+			if (purged > 0) {
+				log.info("Bill report ETL purged " + purged + " rows outside insurance allow/deny filter");
+			}
 			// Only mark the materialization version after a clean run. Otherwise a schema/SQL
 			// failure would stick on v9 with incomplete rows and never full-refresh again.
 			Context.getAdministrationService().setGlobalProperty(
@@ -146,7 +165,94 @@ public class BillReportEtlTask extends AbstractTask {
 	}
 
 	static String materializationConfiguration(int primaryIdentifierTypeId, String startDateKey) {
-		return MATERIALIZATION_VERSION + ":" + primaryIdentifierTypeId + ":start=" + startDateKey;
+		return materializationConfiguration(primaryIdentifierTypeId, startDateKey, "", "");
+	}
+
+	static String materializationConfiguration(int primaryIdentifierTypeId, String startDateKey,
+			String insuranceIdsKey, String excludedInsuranceIdsKey) {
+		return MATERIALIZATION_VERSION + ":" + primaryIdentifierTypeId + ":start=" + startDateKey
+				+ ":ins=" + StringUtils.defaultString(insuranceIdsKey)
+				+ ":ex=" + StringUtils.defaultString(excludedInsuranceIdsKey);
+	}
+
+	/**
+	 * Parses a comma-separated insurance ID list into a sorted unique set (positive ints only).
+	 */
+	static Set<Integer> parseInsuranceIdSet(String configured) {
+		Set<Integer> ids = new TreeSet<Integer>();
+		if (configured == null) {
+			return ids;
+		}
+		for (String token : configured.split(",")) {
+			String trimmed = token.trim();
+			if (trimmed.isEmpty()) {
+				continue;
+			}
+			try {
+				int insuranceId = Integer.parseInt(trimmed);
+				if (insuranceId > 0) {
+					ids.add(insuranceId);
+				}
+			} catch (NumberFormatException ignored) {
+				// Invalid tokens cannot identify an insurance and are ignored.
+			}
+		}
+		return ids;
+	}
+
+	/** Stable normalized CSV for materialization keys (sorted, unique, positive). */
+	static String normalizeInsuranceIds(String configured) {
+		Set<Integer> ids = parseInsuranceIdSet(configured);
+		if (ids.isEmpty()) {
+			return "";
+		}
+		StringBuilder normalized = new StringBuilder();
+		for (Integer insuranceId : ids) {
+			if (normalized.length() > 0) {
+				normalized.append(',');
+			}
+			normalized.append(insuranceId);
+		}
+		return normalized.toString();
+	}
+
+	/**
+	 * Effective filter: allowlist (empty = all) minus denylist (always excluded).
+	 * Null / missing insurance_id is only allowed when the allowlist is empty.
+	 */
+	public static boolean isInsuranceIdAllowed(Integer insuranceId, Set<Integer> allowedInsuranceIds,
+			Set<Integer> excludedInsuranceIds) {
+		if (insuranceId != null && excludedInsuranceIds != null && excludedInsuranceIds.contains(insuranceId)) {
+			return false;
+		}
+		if (allowedInsuranceIds == null || allowedInsuranceIds.isEmpty()) {
+			return true;
+		}
+		return insuranceId != null && allowedInsuranceIds.contains(insuranceId);
+	}
+
+	/** Reads the configured allowlist from global properties (empty = all). */
+	public static Set<Integer> configuredInsuranceAllowIds() {
+		return parseInsuranceIdSet(Context.getAdministrationService().getGlobalProperty(
+				BillingConstants.GLOBAL_PROPERTY_BILL_REPORT_ETL_INSURANCE_IDS, ""));
+	}
+
+	/** Reads the configured denylist from global properties. */
+	public static Set<Integer> configuredInsuranceExcludeIds() {
+		return parseInsuranceIdSet(Context.getAdministrationService().getGlobalProperty(
+				BillingConstants.GLOBAL_PROPERTY_BILL_REPORT_ETL_EXCLUDED_INSURANCE_IDS, ""));
+	}
+
+	static Set<Integer> effectiveInsuranceIds(Set<Integer> allowedInsuranceIds,
+			Set<Integer> excludedInsuranceIds) {
+		if (allowedInsuranceIds == null || allowedInsuranceIds.isEmpty()) {
+			return Collections.emptySet();
+		}
+		Set<Integer> effective = new LinkedHashSet<Integer>(allowedInsuranceIds);
+		if (excludedInsuranceIds != null) {
+			effective.removeAll(excludedInsuranceIds);
+		}
+		return effective;
 	}
 
 	static Date parseStartDate(String configured) {

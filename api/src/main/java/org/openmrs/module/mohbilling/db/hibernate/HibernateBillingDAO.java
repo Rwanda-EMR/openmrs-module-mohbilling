@@ -2206,6 +2206,46 @@ public class HibernateBillingDAO implements BillingDAO {
     }
 
     @Override
+    public int deleteBillReportEtlOutsideInsuranceFilter(Collection<Integer> allowedInsuranceIds,
+            Collection<Integer> excludedInsuranceIds) {
+        Set<Integer> allowed = normalizePositiveIds(allowedInsuranceIds);
+        Set<Integer> excluded = normalizePositiveIds(excludedInsuranceIds);
+        if (allowed.isEmpty() && excluded.isEmpty()) {
+            return 0;
+        }
+        if (!allowed.isEmpty()) {
+            Set<Integer> effective = new LinkedHashSet<Integer>(allowed);
+            effective.removeAll(excluded);
+            if (effective.isEmpty()) {
+                return sessionFactory.getCurrentSession()
+                        .createSQLQuery(BillReportEtlSql.deleteAllSql())
+                        .executeUpdate();
+            }
+            SQLQuery deleteOutside = sessionFactory.getCurrentSession()
+                    .createSQLQuery(BillReportEtlSql.deleteOutsideInsuranceIdsSql());
+            deleteOutside.setParameterList("insuranceIds", effective);
+            return deleteOutside.executeUpdate();
+        }
+        SQLQuery deleteExcluded = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillReportEtlSql.deleteByInsuranceIdsSql());
+        deleteExcluded.setParameterList("insuranceIds", excluded);
+        return deleteExcluded.executeUpdate();
+    }
+
+    private static Set<Integer> normalizePositiveIds(Collection<Integer> ids) {
+        Set<Integer> normalized = new LinkedHashSet<Integer>();
+        if (ids == null) {
+            return normalized;
+        }
+        for (Integer id : ids) {
+            if (id != null && id.intValue() > 0) {
+                normalized.add(id);
+            }
+        }
+        return normalized;
+    }
+
+    @Override
     public Date getLatestBillReportEtlAdmissionDate() {
         Object value = sessionFactory.getCurrentSession()
                 .createSQLQuery(BillReportEtlSql.latestAdmissionDateSql())

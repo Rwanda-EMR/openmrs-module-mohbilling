@@ -13,13 +13,44 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public class BillReportEtlTaskTest {
 
 	@Test
 	public void materializationConfiguration_shouldIncludePrimaryIdentifierAndStartDate() {
-		Assert.assertEquals("14:8:start=2026-08-01",
+		Assert.assertEquals("16:8:start=2026-08-01:ins=:ex=",
 				BillReportEtlTask.materializationConfiguration(8, "2026-08-01"));
+	}
+
+	@Test
+	public void materializationConfiguration_shouldIncludeInsuranceAllowAndDenyLists() {
+		Assert.assertEquals("16:8:start=2026-08-01:ins=1,5:ex=5",
+				BillReportEtlTask.materializationConfiguration(8, "2026-08-01", "1,5", "5"));
+	}
+
+	@Test
+	public void normalizeInsuranceIds_shouldSortUniquePositiveIds() {
+		Assert.assertEquals("1,5,12", BillReportEtlTask.normalizeInsuranceIds("12, 1,5,5,x,-3,0"));
+		Assert.assertEquals("", BillReportEtlTask.normalizeInsuranceIds(" "));
+		Assert.assertEquals("", BillReportEtlTask.normalizeInsuranceIds(null));
+	}
+
+	@Test
+	public void isInsuranceIdAllowed_shouldApplyAllowThenDeny() {
+		Set<Integer> allow = BillReportEtlTask.parseInsuranceIdSet("1,5,12");
+		Set<Integer> exclude = BillReportEtlTask.parseInsuranceIdSet("5");
+
+		Assert.assertTrue(BillReportEtlTask.isInsuranceIdAllowed(1, allow, exclude));
+		Assert.assertTrue(BillReportEtlTask.isInsuranceIdAllowed(12, allow, exclude));
+		Assert.assertFalse(BillReportEtlTask.isInsuranceIdAllowed(5, allow, exclude));
+		Assert.assertFalse(BillReportEtlTask.isInsuranceIdAllowed(99, allow, exclude));
+		Assert.assertFalse(BillReportEtlTask.isInsuranceIdAllowed(null, allow, exclude));
+
+		Assert.assertTrue(BillReportEtlTask.isInsuranceIdAllowed(5, Collections.<Integer>emptySet(),
+				Collections.<Integer>emptySet()));
+		Assert.assertFalse(BillReportEtlTask.isInsuranceIdAllowed(5, Collections.<Integer>emptySet(), exclude));
+		Assert.assertTrue(BillReportEtlTask.isInsuranceIdAllowed(null, Collections.<Integer>emptySet(), exclude));
 	}
 
 	@Test
