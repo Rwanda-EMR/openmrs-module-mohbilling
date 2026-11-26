@@ -60,27 +60,50 @@ final class InsuranceReportEtlSql {
 	}
 
 	/**
-	 * Distinct source global bills to rematerialize. Optional id range and/or refresh window
-	 * ({@code closing_date} or late {@code psb.created_date}). Always floored by {@code :etlStartDate}.
+	 * Distinct source global bills to rematerialize. Optional id range and/or refresh window.
+	 * <p>
+	 * Incremental ({@code dateBounded}) candidates include:
+	 * <ul>
+	 * <li>GBs with non-voided non-DCP lines whose {@code closing_date} or {@code created_date}
+	 * is on/after {@code :refreshFrom}</li>
+	 * <li>GBs with lines {@code voided} on/after {@code :refreshFrom} — so void corrections
+	 * (e.g. RPM not-billable) rematerialize even when the bill closed earlier</li>
+	 * </ul>
+	 * Always floored by {@code :etlStartDate}. Insurance ETL materializes all insurers (no
+	 * allow/deny list — that is Bill Report ETL only).
 	 */
 	static String listSourceGlobalBillIdsSql(boolean idBounded, boolean dateBounded) {
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT DISTINCT gb.global_bill_id FROM moh_bill_global_bill gb ")
 				.append("JOIN moh_bill_admission admission ON admission.admission_id = gb.admission_id ")
-				.append("JOIN moh_bill_consommation c ON c.global_bill_id = gb.global_bill_id ")
-				.append("JOIN moh_bill_patient_service_bill psb ON psb.consommation_id = c.consommation_id ")
 				.append("WHERE COALESCE(gb.voided, 0) = 0 AND COALESCE(admission.voided, 0) = 0 ")
-				.append("AND COALESCE(c.voided, 0) = 0 AND COALESCE(psb.voided, 0) = 0 ")
-				.append("AND COALESCE(psb.item_type, 1) <> 2 ")
-				.append("AND psb.created_date IS NOT NULL ")
-				.append("AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate "
-						+ "OR psb.created_date >= :etlStartDate) ");
+				.append("AND EXISTS (")
+				.append("SELECT 1 FROM moh_bill_consommation c ")
+				.append("JOIN moh_bill_patient_service_bill psb ON psb.consommation_id = c.consommation_id ")
+				.append("WHERE c.global_bill_id = gb.global_bill_id AND COALESCE(c.voided, 0) = 0 ");
+		if (dateBounded) {
+			sql.append("AND (")
+					.append("(COALESCE(psb.voided, 0) = 0 AND COALESCE(psb.item_type, 1) <> 2 ")
+					.append("AND psb.created_date IS NOT NULL ")
+					.append("AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate ")
+					.append("OR psb.created_date >= :etlStartDate) ")
+					.append("AND (gb.closing_date >= :refreshFrom OR psb.created_date >= :refreshFrom)) ")
+					.append("OR ")
+					.append("(COALESCE(psb.voided, 0) = 1 AND psb.voided_date IS NOT NULL ")
+					.append("AND psb.voided_date >= DATE(:refreshFrom) ")
+					.append("AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate ")
+					.append("OR psb.created_date >= :etlStartDate OR psb.voided_date >= DATE(:etlStartDate)))")
+					.append(") ");
+		} else {
+			sql.append("AND COALESCE(psb.voided, 0) = 0 AND COALESCE(psb.item_type, 1) <> 2 ")
+					.append("AND psb.created_date IS NOT NULL ")
+					.append("AND (admission.admission_date >= :etlStartDate OR gb.closing_date >= :etlStartDate ")
+					.append("OR psb.created_date >= :etlStartDate) ");
+		}
+		sql.append(") ");
 		if (idBounded) {
 			sql.append("AND gb.global_bill_id >= :globalBillIdFrom ")
 					.append("AND gb.global_bill_id <= :globalBillIdTo ");
-		}
-		if (dateBounded) {
-			sql.append("AND (gb.closing_date >= :refreshFrom OR psb.created_date >= :refreshFrom) ");
 		}
 		sql.append("ORDER BY gb.global_bill_id ASC");
 		return sql.toString();
@@ -92,7 +115,29 @@ final class InsuranceReportEtlSql {
 				+ "OR (report_period_month IS NOT NULL AND report_period_month < :etlStartDate)";
 	}
 
+	/**
+	 * Extract query for the Insurance Report UI/Excel download.
+	 * <p>
+	 * When {@code filterByCategory} is true, includes every insurer whose
+	 * {@code moh_bill_insurance.category} matches {@code :insuranceCategory} (same
+	 * MUTUELLE/RSSB combine as Bill Report). Category takes precedence over id filter.
+	 */
 	static String reportSql(boolean filterByInsurance) {
+		return reportSql(filterByInsurance, false);
+	}
+
+	static String reportSql(boolean filterByInsuranceId, boolean filterByCategory) {
+		String insurancePredicate;
+		if (filterByCategory) {
+			// Join-free EXISTS so the SELECT list and export mapping stay unchanged.
+			insurancePredicate = "EXISTS (SELECT 1 FROM moh_bill_insurance category_ins "
+					+ "WHERE category_ins.insurance_id = report_etl.insurance_id "
+					+ "AND LOWER(TRIM(COALESCE(category_ins.category, ''))) = LOWER(:insuranceCategory)) AND ";
+		} else if (filterByInsuranceId) {
+			insurancePredicate = "report_etl.insurance_id = :insuranceId AND ";
+		} else {
+			insurancePredicate = "";
+		}
 		return "SELECT report_etl.admission_date, report_etl.closing_date, report_etl.beneficiary_name, "
 					+ "report_etl.household_head_name, report_etl.family_code, report_etl.beneficiary_level, "
 					+ "report_etl.card_number, report_etl.company_name, report_etl.insurance_name, "
@@ -107,7 +152,7 @@ final class InsuranceReportEtlSql {
 					+ "report_etl.formalites_administratives AS `FORMALITES ADMINISTRATIVES`, "
 					+ "report_etl.imaging AS IMAGING, report_etl.procedures AS `PROCED.`, report_etl.total_100, "
 					+ "report_etl.total_insurance, report_etl.total_patient FROM " + TABLE + " report_etl "
-					+ "WHERE " + (filterByInsurance ? "report_etl.insurance_id = :insuranceId AND " : "")
+					+ "WHERE " + insurancePredicate
 					+ "report_etl.admission_date BETWEEN :startDate AND :endDate "
 					+ "ORDER BY report_etl.closing_date, report_etl.global_bill_id, report_etl.report_period_month";
 	}

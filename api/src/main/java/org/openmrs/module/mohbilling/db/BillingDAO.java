@@ -20,6 +20,7 @@ import org.openmrs.api.db.DAOException;
 import org.openmrs.module.mohbilling.model.*;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -680,6 +681,14 @@ public interface BillingDAO {
 	InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceId, Date startDate, Date endDate);
 
 	/**
+	 * Same as {@link #getBillItemsByCategoryFromEtl(Integer, Date, Date)} with optional
+	 * combined-category filter (MUTUELLE/RSSB), matching Bill Report.
+	 * When {@code insuranceCategory} is non-blank it takes precedence over {@code insuranceId}.
+	 */
+	InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceId, String insuranceCategory, Date startDate,
+			Date endDate);
+
+	/**
 	 * Rebuilds all ETL rows, or rows whose closing date is at or after {@code refreshFrom}.
 	 */
 	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds);
@@ -774,6 +783,13 @@ public interface BillingDAO {
 	int refreshBillReportEtlForAdmission(Integer admissionId);
 
 	int deleteBillReportEtlBeforeAdmissionDate(Date startDate);
+
+	/**
+	 * Purges Bill Report ETL rows outside the configured insurance allow/deny filter.
+	 * Empty allowlist means all insurers are candidates; denylist always wins.
+	 */
+	int deleteBillReportEtlOutsideInsuranceFilter(Collection<Integer> allowedInsuranceIds,
+			Collection<Integer> excludedInsuranceIds);
 
 	Date getLatestBillReportEtlAdmissionDate();
 

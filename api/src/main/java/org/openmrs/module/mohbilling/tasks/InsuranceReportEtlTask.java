@@ -27,8 +27,8 @@ public class InsuranceReportEtlTask extends AbstractTask {
 	private static final int DEFAULT_OVERLAP_DAYS = 7;
 	/** ID-window size for listing source GBs; each GB still commits on its own. */
 	private static final int FULL_REFRESH_BATCH_SIZE = 500;
-	/** Bumped when start-floor / created-date / rebuild semantics change. */
-	private static final int MATERIALIZATION_VERSION = 9;
+	/** Bumped when start-floor / void-refresh / rebuild semantics change. */
+	private static final int MATERIALIZATION_VERSION = 10;
 	private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
 	@Override

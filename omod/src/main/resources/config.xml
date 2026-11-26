@@ -501,6 +501,26 @@
     </globalProperty>
 
     <globalProperty>
+        <property>mohbilling.billReportEtl.insuranceIds</property>
+        <defaultValue></defaultValue>
+        <description>
+            Comma-separated moh_bill_insurance.insurance_id values the Bill Report ETL may materialize.
+            Empty means all insurers are candidates. Changing this value triggers a full ETL rebuild.
+            Insurance Report ETL ignores this property.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>mohbilling.billReportEtl.excludedInsuranceIds</property>
+        <defaultValue></defaultValue>
+        <description>
+            Comma-separated insurance IDs never materialized by Bill Report ETL, even when listed in
+            mohbilling.billReportEtl.insuranceIds. Changing this value triggers a full ETL rebuild.
+            Insurance Report ETL ignores this property.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
         <property>mohbilling.IMAGING</property>
         <defaultValue></defaultValue>
         <description>

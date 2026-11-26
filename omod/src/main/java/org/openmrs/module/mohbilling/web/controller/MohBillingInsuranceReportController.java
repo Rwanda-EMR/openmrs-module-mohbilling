@@ -2,10 +2,16 @@ package org.openmrs.module.mohbilling.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.businesslogic.BillReportUtil;
+import org.openmrs.module.mohbilling.businesslogic.BillReportUtil.InsuranceFilter;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
 import org.openmrs.module.mohbilling.businesslogic.InsuranceUtil;
 import org.openmrs.module.mohbilling.businesslogic.ReportsUtil;
-import org.openmrs.module.mohbilling.model.*;
+import org.openmrs.module.mohbilling.model.HopService;
+import org.openmrs.module.mohbilling.model.Insurance;
+import org.openmrs.module.mohbilling.model.InsuranceRate;
+import org.openmrs.module.mohbilling.model.InsuranceReport;
+import org.openmrs.module.mohbilling.model.InsuranceReportItem;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
@@ -16,7 +22,11 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class MohBillingInsuranceReportController extends
@@ -52,6 +62,8 @@ public class MohBillingInsuranceReportController extends
 
         ModelAndView mav = new ModelAndView();
         mav.setViewName(getViewName());
+        // Same combined MUTUELLE/RSSB dropdown as Bill Report.
+        mav.addObject("insuranceOptions", BillReportUtil.buildInsuranceFilterOptions());
         mav.addObject("insurances", InsuranceUtil.getAllInsurances());
 
         if (request.getParameter("formStatus") != null
@@ -64,15 +76,27 @@ public class MohBillingInsuranceReportController extends
             BigDecimal total100 = BigDecimal.ZERO;
             BigDecimal insuranceFlatFee = BigDecimal.ZERO;
 
-            Integer insuranceId = null;
-            String insuranceStr = request.getParameter("insuranceId");
-            if (insuranceStr != null && !insuranceStr.trim().isEmpty()) {
-                insuranceId = Integer.valueOf(insuranceStr);
+            String insuranceFilterStr = request.getParameter("insuranceFilter");
+            if (insuranceFilterStr == null || insuranceFilterStr.trim().isEmpty()) {
+                // Backward compatibility with older form field name / plain numeric id.
+                insuranceFilterStr = request.getParameter("insuranceId");
             }
+            InsuranceFilter insuranceFilter = BillReportUtil.resolveInsuranceFilter(insuranceFilterStr);
+            Integer insuranceId = insuranceFilter.getInsurance() != null
+                    ? insuranceFilter.getInsurance().getInsuranceId() : null;
+            String insuranceCategory = insuranceFilter.getCategory();
 
-            Insurance insurance = insuranceId != null ? InsuranceUtil.getInsurance(insuranceId) : null;
-            InsuranceRate insuranceRate = insurance != null ? insurance.getCurrentRate() : null;
+            Insurance insurance = insuranceFilter.getInsurance();
+            if (insurance == null && insuranceCategory != null) {
+                // Synthetic label for Excel/header when downloading a combined category.
+                insurance = new Insurance();
+                insurance.setName(insuranceCategory);
+                insurance.setCategory(insuranceCategory);
+            }
+            InsuranceRate insuranceRate = insuranceFilter.getInsurance() != null
+                    ? insuranceFilter.getInsurance().getCurrentRate() : null;
             request.getSession().setAttribute("insurance", insurance);
+            mav.addObject("selectedInsuranceFilter", insuranceFilterStr);
             mav.addObject("selectedInsuranceId", insuranceId);
 
             String startDateStr = request.getParameter("startDate");
@@ -100,7 +124,8 @@ public class MohBillingInsuranceReportController extends
 
                 if (startDate != null && endDate != null) {
 
-                    InsuranceReport reportItems = ReportsUtil.getPatientServiceBillReport(insuranceId, startDate, endDate);
+                    InsuranceReport reportItems = ReportsUtil.getPatientServiceBillReport(insuranceId,
+                            insuranceCategory, startDate, endDate);
                     insuranceReportRecords = reportItems.getReportItems();
 
                     for (Map.Entry<String, BigDecimal> revenueItem : reportItems.getServiceTotalRevenues().entrySet()) {
@@ -128,7 +153,8 @@ public class MohBillingInsuranceReportController extends
             mav.addObject("columns", columns);
             mav.addObject("totals", totals);
             mav.addObject("listOfAllServicesRevenue", insuranceReportRecords);
-            String insuranceLabel = insurance != null ? insurance.getName() : "All Insurances";
+            String insuranceLabel = insurance != null && insurance.getName() != null
+                    ? insurance.getName() : "All Insurances";
             mav.addObject("resultMsg", "[" + insuranceLabel + "] " +
                     "Bill from " + convertDate(startDate) + " To " + convertDate(endDate));
             mav.addObject("insuranceFlatFee", insuranceFlatFee);

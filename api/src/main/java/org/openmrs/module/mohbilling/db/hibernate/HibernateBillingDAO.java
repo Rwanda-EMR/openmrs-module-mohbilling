@@ -1566,12 +1566,20 @@ public class HibernateBillingDAO implements BillingDAO {
 
     @Override
     public InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceIdentifier, Date startDate, Date endDate) {
+        return getBillItemsByCategoryFromEtl(insuranceIdentifier, null, startDate, endDate);
+    }
+
+    @Override
+    public InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceIdentifier, String insuranceCategory,
+            Date startDate, Date endDate) {
 
         InsuranceReport report = new InsuranceReport();
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         long startTime = System.nanoTime();
+        boolean filterByCategory = insuranceCategory != null && insuranceCategory.trim().length() > 0;
+        boolean filterByInsuranceId = !filterByCategory && insuranceIdentifier != null;
         SQLQuery billingReportQuery = sessionFactory.getCurrentSession()
-                .createSQLQuery(InsuranceReportEtlSql.reportSql(insuranceIdentifier != null));
+                .createSQLQuery(InsuranceReportEtlSql.reportSql(filterByInsuranceId, filterByCategory));
 
         // Column aliases keep the existing report/export mapping stable.
         billingReportQuery.addScalar("admission_date");
@@ -1608,7 +1616,9 @@ public class HibernateBillingDAO implements BillingDAO {
         billingReportQuery.addScalar("total_insurance");
         billingReportQuery.addScalar("total_patient");
         billingReportQuery.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-		if (insuranceIdentifier != null) {
+        if (filterByCategory) {
+            billingReportQuery.setString("insuranceCategory", insuranceCategory.trim());
+        } else if (filterByInsuranceId) {
             billingReportQuery.setInteger("insuranceId", insuranceIdentifier);
         }
         billingReportQuery.setParameter("startDate", startDate);
@@ -2203,6 +2213,46 @@ public class HibernateBillingDAO implements BillingDAO {
                 .createSQLQuery(BillReportEtlSql.deleteBeforeAdmissionDateSql());
         deleteQuery.setTimestamp("startDate", startDate);
         return deleteQuery.executeUpdate();
+    }
+
+    @Override
+    public int deleteBillReportEtlOutsideInsuranceFilter(Collection<Integer> allowedInsuranceIds,
+            Collection<Integer> excludedInsuranceIds) {
+        Set<Integer> allowed = normalizePositiveIds(allowedInsuranceIds);
+        Set<Integer> excluded = normalizePositiveIds(excludedInsuranceIds);
+        if (allowed.isEmpty() && excluded.isEmpty()) {
+            return 0;
+        }
+        if (!allowed.isEmpty()) {
+            Set<Integer> effective = new LinkedHashSet<Integer>(allowed);
+            effective.removeAll(excluded);
+            if (effective.isEmpty()) {
+                return sessionFactory.getCurrentSession()
+                        .createSQLQuery(BillReportEtlSql.deleteAllSql())
+                        .executeUpdate();
+            }
+            SQLQuery deleteOutside = sessionFactory.getCurrentSession()
+                    .createSQLQuery(BillReportEtlSql.deleteOutsideInsuranceIdsSql());
+            deleteOutside.setParameterList("insuranceIds", effective);
+            return deleteOutside.executeUpdate();
+        }
+        SQLQuery deleteExcluded = sessionFactory.getCurrentSession()
+                .createSQLQuery(BillReportEtlSql.deleteByInsuranceIdsSql());
+        deleteExcluded.setParameterList("insuranceIds", excluded);
+        return deleteExcluded.executeUpdate();
+    }
+
+    private static Set<Integer> normalizePositiveIds(Collection<Integer> ids) {
+        Set<Integer> normalized = new LinkedHashSet<Integer>();
+        if (ids == null) {
+            return normalized;
+        }
+        for (Integer id : ids) {
+            if (id != null && id.intValue() > 0) {
+                normalized.add(id);
+            }
+        }
+        return normalized;
     }
 
     @Override

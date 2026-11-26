@@ -82,4 +82,10 @@ public class BillReportEtlSqlTest {
 	public void deleteBeforeAdmissionDateSql_shouldBoundStartDate() {
 		Assert.assertTrue(BillReportEtlSql.deleteBeforeAdmissionDateSql().contains(":startDate"));
 	}
+
+	@Test
+	public void deleteOutsideInsuranceIdsSql_shouldBoundInsuranceIds() {
+		Assert.assertTrue(BillReportEtlSql.deleteOutsideInsuranceIdsSql().contains("NOT IN (:insuranceIds)"));
+		Assert.assertTrue(BillReportEtlSql.deleteByInsuranceIdsSql().contains("IN (:insuranceIds)"));
+	}
 }

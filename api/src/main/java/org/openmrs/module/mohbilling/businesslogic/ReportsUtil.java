@@ -845,6 +845,15 @@ public class ReportsUtil {
 	}
 	public static InsuranceReport getPatientServiceBillReport(
             Integer insuranceId, Date startDate, Date endDate) {
-        return getService().getBillItemsReportByCategory(insuranceId, startDate, endDate);
+        return getPatientServiceBillReport(insuranceId, null, startDate, endDate);
     }
+
+	/**
+	 * Insurance Report extract. Pass {@code insuranceCategory} (e.g. MUTUELLE/RSSB) to
+	 * combine all insurers in that category; otherwise filter by {@code insuranceId} or all.
+	 */
+	public static InsuranceReport getPatientServiceBillReport(Integer insuranceId, String insuranceCategory,
+			Date startDate, Date endDate) {
+		return getService().getBillItemsReportByCategory(insuranceId, insuranceCategory, startDate, endDate);
+	}
 }

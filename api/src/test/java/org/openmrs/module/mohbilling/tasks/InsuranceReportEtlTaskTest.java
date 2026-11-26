@@ -85,7 +85,7 @@ public class InsuranceReportEtlTaskTest {
 
 	@Test
 	public void serviceConfiguration_shouldIncludeVersionStartAndServiceLists() {
-		Assert.assertEquals("VERSION=9;START=2026-08-01;IMAGING=4,16;PROCEDURES=1,7,9",
+		Assert.assertEquals("VERSION=10;START=2026-08-01;IMAGING=4,16;PROCEDURES=1,7,9",
 				InsuranceReportEtlTask.serviceConfiguration("4,16", "1,7,9", "2026-08-01"));
 	}
 

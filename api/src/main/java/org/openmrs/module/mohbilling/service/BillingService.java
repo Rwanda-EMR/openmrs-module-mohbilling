@@ -717,6 +717,13 @@ public interface BillingService {
 
 	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
+	/**
+	 * Insurance Report extract with optional combined-category filter (MUTUELLE/RSSB).
+	 * When {@code insuranceCategory} is non-blank it takes precedence over {@code insuranceId}.
+	 */
+	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, String insuranceCategory, Date startDate,
+			Date endDate);
+
 	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds);
 
 	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds,
@@ -804,6 +811,12 @@ public interface BillingService {
 	int clearBillReportEtlFromAdmissionDate(Date refreshFrom);
 
 	int deleteBillReportEtlBeforeAdmissionDate(Date startDate);
+
+	/**
+	 * Purges Bill Report ETL rows outside the configured insurance allow/deny filter.
+	 */
+	int deleteBillReportEtlOutsideInsuranceFilter(java.util.Collection<Integer> allowedInsuranceIds,
+			java.util.Collection<Integer> excludedInsuranceIds);
 
 	Date getLatestBillReportEtlAdmissionDate();
 

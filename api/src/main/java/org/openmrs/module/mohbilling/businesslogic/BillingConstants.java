@@ -160,6 +160,18 @@ public class BillingConstants {
 	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_START_DATE =
 			"mohbilling.billReportEtl.startDate";
 	public static final String DEFAULT_BILL_REPORT_ETL_START_DATE = "2026-08-01";
+	/**
+	 * Comma-separated {@code moh_bill_insurance.insurance_id} allowlist for Bill Report ETL.
+	 * Empty means all insurers are candidates (then denylist still applies).
+	 */
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_INSURANCE_IDS =
+			"mohbilling.billReportEtl.insuranceIds";
+	/**
+	 * Comma-separated insurance IDs never materialized by Bill Report ETL, even when listed in
+	 * {@link #GLOBAL_PROPERTY_BILL_REPORT_ETL_INSURANCE_IDS}.
+	 */
+	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_EXCLUDED_INSURANCE_IDS =
+			"mohbilling.billReportEtl.excludedInsuranceIds";
 	public static final String GLOBAL_PROPERTY_BILL_REPORT_ETL_LOADED_VERSION =
 			"mohbilling.billReportEtl.loadedVersion";
 	public static final String GLOBAL_PROPERTY_GLOBAL_BILL_PAGE_SIZE = "mohbilling.globalbill.pagesize";
