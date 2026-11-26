@@ -717,6 +717,13 @@ public interface BillingService {
 
 	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate);
 
+	/**
+	 * Insurance Report extract with optional combined-category filter (MUTUELLE/RSSB).
+	 * When {@code insuranceCategory} is non-blank it takes precedence over {@code insuranceId}.
+	 */
+	InsuranceReport getBillItemsReportByCategory(Integer insuranceId, String insuranceCategory, Date startDate,
+			Date endDate);
+
 	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds);
 
 	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds,

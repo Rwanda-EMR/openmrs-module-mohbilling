@@ -1180,7 +1180,14 @@ public class BillingServiceImpl implements BillingService {
     @Override
     @Transactional(readOnly = true)
     public InsuranceReport getBillItemsReportByCategory(Integer insuranceId, Date startDate, Date endDate) {
-        return billingDAO.getBillItemsByCategoryFromEtl(insuranceId, startDate, endDate);
+        return getBillItemsReportByCategory(insuranceId, null, startDate, endDate);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InsuranceReport getBillItemsReportByCategory(Integer insuranceId, String insuranceCategory, Date startDate,
+            Date endDate) {
+        return billingDAO.getBillItemsByCategoryFromEtl(insuranceId, insuranceCategory, startDate, endDate);
     }
 
     @Override

@@ -681,6 +681,14 @@ public interface BillingDAO {
 	InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceId, Date startDate, Date endDate);
 
 	/**
+	 * Same as {@link #getBillItemsByCategoryFromEtl(Integer, Date, Date)} with optional
+	 * combined-category filter (MUTUELLE/RSSB), matching Bill Report.
+	 * When {@code insuranceCategory} is non-blank it takes precedence over {@code insuranceId}.
+	 */
+	InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceId, String insuranceCategory, Date startDate,
+			Date endDate);
+
+	/**
 	 * Rebuilds all ETL rows, or rows whose closing date is at or after {@code refreshFrom}.
 	 */
 	int refreshInsuranceReportEtl(Date refreshFrom, String imagingServiceIds, String procedureServiceIds);

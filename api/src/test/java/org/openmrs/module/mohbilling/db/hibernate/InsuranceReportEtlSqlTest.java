@@ -132,6 +132,7 @@ public class InsuranceReportEtlSqlTest {
 		Assert.assertFalse(sql.contains("JOIN moh_bill_insurance"));
 		Assert.assertFalse(sql.contains("JOIN patient_identifier"));
 		Assert.assertFalse(sql.contains(":primaryIdentifierTypeId"));
+		Assert.assertFalse(sql.contains(":insuranceCategory"));
 	}
 
 	@Test
@@ -141,6 +142,24 @@ public class InsuranceReportEtlSqlTest {
 		Assert.assertFalse(sql.contains("report_etl.insurance_id = :insuranceId"));
 		Assert.assertTrue(sql.contains("report_etl.admission_date BETWEEN :startDate AND :endDate"));
 		Assert.assertFalse(sql.contains("report_etl.closing_date BETWEEN :startDate AND :endDate"));
+	}
+
+	@Test
+	public void reportSql_shouldFilterByCombinedInsuranceCategory() {
+		String sql = InsuranceReportEtlSql.reportSql(false, true);
+
+		Assert.assertTrue(sql.contains("EXISTS (SELECT 1 FROM moh_bill_insurance category_ins"));
+		Assert.assertTrue(sql.contains("LOWER(TRIM(COALESCE(category_ins.category, ''))) = LOWER(:insuranceCategory)"));
+		Assert.assertFalse(sql.contains("report_etl.insurance_id = :insuranceId"));
+		Assert.assertTrue(sql.contains("report_etl.admission_date BETWEEN :startDate AND :endDate"));
+	}
+
+	@Test
+	public void reportSql_categoryFilterTakesPrecedenceOverIdFlag() {
+		// When category is requested, id predicate must not also be applied.
+		String sql = InsuranceReportEtlSql.reportSql(true, true);
+		Assert.assertTrue(sql.contains(":insuranceCategory"));
+		Assert.assertFalse(sql.contains("report_etl.insurance_id = :insuranceId"));
 	}
 
 	@Test

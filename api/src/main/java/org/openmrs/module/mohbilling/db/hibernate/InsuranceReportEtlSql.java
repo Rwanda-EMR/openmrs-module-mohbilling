@@ -115,7 +115,29 @@ final class InsuranceReportEtlSql {
 				+ "OR (report_period_month IS NOT NULL AND report_period_month < :etlStartDate)";
 	}
 
+	/**
+	 * Extract query for the Insurance Report UI/Excel download.
+	 * <p>
+	 * When {@code filterByCategory} is true, includes every insurer whose
+	 * {@code moh_bill_insurance.category} matches {@code :insuranceCategory} (same
+	 * MUTUELLE/RSSB combine as Bill Report). Category takes precedence over id filter.
+	 */
 	static String reportSql(boolean filterByInsurance) {
+		return reportSql(filterByInsurance, false);
+	}
+
+	static String reportSql(boolean filterByInsuranceId, boolean filterByCategory) {
+		String insurancePredicate;
+		if (filterByCategory) {
+			// Join-free EXISTS so the SELECT list and export mapping stay unchanged.
+			insurancePredicate = "EXISTS (SELECT 1 FROM moh_bill_insurance category_ins "
+					+ "WHERE category_ins.insurance_id = report_etl.insurance_id "
+					+ "AND LOWER(TRIM(COALESCE(category_ins.category, ''))) = LOWER(:insuranceCategory)) AND ";
+		} else if (filterByInsuranceId) {
+			insurancePredicate = "report_etl.insurance_id = :insuranceId AND ";
+		} else {
+			insurancePredicate = "";
+		}
 		return "SELECT report_etl.admission_date, report_etl.closing_date, report_etl.beneficiary_name, "
 					+ "report_etl.household_head_name, report_etl.family_code, report_etl.beneficiary_level, "
 					+ "report_etl.card_number, report_etl.company_name, report_etl.insurance_name, "
@@ -130,7 +152,7 @@ final class InsuranceReportEtlSql {
 					+ "report_etl.formalites_administratives AS `FORMALITES ADMINISTRATIVES`, "
 					+ "report_etl.imaging AS IMAGING, report_etl.procedures AS `PROCED.`, report_etl.total_100, "
 					+ "report_etl.total_insurance, report_etl.total_patient FROM " + TABLE + " report_etl "
-					+ "WHERE " + (filterByInsurance ? "report_etl.insurance_id = :insuranceId AND " : "")
+					+ "WHERE " + insurancePredicate
 					+ "report_etl.admission_date BETWEEN :startDate AND :endDate "
 					+ "ORDER BY report_etl.closing_date, report_etl.global_bill_id, report_etl.report_period_month";
 	}

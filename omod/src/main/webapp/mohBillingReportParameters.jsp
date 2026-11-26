@@ -133,12 +133,26 @@
 						<tr class="insurances">
 							<td class="insurances">Insurance: </td>
 							<td class="insurances">
-									<select name="insuranceId" class="insurance">
-										<option value=""><c:choose><c:when test="${insuranceOptional}">-- All insurances --</c:when><c:otherwise>--select--</c:otherwise></c:choose></option>
-										<c:forEach items="${insurances }" var="insurance">
-											<option value="${insurance.insuranceId }" ${insurance.insuranceId == selectedInsuranceId ? 'selected="selected"' : ''}>${insurance.name }</option>
-										</c:forEach>
-								</select>
+									<%-- When insuranceOptions is set (Insurance Report), use Bill Report-style
+									     combined MUTUELLE/RSSB categories; otherwise list each insurer. --%>
+									<c:choose>
+										<c:when test="${not empty insuranceOptions}">
+											<select name="insuranceFilter" class="insurance">
+												<option value=""><c:choose><c:when test="${insuranceOptional}">-- All insurances --</c:when><c:otherwise>--select--</c:otherwise></c:choose></option>
+												<c:forEach items="${insuranceOptions}" var="opt">
+													<option value="${opt.value}" ${opt.value == selectedInsuranceFilter ? 'selected="selected"' : ''}>${opt.label}</option>
+												</c:forEach>
+											</select>
+										</c:when>
+										<c:otherwise>
+											<select name="insuranceId" class="insurance">
+												<option value=""><c:choose><c:when test="${insuranceOptional}">-- All insurances --</c:when><c:otherwise>--select--</c:otherwise></c:choose></option>
+												<c:forEach items="${insurances }" var="insurance">
+													<option value="${insurance.insuranceId }" ${insurance.insuranceId == selectedInsuranceId ? 'selected="selected"' : ''}>${insurance.name }</option>
+												</c:forEach>
+											</select>
+										</c:otherwise>
+									</c:choose>
 							</td>
 						</tr>
 						<tr class="services">

@@ -1566,12 +1566,20 @@ public class HibernateBillingDAO implements BillingDAO {
 
     @Override
     public InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceIdentifier, Date startDate, Date endDate) {
+        return getBillItemsByCategoryFromEtl(insuranceIdentifier, null, startDate, endDate);
+    }
+
+    @Override
+    public InsuranceReport getBillItemsByCategoryFromEtl(Integer insuranceIdentifier, String insuranceCategory,
+            Date startDate, Date endDate) {
 
         InsuranceReport report = new InsuranceReport();
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         long startTime = System.nanoTime();
+        boolean filterByCategory = insuranceCategory != null && insuranceCategory.trim().length() > 0;
+        boolean filterByInsuranceId = !filterByCategory && insuranceIdentifier != null;
         SQLQuery billingReportQuery = sessionFactory.getCurrentSession()
-                .createSQLQuery(InsuranceReportEtlSql.reportSql(insuranceIdentifier != null));
+                .createSQLQuery(InsuranceReportEtlSql.reportSql(filterByInsuranceId, filterByCategory));
 
         // Column aliases keep the existing report/export mapping stable.
         billingReportQuery.addScalar("admission_date");
@@ -1608,7 +1616,9 @@ public class HibernateBillingDAO implements BillingDAO {
         billingReportQuery.addScalar("total_insurance");
         billingReportQuery.addScalar("total_patient");
         billingReportQuery.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-		if (insuranceIdentifier != null) {
+        if (filterByCategory) {
+            billingReportQuery.setString("insuranceCategory", insuranceCategory.trim());
+        } else if (filterByInsuranceId) {
             billingReportQuery.setInteger("insuranceId", insuranceIdentifier);
         }
         billingReportQuery.setParameter("startDate", startDate);
