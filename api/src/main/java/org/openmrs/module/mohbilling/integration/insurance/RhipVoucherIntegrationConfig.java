@@ -2,6 +2,7 @@ package org.openmrs.module.mohbilling.integration.insurance;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
+import org.openmrs.util.ConfigUtil;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -12,6 +13,10 @@ public class RhipVoucherIntegrationConfig {
 	private static final String DEFAULT_ENABLED_VOUCHER_INSURANCE_KEYS = "MUTUELLE,RAMA,RSSB,SPECIAL_CASE,MMI";
 	private static final String SHARED_API_PREFIX = "/insurance_integration/api/v2";
 	public static final String SHARED_BASE_URL = "mohbilling.rhip.baseUrl";
+	/** The RHIP connection settings of the eligibility check (rwandaemr), shared by every RHIP call */
+	public static final String ELIGIBILITY_BASE_URL = "rwandaemr.insuranceIntegration.baseUrl";
+	public static final String ELIGIBILITY_API_KEY = "rwandaemr.insuranceEligibility.apiKey";
+	public static final String ELIGIBILITY_API_ORIGIN = "rwandaemr.insuranceEligibility.apiOrigin";
 	public static final String VOUCHER_URL = VOUCHER_PREFIX + "url";
 	public static final String VOUCHER_CLOSURE_URL = VOUCHER_PREFIX + "closureUrl";
 	public static final String VOUCHER_API_KEY = VOUCHER_PREFIX + "apiKey";
@@ -30,6 +35,7 @@ public class RhipVoucherIntegrationConfig {
 	public static final String PRACTITIONER_DETAILS_URL = VOUCHER_PREFIX + "practitionerDetailsUrl";
 	public static final String PRACTITIONER_CREATE_URL = VOUCHER_PREFIX + "practitionerCreateUrl";
 	public static final String PRACTITIONER_TYPES_URL = VOUCHER_PREFIX + "practitionerTypesUrl";
+	public static final String APPROVAL_REQUIRED_PRODUCTS_URL = VOUCHER_PREFIX + "approvalRequiredProductsUrl";
 	public static final String PRACTITIONER_TYPE_PROVIDER_ATTRIBUTE_TYPE_UUID =
 			VOUCHER_PREFIX + "practitionerTypeProviderAttributeTypeUuid";
 	public static final String PRACTITIONER_DOCUMENT_TYPE_PROVIDER_ATTRIBUTE_TYPE_UUID =
@@ -51,12 +57,19 @@ public class RhipVoucherIntegrationConfig {
 		return configuredUrlOrSharedPath(VOUCHER_CLOSURE_URL, "/voucher-closure");
 	}
 
+	/**
+	 * @return the RHIP API key: the one used for the eligibility check, so every RHIP call uses the same key;
+	 * mohbilling.rhipVoucher.apiKey is only read when that one is empty
+	 */
 	public String getVoucherApiKey() {
-		return Context.getAdministrationService().getGlobalProperty(VOUCHER_API_KEY);
+		return firstNonBlank(ConfigUtil.getProperty(ELIGIBILITY_API_KEY), globalProperty(VOUCHER_API_KEY));
 	}
 
+	/**
+	 * @return the Origin registered with the RHIP API key: the eligibility check's one, else mohbilling.rhipVoucher.apiOrigin
+	 */
 	public String getVoucherApiOrigin() {
-		return Context.getAdministrationService().getGlobalProperty(VOUCHER_API_ORIGIN);
+		return firstNonBlank(ConfigUtil.getProperty(ELIGIBILITY_API_ORIGIN), globalProperty(VOUCHER_API_ORIGIN));
 	}
 
 	public String getVoucherEnabledInsuranceKeysRaw() {
@@ -136,6 +149,10 @@ public class RhipVoucherIntegrationConfig {
 		return configuredUrlOrSharedPath(PRACTITIONER_CREATE_URL, "/practitioner/create");
 	}
 
+	public String getApprovalRequiredProductsUrl() {
+		return configuredUrlOrSharedPath(APPROVAL_REQUIRED_PRODUCTS_URL, "/approval-required-products");
+	}
+
 	public String getPractitionerTypesUrl() {
 		return configuredUrlOrSharedPath(PRACTITIONER_TYPES_URL, "/practitioner/types");
 	}
@@ -185,8 +202,23 @@ public class RhipVoucherIntegrationConfig {
 		return StringUtils.isNotBlank(getVoucherUrl());
 	}
 
+	/**
+	 * @return the RHIP base URL: the eligibility check's one (rwandaemr.insuranceIntegration.baseUrl), so every RHIP
+	 * call goes to the same server; mohbilling.rhip.baseUrl is only read when that one is empty
+	 */
 	public String getSharedBaseUrl() {
-		return Context.getAdministrationService().getGlobalProperty(SHARED_BASE_URL);
+		return firstNonBlank(ConfigUtil.getProperty(ELIGIBILITY_BASE_URL), globalProperty(SHARED_BASE_URL));
+	}
+
+	private String globalProperty(String property) {
+		return Context.getAdministrationService().getGlobalProperty(property);
+	}
+
+	private static String firstNonBlank(String first, String second) {
+		if (StringUtils.isNotBlank(first)) {
+			return first.trim();
+		}
+		return StringUtils.isNotBlank(second) ? second.trim() : null;
 	}
 
 	private String configuredUrlOrSharedPath(String property, String endpointPath) {

@@ -96,6 +96,10 @@ public class RpmVoucherItemResolver {
 		if ((isRamaInsuranceType(insuranceType) || isMmiInsuranceType(insuranceType)) && isDrugItem(item, line)) {
 			applyDrugOrderDetails(procedure, line.orderId);
 		}
+		if (isMmiInsuranceType(insuranceType)) {
+			procedure.setDispensedInPharmacy(dispensingDate != null || line.dispensingDate != null);
+			procedure.setDeliveryReferenceNumber(resolveMmiDeliveryReference(requests, consommation, item.itemId));
+		}
 		return procedure;
 	}
 
@@ -116,6 +120,20 @@ public class RpmVoucherItemResolver {
 	}
 
 	private Date resolveDispensingDate(List<RpmRequest> requests, Consommation consommation, Integer itemId) {
+		String source = dispenseLineSource(requests, consommation, itemId);
+		if (source == null) {
+			return null;
+		}
+		List<List<Object>> rows = executeSql("select coalesce(dr.date_created, drl.date_created) " + source
+				+ "order by coalesce(dr.date_created, drl.date_created) desc limit 1");
+		return rows.isEmpty() ? null : dateValue(value(rows.get(0), 0));
+	}
+
+	/**
+	 * @return the "from ... where ..." part selecting the RPM dispense lines of this item for the bill's dispensing
+	 * requests (aliases dr and drl), or null when the dispense tables or the request link are missing
+	 */
+	private String dispenseLineSource(List<RpmRequest> requests, Consommation consommation, Integer itemId) {
 		if (itemId == null) {
 			return null;
 		}
@@ -135,8 +153,7 @@ public class RpmVoucherItemResolver {
 			return null;
 		}
 
-		StringBuilder sql = new StringBuilder("select coalesce(dr.date_created, drl.date_created) "
-				+ "from rpm_dispense_record dr "
+		StringBuilder sql = new StringBuilder("from rpm_dispense_record dr "
 				+ "join rpm_dispense_record_line drl on drl.dispense_record_id = dr.dispense_record_id ");
 		if (requestIds.isEmpty()) {
 			if (!tableExists("rpm_patient_dispensing_request")) {
@@ -154,9 +171,52 @@ public class RpmVoucherItemResolver {
 			sql.append("and dr.patient_dispensing_request_id in (")
 					.append(StringUtils.join(requestIds, ",")).append(") ");
 		}
-		sql.append("order by coalesce(dr.date_created, drl.date_created) desc limit 1");
-		List<List<Object>> rows = executeSql(sql.toString());
-		return rows.isEmpty() ? null : dateValue(value(rows.get(0), 0));
+		return sql.toString();
+	}
+
+	/**
+	 * Finds the MMI delivery the dispensed medicine was taken from, so MMI bills it at that delivery's price: the batch
+	 * of the latest RPM dispense line of this item, the delivery receipt that brought that batch in, and its receipt
+	 * number (the reference sent to MMI). The reference is only returned when MMI recorded that delivery, since MMI
+	 * cannot bill against a delivery it does not know.
+	 */
+	String resolveMmiDeliveryReference(List<RpmRequest> requests, Consommation consommation, Integer itemId) {
+		String source = dispenseLineSource(requests, consommation, itemId);
+		if (source == null || !tableExists("rpm_delivery_receipt") || !tableExists("rpm_delivery_receipt_line")
+				|| !tableExists("rpm_integration_log")) {
+			return null;
+		}
+		List<List<Object>> batches = executeSql("select drl.batch_number " + source
+				+ "and drl.batch_number is not null and trim(drl.batch_number) <> '' "
+				+ "order by coalesce(dr.date_created, drl.date_created) desc limit 1");
+		String batchNumber = batches.isEmpty() ? null : stringValue(value(batches.get(0), 0));
+		if (batchNumber == null) {
+			return null;
+		}
+		List<List<Object>> receipts = executeSql("select r.receipt_number, r.delivery_receipt_id "
+				+ "from rpm_delivery_receipt r "
+				+ "join rpm_delivery_receipt_line l on l.delivery_receipt_id = r.delivery_receipt_id "
+				+ "where l.item_id = " + itemId + " and l.batch_number = '" + escapeSql(batchNumber) + "' "
+				+ "and coalesce(r.voided, 0) = 0 and coalesce(l.voided, 0) = 0 "
+				+ "order by r.date_created desc, r.delivery_receipt_id desc limit 1");
+		if (receipts.isEmpty()) {
+			return null;
+		}
+		String reference = stringValue(value(receipts.get(0), 0));
+		if (reference == null) {
+			Integer receiptId = integerValue(value(receipts.get(0), 1));
+			reference = receiptId == null ? null : "DR-" + receiptId;
+		}
+		if (reference == null) {
+			return null;
+		}
+		String likeReference = reference.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+		List<List<Object>> recorded = executeSql("select count(1) from rpm_integration_log "
+				+ "where integration_type = 'RHIP_MEDICINE_DELIVERY' and status = 'SUCCESS' "
+				+ "and coalesce(voided, 0) = 0 "
+				+ "and request_payload like '%\"referenceNumber\":\"" + escapeSql(likeReference) + "\"%'");
+		Integer count = recorded.isEmpty() ? null : integerValue(value(recorded.get(0), 0));
+		return count != null && count.intValue() > 0 ? reference : null;
 	}
 
 	private RpmItem findItemByBillingName(PatientServiceBill billItem) {
@@ -558,12 +618,21 @@ public class RpmVoucherItemResolver {
 		if (StringUtils.isBlank(sql)) {
 			return new ArrayList<>();
 		}
+		// Read-only lookups made for whoever sends the voucher; billing staff do not have the SQL privilege
+		boolean privileged = false;
 		try {
+			Context.addProxyPrivilege("SQL Level Access");
+			privileged = true;
 			return Context.getAdministrationService().executeSQL(sql, true);
 		}
 		catch (Exception e) {
 			log.debug("Unable to execute RPM voucher lookup SQL", e);
 			return new ArrayList<>();
+		}
+		finally {
+			if (privileged) {
+				Context.removeProxyPrivilege("SQL Level Access");
+			}
 		}
 	}
 	

@@ -23,6 +23,7 @@ import org.openmrs.module.mohbilling.tasks.BillReportEtlTask;
 import org.openmrs.module.mohbilling.tasks.CashierReportEtlTask;
 import org.openmrs.module.mohbilling.tasks.InsuranceReportEtlTask;
 import org.openmrs.module.mohbilling.tasks.IremboReconciliationTask;
+import org.openmrs.module.mohbilling.tasks.RefreshApprovalRequiredProductsTask;
 import org.openmrs.module.mohbilling.irembo.util.IremboPayLogUtil;
 import org.openmrs.scheduler.SchedulerException;
 import org.openmrs.scheduler.SchedulerService;
@@ -39,6 +40,8 @@ public class MohBillingActivator extends BaseModuleActivator {
 
 	private static final String IREMBO_TASK_NAME = "mohbilling.irembopay.reconciliation.task";
 	private static final String AUTOPAY_ZERO_BILL_TASK_NAME = "mohbilling.autopay.zerobill.task";
+	private static final String APPROVAL_REQUIRED_TASK_NAME = "mohbilling.approvalRequired.refresh.task";
+	static final String APPROVAL_REQUIRED_INTERVAL_HOURS = "mohbilling.approvalRequired.refreshIntervalHours";
 	private static final String INSURANCE_REPORT_ETL_TASK_NAME = "mohbilling.insurance.report.etl.task";
 	private static final long DEFAULT_INSURANCE_REPORT_ETL_INTERVAL_SECONDS = 86400L;
 	private static final String DEFAULT_INSURANCE_REPORT_ETL_START_TIME = "01:00";
@@ -58,6 +61,7 @@ public class MohBillingActivator extends BaseModuleActivator {
 
 		scheduleIremboReconciliationTask();
 		scheduleAutoPayZeroBillTask();
+		scheduleApprovalRequiredRefreshTask();
 		scheduleInsuranceReportEtlTask();
 		scheduleCashierReportEtlTask();
 		scheduleBillReportEtlTask();
@@ -70,6 +74,7 @@ public class MohBillingActivator extends BaseModuleActivator {
 	public void stopped() {
 		shutdownIremboReconciliationTask();
 		shutdownAutoPayZeroBillTask();
+		shutdownTask(APPROVAL_REQUIRED_TASK_NAME);
 		shutdownInsuranceReportEtlTask();
 		shutdownCashierReportEtlTask();
 		shutdownBillReportEtlTask();
@@ -176,6 +181,48 @@ public class MohBillingActivator extends BaseModuleActivator {
 			}
 		} catch (SchedulerException e) {
 			log.error("Failed to schedule auto-pay zero bill task", e);
+		}
+	}
+
+	/**
+	 * Refreshes the procedures insurers must approve from RHIP, a minute after startup and then every
+	 * {@link #APPROVAL_REQUIRED_INTERVAL_HOURS} hours (6 by default)
+	 */
+	private void scheduleApprovalRequiredRefreshTask() {
+		try {
+			long hours = parsePositiveLong(Context.getAdministrationService().getGlobalProperty(
+					APPROVAL_REQUIRED_INTERVAL_HOURS, "6"), 6L);
+			SchedulerService schedulerService = Context.getSchedulerService();
+			TaskDefinition task = schedulerService.getTaskByName(APPROVAL_REQUIRED_TASK_NAME);
+			if (task == null) {
+				task = new TaskDefinition();
+				task.setName(APPROVAL_REQUIRED_TASK_NAME);
+			}
+			task.setDescription("Refreshes from RHIP the procedures each insurer must approve before they are billed.");
+			task.setTaskClass(RefreshApprovalRequiredProductsTask.class.getName());
+			task.setStartTime(new Date(System.currentTimeMillis() + 60_000L));
+			task.setRepeatInterval(hours * 60L * 60L);
+			task.setStartOnStartup(true);
+			task.setStarted(true);
+			task = saveAndReloadTaskDefinition(schedulerService, task);
+			schedulerService.scheduleTask(task);
+			log.info("Scheduled the approval-required procedures refresh every " + hours + " hours.");
+		}
+		catch (SchedulerException e) {
+			log.error("Failed to schedule the approval-required procedures refresh", e);
+		}
+	}
+
+	private void shutdownTask(String name) {
+		try {
+			SchedulerService schedulerService = Context.getSchedulerService();
+			TaskDefinition task = schedulerService.getTaskByName(name);
+			if (task != null) {
+				schedulerService.shutdownTask(task);
+			}
+		}
+		catch (SchedulerException e) {
+			log.warn("Failed to stop the task " + name, e);
 		}
 	}
 

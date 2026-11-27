@@ -68,10 +68,10 @@ public class MohBillingFacilityServiceFormController extends
 		}
 		if (request.getParameter("facilityServiceId") != null) {
 			try {
-				mav.addObject("facilityService", (Context
-						.getService(BillingService.class))
-						.getFacilityServicePrice(Integer.valueOf(request
-								.getParameter("facilityServiceId"))));
+				org.openmrs.module.mohbilling.model.FacilityServicePrice facilityService = Context.getService(BillingService.class)
+						.getFacilityServicePrice(Integer.valueOf(request.getParameter("facilityServiceId")));
+				mav.addObject("facilityService", facilityService);
+				mav.addObject("approvalRequiredBy", approvalRequiredBy(facilityService));
 
 			} catch (Exception e) {
 				log.error(">>>MOH>>BILLING>> The Facility Service with '"
@@ -196,6 +196,7 @@ public class MohBillingFacilityServiceFormController extends
 					.getParameter("facilityServiceRelatedConcept"))));*/
 			fs.setItemType(1);
 			fs.setShortName(request.getParameter("facilityServiceShortName"));
+			fs.setRhicCode(request.getParameter("facilityServiceRhicCode"));
 			fs.setDescription(request
 					.getParameter("facilityServiceDescription"));
 			fs.setCategory(request
@@ -289,4 +290,24 @@ public class MohBillingFacilityServiceFormController extends
 		return true;
 	}
 
+
+	/**
+	 * @return the insurances that must approve this item before it is billed, e.g. "MMI, RAMA", or null
+	 */
+	private String approvalRequiredBy(org.openmrs.module.mohbilling.model.FacilityServicePrice facilityService) {
+		if (facilityService == null) {
+			return null;
+		}
+		try {
+			String code = org.apache.commons.lang3.StringUtils.isNotBlank(facilityService.getRhicCode()) ? facilityService.getRhicCode()
+					: org.openmrs.module.mohbilling.utils.RhicCode.fromName(facilityService.getName());
+			java.util.List<String> types = Context.getRegisteredComponent("rhipApprovalRequiredProducts",
+					org.openmrs.module.mohbilling.integration.insurance.RhipApprovalRequiredProducts.class)
+					.getInsuranceTypesRequiringApproval(code);
+			return types.isEmpty() ? null : org.apache.commons.lang3.StringUtils.join(types, ", ").toUpperCase();
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
 }
