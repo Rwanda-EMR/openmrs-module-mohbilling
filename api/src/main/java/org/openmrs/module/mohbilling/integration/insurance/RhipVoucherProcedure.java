@@ -16,6 +16,8 @@ public class RhipVoucherProcedure {
 	private String instructions;
 	private Integer patientServiceBillId;
 	private Boolean medicineLine;
+	private String deliveryReferenceNumber;
+	private Boolean dispensedInPharmacy;
 
 	public String getCode() {
 		return code;
@@ -105,5 +107,41 @@ public class RhipVoucherProcedure {
 
 	public void setMedicineLine(Boolean medicineLine) {
 		this.medicineLine = medicineLine;
+	}
+
+	/**
+	 * MMI only: the delivery (RHIP /practitioner/medicines/delivery) this medicine was taken from. When set, MMI bills
+	 * the line in house at that delivery's price and ignores price.
+	 */
+	public String getDeliveryReferenceNumber() {
+		return deliveryReferenceNumber;
+	}
+
+	public void setDeliveryReferenceNumber(String deliveryReferenceNumber) {
+		this.deliveryReferenceNumber = deliveryReferenceNumber;
+	}
+
+	/**
+	 * MMI drug and consumable lines only (null otherwise): true when the line is billed at the price of the delivery in
+	 * deliveryReferenceNumber, false when it is billed at the declared price
+	 */
+	public Boolean getHasPurchaseOrder() {
+		if (!Boolean.TRUE.equals(medicineLine)) {
+			return null;
+		}
+		return deliveryReferenceNumber != null && !deliveryReferenceNumber.trim().isEmpty();
+	}
+
+	/**
+	 * True when the line comes from an RPM dispense. For MMI inpatients, such medicines were also sent to
+	 * /visit-dispense in real time.
+	 */
+	@JsonIgnore
+	public Boolean getDispensedInPharmacy() {
+		return dispensedInPharmacy;
+	}
+
+	public void setDispensedInPharmacy(Boolean dispensedInPharmacy) {
+		this.dispensedInPharmacy = dispensedInPharmacy;
 	}
 }

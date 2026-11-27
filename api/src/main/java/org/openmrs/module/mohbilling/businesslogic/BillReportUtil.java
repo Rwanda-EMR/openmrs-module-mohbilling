@@ -516,6 +516,7 @@ public final class BillReportUtil {
 		if (items == null || items.isEmpty()) {
 			return new PagedDisplayRows(Collections.emptyList(), totalCount, safePage, safePageSize);
 		}
+		BillItemVerificationLookup.apply(items);
 		int sequence = firstResult + 1;
 		List<Map<String, Object>> rows = new ArrayList<>(items.size());
 		for (BillReportItem item : items) {
@@ -616,6 +617,8 @@ public final class BillReportUtil {
 		row.put("transferAvailable", item.getTransferAvailable());
 		row.put("transferId", item.getTransferId());
 		row.put("transferValidity", item.getTransferValidity());
+		row.put("verificationStatus", item.getVerificationStatus());
+		row.put("verificationReason", item.getVerificationReason());
 		row.put("wardType", item.getWardType());
 		return row;
 	}
@@ -2499,6 +2502,7 @@ public final class BillReportUtil {
 			return Collections.emptyList();
 		}
 		rows = withoutHiddenInsurance(rows);
+		BillItemVerificationLookup.apply(rows);
 		int sequence = 1;
 		for (BillReportItem row : rows) {
 			row.setRowNumber(sequence++);

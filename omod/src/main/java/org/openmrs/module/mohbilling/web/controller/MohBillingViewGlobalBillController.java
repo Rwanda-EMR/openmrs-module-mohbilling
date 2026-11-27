@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.integration.IntegrationResponse;
+import org.openmrs.module.mohbilling.model.RhipVoucherSubmission;
 import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherIntegrationConfig;
 import org.openmrs.module.mohbilling.integration.insurance.RhipVoucherService;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -96,7 +97,11 @@ public class MohBillingViewGlobalBillController extends
 			mav.addObject("globalBill", globalBill);
 			mav.addObject("patientIdentifier",patientIdentifier);
 			mav.addObject("showRhipVoucherButton", shouldShowRhipVoucherButton(globalBill));
-			mav.addObject("rhipVoucherItemRecordsByItemId", getLatestRhipVoucherItemRecordsByItemId(globalBill));
+			mav.addObject("mmiRejectedLineCount", countMmiRejectedLines(globalBill));
+			addMmiApprovalLink(mav, globalBill);
+			Map<Integer, RhipVoucherItemRecord> rhipVoucherItemRecordsByItemId = getLatestRhipVoucherItemRecordsByItemId(globalBill);
+			mav.addObject("rhipVoucherItemRecordsByItemId", rhipVoucherItemRecordsByItemId);
+			mav.addObject("approvalLabelsByItemId", getApprovalLabelsByItemId(globalBill, allItems, rhipVoucherItemRecordsByItemId));
 			mav.addObject("billItemStatusesByItemId", billItemStatusesByItemId);
 			mav.addObject("transferSummary", transferSummary);
 			mav.addObject("transferETransferId", transferSummary.get("eTransferId"));
@@ -148,6 +153,24 @@ public class MohBillingViewGlobalBillController extends
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,"Only Globall Bill closed TODAY can be reverted ");
 			}
 		}
+		if (request.getParameter("resend_mmi_rejected_lines") != null && Context.isAuthenticated()) {
+			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.parseInt(request.getParameter("globalBillId")));
+			if (voucherService == null) {
+				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "RHIP voucher service is not configured");
+			} else {
+				RhipVoucherSubmission submission = voucherService.resubmitMmiRejectedLines(gb);
+				if (submission != null && RhipVoucherSubmission.STATUS_SENT.equals(submission.getStatus())) {
+					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR, "Rejected lines sent again to MMI");
+					if (StringUtils.isNotBlank(submission.getErrorMessage())) {
+						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, submission.getErrorMessage());
+					}
+				} else {
+					request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
+							"Rejected lines were not sent: " + (submission == null ? "no response" : submission.getErrorMessage()));
+				}
+			}
+			return new ModelAndView(new RedirectView("viewGlobalBill.form?globalBillId=" + gb.getGlobalBillId()));
+		}
 		if (request.getParameter("send_voucher") != null && Context.isAuthenticated()) {
 			GlobalBill gb = GlobalBillUtil.getGlobalBill(Integer.parseInt(request.getParameter("globalBillId")));
 			if (!Boolean.TRUE.equals(gb.getClosed())) {
@@ -164,8 +187,8 @@ public class MohBillingViewGlobalBillController extends
 						log.warn("RHIP voucher submission failed: no response received");
 					} else if (!voucherResponse.isEnabled()) {
 						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
-								"RHIP voucher submission failed: integration is disabled");
-						log.warn("RHIP voucher submission failed: integration is disabled");
+								"RHIP voucher submission failed: the RHIP URL is not configured. Set the global property " + RhipVoucherIntegrationConfig.ELIGIBILITY_BASE_URL);
+						log.warn("RHIP voucher submission failed: the RHIP URL is not configured");
 					} else if (voucherResponse.getErrorMessage() != null) {
 						String friendlyError = toFriendlyVoucherError(voucherResponse);
 						request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, friendlyError);
@@ -176,8 +199,10 @@ public class MohBillingViewGlobalBillController extends
 						log.warn("RHIP voucher submission failed: empty response from RHIP");
 					} else if (voucherResponse.getResponseEntity() instanceof java.util.Map) {
 						processVoucherResponse(request, gb, voucherResponse.getResponseEntity(), voucherResponse.getResponseCode());
+						showMmiVoucherIssues(request, voucherResponse);
 					} else if (voucherResponse.getResponseEntity() instanceof String) {
 						processVoucherResponse(request, gb, voucherResponse.getResponseEntity(), voucherResponse.getResponseCode());
+						showMmiVoucherIssues(request, voucherResponse);
 					} else {
 					request.getSession().setAttribute(WebConstants.OPENMRS_MSG_ATTR, "RHIP voucher submitted successfully");
 				}
@@ -454,6 +479,28 @@ public class MohBillingViewGlobalBillController extends
 		this.voucherIntegrationConfig = voucherIntegrationConfig;
 	}
 
+	/**
+	 * The MMI approval state of the lines that need MMI's approval, shown in the RHIP Status column from the moment
+	 * they are billed. A line MMI already answered on a voucher keeps showing that answer instead, unless it was held
+	 * back for approval.
+	 */
+	private Map<Integer, RhipVoucherService.ApprovalLabel> getApprovalLabelsByItemId(GlobalBill globalBill,
+			List<PatientServiceBill> items, Map<Integer, RhipVoucherItemRecord> recordsByItemId) {
+		Map<Integer, RhipVoucherService.ApprovalLabel> ret = new HashMap<Integer, RhipVoucherService.ApprovalLabel>();
+		if (voucherService == null) {
+			return ret;
+		}
+		Map<Integer, RhipVoucherService.ApprovalLabel> labels = voucherService.getApprovalLabels(globalBill, items);
+		for (Map.Entry<Integer, RhipVoucherService.ApprovalLabel> entry : labels.entrySet()) {
+			RhipVoucherItemRecord record = recordsByItemId == null ? null : recordsByItemId.get(entry.getKey());
+			if (record == null || (RhipVoucherItemRecord.STATUS_REJECTED.equals(record.getStatus())
+					&& StringUtils.startsWith(record.getRejectionReason(), RhipVoucherService.MMI_APPROVAL_NEEDED_LABEL))) {
+				ret.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return ret;
+	}
+
 	private Map<Integer, RhipVoucherItemRecord> getLatestRhipVoucherItemRecordsByItemId(GlobalBill globalBill) {
 		Map<Integer, RhipVoucherItemRecord> recordsByItemId = new HashMap<Integer, RhipVoucherItemRecord>();
 		if (globalBill == null) {
@@ -479,6 +526,71 @@ public class MohBillingViewGlobalBillController extends
 			log.warn("Unable to load RHIP voucher item records for global bill " + globalBill.getGlobalBillId(), e);
 		}
 		return recordsByItemId;
+	}
+
+	/**
+	 * MMI keeps HTTP 200 for a voucher whose lines it partly left out; tell the user which ones and why
+	 */
+	private void showMmiVoucherIssues(HttpServletRequest request, IntegrationResponse voucherResponse) {
+		String issues = voucherService == null ? null : voucherService.describeMmiVoucherIssues(voucherResponse);
+		if (StringUtils.isNotBlank(issues)) {
+			request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR, issues);
+		}
+	}
+
+	/**
+	 * @return how many lines MMI left out of this bill's voucher and can be sent again, 0 when the voucher is not MMI's
+	 */
+	private int countMmiRejectedLines(GlobalBill globalBill) {
+		if (voucherService == null || globalBill == null || !Boolean.TRUE.equals(globalBill.getClosed())) {
+			return 0;
+		}
+		Admission admission = globalBill.getAdmission();
+		InsurancePolicy insurancePolicy = admission == null ? null : admission.getInsurancePolicy();
+		Insurance insurance = insurancePolicy == null ? null : insurancePolicy.getInsurance();
+		if (insurance == null || !(StringUtils.containsIgnoreCase(insurance.getCategory(), "MMI")
+				|| StringUtils.containsIgnoreCase(insurance.getName(), "MMI"))) {
+			return 0;
+		}
+		try {
+			return voucherService.getLatestRejectedItemIds(globalBill).size();
+		}
+		catch (Exception e) {
+			log.warn("Unable to count rejected MMI voucher lines", e);
+			return 0;
+		}
+	}
+
+	/**
+	 * When MMI left lines off the voucher because they need its approval, links to the RHIP approvals page (rwandaemr)
+	 * for the patient, with the procedure searched when there is only one
+	 */
+	private void addMmiApprovalLink(ModelAndView mav, GlobalBill globalBill) {
+		if (countMmiRejectedLines(globalBill) == 0) {
+			return;
+		}
+		try {
+			java.util.Set<String> codes = voucherService.getLatestApprovalBlockedCodes(globalBill);
+			if (codes.isEmpty()) {
+				return;
+			}
+			InsurancePolicy policy = globalBill.getAdmission().getInsurancePolicy();
+			StringBuilder link = new StringBuilder("/rwandaemr/admin/rhipApprovals.page?openRequest=true");
+			if (policy.getOwner() != null) {
+				link.append("&patientId=").append(policy.getOwner().getUuid());
+			}
+			if (policy.getInsurancePolicyId() != null) {
+				link.append("&insurancePolicyId=").append(policy.getInsurancePolicyId());
+			}
+			if (codes.size() == 1) {
+				link.append("&productSearch=").append(java.net.URLEncoder.encode(codes.iterator().next(), "UTF-8"));
+			}
+			mav.addObject("mmiApprovalBlockedCodes", StringUtils.join(codes, ", "));
+			mav.addObject("mmiApprovalLink", link.toString());
+		}
+		catch (Exception e) {
+			log.warn("Unable to link the lines MMI needs to approve", e);
+		}
 	}
 
 	private boolean shouldShowRhipVoucherButton(GlobalBill globalBill) {

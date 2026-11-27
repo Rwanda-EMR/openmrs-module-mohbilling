@@ -2822,4 +2822,84 @@
 		</createIndex>
 	</changeSet>
 
+	<changeSet id="20261125-facility-service-price-rhic-code" author="bniyonshuti">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="moh_bill_facility_service_price" />
+			<not>
+				<columnExists tableName="moh_bill_facility_service_price" columnName="rhic_code" />
+			</not>
+		</preConditions>
+		<comment>
+			The national RHIC (procedures) or RLTC (laboratory) code of a billing item in its own column. It was only
+			kept at the end of the name ("Cataract surgery|RHIC-OPTH-072" or "Cataract surgery - RHIC-OPTH-072"); it is
+			copied from there.
+		</comment>
+		<addColumn tableName="moh_bill_facility_service_price">
+			<column name="rhic_code" type="varchar(50)">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+		<sql>
+			UPDATE moh_bill_facility_service_price
+			SET rhic_code = UPPER(TRIM(SUBSTRING_INDEX(name, '|', -1)))
+			WHERE rhic_code IS NULL AND name LIKE '%|%'
+			AND UPPER(TRIM(SUBSTRING_INDEX(name, '|', -1))) REGEXP '^(RHIC|RLTC)(-[A-Z0-9]+)+$'
+		</sql>
+		<sql>
+			UPDATE moh_bill_facility_service_price
+			SET rhic_code = UPPER(TRIM(SUBSTRING(name, GREATEST(LOCATE('RHIC-', name), LOCATE('RLTC-', name)))))
+			WHERE rhic_code IS NULL AND name NOT LIKE '%|%'
+			AND UPPER(TRIM(name)) REGEXP '[ -](RHIC|RLTC)(-[A-Z0-9]+)+$'
+			AND UPPER(TRIM(SUBSTRING(name, GREATEST(LOCATE('RHIC-', name), LOCATE('RLTC-', name))))) REGEXP '^(RHIC|RLTC)(-[A-Z0-9]+)+$'
+		</sql>
+		<createIndex tableName="moh_bill_facility_service_price" indexName="idx_moh_bill_fsp_rhic_code">
+			<column name="rhic_code" />
+		</createIndex>
+	</changeSet>
+
+	<changeSet id="20261126-approval-required-product" author="bniyonshuti">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="moh_bill_approval_required_product" />
+			</not>
+		</preConditions>
+		<comment>
+			The procedures each insurer must approve before they are billed, from RHIP /approval-required-products,
+			refreshed by a scheduled task. A row is linked to the billing item with the same rhic_code, so it also tells
+			which billing items need approval.
+		</comment>
+		<createTable tableName="moh_bill_approval_required_product">
+			<column name="approval_required_product_id" type="int" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="insurance_type" type="varchar(20)">
+				<constraints nullable="false" />
+			</column>
+			<column name="product_code" type="varchar(50)">
+				<constraints nullable="false" />
+			</column>
+			<column name="product_name" type="varchar(500)" />
+			<column name="product_type" type="varchar(100)" />
+			<column name="tariff_price" type="decimal(20,2)" />
+			<column name="facility_service_price_id" type="int" />
+			<column name="removed" type="boolean" defaultValueBoolean="false">
+				<constraints nullable="false" />
+			</column>
+			<column name="first_seen" type="datetime">
+				<constraints nullable="false" />
+			</column>
+			<column name="last_seen" type="datetime">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addUniqueConstraint tableName="moh_bill_approval_required_product" columnNames="insurance_type, product_code"
+				constraintName="uk_moh_bill_approval_required_product" />
+		<createIndex tableName="moh_bill_approval_required_product" indexName="idx_moh_bill_arp_code">
+			<column name="product_code" />
+		</createIndex>
+		<createIndex tableName="moh_bill_approval_required_product" indexName="idx_moh_bill_arp_fsp">
+			<column name="facility_service_price_id" />
+		</createIndex>
+	</changeSet>
+
 </databaseChangeLog>

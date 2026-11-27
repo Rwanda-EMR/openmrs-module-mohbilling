@@ -3277,10 +3277,32 @@ public class HibernateBillingDAO implements BillingDAO {
 		return 0;
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Integer> getRhipVoucherSubmissionGlobalBillIds(RhipVoucherSubmissionSearchCriteria criteria) {
+		SQLQuery query = sessionFactory.getCurrentSession().createSQLQuery(buildRhipVoucherSubmissionSql(criteria, false, true));
+		bindRhipVoucherSubmissionParameters(query, criteria);
+		List<Integer> ret = new ArrayList<Integer>();
+		for (Object value : query.list()) {
+			Object id = value instanceof Object[] ? ((Object[]) value)[0] : value;
+			if (id instanceof Number) {
+				ret.add(((Number) id).intValue());
+			}
+		}
+		return ret;
+	}
+
 	private String buildRhipVoucherSubmissionSql(RhipVoucherSubmissionSearchCriteria criteria, boolean countOnly) {
+		return buildRhipVoucherSubmissionSql(criteria, countOnly, false);
+	}
+
+	private String buildRhipVoucherSubmissionSql(RhipVoucherSubmissionSearchCriteria criteria, boolean countOnly,
+			boolean idsOnly) {
 		StringBuilder sql = new StringBuilder();
 		if (countOnly) {
 			sql.append("select count(distinct gb.global_bill_id) ");
+		} else if (idsOnly) {
+			sql.append("select distinct gb.global_bill_id ");
 		} else {
 			sql.append("select distinct {gb.*} ");
 		}
@@ -3297,7 +3319,9 @@ public class HibernateBillingDAO implements BillingDAO {
 		sql.append("order by latest_inner.attempt_number desc, latest_inner.date_submitted desc, latest_inner.rhip_voucher_submission_id desc limit 1) ");
 		sql.append("where gb.closed = 1 ");
 		sql.append("and (gb.voided = 0 or gb.voided is null) ");
-		sql.append("and gb.closing_date between :dischargeStartDate and :dischargeEndDate ");
+		// The period is on the discharge date, or on the admission date as in the bill report
+		sql.append(criteria != null && criteria.isAdmissionDateType() ? "and admission.admission_date " : "and gb.closing_date ");
+		sql.append("between :dischargeStartDate and :dischargeEndDate ");
 		String status = criteria == null ? null : criteria.getStatus();
 		if (org.apache.commons.lang3.StringUtils.isNotBlank(status)
 				&& !"ALL".equalsIgnoreCase(status.trim())) {
@@ -3308,13 +3332,16 @@ public class HibernateBillingDAO implements BillingDAO {
 		if (criteria != null && criteria.getInsuranceId() != null) {
 			sql.append("and insurance.insurance_id = :insuranceId ");
 		}
+		else if (criteria != null && criteria.hasInsuranceIds()) {
+			sql.append("and insurance.insurance_id in (:insuranceIds) ");
+		}
 		if (criteria != null && org.apache.commons.lang3.StringUtils.isNotBlank(criteria.getQuery())) {
 			sql.append("and (lower(gb.bill_identifier) like :query ");
 			sql.append("or lower(policy.insurance_card_no) like :query ");
 			sql.append("or lower(patient_identifier.identifier) like :query ");
 			sql.append("or lower(concat(coalesce(person_name.given_name, ''), ' ', coalesce(person_name.family_name, ''))) like :query) ");
 		}
-		if (!countOnly) {
+		if (!countOnly && !idsOnly) {
 			sql.append("order by ").append(resolveRhipVoucherSubmissionSort(criteria)).append(" ")
 					.append(resolveSortDirection(criteria)).append(", gb.global_bill_id desc");
 		}
@@ -3348,6 +3375,9 @@ public class HibernateBillingDAO implements BillingDAO {
 		}
 		if (criteria != null && criteria.getInsuranceId() != null) {
 			query.setInteger("insuranceId", criteria.getInsuranceId());
+		}
+		else if (criteria != null && criteria.hasInsuranceIds()) {
+			query.setParameterList("insuranceIds", criteria.getInsuranceIds());
 		}
 		if (criteria != null && org.apache.commons.lang3.StringUtils.isNotBlank(criteria.getQuery())) {
 			query.setString("query", "%" + criteria.getQuery().trim().toLowerCase() + "%");

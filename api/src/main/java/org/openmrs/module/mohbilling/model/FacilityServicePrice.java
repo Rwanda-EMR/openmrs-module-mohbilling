@@ -22,6 +22,10 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	private Integer facilityServicePriceId;
 	private String name;
 	private String shortName;
+	/**
+	 * The national RHIC (procedures) or RLTC (laboratory) code of this item
+	 */
+	private String rhicCode;
 	private String description;
 	private String category;
 	private BigDecimal fullPrice;
@@ -115,6 +119,14 @@ public class FacilityServicePrice implements Comparable<FacilityServicePrice> {
 	 */
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getRhicCode() {
+		return rhicCode;
+	}
+
+	public void setRhicCode(String rhicCode) {
+		this.rhicCode = rhicCode;
 	}
 
 	/**

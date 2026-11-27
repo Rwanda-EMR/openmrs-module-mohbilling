@@ -290,6 +290,8 @@
 			<th class="columnHeader">Transfer Available</th>
 			<th class="columnHeader">Transfer ID</th>
 			<th class="columnHeader">Transfer Validity</th>
+			<th class="columnHeader">Verification Status</th>
+			<th class="columnHeader">Rejection Reason</th>
 		</tr>
 		<c:forEach items="${admissions}" var="row" varStatus="status">
 			<tr>
@@ -343,6 +345,8 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.transferAvailable}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.transferId}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${row.transferValidity}</td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><c:out value="${row.verificationStatus}"/></td>
+				<td class="rowValue ${(status.count%2!=0)?'even':''}"><c:out value="${row.verificationReason}"/></td>
 			</tr>
 		</c:forEach>
 	</table>

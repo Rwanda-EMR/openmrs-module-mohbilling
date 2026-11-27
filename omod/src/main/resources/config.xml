@@ -76,6 +76,23 @@
     </globalProperty>
 
     <globalProperty>
+        <property>mohbilling.approvalRequired.insurances</property>
+        <defaultValue></defaultValue>
+        <description>
+            Ids of the insurances, separated by commas, whose patients' procedures need the insurer's approval before
+            they are billed (e.g. 12,13,4,10). Each insurance's RHIP type is the one whose eligibility setting
+            (rwandaemr.insuranceEligibility.mmi, .rama...) lists it; the procedures needing approval of those types are
+            kept in moh_bill_approval_required_product and refreshed from RHIP
+        </description>
+    </globalProperty>
+    <globalProperty>
+        <property>mohbilling.approvalRequired.refreshIntervalHours</property>
+        <defaultValue>6</defaultValue>
+        <description>
+            How often, in hours, the procedures needing approval are refreshed from RHIP (applied at startup)
+        </description>
+    </globalProperty>
+    <globalProperty>
         <property>billing.proformaValidityDays</property>
         <defaultValue>30</defaultValue>
         <description>

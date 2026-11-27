@@ -68,6 +68,20 @@
 		<bean id="rhipVoucherProvider" class="org.openmrs.module.mohbilling.integration.insurance.RhipVoucherProvider">
 			<property name="config" ref="rhipVoucherIntegrationConfig"/>
 		</bean>
+		<bean id="rhipApprovalRequiredProducts" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+			<property name="transactionManager" ref="transactionManager"/>
+			<property name="target">
+				<bean class="org.openmrs.module.mohbilling.integration.insurance.RhipApprovalRequiredProducts">
+					<property name="voucherProvider" ref="rhipVoucherProvider"/>
+					<property name="config" ref="rhipVoucherIntegrationConfig"/>
+					<property name="sessionFactory" ref="sessionFactory"/>
+				</bean>
+			</property>
+			<property name="transactionAttributeSource">
+				<bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource" />
+			</property>
+			<property name="proxyTargetClass" value="true"/>
+		</bean>
 		<bean id="rpmVoucherItemResolver" class="org.openmrs.module.mohbilling.integration.insurance.RpmVoucherItemResolver"/>
 		<bean id="rhipVoucherService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
 			<property name="transactionManager" ref="transactionManager"/>
@@ -80,6 +94,7 @@
 					<property name="providerService" ref="providerService"/>
 					<property name="billingService" ref="mohBillingService"/>
 					<property name="rpmVoucherItemResolver" ref="rpmVoucherItemResolver"/>
+					<property name="approvalRequiredProducts" ref="rhipApprovalRequiredProducts"/>
 				</bean>
 			</property>
 			<property name="preInterceptors" ref="serviceInterceptors"/>

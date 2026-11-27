@@ -78,6 +78,20 @@ public class RhipVoucherProvider {
 
 	public IntegrationResponse closeVoucher(String insuranceType, String facilityFosaId, String voucherCode,
 			String verifiedBy, String processedBy) {
+		return postVoucherClosure(insuranceType, facilityFosaId, voucherCode, verifiedBy, processedBy, false);
+	}
+
+	/**
+	 * Asks MMI how the bill would be split between MMI, the patient and any other insurer, without billing anything
+	 * (/voucher-closure with preview true). Safe to call any number of times.
+	 */
+	public IntegrationResponse previewVoucherClosure(String insuranceType, String facilityFosaId, String voucherCode,
+			String processedBy) {
+		return postVoucherClosure(insuranceType, facilityFosaId, voucherCode, null, processedBy, true);
+	}
+
+	private IntegrationResponse postVoucherClosure(String insuranceType, String facilityFosaId, String voucherCode,
+			String verifiedBy, String processedBy, boolean preview) {
 		IntegrationResponse ret = new IntegrationResponse();
 		ret.setEnabled(config != null && StringUtils.isNotBlank(config.getVoucherClosureUrl()));
 		if (!ret.isEnabled()) {
@@ -88,17 +102,26 @@ public class RhipVoucherProvider {
 		payload.put("insuranceType", normalizeInsuranceTypeForRhip(insuranceType));
 		payload.put("facilityFosaId", facilityFosaId);
 		payload.put("voucherCode", voucherCode);
-		payload.put("verifiedBy", verifiedBy);
+		if (preview) {
+			payload.put("preview", Boolean.TRUE);
+		}
+		else {
+			payload.put("verifiedBy", verifiedBy);
+		}
 		String json = toJson(payload);
 		if (json == null) {
 			ret.setErrorMessage("Unable to serialize RHIP voucher closure request to JSON");
 			return ret;
 		}
-		log.info("RHIP voucher closure payload: " + redactSensitivePayload(json));
-		return executePost(config.getVoucherClosureUrl(), json, "VOUCHER_CLOSURE", processedBy);
+		log.info("RHIP voucher closure " + (preview ? "preview " : "") + "payload: " + redactSensitivePayload(json));
+		return executePost(config.getVoucherClosureUrl(), json, preview ? "VOUCHER_CLOSURE_PREVIEW" : "VOUCHER_CLOSURE",
+				processedBy);
 	}
 
 	private String buildVoucherJson(RhipVoucherRequest request) {
+		if (isMmiInsuranceType(request.getInsuranceType())) {
+			return toJson(buildMmiVoucherPayload(request));
+		}
 		Map<String, Object> payload = new LinkedHashMap<>();
 		payload.put("insuranceType", normalizeInsuranceTypeForRhip(request.getInsuranceType()));
 		payload.put("facilityFosaId", request.getFacilityFosaId());
@@ -119,6 +142,64 @@ public class RhipVoucherProvider {
 		payload.put("prescriptionDestination", resolvePrescriptionDestination(request));
 		payload.put("visitReferenceNumber", resolveVisitReferenceNumber(request));
 		return toJson(payload);
+	}
+
+	/**
+	 * The /voucher body for MMI, with only the fields MMI reads (RHIP Unified Insurance Integration Guide: MMI,
+	 * section 9). Procedures (RHIC codes) are priced by MMI. A medicine line is billed in house, and so shown as
+	 * Dispensed, at the price of its delivery when deliveryReferenceNumber is sent, otherwise at the declared price.
+	 */
+	Map<String, Object> buildMmiVoucherPayload(RhipVoucherRequest request) {
+		Map<String, Object> payload = new LinkedHashMap<>();
+		payload.put("insuranceType", normalizeInsuranceTypeForRhip(request.getInsuranceType()));
+		payload.put("facilityFosaId", request.getFacilityFosaId());
+		payload.put("patientIdentifier", request.getPatientIdentifier());
+		payload.put("visitReferenceNumber", resolveVisitReferenceNumber(request));
+		payload.put("practitionerLicenseNumber", request.getPractitionerLicenseNumber());
+		payload.put("diagnosisIds", request.getDiagnosisIds());
+		if (StringUtils.isNotBlank(request.getHealthCareStayType())) {
+			payload.put("healthCareStayType", request.getHealthCareStayType());
+		}
+		List<Map<String, Object>> lines = new ArrayList<>();
+		if (request.getProcedures() != null) {
+			for (RhipVoucherProcedure procedure : request.getProcedures()) {
+				if (procedure == null) {
+					continue;
+				}
+				Map<String, Object> line = new LinkedHashMap<>();
+				line.put("code", procedure.getCode());
+				line.put("quantity", toMmiQuantity(procedure.getQuantity()));
+				if (Boolean.TRUE.equals(procedure.getMedicineLine())) {
+					// Drugs and consumables. hasPurchaseOrder true: billed at the price of the delivery the item was
+					// taken from, which then must be given; false: billed at our declared price
+					line.put("instructions", StringUtils.trimToNull(procedure.getInstructions()));
+					if (procedure.getDurationDays() != null) {
+						line.put("durationDays", procedure.getDurationDays());
+					}
+					boolean hasPurchaseOrder = StringUtils.isNotBlank(procedure.getDeliveryReferenceNumber());
+					line.put("hasPurchaseOrder", hasPurchaseOrder);
+					if (hasPurchaseOrder) {
+						line.put("deliveryReferenceNumber", procedure.getDeliveryReferenceNumber().trim());
+					}
+					else {
+						line.put("price", procedure.getPrice());
+					}
+				}
+				else if (StringUtils.isNotBlank(procedure.getInstructions())) {
+					line.put("comment", procedure.getInstructions().trim());
+				}
+				lines.add(line);
+			}
+		}
+		payload.put("procedures", lines);
+		return payload;
+	}
+
+	/**
+	 * RHIP takes quantity as a whole number; RPM only dispenses whole quantities, so this only drops the decimals
+	 */
+	private Integer toMmiQuantity(java.math.BigDecimal quantity) {
+		return quantity == null ? null : Integer.valueOf(quantity.setScale(0, java.math.RoundingMode.HALF_UP).intValue());
 	}
 
 	private List<Map<String, Object>> buildVoucherProcedures(RhipVoucherRequest request) {
@@ -175,6 +256,29 @@ public class RhipVoucherProvider {
 			return StringUtils.trimToNull(request.getReceptionNumber());
 		}
 		return null;
+	}
+
+	/**
+	 * The procedures the insurer must approve before they are billed (RHIP Unified Insurance Integration Guide: MMI,
+	 * section 7.1). MMI returns every match in one answer, whatever the page.
+	 */
+	public IntegrationResponse getApprovalRequiredProducts(String insuranceType, String facilityFosaId) {
+		java.util.Map<String, Object> body = new java.util.LinkedHashMap<String, Object>();
+		body.put("insuranceType", insuranceType);
+		body.put("facilityFosaId", facilityFosaId);
+		body.put("page", 1);
+		body.put("limit", 1000);
+		String payload;
+		try {
+			payload = OBJECT_MAPPER.writeValueAsString(body);
+		}
+		catch (JsonProcessingException e) {
+			IntegrationResponse ret = new IntegrationResponse();
+			ret.setErrorMessage("Unable to serialize the approval-required products request");
+			return ret;
+		}
+		return executePost(config == null ? null : config.getApprovalRequiredProductsUrl(), payload,
+				"APPROVAL_REQUIRED_PRODUCTS", null);
 	}
 
 	public IntegrationResponse getPractitionerDetails(String insuranceType, String licenseNumber) {
@@ -242,7 +346,7 @@ public class RhipVoucherProvider {
 		this.config = config;
 	}
 
-	private IntegrationResponse executePost(String url, String payload, String operationType, String senderUsername) {
+	protected IntegrationResponse executePost(String url, String payload, String operationType, String senderUsername) {
 		IntegrationResponse ret = new IntegrationResponse();
 		ret.setEnabled(StringUtils.isNotBlank(url));
 		if (!ret.isEnabled()) {

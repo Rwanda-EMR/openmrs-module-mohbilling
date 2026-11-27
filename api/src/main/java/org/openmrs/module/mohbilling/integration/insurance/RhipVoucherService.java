@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
+import org.openmrs.Encounter;
+import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
@@ -45,9 +47,11 @@ import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -60,10 +64,14 @@ import java.util.regex.Pattern;
 
 public class RhipVoucherService {
 
+	public static final String MMI_APPROVAL_NEEDED_LABEL = "Needs MMI approval first";
+
+
 	private static final Log log = LogFactory.getLog(RhipVoucherService.class);
 	private static final String CBHI_INSURANCE_TYPE = "CBHI";
 	private static final String RAMA_INSURANCE_TYPE = "RAMA";
 	private static final String MMI_INSURANCE_TYPE = "MMI";
+	static final String PROVIDER_LICENSE_ATTRIBUTE_TYPE_NAME = "Provider License";
 	private static final String SPECIAL_CASE_INSURANCE_TYPE = "SPECIAL_CASE";
 	private static final String DEFAULT_RAMA_PRESCRIPTION_DESTINATION = "FACILITY_DISPENSE";
 	private static final String MEDICAMENTS_SERVICE_CATEGORY = "MEDICAMENTS";
@@ -95,6 +103,8 @@ public class RhipVoucherService {
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	private RhipVoucherProvider voucherProvider;
+
+	private RhipApprovalRequiredProducts approvalRequiredProducts;
 	private RhipVoucherIntegrationConfig config;
 	private BillingService billingService;
 	private ProviderService providerService;
@@ -239,11 +249,116 @@ public class RhipVoucherService {
 			submission.setStatus(RhipVoucherSubmission.STATUS_CONFIRMED);
 			submission.setVoucherCode(globalBill.getRhipVoucherCode());
 			submission.setVoucherReferenceNumber(globalBill.getRhipVoucherReferenceNumber());
+			// The split and any lines left open are kept in the response payload; this flags a partial settlement
+			submission.setErrorMessage(describeMmiClosure(response));
 		} else {
 			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
 			submission.setErrorMessage(resolveVoucherSubmissionError(response));
 		}
 		return billingService.saveRhipVoucherSubmission(submission);
+	}
+
+	/**
+	 * Asks MMI how this global bill's voucher would be settled, without closing it. Fails with a message when the bill
+	 * cannot be closed: not MMI, no voucher yet, or already closed.
+	 */
+	public MmiClosurePreview previewVoucherClosureForGlobalBill(GlobalBill globalBill) {
+		MmiClosurePreview preview = new MmiClosurePreview();
+		if (globalBill == null) {
+			preview.setMessage("Global bill is required");
+			return preview;
+		}
+		if (!isMmiInsurance(resolveInsurance(globalBill))) {
+			preview.setMessage("The closure preview is only available for MMI");
+			return preview;
+		}
+		if (billingService != null && getConfirmedVoucherSubmission(globalBill) != null) {
+			preview.setMessage("RHIP voucher already confirmed for this global bill");
+			return preview;
+		}
+		String voucherCode = resolveVoucherCode(globalBill);
+		preview.setVoucherCode(voucherCode);
+		if (StringUtils.isBlank(voucherCode)) {
+			preview.setMessage("RHIP voucher must be created before confirmation");
+			return preview;
+		}
+		if (voucherProvider == null) {
+			preview.setMessage("RHIP voucher provider is not configured");
+			return preview;
+		}
+		if (billingService != null) {
+			preview.setRejectedLineCount(getLatestRejectedItemIds(globalBill).size());
+		}
+		User currentUser = getAuthenticatedUserSafely();
+		IntegrationResponse response = voucherProvider.previewVoucherClosure(
+				normalizeVoucherInsuranceType(resolveInsurance(globalBill)), resolveFosaId(globalBill), voucherCode,
+				currentUser == null ? null : currentUser.getUsername());
+		readClosurePreview(preview, response);
+		return preview;
+	}
+
+	void readClosurePreview(MmiClosurePreview preview, IntegrationResponse response) {
+		JsonNode root = toJsonNode(response == null ? null : response.getResponseEntity());
+		boolean success = Boolean.TRUE.equals(isSuccessResponse(response));
+		preview.setSuccess(success);
+		String message = root == null ? null : jsonText(root.get("message"));
+		if (!success) {
+			preview.setMessage(StringUtils.defaultIfBlank(message, resolveVoucherSubmissionError(response)));
+			return;
+		}
+		preview.setMessage(message);
+		JsonNode data = root == null ? null : root.get("data");
+		preview.setBillStatus(data == null ? null : jsonText(data.get("billStatus")));
+		JsonNode split = data == null ? null : data.get("costSplit");
+		preview.setTotalAmount(jsonDecimal(split, "totalAmount"));
+		preview.setInsuranceAmount(jsonDecimal(split, "insuranceAmount"));
+		preview.setPatientAmount(jsonDecimal(split, "patientAmount"));
+		preview.setOtherAmount(jsonDecimal(split, "otherAmount"));
+		preview.setInsurancePercentage(jsonDecimal(split, "insurancePercentage"));
+		preview.setPatientPercentage(jsonDecimal(split, "patientPercentage"));
+		preview.setOtherPercentage(jsonDecimal(split, "otherPercentage"));
+		JsonNode lines = data == null ? null : data.get("lines");
+		if (lines != null && lines.isArray()) {
+			for (JsonNode line : lines) {
+				preview.getLines().add(new MmiClosurePreview.Line(jsonText(line.get("code")), jsonText(line.get("name")),
+						jsonDecimal(line, "lineTotal"), jsonText(line.get("priceSource")),
+						line.has("fromApproval") && line.get("fromApproval").asBoolean(false)));
+			}
+		}
+	}
+
+	/**
+	 * @return a note when MMI only partly settled the bill (lines in data.remainingUnbilled), otherwise null
+	 */
+	public String describeMmiClosure(IntegrationResponse response) {
+		JsonNode root = toJsonNode(response == null ? null : response.getResponseEntity());
+		JsonNode data = root == null ? null : root.get("data");
+		JsonNode remaining = data == null ? null : data.get("remainingUnbilled");
+		if (remaining == null || !remaining.isArray() || remaining.size() == 0) {
+			return null;
+		}
+		List<String> lines = new ArrayList<String>();
+		for (JsonNode line : remaining) {
+			String code = jsonText(line.get("code"));
+			String name = jsonText(line.get("name"));
+			lines.add(StringUtils.defaultIfBlank(code, "?") + (StringUtils.isBlank(name) ? "" : " " + name));
+		}
+		String billStatus = data == null ? null : jsonText(data.get("billStatus"));
+		return "MMI only partly settled the bill" + (StringUtils.isBlank(billStatus) ? "" : " (" + billStatus + ")")
+				+ "; still open at MMI: " + StringUtils.join(lines, ", ");
+	}
+
+	private BigDecimal jsonDecimal(JsonNode node, String field) {
+		JsonNode value = node == null ? null : node.get(field);
+		if (value == null || value.isNull()) {
+			return null;
+		}
+		try {
+			return new BigDecimal(value.asText());
+		}
+		catch (NumberFormatException e) {
+			return null;
+		}
 	}
 
 	public RhipVoucherSubmission submitVoucherForGlobalBillWithAudit(GlobalBill globalBill, String eligibilityIdentifier) {
@@ -288,6 +403,7 @@ public class RhipVoucherService {
 		}
 		normalizeMmiMedicineDetails(request);
 		rejectNonPositivePriceProcedures(globalBill, request);
+		holdBackUnapprovedProcedures(globalBill, request);
 		submission.setRequestPayload(toJson(request));
 		if (!isRamaInsuranceType(request.getInsuranceType())
 				&& (request.getProcedures() == null || request.getProcedures().isEmpty())) {
@@ -325,6 +441,9 @@ public class RhipVoucherService {
 			submission.setStatus(RhipVoucherSubmission.STATUS_SENT);
 			submission.setVoucherCode(identifiers.voucherCode);
 			submission.setVoucherReferenceNumber(identifiers.voucherReferenceNumber);
+			if (isMmiInsuranceType(request.getInsuranceType())) {
+				submission.setErrorMessage(describeMmiVoucherIssues(response));
+			}
 			if (StringUtils.isNotBlank(identifiers.voucherCode)) {
 				globalBill.setRhipVoucherCode(identifiers.voucherCode);
 			}
@@ -376,13 +495,18 @@ public class RhipVoucherService {
 
 		User processedBy = resolveProcessedBy(globalBill);
 		String providerLicenseNumber = resolveProviderLicense(processedBy);
+		if (StringUtils.isBlank(providerLicenseNumber)) {
+			// The bill is often discharged by a cashier: use the last clinician of the visit who has a licence
+			providerLicenseNumber = resolveVisitClinicianLicense(admission);
+		}
 		request.setUserAccountCode(providerLicenseNumber);
 		request.setPractitionerLicenseNumber(providerLicenseNumber);
 		request.setProcessedBy(processedBy == null ? null : processedBy.getUsername());
 
 		String diagnosisNotes = resolveDiagnosisNotes(patient, admission, globalBill);
 		request.setNotes(diagnosisNotes);
-		request.setDiagnosisIds(resolveDiagnosisIds(diagnosisNotes));
+		request.setDiagnosisIds(mergeDiagnosisIds(resolveDiagnosisIds(diagnosisNotes),
+				resolveIcd11DiagnosisCodes(patient, admission, globalBill)));
 		request.setReferralFacilityId(resolveReferralFacilityId(globalBill));
 		if (request.getDiagnosisIds() == null || request.getDiagnosisIds().isEmpty()) {
 			log.warn("No ICD-11 diagnosis codes resolved for RHIP voucher request; globalBillId="
@@ -542,13 +666,10 @@ public class RhipVoucherService {
 						&& (procedure.getPrice() == null || procedure.getPrice().compareTo(BigDecimal.ZERO) <= 0)) {
 					errors.add("procedure #" + oneBased + " price must be greater than 0");
 				}
-				if (isMmiInsuranceType(request.getInsuranceType()) && isMmiMedicineProcedure(procedure)) {
-					if (StringUtils.isBlank(procedure.getInstructions())) {
-						errors.add("procedure #" + oneBased + " instructions is required for MMI medicine lines");
-					}
-					if (procedure.getDurationDays() == null) {
-						errors.add("procedure #" + oneBased + " durationDays is required for MMI medicine lines");
-					}
+				if (isMmiInsuranceType(request.getInsuranceType()) && isMmiMedicineProcedure(procedure)
+						&& StringUtils.isBlank(procedure.getInstructions())) {
+					errors.add("procedure #" + oneBased + " (" + procedure.getCode()
+							+ ") needs dosage instructions: MMI does not record a medicine without them");
 				}
 			}
 		}
@@ -572,7 +693,9 @@ public class RhipVoucherService {
 	}
 
 	private boolean requiresDiagnosisIds(String insuranceType) {
-		return isCbhiInsuranceType(insuranceType) || isSpecialCaseInsuranceType(insuranceType);
+		// MMI does not record an encounter without at least one ICD-11 diagnosis
+		return isCbhiInsuranceType(insuranceType) || isSpecialCaseInsuranceType(insuranceType)
+				|| isMmiInsuranceType(insuranceType);
 	}
 
 	private boolean isMmiMedicineProcedure(RhipVoucherProcedure procedure) {
@@ -718,7 +841,7 @@ public class RhipVoucherService {
 			return "RHIP voucher submission failed: no response received";
 		}
 		if (!response.isEnabled()) {
-			return "RHIP voucher submission failed: integration is disabled";
+			return "RHIP voucher submission failed: the RHIP URL is not configured. Set the global property " + RhipVoucherIntegrationConfig.ELIGIBILITY_BASE_URL;
 		}
 		if (StringUtils.isNotBlank(response.getErrorMessage())) {
 			return response.getErrorMessage();
@@ -769,34 +892,115 @@ public class RhipVoucherService {
 		return globalBill.getCreator();
 	}
 
+	/**
+	 * @return the user's practitioner licence number. Clinicians enter it on their transferapp profile, kept in the
+	 * "Provider License" provider attribute; the attribute type in
+	 * mohbilling.rhipVoucher.providerLicenseAttributeTypeUuid is only read when that one is empty.
+	 */
 	private String resolveProviderLicense(User user) {
-		if (user == null || providerService == null || config == null) {
+		if (user == null || user.getPerson() == null || providerService == null) {
 			return null;
 		}
-		String attributeTypeUuid = config.getProviderLicenseAttributeTypeUuid();
-		return resolveProviderAttributeValue(user, attributeTypeUuid);
+		Collection<Provider> providers = providerService.getProvidersByPerson(user.getPerson(), false);
+		if (providers == null) {
+			return null;
+		}
+		for (ProviderAttributeType type : providerLicenseAttributeTypes()) {
+			for (Provider provider : providers) {
+				String value = providerAttributeValue(provider, type);
+				if (value != null) {
+					return value;
+				}
+			}
+		}
+		return null;
 	}
 
-	private String resolveProviderAttributeValue(User user, String attributeTypeUuid) {
-		if (StringUtils.isBlank(attributeTypeUuid)) {
+	/**
+	 * @return the licence number of the provider of the most recent encounter of the admission's visit that has one
+	 */
+	String resolveVisitClinicianLicense(Admission admission) {
+		Visit visit = admission == null ? null : admission.getVisit();
+		if (visit == null || visit.getNonVoidedEncounters() == null || providerService == null) {
 			return null;
 		}
-			ProviderAttributeType attributeType = providerService.getProviderAttributeTypeByUuid(attributeTypeUuid);
-			if (attributeType == null) {
-				log.warn("Unable to find provider attribute type with uuid " + attributeTypeUuid);
-				return null;
+		List<Encounter> encounters = new ArrayList<Encounter>(visit.getNonVoidedEncounters());
+		Collections.sort(encounters, new java.util.Comparator<Encounter>() {
+			@Override
+			public int compare(Encounter left, Encounter right) {
+				Date leftDate = left.getEncounterDatetime();
+				Date rightDate = right.getEncounterDatetime();
+				if (leftDate == null || rightDate == null) {
+					return leftDate == null ? (rightDate == null ? 0 : 1) : -1;
+				}
+				return rightDate.compareTo(leftDate);
 			}
-		for (Provider provider : providerService.getProvidersByPerson(user.getPerson(), false)) {
-			for (ProviderAttribute attribute : provider.getAttributes()) {
-				if (attribute != null && attributeType.equals(attribute.getAttributeType())) {
-					String value = attribute.getValueReference();
-					if (StringUtils.isBlank(value) && attribute.getValue() != null) {
-						value = attribute.getValue().toString();
-					}
-					if (StringUtils.isNotBlank(value)) {
+		});
+		List<ProviderAttributeType> types = providerLicenseAttributeTypes();
+		for (Encounter encounter : encounters) {
+			for (EncounterProvider encounterProvider : encounter.getActiveEncounterProviders()) {
+				for (ProviderAttributeType type : types) {
+					String value = providerAttributeValue(encounterProvider.getProvider(), type);
+					if (value != null) {
 						return value;
 					}
 				}
+			}
+		}
+		return null;
+	}
+
+	private List<ProviderAttributeType> providerLicenseAttributeTypes() {
+		List<ProviderAttributeType> ret = new ArrayList<ProviderAttributeType>();
+		List<ProviderAttributeType> all = providerService.getAllProviderAttributeTypes(false);
+		if (all != null) {
+			for (ProviderAttributeType type : all) {
+				if (type != null && PROVIDER_LICENSE_ATTRIBUTE_TYPE_NAME.equals(type.getName())) {
+					ret.add(type);
+				}
+			}
+		}
+		String legacyUuid = config == null ? null : StringUtils.trimToNull(config.getProviderLicenseAttributeTypeUuid());
+		if (legacyUuid != null) {
+			ProviderAttributeType legacy = providerService.getProviderAttributeTypeByUuid(legacyUuid);
+			if (legacy != null && !ret.contains(legacy)) {
+				ret.add(legacy);
+			}
+		}
+		return ret;
+	}
+
+	private String providerAttributeValue(Provider provider, ProviderAttributeType type) {
+		if (provider == null || type == null || provider.getActiveAttributes() == null) {
+			return null;
+		}
+		for (ProviderAttribute attribute : provider.getActiveAttributes()) {
+			if (attribute != null && type.equals(attribute.getAttributeType())) {
+				String value = attribute.getValueReference();
+				if (StringUtils.isBlank(value) && attribute.getValue() != null) {
+					value = attribute.getValue().toString();
+				}
+				if (StringUtils.isNotBlank(value)) {
+					return value.trim();
+				}
+			}
+		}
+		return null;
+	}
+
+	private String resolveProviderAttributeValue(User user, String attributeTypeUuid) {
+		if (user == null || user.getPerson() == null || StringUtils.isBlank(attributeTypeUuid) || providerService == null) {
+			return null;
+		}
+		ProviderAttributeType attributeType = providerService.getProviderAttributeTypeByUuid(attributeTypeUuid);
+		if (attributeType == null) {
+			log.warn("Unable to find provider attribute type with uuid " + attributeTypeUuid);
+			return null;
+		}
+		for (Provider provider : providerService.getProvidersByPerson(user.getPerson(), false)) {
+			String value = providerAttributeValue(provider, attributeType);
+			if (value != null) {
+				return value;
 			}
 		}
 		return null;
@@ -1636,10 +1840,128 @@ public class RhipVoucherService {
 		return rejectedProcedures;
 	}
 
+	/**
+	 * Keeps off an MMI voucher every procedure MMI must approve that it has not approved (RHIP Unified Insurance
+	 * Integration Guide: MMI, section 7). They are recorded as rejected lines needing approval, so the global bill
+	 * shows them, links to the approvals page and can resend them once approved. A partly approved line is billed for
+	 * the approved quantity.
+	 *
+	 * @return the lines held back
+	 */
+	List<RhipVoucherProcedure> holdBackUnapprovedProcedures(GlobalBill globalBill, RhipVoucherRequest request) {
+		if (request == null || !isMmiInsuranceType(request.getInsuranceType()) || request.getProcedures() == null
+				|| request.getProcedures().isEmpty()) {
+			return Collections.emptyList();
+		}
+		if (approvalRequiredProducts != null && globalBill != null
+				&& approvalRequiredProducts.getInsuranceTypeIfChecked(resolveInsurance(globalBill)) == null) {
+			// The bill's insurance is not one whose procedures need approval (mohbilling.approvalRequired.insurances)
+			return Collections.emptyList();
+		}
+		Set<String> requiredCodes = approvalRequiredProducts == null ? null
+				: approvalRequiredProducts.getCodes(request.getInsuranceType(), request.getFacilityFosaId());
+		Map<String, MmiApproval> approvals = readMmiApprovals(request.getVisitReferenceNumber());
+		Map<String, String> reasons = new HashMap<String, String>();
+		List<RhipVoucherProcedure> held = applyApprovalRule(request.getProcedures(), requiredCodes, approvals, reasons);
+		if (!held.isEmpty()) {
+			List<RhipVoucherProcedure> kept = new ArrayList<RhipVoucherProcedure>(request.getProcedures());
+			kept.removeAll(held);
+			request.setProcedures(kept);
+			persistVoucherItemRecords(globalBill, held, RhipVoucherItemRecord.STATUS_REJECTED, null, null, reasons);
+		}
+		return held;
+	}
+
+	/**
+	 * @param requiredCodes the codes MMI must approve, or null when RHIP's list could not be obtained (then only the
+	 * codes with an approval request are known to need one)
+	 * @param approvals the reception's approval lines by upper-case code
+	 * @param reasons filled with why each held line is held, by code
+	 * @return the lines to hold back; the quantity of a partly approved line is lowered to the approved quantity
+	 */
+	static List<RhipVoucherProcedure> applyApprovalRule(List<RhipVoucherProcedure> procedures, Set<String> requiredCodes,
+	                                                   Map<String, MmiApproval> approvals, Map<String, String> reasons) {
+		List<RhipVoucherProcedure> held = new ArrayList<RhipVoucherProcedure>();
+		for (RhipVoucherProcedure procedure : procedures) {
+			if (procedure == null || StringUtils.isBlank(procedure.getCode())) {
+				continue;
+			}
+			String code = procedure.getCode().trim().toUpperCase();
+			MmiApproval approval = approvals.get(code);
+			boolean needsApproval = (requiredCodes != null && requiredCodes.contains(code)) || approval != null;
+			if (!needsApproval) {
+				continue;
+			}
+			if (approval != null && approval.isApproved()) {
+				if (approval.approvedQuantity != null && procedure.getQuantity() != null
+						&& approval.approvedQuantity.compareTo(procedure.getQuantity()) < 0) {
+					procedure.setQuantity(approval.approvedQuantity);
+				}
+				continue;
+			}
+			held.add(procedure);
+			reasons.put(procedure.getCode().trim(), MMI_APPROVAL_NEEDED_LABEL + ": " + (approval == null
+					? "no approval requested yet" : approval.describe()));
+		}
+		return held;
+	}
+
+	/**
+	 * @return the approval lines of an MMI reception, by upper-case code (the latest line of each code), from the
+	 * rwandaemr approvals table; none when the table is not there
+	 */
+	Map<String, MmiApproval> readMmiApprovals(String visitReferenceNumber) {
+		Map<String, MmiApproval> ret = new HashMap<String, MmiApproval>();
+		if (StringUtils.isBlank(visitReferenceNumber) || !visitReferenceNumber.trim().matches("[A-Za-z0-9_./-]+")) {
+			return ret;
+		}
+		List<List<Object>> rows = executeSql("select product_code, approval_status, approved_quantity "
+				+ "from rhip_approval_request_log where visit_reference_number = '" + visitReferenceNumber.trim() + "' "
+				+ "order by rhip_approval_request_log_id");
+		for (List<Object> row : rows) {
+			if (row == null || row.size() < 3 || row.get(0) == null) {
+				continue;
+			}
+			BigDecimal approvedQuantity = row.get(2) == null ? null : new BigDecimal(row.get(2).toString());
+			ret.put(row.get(0).toString().trim().toUpperCase(),
+					new MmiApproval(row.get(1) == null ? null : row.get(1).toString(), approvedQuantity));
+		}
+		return ret;
+	}
+
+	static class MmiApproval {
+
+		private final String status;
+
+		private final BigDecimal approvedQuantity;
+
+		MmiApproval(String status, BigDecimal approvedQuantity) {
+			this.status = StringUtils.trimToEmpty(status).toUpperCase();
+			this.approvedQuantity = approvedQuantity;
+		}
+
+		boolean isApproved() {
+			return "APPROVED".equals(status) || "PARTIALLY_APPROVED".equals(status);
+		}
+
+		String describe() {
+			if ("REJECTED".equals(status)) {
+				return "MMI rejected the approval";
+			}
+			if ("FAILED".equals(status)) {
+				return "the approval request failed; send it again from the approvals page";
+			}
+			return "waiting for MMI's decision";
+		}
+	}
+
 	private IntegrationResponse handlePartialVoucherSubmission(GlobalBill globalBill, RhipVoucherRequest originalRequest,
 	                                                          IntegrationResponse firstResponse) {
-		if (globalBill == null || originalRequest == null || firstResponse == null
-				|| Boolean.TRUE.equals(isSuccessResponse(firstResponse))) {
+		if (globalBill == null || originalRequest == null || firstResponse == null) {
+			return firstResponse;
+		}
+		if (Boolean.TRUE.equals(isSuccessResponse(firstResponse))) {
+			recordMmiVoucherLines(globalBill, originalRequest, firstResponse);
 			return firstResponse;
 		}
 		VoucherValidationResult validationResult = extractVoucherValidationResult(firstResponse);
@@ -1757,6 +2079,389 @@ public class RhipVoucherService {
 		return identifiers;
 	}
 
+	/**
+	 * MMI answers HTTP 200 even when it leaves lines out, listing them in data.issues. Lines with a blocking issue are
+	 * recorded as rejected with MMI's reason; the others as sent, with MMI's warning when there is one.
+	 */
+	void recordMmiVoucherLines(GlobalBill globalBill, RhipVoucherRequest request, IntegrationResponse response) {
+		if (request == null || !isMmiInsuranceType(request.getInsuranceType()) || request.getProcedures() == null) {
+			return;
+		}
+		MmiVoucherIssues issues = extractMmiVoucherIssues(response);
+		VoucherIdentifiers identifiers = extractVoucherIdentifiers(response);
+		List<RhipVoucherProcedure> sent = new ArrayList<RhipVoucherProcedure>();
+		List<RhipVoucherProcedure> rejected = new ArrayList<RhipVoucherProcedure>();
+		for (RhipVoucherProcedure procedure : request.getProcedures()) {
+			if (procedure == null || StringUtils.isBlank(procedure.getCode())) {
+				continue;
+			}
+			if (issues.blockingByCode.containsKey(procedure.getCode().trim())) {
+				rejected.add(procedure);
+			}
+			else {
+				sent.add(procedure);
+			}
+		}
+		persistVoucherItemRecords(globalBill, sent, RhipVoucherItemRecord.STATUS_SENT, identifiers.voucherCode,
+				identifiers.voucherReferenceNumber, issues.warningByCode);
+		persistVoucherItemRecords(globalBill, rejected, RhipVoucherItemRecord.STATUS_REJECTED, identifiers.voucherCode,
+				identifiers.voucherReferenceNumber, issues.blockingByCode);
+	}
+
+	/**
+	 * @return a one-line summary of what MMI left out or flagged, or null when it took every line as sent
+	 */
+	public String describeMmiVoucherIssues(IntegrationResponse response) {
+		MmiVoucherIssues issues = extractMmiVoucherIssues(response);
+		List<String> parts = new ArrayList<String>();
+		if (!issues.blockingByCode.isEmpty()) {
+			parts.add("Not recorded by MMI: " + describeIssues(issues.blockingByCode));
+		}
+		if (!issues.warningByCode.isEmpty()) {
+			parts.add("Warnings: " + describeIssues(issues.warningByCode));
+		}
+		if (!issues.other.isEmpty()) {
+			parts.add(StringUtils.join(issues.other, "; "));
+		}
+		return parts.isEmpty() ? null : StringUtils.join(parts, ". ");
+	}
+
+	private String describeIssues(Map<String, String> issuesByCode) {
+		List<String> ret = new ArrayList<String>();
+		for (Map.Entry<String, String> entry : issuesByCode.entrySet()) {
+			ret.add(entry.getKey() + " (" + entry.getValue() + ")");
+		}
+		return StringUtils.join(ret, ", ");
+	}
+
+	MmiVoucherIssues extractMmiVoucherIssues(IntegrationResponse response) {
+		MmiVoucherIssues issues = new MmiVoucherIssues();
+		JsonNode root = toJsonNode(response == null ? null : response.getResponseEntity());
+		JsonNode data = root == null ? null : root.get("data");
+		JsonNode issueNodes = data == null ? null : data.get("issues");
+		if (issueNodes == null || !issueNodes.isArray()) {
+			return issues;
+		}
+		for (JsonNode issue : issueNodes) {
+			String type = StringUtils.defaultString(jsonText(issue.get("type"))).trim().toUpperCase();
+			String code = StringUtils.trimToNull(jsonText(issue.get("code")));
+			String reason = describeMmiIssue(type, jsonText(issue.get("reason")), issue.get("products"));
+			if ("UNRESOLVED_DIAGNOSIS".equals(type) || code == null) {
+				issues.other.add(reason + (code == null ? "" : " [" + code + "]"));
+			}
+			else if ("MEDICINE_WARNING".equals(type) || "PROCEDURE_DENIED".equals(type)) {
+				issues.warningByCode.put(code, reason);
+			}
+			else {
+				issues.blockingByCode.put(code, reason);
+			}
+		}
+		return issues;
+	}
+
+	private String describeMmiIssue(String type, String reason, JsonNode products) {
+		String label;
+		if ("UNRESOLVED_CODE".equals(type)) {
+			label = "MMI does not recognise this code";
+		}
+		else if ("UNRESOLVED_DIAGNOSIS".equals(type)) {
+			label = "MMI does not recognise a diagnosis code";
+		}
+		else if ("PROCEDURE_BLOCKED".equals(type)) {
+			label = MMI_APPROVAL_NEEDED_LABEL;
+		}
+		else if ("PROCEDURE_DENIED".equals(type)) {
+			label = "Already recorded by another practitioner";
+		}
+		else if ("MEDICINE_WARNING".equals(type)) {
+			label = "Recorded with a warning";
+		}
+		else {
+			label = StringUtils.isBlank(type) ? "Not recorded by MMI" : type;
+		}
+		StringBuilder ret = new StringBuilder(label);
+		if (StringUtils.isNotBlank(reason) && !reason.trim().equalsIgnoreCase(label)) {
+			ret.append(": ").append(reason.trim());
+		}
+		if (products != null && products.isArray() && products.size() > 0) {
+			List<String> choices = new ArrayList<String>();
+			for (JsonNode product : products) {
+				String medProcCode = jsonText(product.get("medProcCode"));
+				String name = jsonText(product.get("name"));
+				String facilityPrice = jsonText(product.get("facilityPrice"));
+				choices.add(StringUtils.defaultString(medProcCode) + (StringUtils.isBlank(name) ? "" : " " + name)
+						+ (StringUtils.isBlank(facilityPrice) ? "" : " (facility price " + facilityPrice + ")"));
+			}
+			ret.append(". This code covers several products; map the item to one of: ")
+					.append(StringUtils.join(choices, ", "));
+		}
+		return ret.toString();
+	}
+
+	/**
+	 * Sends again, on the same MMI reception, only the lines of this global bill that MMI did not record last time,
+	 * once they have been fixed (code mapping, approval, instructions). Lines MMI recorded are never sent twice.
+	 */
+	public RhipVoucherSubmission resubmitMmiRejectedLines(GlobalBill globalBill) {
+		User currentUser = getAuthenticatedUserSafely();
+		RhipVoucherSubmission submission = newVoucherSubmission(globalBill, currentUser);
+		if (billingService == null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Billing service is not configured");
+			return submission;
+		}
+		if (globalBill == null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Global bill is required");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		if (!isMmiInsurance(resolveInsurance(globalBill))) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Resending rejected lines is only available for MMI");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		if (getConfirmedVoucherSubmission(globalBill) != null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("The MMI bill is already closed; no line can be added to it");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		Set<Integer> rejectedItemIds = getLatestRejectedItemIds(globalBill);
+		if (rejectedItemIds.isEmpty()) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("No rejected MMI line to resend");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		RhipVoucherRequest request;
+		try {
+			request = buildVoucherRequestFromGlobalBill(globalBill);
+		}
+		catch (IllegalStateException e) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Invalid RHIP voucher request: " + e.getMessage());
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		if (request == null || request.getProcedures() == null) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("Unable to build voucher request from global bill");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		List<RhipVoucherProcedure> toResend = new ArrayList<RhipVoucherProcedure>();
+		for (RhipVoucherProcedure procedure : request.getProcedures()) {
+			if (procedure != null && rejectedItemIds.contains(procedure.getPatientServiceBillId())) {
+				toResend.add(procedure);
+			}
+		}
+		if (toResend.isEmpty()) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("The rejected lines are no longer on this bill or have no RHIP code");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		request.setProcedures(toResend);
+		holdBackUnapprovedProcedures(globalBill, request);
+		if (request.getProcedures().isEmpty()) {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage("The rejected lines still need MMI's approval");
+			return billingService.saveRhipVoucherSubmission(submission);
+		}
+		submission.setRequestPayload(toJson(request));
+		IntegrationResponse response = submitVoucher(request);
+		submission.setResponseCode(response == null ? null : response.getResponseCode());
+		submission.setResponsePayload(toJson(response == null ? null : response.getResponseEntity()));
+		if (Boolean.TRUE.equals(isSuccessResponse(response))) {
+			recordMmiVoucherLines(globalBill, request, response);
+			VoucherIdentifiers identifiers = extractVoucherIdentifiers(response);
+			submission.setStatus(RhipVoucherSubmission.STATUS_SENT);
+			submission.setVoucherCode(identifiers.voucherCode);
+			submission.setVoucherReferenceNumber(identifiers.voucherReferenceNumber);
+			submission.setErrorMessage(describeMmiVoucherIssues(response));
+			if (!hasExistingVoucherIdentifiers(globalBill) && (StringUtils.isNotBlank(identifiers.voucherCode)
+					|| StringUtils.isNotBlank(identifiers.voucherReferenceNumber))) {
+				globalBill.setRhipVoucherCode(identifiers.voucherCode);
+				globalBill.setRhipVoucherReferenceNumber(identifiers.voucherReferenceNumber);
+				billingService.saveGlobalBill(globalBill);
+			}
+		}
+		else {
+			submission.setStatus(RhipVoucherSubmission.STATUS_FAILED);
+			submission.setErrorMessage(response != null && response.getErrorMessage() != null
+					&& response.getErrorMessage().startsWith("Invalid RHIP voucher request")
+					? response.getErrorMessage() : resolveVoucherSubmissionError(response));
+		}
+		return billingService.saveRhipVoucherSubmission(submission);
+	}
+
+	/**
+	 * @return the bill items whose latest MMI line record is rejected
+	 */
+	public Set<Integer> getLatestRejectedItemIds(GlobalBill globalBill) {
+		Set<Integer> ret = new LinkedHashSet<Integer>();
+		for (Map.Entry<Integer, RhipVoucherItemRecord> entry : getLatestItemRecords(globalBill).entrySet()) {
+			if (RhipVoucherItemRecord.STATUS_REJECTED.equals(entry.getValue().getStatus())) {
+				ret.add(entry.getKey());
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * @return the codes of the bill's lines that MMI left off the voucher because they need its approval first
+	 * (PROCEDURE_BLOCKED), so staff can request it
+	 */
+	public Set<String> getLatestApprovalBlockedCodes(GlobalBill globalBill) {
+		Set<String> ret = new LinkedHashSet<String>();
+		for (RhipVoucherItemRecord record : getLatestItemRecords(globalBill).values()) {
+			if (RhipVoucherItemRecord.STATUS_REJECTED.equals(record.getStatus())
+					&& StringUtils.startsWith(record.getRejectionReason(), MMI_APPROVAL_NEEDED_LABEL)
+					&& StringUtils.isNotBlank(record.getProductCode())) {
+				ret.add(record.getProductCode().trim());
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * The approval state of the bill's lines that need MMI's approval, for the bill page, from the moment they are
+	 * billed (before any voucher): the line stays on the bill but is held off the voucher until approved.
+	 *
+	 * @return labels by patient service bill id; none for lines that need no approval or bills of other insurances
+	 */
+	public Map<Integer, ApprovalLabel> getApprovalLabels(GlobalBill globalBill, List<PatientServiceBill> items) {
+		Map<Integer, ApprovalLabel> ret = new HashMap<Integer, ApprovalLabel>();
+		if (approvalRequiredProducts == null || globalBill == null || items == null || items.isEmpty()) {
+			return ret;
+		}
+		try {
+			String insuranceType = approvalRequiredProducts.getInsuranceTypeIfChecked(resolveInsurance(globalBill));
+			if (!isMmiInsuranceType(insuranceType)) {
+				return ret;
+			}
+			Set<String> requiredCodes = approvalRequiredProducts.getCodes(insuranceType, resolveFosaId(globalBill));
+			Admission admission = globalBill.getAdmission();
+			InsurancePolicy policy = admission == null ? null : admission.getInsurancePolicy();
+			Patient patient = policy == null ? null : policy.getOwner();
+			Map<String, MmiApproval> approvals = readMmiApprovals(resolveMmiReceptionNumber(null, patient, admission));
+			for (PatientServiceBill item : items) {
+				if (item == null || item.getPatientServiceBillId() == null || item.getService() == null) {
+					continue;
+				}
+				String code = extractProcedureCode(item.getService().getFacilityServicePrice());
+				ApprovalLabel label = approvalLabel(code, item.getQuantity(), requiredCodes, approvals);
+				if (label != null) {
+					ret.put(item.getPatientServiceBillId(), label);
+				}
+			}
+		}
+		catch (Exception e) {
+			log.warn("Unable to work out which bill lines are waiting for MMI's approval", e);
+		}
+		return ret;
+	}
+
+	/**
+	 * @return the approval state of a line, or null when its code needs no approval
+	 */
+	static ApprovalLabel approvalLabel(String code, BigDecimal quantity, Set<String> requiredCodes,
+	                                   Map<String, MmiApproval> approvals) {
+		if (StringUtils.isBlank(code)) {
+			return null;
+		}
+		String key = code.trim().toUpperCase();
+		MmiApproval approval = approvals == null ? null : approvals.get(key);
+		if (approval == null && (requiredCodes == null || !requiredCodes.contains(key))) {
+			return null;
+		}
+		if (approval == null) {
+			return new ApprovalLabel(ApprovalLabel.WAITING, "Waiting for MMI approval",
+					"Approval not requested yet");
+		}
+		if (approval.isApproved()) {
+			if (approval.approvedQuantity != null && quantity != null
+					&& approval.approvedQuantity.compareTo(quantity) < 0) {
+				return new ApprovalLabel(ApprovalLabel.APPROVED, "Approved by MMI",
+						"Only " + approval.approvedQuantity.stripTrailingZeros().toPlainString() + " of "
+								+ quantity.stripTrailingZeros().toPlainString() + " approved; the rest is not sent");
+			}
+			return new ApprovalLabel(ApprovalLabel.APPROVED, "Approved by MMI", null);
+		}
+		if ("REJECTED".equals(approval.status)) {
+			return new ApprovalLabel(ApprovalLabel.REJECTED, "Rejected by MMI", "Not sent on the voucher");
+		}
+		if ("FAILED".equals(approval.status)) {
+			return new ApprovalLabel(ApprovalLabel.WAITING, "Waiting for MMI approval",
+					"The request failed; send it again from the approvals page");
+		}
+		return new ApprovalLabel(ApprovalLabel.WAITING, "Waiting for MMI approval", "Requested, MMI has not decided yet");
+	}
+
+	public static class ApprovalLabel {
+
+		public static final String WAITING = "WAITING";
+
+		public static final String APPROVED = "APPROVED";
+
+		public static final String REJECTED = "REJECTED";
+
+		private final String state;
+
+		private final String label;
+
+		private final String detail;
+
+		ApprovalLabel(String state, String label, String detail) {
+			this.state = state;
+			this.label = label;
+			this.detail = detail;
+		}
+
+		public String getState() {
+			return state;
+		}
+
+		public String getLabel() {
+			return label;
+		}
+
+		public String getDetail() {
+			return detail;
+		}
+	}
+
+	private Map<Integer, RhipVoucherItemRecord> getLatestItemRecords(GlobalBill globalBill) {
+		Map<Integer, RhipVoucherItemRecord> latest = new HashMap<Integer, RhipVoucherItemRecord>();
+		List<RhipVoucherItemRecord> records = billingService.getRhipVoucherItemRecordsByGlobalBill(globalBill);
+		if (records != null) {
+			for (RhipVoucherItemRecord record : records) {
+				if (record == null || record.getPatientServiceBill() == null
+						|| record.getPatientServiceBill().getPatientServiceBillId() == null) {
+					continue;
+				}
+				Integer itemId = record.getPatientServiceBill().getPatientServiceBillId();
+				RhipVoucherItemRecord current = latest.get(itemId);
+				if (current == null || isLater(record, current)) {
+					latest.put(itemId, record);
+				}
+			}
+		}
+		return latest;
+	}
+
+	private boolean isLater(RhipVoucherItemRecord candidate, RhipVoucherItemRecord current) {
+		Date candidateDate = candidate.getDateCreated();
+		Date currentDate = current.getDateCreated();
+		if (candidateDate != null && currentDate != null && !candidateDate.equals(currentDate)) {
+			return candidateDate.after(currentDate);
+		}
+		Integer candidateId = candidate.getRhipVoucherItemRecordId();
+		Integer currentId = current.getRhipVoucherItemRecordId();
+		return candidateId != null && (currentId == null || candidateId > currentId);
+	}
+
+	static class MmiVoucherIssues {
+		final Map<String, String> blockingByCode = new LinkedHashMap<String, String>();
+		final Map<String, String> warningByCode = new LinkedHashMap<String, String>();
+		final List<String> other = new ArrayList<String>();
+	}
+
 	private void persistVoucherItemRecords(GlobalBill globalBill, List<RhipVoucherProcedure> procedures, String status,
 	                                       String voucherCode, String voucherReferenceNumber,
 	                                       Map<String, String> rejectionReasonsByCode) {
@@ -1832,6 +2537,9 @@ public class RhipVoucherService {
 		if (facilityServicePrice == null) {
 			return null;
 		}
+		if (StringUtils.isNotBlank(facilityServicePrice.getRhicCode())) {
+			return facilityServicePrice.getRhicCode().trim();
+		}
 		String name = facilityServicePrice.getName();
 		if (StringUtils.isBlank(name)) {
 			return null;
@@ -1901,6 +2609,78 @@ public class RhipVoucherService {
 			}
 			if (!target.contains(trimmed)) {
 				target.add(trimmed);
+			}
+		}
+	}
+
+	/**
+	 * @return the codes of both lists, once each, in order: the diagnosis obs first, then the ICD-11 diagnoses
+	 */
+	static List<String> mergeDiagnosisIds(List<String> fromObs, List<String> fromIcd11) {
+		Set<String> codes = new LinkedHashSet<String>();
+		if (fromObs != null) {
+			codes.addAll(fromObs);
+		}
+		if (fromIcd11 != null) {
+			codes.addAll(fromIcd11);
+		}
+		return codes.isEmpty() ? Collections.<String>emptyList() : new ArrayList<String>(codes);
+	}
+
+	/**
+	 * ICD-11 diagnoses entered with the ICD-11 diagnosis tool, for the patient's encounters between the admission and
+	 * discharge days. That tool keeps every diagnosis with its code in rwandaemr_icd11_patient_diagnosis, but only
+	 * writes a diagnosis obs when the code maps to a local concept, so the obs alone miss unmapped codes.
+	 */
+	List<String> resolveIcd11DiagnosisCodes(Patient patient, Admission admission, GlobalBill globalBill) {
+		if (patient == null || patient.getPatientId() == null) {
+			return Collections.emptyList();
+		}
+		Date start = getStartOfDay(resolveAdmissionDate(globalBill, admission));
+		Date end = getEndOfDay(resolveDischargeDate(globalBill, admission));
+		if (start == null || end == null) {
+			return Collections.emptyList();
+		}
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String sql = "select d.icd11_code from rwandaemr_icd11_patient_diagnosis d "
+				+ "join encounter e on e.encounter_id = d.encounter_id "
+				+ "where d.patient_id = " + patient.getPatientId().intValue() + " "
+				+ "and d.voided = 0 and e.voided = 0 "
+				+ "and d.icd11_code is not null and trim(d.icd11_code) <> '' "
+				+ "and e.encounter_datetime >= '" + format.format(start) + "' "
+				+ "and e.encounter_datetime <= '" + format.format(end) + "' "
+				+ "order by e.encounter_datetime, d.icd11_patient_diagnosis_id";
+		List<String> codes = new ArrayList<String>();
+		for (List<Object> row : executeSql(sql)) {
+			Object value = row == null || row.isEmpty() ? null : row.get(0);
+			String code = value == null ? null : StringUtils.trimToNull(value.toString());
+			if (code != null && !codes.contains(code)) {
+				codes.add(code);
+			}
+		}
+		return codes;
+	}
+
+	/**
+	 * Runs a read-only lookup; returns no rows when it fails, e.g. on a server without the rwandaemr ICD-11 or
+	 * approvals table
+	 */
+	protected List<List<Object>> executeSql(String sql) {
+		// Read-only lookups made for whoever sends the voucher; billing staff do not have the SQL privilege
+		boolean privileged = false;
+		try {
+			Context.addProxyPrivilege("SQL Level Access");
+			privileged = true;
+			List<List<Object>> rows = Context.getAdministrationService().executeSQL(sql, true);
+			return rows == null ? Collections.<List<Object>>emptyList() : rows;
+		}
+		catch (Exception e) {
+			log.debug("Unable to run a lookup for the RHIP voucher: " + sql, e);
+			return Collections.<List<Object>>emptyList();
+		}
+		finally {
+			if (privileged) {
+				Context.removeProxyPrivilege("SQL Level Access");
 			}
 		}
 	}
@@ -2076,6 +2856,10 @@ public class RhipVoucherService {
 		calendar.set(Calendar.SECOND, 59);
 		calendar.set(Calendar.MILLISECOND, 999);
 		return calendar.getTime();
+	}
+
+	public void setApprovalRequiredProducts(RhipApprovalRequiredProducts approvalRequiredProducts) {
+		this.approvalRequiredProducts = approvalRequiredProducts;
 	}
 
 	public void setVoucherProvider(RhipVoucherProvider voucherProvider) {

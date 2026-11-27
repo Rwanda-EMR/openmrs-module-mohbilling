@@ -35,6 +35,16 @@
 				<td><openmrs_tag:conceptField formFieldName="facilityServiceRelatedConcept" initialValue="${facilityService.concept.conceptId}" /></td>
 			</tr>
 			<tr>
+				<td>RHIC / RLTC Code</td>
+				<td><input autocomplete="off" type="text" name="facilityServiceRhicCode" size="20" value="<c:out value="${facilityService.rhicCode}"/>"
+						   placeholder="e.g. RHIC-OPTH-072" pattern="[A-Za-z]{4}(-[A-Za-z0-9]+)+"
+						   title="The national RHIC or RLTC code. Left empty, it is taken from the end of the name when the name has one."/>
+					<c:if test="${not empty approvalRequiredBy}">
+						<span style="margin-left: 8px; padding: 2px 8px; border-radius: 10px; background: #fff4e5; color: #b45309; border: 1px solid #f6c77d; font-size: 11px; font-weight: bold;">
+							Needs approval from <c:out value="${approvalRequiredBy}"/></span>
+					</c:if></td>
+			</tr>
+			<tr>
 				<td>Short Name</td>
 				<td><input autocomplete="off" type="text" name="facilityServiceShortName" size="20" value="${facilityService.shortName}"/></td>
 			</tr>

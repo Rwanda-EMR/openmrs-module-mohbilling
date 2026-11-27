@@ -314,7 +314,7 @@ public class RhipVoucherServiceTest {
 	}
 
 	@Test
-	public void submitVoucher_shouldRequireInstructionsAndDurationForMmiMedicineLines() {
+	public void submitVoucher_shouldRequireInstructionsButNotDurationForMmiMedicineLines() {
 		RhipVoucherService service = new RhipVoucherService();
 		CountingProvider provider = new CountingProvider();
 		service.setConfig(new TestConfig(true));
@@ -336,8 +336,9 @@ public class RhipVoucherServiceTest {
 		IntegrationResponse response = service.submitVoucher(request);
 
 		Assert.assertNotNull(response);
-		Assert.assertTrue(response.getErrorMessage().contains("instructions is required for MMI medicine lines"));
-		Assert.assertTrue(response.getErrorMessage().contains("durationDays is required for MMI medicine lines"));
+		Assert.assertTrue(response.getErrorMessage().contains("(G03HA01001) needs dosage instructions"));
+		Assert.assertFalse(response.getErrorMessage().contains("durationDays"));
+		Assert.assertTrue(response.getErrorMessage().contains("diagnosisIds is required"));
 		Assert.assertEquals(0, provider.submitVoucherCalls);
 	}
 
@@ -354,6 +355,7 @@ public class RhipVoucherServiceTest {
 		request.setPatientIdentifier("MMI-001");
 		request.setPractitionerLicenseNumber("LIC-01");
 		request.setVisitReferenceNumber("REC-001");
+		request.setDiagnosisIds(Collections.singletonList("CA40.Z"));
 
 		RhipVoucherProcedure medicine = new RhipVoucherProcedure();
 		medicine.setCode("N02BE0102E");
@@ -389,6 +391,7 @@ public class RhipVoucherServiceTest {
 		request.setPatientIdentifier("MMI-001");
 		request.setPractitionerLicenseNumber("LIC-01");
 		request.setVisitReferenceNumber("REC-001");
+		request.setDiagnosisIds(Collections.singletonList("CA40.Z"));
 
 		RhipVoucherProcedure procedure = new RhipVoucherProcedure();
 		procedure.setCode("G03HA01001");
@@ -691,6 +694,7 @@ public class RhipVoucherServiceTest {
 			request.setPatientIdentifier("P-001");
 			request.setPractitionerLicenseNumber("LIC-01");
 			request.setVisitReferenceNumber("VISIT-001");
+			request.setDiagnosisIds(Collections.singletonList("CA40.Z"));
 			request.setProcedures(Collections.singletonList(voucherProcedureForSubmit()));
 			return request;
 		}

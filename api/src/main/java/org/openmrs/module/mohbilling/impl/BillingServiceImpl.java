@@ -194,6 +194,17 @@ public class BillingServiceImpl implements BillingService {
         if (fsp.getName() == null) {
             throw new APIException("Facility Service name is required");
         }
+        if (org.apache.commons.lang.StringUtils.isNotBlank(fsp.getRhicCode())) {
+            String code = org.openmrs.module.mohbilling.utils.RhicCode.normalize(fsp.getRhicCode());
+            if (code == null) {
+                throw new APIException("'" + fsp.getRhicCode().trim() + "' is not an RHIC or RLTC code (e.g. RHIC-OPTH-072)");
+            }
+            fsp.setRhicCode(code);
+        }
+        else {
+            // Items whose code is still only in the name ("...|RHIC-OPTH-072") get it in its own column
+            fsp.setRhicCode(org.openmrs.module.mohbilling.utils.RhicCode.fromName(fsp.getName()));
+        }
         billingDAO.saveFacilityServicePrice(fsp);
     }
 
@@ -3469,6 +3480,11 @@ public class BillingServiceImpl implements BillingService {
 	@Transactional(readOnly = true)
 	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria) {
 		return billingDAO.countRhipVoucherSubmissionGlobalBills(criteria);
+	}
+
+	@Override
+	public List<Integer> getRhipVoucherSubmissionGlobalBillIds(RhipVoucherSubmissionSearchCriteria criteria) {
+		return billingDAO.getRhipVoucherSubmissionGlobalBillIds(criteria);
 	}
 
 

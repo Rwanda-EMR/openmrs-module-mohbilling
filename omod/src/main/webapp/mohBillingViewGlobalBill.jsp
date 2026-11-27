@@ -9,6 +9,10 @@
 <openmrs:htmlInclude file="/moduleResources/mohbilling/jquery-ui.css" />
 
 <style>
+	.approvalTag { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 11px; font-weight: bold; white-space: nowrap; }
+	.approvalWAITING { background: #fff4e5; color: #b45309; border: 1px solid #f6c77d; }
+	.approvalAPPROVED { background: #e8f7ee; color: #166534; border: 1px solid #86d0a0; }
+	.approvalREJECTED { background: #fdecec; color: #b91c1c; border: 1px solid #f3a5a5; }
 	.ui-widget-header,.ui-state-default, ui-button{
 		background:lightseagreen;
 		color: white;
@@ -50,6 +54,11 @@
 			}
 			$("#invalid_close").text("Please! Select Reverting Reason").show().fadeOut(4000);
 			event.preventDefault();
+		});
+		$("#btnResendMmiLines").on("click",function(){
+			if (confirm("Send the lines MMI did not record to MMI again? Fix them first (code mapping, approval, dosage instructions).")) {
+				$("#resendMmiLinesForm").submit();
+			}
 		});
 		$("#btnSendVoucher").on("click",function(){
 			if (confirm("Are you sure you want to send the RHIP voucher?")) {
@@ -175,6 +184,21 @@
 
 	</c:if>
 </openmrs:hasPrivilege>
+<c:if test="${mmiRejectedLineCount > 0}">
+	<div style="float: left; margin-left: 10px;">
+		<button id="btnResendMmiLines">Resend ${mmiRejectedLineCount} rejected MMI line(s)</button>
+	</div>
+	<c:if test="${not empty mmiApprovalLink}">
+		<div style="float: left; margin-left: 10px;">
+			<a href="${pageContext.request.contextPath}${mmiApprovalLink}" target="_blank"
+			   title="MMI needs to approve <c:out value="${mmiApprovalBlockedCodes}"/> before billing it">Request MMI approval (<c:out value="${mmiApprovalBlockedCodes}"/>)</a>
+		</div>
+	</c:if>
+	<form action="viewGlobalBill.form" method="post" id="resendMmiLinesForm" style="display: none;">
+		<input type="hidden" name="globalBillId" value="${globalBill.globalBillId}" />
+		<input type="hidden" name="resend_mmi_rejected_lines" value="true" />
+	</form>
+</c:if>
 <c:if test="${showRhipVoucherButton}">
 	<div style="float: left; margin-left: 10px;">
 		<button id="btnSendVoucher">Send RHIP Voucher</button>
@@ -300,12 +324,24 @@
 						<td class="rowValue ${(status.count%2!=0)?'even':''}"><fmt:formatNumber value="${(itemCost*patientRate)/100 }" type="number" pattern="#.##"/></td>
 						<td class="rowValue ${(status.count%2!=0)?'even':''}">
 							<c:set var="rhipItemRecord" value="${rhipVoucherItemRecordsByItemId[item.patientServiceBillId]}" />
-							<c:if test="${not empty rhipItemRecord}">
-								<b>${rhipItemRecord.status}</b>
-								<c:if test="${not empty rhipItemRecord.rejectionReason}">
-									<br/>${rhipItemRecord.rejectionReason}
-								</c:if>
-							</c:if>
+							<c:set var="approvalLabel" value="${approvalLabelsByItemId[item.patientServiceBillId]}" />
+							<c:choose>
+								<c:when test="${not empty approvalLabel}">
+									<span class="approvalTag approval${approvalLabel.state}"><c:out value="${approvalLabel.label}"/></span>
+									<c:if test="${not empty approvalLabel.detail}">
+										<br/><c:out value="${approvalLabel.detail}"/>
+									</c:if>
+									<c:if test="${approvalLabel.state == 'APPROVED' && not empty rhipItemRecord}">
+										<br/>Not on the voucher yet: use Resend
+									</c:if>
+								</c:when>
+								<c:when test="${not empty rhipItemRecord}">
+									<b>${rhipItemRecord.status}</b>
+									<c:if test="${not empty rhipItemRecord.rejectionReason}">
+										<br/>${rhipItemRecord.rejectionReason}
+									</c:if>
+								</c:when>
+							</c:choose>
 						</td>
 						<td class="rowValue ${(status.count%2!=0)?'even':''}">
 							${billItemStatusesByItemId[item.patientServiceBillId]}
