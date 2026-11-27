@@ -59,6 +59,9 @@ public class BillReportItem {
 	private String transferAvailable;
 	private String transferId;
 	private String transferValidity;
+	/** Not in the ETL table: read live from the verification of the item on the RHIP voucher submission page */
+	private String verificationStatus;
+	private String verificationReason;
 
 	public Integer getRowNumber() {
 		return rowNumber;
@@ -434,5 +437,24 @@ public class BillReportItem {
 
 	public void setTransferValidity(String transferValidity) {
 		this.transferValidity = transferValidity;
+	}
+
+	public String getVerificationStatus() {
+		return verificationStatus;
+	}
+
+	public void setVerificationStatus(String verificationStatus) {
+		this.verificationStatus = verificationStatus;
+	}
+
+	/**
+	 * @return the reason the item was rejected, or its rejection disputed
+	 */
+	public String getVerificationReason() {
+		return verificationReason;
+	}
+
+	public void setVerificationReason(String verificationReason) {
+		this.verificationReason = verificationReason;
 	}
 }

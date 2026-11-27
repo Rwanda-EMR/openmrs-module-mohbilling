@@ -888,6 +888,11 @@ public interface BillingDAO {
 			Integer firstResult, Integer maxResults);
 	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria);
 
+	/**
+	 * @return the ids of all the global bills that match the criteria, without loading the bills
+	 */
+	public List<Integer> getRhipVoucherSubmissionGlobalBillIds(RhipVoucherSubmissionSearchCriteria criteria);
+
 	/*public List<PatientBill> getPatientBillsByCollector(Date receivedDate,
 														User collector);
 

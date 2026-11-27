@@ -62,7 +62,9 @@ final class BillReportXlsxWriter {
 			"TOTAL invoice (100%)",
 			"Transfer",
 			"Transfer ID",
-			"Validity Period Start and end date"
+			"Validity Period Start and end date",
+			"Verification status",
+			"Rejection reason"
 	};
 
 	private BillReportXlsxWriter() {
@@ -178,6 +180,8 @@ final class BillReportXlsxWriter {
 		writeTextCell(writer, c++, rowNumber, item.getTransferAvailable(), false);
 		writeTextCell(writer, c++, rowNumber, item.getTransferId(), true);
 		writeTextCell(writer, c++, rowNumber, item.getTransferValidity(), false);
+		writeTextCell(writer, c++, rowNumber, item.getVerificationStatus(), false);
+		writeTextCell(writer, c++, rowNumber, item.getVerificationReason(), false);
 		writer.write("</row>");
 	}
 

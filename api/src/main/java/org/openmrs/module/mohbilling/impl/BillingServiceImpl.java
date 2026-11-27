@@ -3471,6 +3471,11 @@ public class BillingServiceImpl implements BillingService {
 		return billingDAO.countRhipVoucherSubmissionGlobalBills(criteria);
 	}
 
+	@Override
+	public List<Integer> getRhipVoucherSubmissionGlobalBillIds(RhipVoucherSubmissionSearchCriteria criteria) {
+		return billingDAO.getRhipVoucherSubmissionGlobalBillIds(criteria);
+	}
+
 
 	@Override
 	public Proforma saveProforma(Proforma proforma) {

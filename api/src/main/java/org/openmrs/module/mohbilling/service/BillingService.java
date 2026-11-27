@@ -942,6 +942,11 @@ public interface BillingService {
 			Integer firstResult, Integer maxResults);
 	public Integer countRhipVoucherSubmissionGlobalBills(RhipVoucherSubmissionSearchCriteria criteria);
 
+	/**
+	 * @return the ids of all the global bills that match the criteria, without loading the bills
+	 */
+	public List<Integer> getRhipVoucherSubmissionGlobalBillIds(RhipVoucherSubmissionSearchCriteria criteria);
+
 	public Proforma saveProforma(Proforma proforma);
 	public Proforma getProforma(Integer proformaId);
 	public Proforma getProformaByUuid(String uuid);
